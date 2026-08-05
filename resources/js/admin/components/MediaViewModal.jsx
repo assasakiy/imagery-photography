@@ -65,12 +65,15 @@ export default function MediaViewModal({ open, item, onClose, onEdit, onCopyUrl 
                 <div className="flex shrink-0 items-center justify-end gap-2 border-t border-line px-3 py-2">
                     <button className="btn-outline px-2.5 py-1.5" onClick={() => setInfoOpen((s) => !s)} title="Info">
                         <Icon name="more-horizontal" size={16} />
+                        <span className="hidden sm:inline">Info</span>
                     </button>
-                    <button className="btn-outline px-2.5 py-1.5" onClick={() => onCopyUrl?.(item.url)}>
-                        <Icon name="link" size={16} /> Salin URL
+                    <button className="btn-outline px-2.5 py-1.5" onClick={() => onCopyUrl?.(item.url)} title="Salin URL">
+                        <Icon name="link" size={16} />
+                        <span className="hidden sm:inline">Salin URL</span>
                     </button>
-                    <button className="btn-primary px-2.5 py-1.5" onClick={() => onEdit?.(item)}>
-                        <Icon name="edit" size={16} /> Edit
+                    <button className="btn-primary px-2.5 py-1.5" onClick={() => onEdit?.(item)} title="Edit">
+                        <Icon name="edit" size={16} />
+                        <span className="hidden sm:inline">Edit</span>
                     </button>
                 </div>
             </div>
