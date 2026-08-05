@@ -144,7 +144,7 @@ export default function Media() {
                             typeFilter === tab.key ? 'bg-brand-600 text-white' : 'bg-surface-muted text-ink-muted hover:text-ink'
                         }`}
                     >
-                        <Icon name={tab.icon} size={14} /> {tab.label}
+                        <Icon name={tab.icon} size={16} /> <span className="hidden sm:inline">{tab.label}</span>
                     </button>
                 ))}
                 {selecting ? (
@@ -160,8 +160,8 @@ export default function Media() {
                         </button>
                     </div>
                 ) : (
-                    <button className="btn-outline ml-auto px-3 py-1.5" onClick={() => setSelecting(true)}>
-                        <Icon name="check" size={14} /> Pilih
+                    <button className="btn-outline ml-auto px-3 py-1.5" onClick={() => setSelecting(true)} title="Pilih">
+                        <Icon name="check" size={16} /> <span className="hidden sm:inline">Pilih</span>
                     </button>
                 )}
             </div>
