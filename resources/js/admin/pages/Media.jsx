@@ -225,9 +225,18 @@ export default function Media() {
                                     <div className="relative aspect-square overflow-hidden">
                                         {item.type === 'image' ? (
                                             <img src={item.url} alt={item.name} loading="lazy" className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
+                                        ) : item.type === 'video' ? (
+                                            <div className="h-full w-full">
+                                                <video src={item.url} muted preload="metadata" className="h-full w-full object-cover" />
+                                                <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+                                                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-black/50 text-white">
+                                                        <Icon name="video" size={18} />
+                                                    </div>
+                                                </div>
+                                            </div>
                                         ) : (
                                             <div className="flex h-full w-full items-center justify-center bg-surface-muted text-ink-muted">
-                                                <Icon name={item.type === 'video' ? 'video' : 'file'} size={28} />
+                                                <Icon name={item.mime_type === 'application/pdf' ? 'file' : 'file'} size={28} />
                                             </div>
                                         )}
                                         {selecting ? (

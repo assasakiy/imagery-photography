@@ -32,9 +32,16 @@ export default function MediaViewModal({ open, item, onClose, onEdit, onCopyUrl 
                 <div className="relative flex min-h-0 flex-1 items-center justify-center overflow-hidden rounded-2xl border border-line bg-black/40">
                     {item.type === 'image' ? (
                         <img src={item.url} alt={item.name} className="h-full w-full object-contain" />
+                    ) : item.type === 'video' ? (
+                        <video src={item.url} controls autoPlay className="h-full w-full object-contain" />
+                    ) : item.mime_type === 'application/pdf' ? (
+                        <iframe src={item.url} title={item.name} className="h-full w-full" />
                     ) : (
-                        <div className="flex h-48 w-full items-center justify-center text-ink-muted">
-                            <Icon name={item.type === 'video' ? 'video' : 'file'} size={48} />
+                        <div className="flex h-48 w-full flex-col items-center justify-center gap-3 text-ink-muted">
+                            <Icon name="file" size={48} />
+                            <a href={item.url} target="_blank" rel="noreferrer" className="btn-outline text-xs">
+                                <Icon name="download" size={14} /> Buka File
+                            </a>
                         </div>
                     )}
 
