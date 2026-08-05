@@ -41,7 +41,7 @@ const emptyForm = {
 
 export default function Projects() {
     const { user, can } = useAuth();
-    const isAdmin = user?.role === 'admin';
+    const isAdmin = ['admin', 'owner'].includes(user?.role);
     const [items, setItems] = useState([]);
     const [meta, setMeta] = useState({});
     const [status, setStatus] = useState('');

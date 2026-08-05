@@ -10,7 +10,7 @@ import { StatusBadge, statusOptions } from './Projects';
 export default function ProjectDetail() {
     const { id } = useParams();
     const { user } = useAuth();
-    const isAdmin = user?.role === 'admin';
+    const isAdmin = ['admin', 'owner'].includes(user?.role);
     const [project, setProject] = useState(null);
     const [loading, setLoading] = useState(true);
     const [updateText, setUpdateText] = useState('');

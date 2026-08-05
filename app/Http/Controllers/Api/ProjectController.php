@@ -24,7 +24,7 @@ class ProjectController extends Controller
     {
         $user = $request->user();
 
-        if ($user->isAdmin()) {
+        if ($user->isStaff()) {
             $query = Project::with('client', 'payments', 'files');
 
             if ($request->filled('status')) {

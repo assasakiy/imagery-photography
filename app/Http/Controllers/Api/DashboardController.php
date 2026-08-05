@@ -55,7 +55,7 @@ class DashboardController extends Controller
 
     private function isAdmin(): bool
     {
-        return request()->user()->isAdmin();
+        return request()->user()->isStaff();
     }
 
     private function userClient(): ?Client
