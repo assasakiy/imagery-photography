@@ -47,100 +47,62 @@
         </section>
     @endif
 
-    {{-- Price tables (dari konten WordPress) --}}
-    <section class="bg-zinc-100/60 py-20 dark:bg-zinc-900/40">
-        <div class="container-site space-y-16">
-            <div>
-                <div class="mb-8">
-                    <p class="mb-2 text-sm font-semibold uppercase tracking-widest text-brand-600 dark:text-brand-400">I. Satuan</p>
-                    <h2 class="text-2xl font-bold text-ink sm:text-3xl">Paket Stand-Alone</h2>
-                    <p class="mt-2 text-sm text-ink-muted">Layanan satuan, bisa dipilih Foto atau Video saja.</p>
-                </div>
-                <div class="card overflow-hidden">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>Layanan</th>
-                                <th>Foto <span class="font-normal">(Edit + Soft File)</span></th>
-                                <th>Video <span class="font-normal">(3-4 Menit)</span></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach ([
-                                ['Akad', '400k', '500k'],
-                                ['Wedding', '450k', '550k'],
-                                ['Nyongkolan', '500k', '600k'],
-                                ['Ulang Tahun', '350k', '450k'],
-                                ['Hunting', '300k / 3 jam', '300k / 1-2 menit'],
-                                ['Wisuda', '450k / 1 jam', '450k / 1-2 menit'],
-                            ] as [$name, $foto, $video])
-                                <tr>
-                                    <td class="font-semibold text-ink">{{ $name }}</td>
-                                    <td class="text-ink">{{ $foto }}</td>
-                                    <td class="text-ink">{{ $video }}</td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+    {{-- Price tables (dinamis dari dashboard) --}}
+    @php
+        $priceCategories = \App\Models\ServiceCategory::with('items')->where('published', true)->orderBy('order')->get();
+    @endphp
 
-            <div>
-                <div class="mb-8">
-                    <p class="mb-2 text-sm font-semibold uppercase tracking-widest text-brand-600 dark:text-brand-400">II. Premium</p>
-                    <h2 class="text-2xl font-bold text-ink sm:text-3xl">Paket Single Medium</h2>
-                    <p class="mt-2 text-sm text-ink-muted">Bundling satu medium untuk rangkaian acara.</p>
-                </div>
-                <div class="card overflow-hidden">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>Paket</th>
-                                <th>Foto <span class="font-normal">(Bundling)</span></th>
-                                <th>Video <span class="font-normal">(Bundling)</span></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach ([
-                                ['Akad + Wedding', '800k', '900k'],
-                                ['Akad + Nyongkolan', '850k', '950k'],
-                                ['Akad + Wedding + Nyongkolan', '1.200k', '1.500k'],
-                            ] as [$name, $foto, $video])
-                                <tr>
-                                    <td class="font-semibold text-ink">{{ $name }}</td>
-                                    <td class="text-ink">{{ $foto }}</td>
-                                    <td class="text-ink">{{ $video }}</td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <div>
-                <div class="mb-8">
-                    <p class="mb-2 text-sm font-semibold uppercase tracking-widest text-brand-600 dark:text-brand-400">III. Ultimate</p>
-                    <h2 class="text-2xl font-bold text-ink sm:text-3xl">Paket Combo Foto + Video</h2>
-                </div>
-                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                    @foreach ([
-                        ['Akad', '900k'],
-                        ['Wedding', '950k'],
-                        ['Nyongkolan', '950k'],
-                        ['Akad + Wedding', '1.600k'],
-                        ['Akad + Nyongkolan', '1.700k'],
-                        ['Akad + Wedding + Nyongkolan', '2.700k'],
-                    ] as [$name, $price])
-                        <div class="card flex items-center justify-between p-5">
-                            <span class="font-semibold text-ink">{{ $name }}</span>
-                            <span class="text-lg font-bold text-brand-600 dark:text-brand-400">{{ $price }}</span>
+    @if ($priceCategories->isNotEmpty())
+        <section class="bg-zinc-100/60 py-20 dark:bg-zinc-900/40">
+            <div class="container-site space-y-16">
+                @foreach ($priceCategories as $cat)
+                    <div>
+                        <div class="mb-8">
+                            @if ($cat->label)
+                                <p class="mb-2 text-sm font-semibold uppercase tracking-widest text-brand-600 dark:text-brand-400">{{ $cat->label }}</p>
+                            @endif
+                            <h2 class="text-2xl font-bold text-ink sm:text-3xl">{{ $cat->title }}</h2>
+                            @if ($cat->description)
+                                <p class="mt-2 text-sm text-ink-muted">{{ content_plain($cat->description) }}</p>
+                            @endif
                         </div>
-                    @endforeach
-                    <div class="card flex flex-col justify-between p-5">
-                        <span class="font-semibold text-ink">Lainnya</span>
-                        <span class="text-sm text-ink-muted">Ulang Tahun (800k) · Hunting (500k) · Wisuda (750k)</span>
+
+                        @if ($cat->layout === 'grid')
+                            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                                @foreach ($cat->items as $item)
+                                    <div class="card flex items-center justify-between p-5">
+                                        <span class="font-semibold text-ink">{{ $item->name }}</span>
+                                        @if (($item->values[0] ?? '') !== '')
+                                            <span class="text-lg font-bold text-brand-600 dark:text-brand-400">{{ $item->values[0] }}</span>
+                                        @endif
+                                    </div>
+                                @endforeach
+                            </div>
+                        @else
+                            <div class="card overflow-hidden">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            @foreach ($cat->columns ?: ['Layanan', 'Harga'] as $col)
+                                                <th>{{ $col }}</th>
+                                            @endforeach
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach ($cat->items as $item)
+                                            <tr>
+                                                <td class="font-semibold text-ink">{{ $item->name }}</td>
+                                                @foreach ($item->values ?: [] as $val)
+                                                    <td class="text-ink">{{ $val }}</td>
+                                                @endforeach
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        @endif
                     </div>
-                </div>
+                @endforeach
             </div>
 
             <div class="card border-amber-500/40 bg-amber-500/5 p-6">
@@ -155,6 +117,8 @@
                     <li>Untuk paket sekolah atau kebutuhan khusus lainnya, silakan hubungi kami.</li>
                 </ul>
             </div>
+        </section>
+    @endif
 
             <div class="rounded-3xl bg-gradient-to-r from-brand-700 via-brand-600 to-brand-500 p-8 text-center sm:p-12">
                 <h2 class="text-2xl font-bold text-white sm:text-3xl">Siap Mengabadikan Momen Anda?</h2>
