@@ -129,27 +129,9 @@ export default function Media() {
                 title="Media"
                 subtitle="Kumpulan file yang bisa dipakai di seluruh situs."
                 action={
-                    <div className="flex flex-wrap items-center gap-2">
-                        {selecting ? (
-                            <>
-                                <button className="btn bg-red-600 text-white hover:bg-red-700 disabled:opacity-40" disabled={selected.size === 0} onClick={() => setBulkConfirm(true)}>
-                                    <Icon name="trash" size={16} /> Hapus ({selected.size})
-                                </button>
-                                <button className="btn-outline" onClick={cancelSelect}>
-                                    Batal
-                                </button>
-                            </>
-                        ) : (
-                            <>
-                                <button className="btn-outline" onClick={() => setSelecting(true)}>
-                                    <Icon name="check" size={16} /> Pilih
-                                </button>
-                                <button className="btn-primary" onClick={() => setUploadOpen(true)}>
-                                    <Icon name="upload" size={16} /> Upload Media
-                                </button>
-                            </>
-                        )}
-                    </div>
+                    <button className="btn-primary" onClick={() => setUploadOpen(true)}>
+                        <Icon name="upload" size={16} /> Upload Media
+                    </button>
                 }
             />
 
@@ -165,9 +147,21 @@ export default function Media() {
                         <Icon name={tab.icon} size={14} /> {tab.label}
                     </button>
                 ))}
-                {selecting && (
-                    <button className="ml-auto text-sm font-medium text-brand-600 hover:underline dark:text-brand-400" onClick={toggleSelectAll}>
-                        {items.length && items.every((i) => selected.has(i.id)) ? 'Batal pilih semua' : 'Pilih semua'}
+                {selecting ? (
+                    <div className="ml-auto flex flex-wrap items-center gap-2">
+                        <button className="text-sm font-medium text-brand-600 hover:underline dark:text-brand-400" onClick={toggleSelectAll}>
+                            {items.length && items.every((i) => selected.has(i.id)) ? 'Batal pilih semua' : 'Pilih semua'}
+                        </button>
+                        <button className="btn bg-red-600 px-3 py-1.5 text-white hover:bg-red-700 disabled:opacity-40" disabled={selected.size === 0} onClick={() => setBulkConfirm(true)}>
+                            <Icon name="trash" size={14} /> Hapus ({selected.size})
+                        </button>
+                        <button className="btn-outline px-3 py-1.5" onClick={cancelSelect}>
+                            Batal
+                        </button>
+                    </div>
+                ) : (
+                    <button className="btn-outline ml-auto px-3 py-1.5" onClick={() => setSelecting(true)}>
+                        <Icon name="check" size={14} /> Pilih
                     </button>
                 )}
             </div>
