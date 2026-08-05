@@ -7,17 +7,23 @@ use Illuminate\Database\Eloquent\Model;
 class Project extends Model
 {
     protected $fillable = [
-        'client_id', 'user_id', 'name', 'type', 'event_date', 'description',
-        'price', 'status', 'start_date', 'end_date',
+        'client_id', 'user_id', 'name', 'type', 'package_id', 'event_date', 'description',
+        'price', 'pricing_snapshot', 'status', 'start_date', 'end_date',
     ];
 
     protected function casts(): array
     {
         return [
             'price' => 'decimal:2',
+            'pricing_snapshot' => 'array',
             'start_date' => 'date',
             'end_date' => 'date',
         ];
+    }
+
+    public function package()
+    {
+        return $this->belongsTo(Package::class);
     }
 
     public function client()

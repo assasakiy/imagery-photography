@@ -110,7 +110,7 @@
     @endif
 
     {{-- Services preview --}}
-    @if ($services->isNotEmpty())
+    @if ($packages->isNotEmpty())
         <section class="py-24">
             <div class="container-site">
                 <div class="reveal mb-12 max-w-2xl">
@@ -120,21 +120,29 @@
                 </div>
 
                 <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
-                    @foreach ($services as $service)
+                    @foreach ($packages as $pkg)
                         <div class="reveal card group relative overflow-hidden p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-brand-600/10">
                             <div class="absolute right-0 top-0 h-24 w-24 translate-x-8 -translate-y-8 rounded-full bg-brand-600/10 transition-transform duration-300 group-hover:scale-150"></div>
-                            <div class="mb-5 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-500/15 text-brand-600 dark:text-brand-400">
-                                @php $icons = ['camera' => 'M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z M12 13a3 3 0 1 0 0-6 3 3 0 0 0 0 6z', 'video' => 'M22 8l-6 4 6 4V8z M2 6h14v12H2z', 'heart' => 'M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7z']; @endphp
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{ $icons[$service->icon] ?? $icons['camera'] }}"/></svg>
-                            </div>
-                            <h3 class="text-lg font-bold text-ink">{{ $service->title }}</h3>
-                            <p class="mt-2 text-sm leading-relaxed text-ink-muted">{{ content_plain($service->description) }}</p>
-                            @if ($service->starting_price)
-                                <p class="mt-5 text-sm text-ink-muted">Mulai dari</p>
-                                <p class="text-2xl font-bold text-brand-600 dark:text-brand-400">Rp {{ number_format($service->starting_price, 0, ',', '.') }}</p>
-                            @endif
-                        </div>
-                    @endforeach
+<div class="mb-4 flex items-center gap-3">
+                    @if ($pkg->is_featured)
+                        <span class="rounded-full bg-amber-500/15 px-2 py-0.5 text-xs font-semibold text-amber-600 dark:text-amber-400">Unggulan</span>
+                    @elseif ($pkg->is_popular)
+                        <span class="rounded-full bg-emerald-500/15 px-2 py-0.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400">Populer</span>
+                    @endif
+                </div>
+                <h3 class="text-lg font-bold text-ink">{{ $pkg->name }}</h3>
+                <p class="mt-2 text-sm leading-relaxed text-ink-muted">{{ $pkg->services->pluck('name')->join(', ') }}</p>
+                <div class="pt-5">
+                    @if ($pkg->discountValue() > 0)
+                        <p class="text-sm text-ink-muted line-through">Rp {{ number_format($pkg->basePrice(), 0, ',', '.') }}</p>
+                        <p class="text-sm font-semibold text-emerald-600 dark:text-emerald-400">Hemat Rp {{ number_format($pkg->discountValue(), 0, ',', '.') }}</p>
+                    @else
+                        <p class="text-sm text-ink-muted">Mulai dari</p>
+                    @endif
+                    <p class="text-2xl font-bold text-brand-600 dark:text-brand-400">Rp {{ number_format($pkg->computedPrice(), 0, ',', '.') }}</p>
+                </div>
+            </div>
+        @endforeach
                 </div>
 
                 <div class="reveal mt-12 text-center">

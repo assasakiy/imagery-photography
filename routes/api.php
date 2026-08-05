@@ -19,6 +19,7 @@ use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\ProjectController;
 use App\Http\Controllers\Api\ReviewController;
 use App\Http\Controllers\Api\ServiceController;
+use App\Http\Controllers\Api\PackageController;
 use App\Http\Controllers\Api\ServiceCategoryController;
 use App\Http\Controllers\Api\SettingsController;
 use App\Http\Controllers\Api\TeamController;
@@ -83,6 +84,7 @@ Route::middleware(['web', 'auth:sanctum', 'maintenance'])->group(function () {
             ->parameters(['media' => 'media'])
             ->only(['index', 'store', 'update', 'destroy']);
         Route::apiResource('services', ServiceController::class)->except(['create', 'edit']);
+        Route::apiResource('packages', PackageController::class)->except(['create', 'edit']);
         Route::apiResource('service-categories', ServiceCategoryController::class)->except(['create', 'edit']);
         Route::apiResource('clients', ClientController::class)->except(['create', 'edit']);
 

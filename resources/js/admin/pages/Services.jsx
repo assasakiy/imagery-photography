@@ -1,39 +1,50 @@
 import { useEffect, useState } from 'react';
 import api from '../api';
 import Icon from '../components/Icon';
-import IconPicker from '../components/IconPicker';
 import { PageHeader, Spinner, EmptyState, Modal, Confirm, Field, useToast, formatRupiah } from '../components/ui';
 
-const emptyForm = { title: '', description: '', icon: 'camera', starting_price: '', order: 0 };
-
-const emptyCategory = {
-    label: '',
-    title: '',
-    description: '',
-    layout: 'table',
-    columns: ['Layanan', 'Harga'],
-    published: true,
-    order: 0,
-    items: [],
-};
-
 const VIEWS = [
-    { key: 'services', label: 'Layanan', icon: 'briefcase' },
-    { key: 'categories', label: 'Kategori Harga', icon: 'file' },
+    { key: 'master', label: 'Master Layanan', icon: 'briefcase' },
+    { key: 'packages', label: 'Paket', icon: 'sparkles' },
+    { key: 'categories', label: 'Kategori', icon: 'list' },
 ];
 
-export default function Services() {
-    const [view, setView] = useState('services');
-    const [items, setItems] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [open, setOpen] = useState(false);
-    const [editing, setEditing] = useState(null);
-    const [form, setForm] = useState(emptyForm);
-    const [errors, setErrors] = useState({});
-    const [saving, setSaving] = useState(false);
-    const [deleting, setDeleting] = useState(null);
+const MEDIA_OPTIONS = ['photo', 'video', 'drone', 'photobooth', 'livestream'];
+const TYPE_OPTIONS = ['satuan', 'bundling', 'combo'];
+const PROMO_OPTIONS = [
+    { value: 'none', label: 'Tanpa Diskon' },
+    { value: 'nominal', label: 'Nominal (Rp)' },
+    { value: 'percent', label: 'Persen (%)' },
+];
 
+const emptyService = { name: '', event: '', media: 'photo', duration: '', price: '', active: true, order: 0 };
+const emptyPackage = {
+    name: '', type: 'bundling', price_mode: 'auto', promo_type: 'none', promo_value: '',
+    manual_price: '', description: '', is_popular: false, is_featured: false, is_active: true, display_order: 0, items: [],
+};
+const emptyCategory = { label: '', title: '', type: 'satuan', description: '', layout: 'table', columns: ['Layanan', 'Harga'], published: true, order: 0 };
+
+export default function Services() {
+    const [view, setView] = useState('master');
+    const [services, setServices] = useState([]);
+    const [packages, setPackages] = useState([]);
     const [categories, setCategories] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    const [svcOpen, setSvcOpen] = useState(false);
+    const [svcEditing, setSvcEditing] = useState(null);
+    const [svcForm, setSvcForm] = useState(emptyService);
+    const [svcErrors, setSvcErrors] = useState({});
+    const [svcSaving, setSvcSaving] = useState(false);
+    const [svcDeleting, setSvcDeleting] = useState(null);
+
+    const [pkgOpen, setPkgOpen] = useState(false);
+    const [pkgEditing, setPkgEditing] = useState(null);
+    const [pkgForm, setPkgForm] = useState(emptyPackage);
+    const [pkgErrors, setPkgErrors] = useState({});
+    const [pkgSaving, setPkgSaving] = useState(false);
+    const [pkgDeleting, setPkgDeleting] = useState(null);
+
     const [catOpen, setCatOpen] = useState(false);
     const [catEditing, setCatEditing] = useState(null);
     const [catForm, setCatForm] = useState(emptyCategory);
@@ -41,115 +52,149 @@ export default function Services() {
     const [catSaving, setCatSaving] = useState(false);
     const [catDeleting, setCatDeleting] = useState(null);
 
-    const [iconOpen, setIconOpen] = useState(false);
     const { show, node } = useToast();
 
-    const load = () => {
+    const loadAll = () => {
         setLoading(true);
-        api.get('/services')
-            .then(({ data }) => setItems(data))
+        Promise.all([
+            api.get('/services'),
+            api.get('/packages'),
+            api.get('/service-categories'),
+        ])
+            .then(([s, p, c]) => {
+                setServices(s.data);
+                setPackages(p.data);
+                setCategories(c.data);
+            })
+            .catch(() => show('Gagal memuat data layanan.', 'error'))
             .finally(() => setLoading(false));
     };
 
-    const loadCategories = () => {
-        api.get('/service-categories').then(({ data }) => setCategories(data));
+    useEffect(loadAll, []);
+
+    const openSvcCreate = () => { setSvcEditing(null); setSvcForm(emptyService); setSvcErrors({}); setSvcOpen(true); };
+    const openSvcEdit = (item) => {
+        setSvcEditing(item);
+        setSvcForm({ name: item.name, event: item.event || '', media: item.media || 'photo', duration: item.duration || '', price: item.price, active: Boolean(item.active), order: item.order || 0 });
+        setSvcErrors({});
+        setSvcOpen(true);
     };
-
-    useEffect(() => {
-        load();
-        loadCategories();
-    }, []);
-
-    const openCreate = () => {
-        setEditing(null);
-        setForm(emptyForm);
-        setErrors({});
-        setOpen(true);
-    };
-
-    const openEdit = (item) => {
-        setEditing(item);
-        setForm({ title: item.title, description: item.description || '', icon: item.icon || 'camera', starting_price: item.starting_price, order: item.order || 0 });
-        setErrors({});
-        setOpen(true);
-    };
-
-    const handleSubmit = async (e) => {
+    const handleSvcSubmit = async (e) => {
         e.preventDefault();
-        setSaving(true);
-        setErrors({});
+        setSvcSaving(true);
+        setSvcErrors({});
         try {
-            if (editing) {
-                await api.put(`/services/${editing.id}`, form);
-                show('Layanan diperbarui.');
+            if (svcEditing) {
+                await api.put(`/services/${svcEditing.id}`, svcForm);
+                show('Layanan satuan diperbarui.');
             } else {
-                await api.post('/services', form);
-                show('Layanan ditambahkan.');
+                await api.post('/services', svcForm);
+                show('Layanan satuan ditambahkan.');
             }
-            load();
-            setOpen(false);
+            setSvcOpen(false);
+            loadAll();
         } catch (err) {
-            if (err.response?.data?.errors) setErrors(err.response.data.errors);
+            if (err.response?.data?.errors) setSvcErrors(err.response.data.errors);
+            else show('Gagal menyimpan.', 'error');
         } finally {
-            setSaving(false);
+            setSvcSaving(false);
         }
     };
-
-    const handleDelete = async () => {
-        await api.delete(`/services/${deleting.id}`);
-        show('Layanan dihapus.');
-        setDeleting(null);
-        load();
+    const handleSvcDelete = async () => {
+        await api.delete(`/services/${svcDeleting.id}`);
+        show('Layanan satuan dihapus.');
+        setSvcDeleting(null);
+        loadAll();
     };
 
-    const openCatCreate = () => {
-        setCatEditing(null);
-        setCatForm(emptyCategory);
-        setCatErrors({});
-        setCatOpen(true);
-    };
-
-    const openCatEdit = (cat) => {
-        setCatEditing(cat);
-        setCatForm({
-            label: cat.label || '',
-            title: cat.title,
-            description: cat.description || '',
-            layout: cat.layout || 'table',
-            columns: cat.columns?.length ? cat.columns : ['Layanan', 'Harga'],
-            published: Boolean(cat.published),
-            order: cat.order || 0,
-            items: (cat.items || []).map((i) => ({ name: i.name, values: i.values || [] })),
+    const openPkgCreate = () => { setPkgEditing(null); setPkgForm(emptyPackage); setPkgErrors({}); setPkgOpen(true); };
+    const openPkgEdit = (p) => {
+        setPkgEditing(p);
+        setPkgForm({
+            name: p.name, type: p.type, price_mode: p.price_mode, promo_type: p.promo_type || 'none',
+            promo_value: p.promo_value ?? '', manual_price: p.manual_price ?? '', description: p.description || '',
+            is_popular: Boolean(p.is_popular), is_featured: Boolean(p.is_featured), is_active: Boolean(p.is_active),
+            display_order: p.display_order || 0,
+            items: (p.items || []).map((i) => ({ service_id: i.service_id, qty: i.qty || 1 })),
         });
+        setPkgErrors({});
+        setPkgOpen(true);
+    };
+
+    const pkgBasePrice = pkgForm.items.reduce((sum, it) => {
+        const s = services.find((x) => x.id === it.service_id);
+        return sum + (s ? Number(s.price) * (it.qty || 1) : 0);
+    }, 0);
+    const pkgDiscount = pkgForm.price_mode === 'manual'
+        ? Math.max(0, pkgBasePrice - (Number(pkgForm.manual_price) || 0))
+        : pkgForm.promo_type === 'percent'
+            ? (pkgBasePrice * (Number(pkgForm.promo_value) || 0)) / 100
+            : pkgForm.promo_type === 'nominal'
+                ? (Number(pkgForm.promo_value) || 0)
+                : 0;
+    const pkgFinal = pkgForm.price_mode === 'manual'
+        ? Number(pkgForm.manual_price) || 0
+        : Math.max(0, pkgBasePrice - pkgDiscount);
+
+    const togglePkgItem = (serviceId) => {
+        const exists = pkgForm.items.some((i) => i.service_id === serviceId);
+        setPkgForm({
+            ...pkgForm,
+            items: exists
+                ? pkgForm.items.filter((i) => i.service_id !== serviceId)
+                : [...pkgForm.items, { service_id: serviceId, qty: 1 }],
+        });
+    };
+
+    const handlePkgSubmit = async (e) => {
+        e.preventDefault();
+        setPkgSaving(true);
+        setPkgErrors({});
+        try {
+            if (pkgEditing) {
+                await api.put(`/packages/${pkgEditing.id}`, pkgForm);
+                show('Paket diperbarui.');
+            } else {
+                await api.post('/packages', pkgForm);
+                show('Paket ditambahkan.');
+            }
+            setPkgOpen(false);
+            loadAll();
+        } catch (err) {
+            if (err.response?.data?.errors) setPkgErrors(err.response.data.errors);
+            else show('Gagal menyimpan paket.', 'error');
+        } finally {
+            setPkgSaving(false);
+        }
+    };
+    const handlePkgDelete = async () => {
+        await api.delete(`/packages/${pkgDeleting.id}`);
+        show('Paket dihapus.');
+        setPkgDeleting(null);
+        loadAll();
+    };
+
+    const openCatCreate = () => { setCatEditing(null); setCatForm(emptyCategory); setCatErrors({}); setCatOpen(true); };
+    const openCatEdit = (c) => {
+        setCatEditing(c);
+        setCatForm({ label: c.label || '', title: c.title, type: c.type || 'satuan', description: c.description || '', layout: c.layout || 'table', columns: c.columns?.length ? c.columns : ['Layanan', 'Harga'], published: Boolean(c.published), order: c.order || 0 });
         setCatErrors({});
         setCatOpen(true);
     };
-
-    const updateCatItem = (idx, field, value) => {
-        setCatForm({ ...catForm, items: catForm.items.map((it, i) => (i === idx ? { ...it, [field]: value } : it)) });
-    };
-
     const handleCatSubmit = async (e) => {
         e.preventDefault();
         setCatSaving(true);
         setCatErrors({});
-        const payload = {
-            ...catForm,
-            columns: catForm.layout === 'grid' ? [] : catForm.columns.filter((c) => c.trim() !== ''),
-            items: catForm.items
-                .filter((it) => it.name.trim() !== '')
-                .map((it) => ({ name: it.name, values: it.values || [] })),
-        };
         try {
             if (catEditing) {
-                await api.put(`/service-categories/${catEditing.id}`, payload);
-                show('Kategori harga diperbarui.');
+                await api.put(`/service-categories/${catEditing.id}`, catForm);
+                show('Kategori diperbarui.');
             } else {
-                await api.post('/service-categories', payload);
-                show('Kategori harga ditambahkan.');
+                await api.post('/service-categories', catForm);
+                show('Kategori ditambahkan.');
             }
-            loadCategories();
             setCatOpen(false);
+            loadAll();
         } catch (err) {
             if (err.response?.data?.errors) setCatErrors(err.response.data.errors);
             else show('Gagal menyimpan kategori.', 'error');
@@ -157,43 +202,32 @@ export default function Services() {
             setCatSaving(false);
         }
     };
-
     const handleCatDelete = async () => {
         await api.delete(`/service-categories/${catDeleting.id}`);
-        show('Kategori harga dihapus.');
+        show('Kategori dihapus.');
         setCatDeleting(null);
-        loadCategories();
+        loadAll();
     };
 
-    if (loading && !items.length) return <Spinner />;
-
-    const footer = (
-        <div className="flex justify-end gap-2">
-            <button type="button" className="btn-outline" onClick={() => setOpen(false)}>Batal</button>
-            <button type="submit" form="service-form" className="btn-primary" disabled={saving}>{saving ? 'Menyimpan...' : 'Simpan'}</button>
-        </div>
-    );
-
-    const catFooter = (
-        <div className="flex justify-end gap-2">
-            <button type="button" className="btn-outline" onClick={() => setCatOpen(false)}>Batal</button>
-            <button type="submit" form="category-form" className="btn-primary" disabled={catSaving}>{catSaving ? 'Menyimpan...' : 'Simpan'}</button>
-        </div>
-    );
+    if (loading && !services.length) return <Spinner />;
 
     return (
         <>
             <PageHeader
                 title="Layanan"
-                subtitle="Kelola layanan dan harga yang tampil di halaman Layanan."
+                subtitle="Atur master layanan satuan, paket (bundling/combo), dan kategori tampilan."
                 action={
-                    view === 'categories' ? (
-                        <button className="btn-primary" onClick={openCatCreate}>
-                            <Icon name="plus" size={16} /> Tambah Kategori
+                    view === 'master' ? (
+                        <button className="btn-primary" onClick={openSvcCreate}>
+                            <Icon name="plus" size={18} /> Tambah Layanan Satuan
+                        </button>
+                    ) : view === 'packages' ? (
+                        <button className="btn-primary" onClick={openPkgCreate}>
+                            <Icon name="plus" size={18} /> Tambah Paket
                         </button>
                     ) : (
-                        <button className="btn-primary" onClick={openCreate}>
-                            <Icon name="plus" size={18} /> Tambah Layanan
+                        <button className="btn-primary" onClick={openCatCreate}>
+                            <Icon name="plus" size={18} /> Tambah Kategori
                         </button>
                     )
                 }
@@ -214,156 +248,336 @@ export default function Services() {
                 ))}
             </div>
 
-            {view === 'services' ? (
-                items.length ? (
-                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-                        {items.map((item) => (
-                            <div key={item.id} className="card group relative p-5">
-                                <div className="absolute right-3 top-3 flex gap-1">
-                                    <button onClick={() => openEdit(item)} className="rounded-lg p-1.5 text-ink-muted opacity-0 transition-opacity hover:bg-surface-muted hover:text-brand-600 group-hover:opacity-100" aria-label="Edit">
-                                        <Icon name="edit" size={16} />
-                                    </button>
-                                    <button onClick={() => setDeleting(item)} className="rounded-lg p-1.5 text-ink-muted opacity-0 transition-opacity hover:bg-surface-muted hover:text-red-500 group-hover:opacity-100" aria-label="Hapus">
-                                        <Icon name="trash" size={16} />
-                                    </button>
+            {view === 'master' && (
+                services.length ? (
+                    <div className="card overflow-x-auto">
+                        <table className="table">
+                            <thead>
+                                <tr>
+                                    <th>Nama</th>
+                                    <th>Event</th>
+                                    <th>Media</th>
+                                    <th>Durasi</th>
+                                    <th>Harga</th>
+                                    <th>Status</th>
+                                    <th className="w-24 text-right">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {services.map((s) => (
+                                    <tr key={s.id}>
+                                        <td className="font-medium text-ink">{s.name}</td>
+                                        <td className="text-ink">{s.event || '-'}</td>
+                                        <td><span className="badge bg-brand-500/15 text-brand-600 dark:text-brand-400">{s.media}</span></td>
+                                        <td className="text-xs text-ink-muted">{s.duration || '-'}</td>
+                                        <td className="font-semibold text-ink">{formatRupiah(s.price)}</td>
+                                        <td>
+                                            <span className={`badge ${s.active ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' : 'bg-zinc-500/15 text-zinc-500'}`}>
+                                                {s.active ? 'Aktif' : 'Nonaktif'}
+                                            </span>
+                                        </td>
+                                        <td className="text-right">
+                                            <div className="inline-flex gap-1">
+                                                <button onClick={() => openSvcEdit(s)} className="rounded-lg p-1.5 text-ink-muted hover:bg-surface-muted hover:text-brand-600" aria-label="Edit">
+                                                    <Icon name="edit" size={16} />
+                                                </button>
+                                                <button onClick={() => setSvcDeleting(s)} className="rounded-lg p-1.5 text-ink-muted hover:bg-surface-muted hover:text-red-500" aria-label="Hapus">
+                                                    <Icon name="trash" size={16} />
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                ) : (
+                    <EmptyState title="Belum ada layanan satuan" message="Tambahkan layanan dasar (event + media + harga)." />
+                )
+            )}
+
+            {view === 'packages' && (
+                packages.length ? (
+                    <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                        {packages.map((p) => (
+                            <div key={p.id} className="card p-5">
+                                <div className="mb-3 flex items-start justify-between gap-3">
+                                    <div className="min-w-0">
+                                        <div className="flex flex-wrap items-center gap-2">
+                                            <h3 className="font-bold text-ink">{p.name}</h3>
+                                            <span className="badge bg-brand-500/15 text-brand-600 dark:text-brand-400">{p.type}</span>
+                                            {p.is_featured && <span className="badge bg-amber-500/15 text-amber-600 dark:text-amber-400"><Icon name="star" size={12} /> Unggulan</span>}
+                                            {p.is_popular && <span className="badge bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">Populer</span>}
+                                            {!p.is_active && <span className="badge bg-zinc-500/15 text-zinc-500">Nonaktif</span>}
+                                        </div>
+                                        {p.description && <p className="mt-1 text-sm text-ink-muted">{p.description}</p>}
+                                    </div>
+                                    <div className="flex shrink-0 gap-1">
+                                        <button onClick={() => openPkgEdit(p)} className="rounded-lg p-1.5 text-ink-muted hover:bg-surface-muted hover:text-brand-600" aria-label="Edit">
+                                            <Icon name="edit" size={16} />
+                                        </button>
+                                        <button onClick={() => setPkgDeleting(p)} className="rounded-lg p-1.5 text-ink-muted hover:bg-surface-muted hover:text-red-500" aria-label="Hapus">
+                                            <Icon name="trash" size={16} />
+                                        </button>
+                                    </div>
                                 </div>
-                                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-500/15 text-brand-600 dark:text-brand-400">
-                                    <Icon name={item.icon} size={24} />
+                                <div className="mb-3 flex flex-wrap gap-2">
+                                    {(p.items || []).map((it, i) => (
+                                        <span key={i} className="rounded-lg bg-surface-muted px-2 py-1 text-xs text-ink-muted">
+                                            {it.name} {it.qty > 1 ? `x${it.qty}` : ''}
+                                        </span>
+                                    ))}
                                 </div>
-                                <div>
-                                    <h3 className="font-bold text-ink">{item.title}</h3>
-                                    <p className="mt-1 text-sm text-ink-muted">{item.description}</p>
+                                <div className="flex items-end justify-between">
+                                    <div>
+                                        {p.discount > 0 && (
+                                            <>
+                                                <p className="text-xs text-ink-muted line-through">{formatRupiah(p.base_price)}</p>
+                                                <p className="text-xs text-emerald-600 dark:text-emerald-400">Hemat {formatRupiah(p.discount)}</p>
+                                            </>
+                                        )}
+                                    </div>
+                                    <p className="text-xl font-bold text-brand-600 dark:text-brand-400">{formatRupiah(p.price)}</p>
                                 </div>
-                                <p className="mt-3 font-bold text-brand-600 dark:text-brand-400">{formatRupiah(item.starting_price)}</p>
                             </div>
                         ))}
                     </div>
                 ) : (
-                    <EmptyState title="Belum ada layanan" />
+                    <EmptyState title="Belum ada paket" message="Buat paket bundling/combo dari layanan satuan." icon="sparkles" />
                 )
-            ) : (
-                <>
-                    {categories.length ? (
-                        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-                            {categories.map((cat) => (
-                    <div key={cat.id} className="card p-5">
-                        <div className="mb-3 flex items-start justify-between gap-3">
-                            <div className="min-w-0">
-                                <div className="flex flex-wrap items-center gap-2">
-                                    <h3 className="font-bold text-ink">{cat.title}</h3>
-                                    <span className={`badge ${cat.published ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' : 'bg-zinc-500/15 text-zinc-500'}`}>
-                                        {cat.published ? 'Tampil' : 'Disembunyikan'}
-                                    </span>
-                                    <span className="badge bg-brand-500/15 text-brand-600 dark:text-brand-400">
-                                        {cat.layout === 'grid' ? 'Grid' : 'Tabel'}
-                                    </span>
-                                </div>
-                                {cat.label && <p className="mt-1 text-xs font-medium uppercase tracking-wide text-ink-muted">{cat.label}</p>}
-                                {cat.description && <p className="mt-1 text-sm text-ink-muted">{cat.description}</p>}
-                            </div>
-                            <div className="flex shrink-0 gap-1">
-                                <button onClick={() => openCatEdit(cat)} className="rounded-lg p-1.5 text-ink-muted hover:bg-surface-muted hover:text-brand-600" aria-label="Edit">
-                                    <Icon name="edit" size={16} />
-                                </button>
-                                <button onClick={() => setCatDeleting(cat)} className="rounded-lg p-1.5 text-ink-muted hover:bg-surface-muted hover:text-red-500" aria-label="Hapus">
-                                    <Icon name="trash" size={16} />
-                                </button>
-                            </div>
-                        </div>
-
-                        {cat.items?.length ? (
-                            cat.layout === 'table' && cat.columns?.length ? (
-                                <div className="mt-2 overflow-x-auto">
-                                    <table className="w-full text-left text-sm">
-                                        <thead>
-                                            <tr className="border-b border-line text-xs uppercase tracking-wide text-ink-muted">
-                                                {cat.columns.map((col, i) => (
-                                                    <th key={i} className="px-3 py-2 font-semibold">{col}</th>
-                                                ))}
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {cat.items.map((it, i) => (
-                                                <tr key={i} className="border-b border-line/50 last:border-0">
-                                                    <td className="px-3 py-2 font-semibold text-ink">{it.name}</td>
-                                                    {(it.values || []).map((v, j) => (
-                                                        <td key={j} className="px-3 py-2 text-ink">{v}</td>
-                                                    ))}
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            ) : (
-                                <div className="mt-2 flex flex-wrap gap-2">
-                                    {cat.items.map((it, i) => (
-                                        <span key={i} className="inline-flex items-center justify-between gap-3 rounded-xl border border-line px-3 py-2 text-sm">
-                                            <span className="font-semibold text-ink">{it.name}</span>
-                                            <span className="font-bold text-brand-600 dark:text-brand-400">{it.values?.[0]}</span>
-                                        </span>
-                                    ))}
-                                </div>
-                            )
-                        ) : (
-                            <p className="mt-2 text-sm text-ink-muted">Belum ada item.</p>
-                        )}
-                    </div>
-                ))}
-                        </div>
-                    ) : (
-                        <EmptyState title="Belum ada kategori harga" message="Tambahkan kategori pertama Anda." icon="briefcase" />
-                    )}
-                </>
             )}
 
-            <Modal open={open} onClose={() => setOpen(false)} title={editing ? 'Edit Layanan' : 'Tambah Layanan'} footer={footer}>
-                <form id="service-form" onSubmit={handleSubmit} className="space-y-4">
-                    <Field label="Nama Layanan" required error={errors.title?.[0]}>
-                        <input className="input" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} required />
-                    </Field>
-                    <Field label="Deskripsi" hint="opsional" error={errors.description?.[0]}>
-                        <textarea className="input min-h-[80px]" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
-                    </Field>
-                    <Field label="Ikon">
-                        <button
-                            type="button"
-                            onClick={() => setIconOpen(true)}
-                            className="flex items-center gap-3 rounded-xl border border-line px-4 py-3 text-ink hover:bg-surface-muted"
-                        >
-                            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-500/15 text-brand-600 dark:text-brand-400">
-                                <Icon name={form.icon} size={20} />
-                            </span>
-                            <span className="text-sm font-medium">{form.icon}</span>
-                            <Icon name="edit" size={14} className="ml-auto text-ink-muted" />
-                        </button>
+            {view === 'categories' && (
+                categories.length ? (
+                    <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                        {categories.map((c) => (
+                            <div key={c.id} className="card p-5">
+                                <div className="flex items-start justify-between gap-3">
+                                    <div className="min-w-0">
+                                        <div className="flex flex-wrap items-center gap-2">
+                                            <h3 className="font-bold text-ink">{c.title}</h3>
+                                            <span className="badge bg-brand-500/15 text-brand-600 dark:text-brand-400">{c.type}</span>
+                                            <span className={`badge ${c.published ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' : 'bg-zinc-500/15 text-zinc-500'}`}>
+                                                {c.published ? 'Tampil' : 'Disembunyikan'}
+                                            </span>
+                                        </div>
+                                        {c.label && <p className="mt-1 text-xs font-medium uppercase tracking-wide text-ink-muted">{c.label}</p>}
+                                        {c.description && <p className="mt-1 text-sm text-ink-muted">{c.description}</p>}
+                                    </div>
+                                    <div className="flex shrink-0 gap-1">
+                                        <button onClick={() => openCatEdit(c)} className="rounded-lg p-1.5 text-ink-muted hover:bg-surface-muted hover:text-brand-600" aria-label="Edit">
+                                            <Icon name="edit" size={16} />
+                                        </button>
+                                        <button onClick={() => setCatDeleting(c)} className="rounded-lg p-1.5 text-ink-muted hover:bg-surface-muted hover:text-red-500" aria-label="Hapus">
+                                            <Icon name="trash" size={16} />
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                ) : (
+                    <EmptyState title="Belum ada kategori" message="Atur kategori tampilan landing." icon="list" />
+                )
+            )}
+
+            <Modal open={svcOpen} onClose={() => setSvcOpen(false)} title={svcEditing ? 'Edit Layanan Satuan' : 'Tambah Layanan Satuan'} footer={
+                <div className="flex justify-end gap-2">
+                    <button type="button" className="btn-outline" onClick={() => setSvcOpen(false)}>Batal</button>
+                    <button type="submit" form="service-form" className="btn-primary" disabled={svcSaving}>{svcSaving ? 'Menyimpan...' : 'Simpan'}</button>
+                </div>
+            }>
+                <form id="service-form" onSubmit={handleSvcSubmit} className="space-y-4">
+                    <Field label="Nama" required error={svcErrors.name?.[0]}>
+                        <input className="input" value={svcForm.name} onChange={(e) => setSvcForm({ ...svcForm, name: e.target.value })} required placeholder="Akad Foto" />
                     </Field>
                     <div className="grid grid-cols-2 gap-4">
-                        <Field label="Harga Mulai" hint="opsional" error={errors.starting_price?.[0]}>
-                            <input className="input" type="number" min="0" value={form.starting_price} onChange={(e) => setForm({ ...form, starting_price: e.target.value })} />
+                        <Field label="Event" hint="opsional" error={svcErrors.event?.[0]}>
+                            <input className="input" value={svcForm.event} onChange={(e) => setSvcForm({ ...svcForm, event: e.target.value })} placeholder="Akad" />
                         </Field>
+                        <Field label="Media" required error={svcErrors.media?.[0]}>
+                            <select className="input" value={svcForm.media} onChange={(e) => setSvcForm({ ...svcForm, media: e.target.value })}>
+                                {MEDIA_OPTIONS.map((m) => (
+                                    <option key={m} value={m}>{m}</option>
+                                ))}
+                            </select>
+                        </Field>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                        <Field label="Durasi" hint="mis. Edit + Softfile" error={svcErrors.duration?.[0]}>
+                            <input className="input" value={svcForm.duration} onChange={(e) => setSvcForm({ ...svcForm, duration: e.target.value })} />
+                        </Field>
+                        <Field label="Harga (Rp)" required error={svcErrors.price?.[0]}>
+                            <input className="input" type="number" min="0" value={svcForm.price} onChange={(e) => setSvcForm({ ...svcForm, price: e.target.value })} required />
+                        </Field>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
                         <Field label="Urutan">
-                            <input className="input" type="number" min="0" value={form.order} onChange={(e) => setForm({ ...form, order: e.target.value })} />
+                            <input className="input" type="number" min="0" value={svcForm.order} onChange={(e) => setSvcForm({ ...svcForm, order: e.target.value })} />
+                        </Field>
+                        <Field label="Status">
+                            <label className="flex h-[42px] cursor-pointer items-center gap-2 text-sm text-ink">
+                                <input type="checkbox" checked={svcForm.active} onChange={(e) => setSvcForm({ ...svcForm, active: e.target.checked })} className="h-4 w-4 rounded border-line text-brand-600" />
+                                Aktif di landing
+                            </label>
                         </Field>
                     </div>
                 </form>
             </Modal>
 
-            <Modal open={catOpen} onClose={() => setCatOpen(false)} title={catEditing ? 'Edit Kategori Harga' : 'Tambah Kategori Harga'} wide footer={catFooter}>
-                <form id="category-form" onSubmit={handleCatSubmit} className="space-y-4">
-                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                        <Field label="Label" hint="mis. I. Satuan">
-                            <input className="input" value={catForm.label} onChange={(e) => setCatForm({ ...catForm, label: e.target.value })} placeholder="I. Satuan" />
-                        </Field>
-                        <Field label="Judul" required error={catErrors.title?.[0]}>
-                            <input className="input" value={catForm.title} onChange={(e) => setCatForm({ ...catForm, title: e.target.value })} required placeholder="Paket Stand-Alone" />
+            <Modal open={pkgOpen} onClose={() => setPkgOpen(false)} title={pkgEditing ? 'Edit Paket' : 'Tambah Paket'} wide footer={
+                <div className="flex justify-end gap-2">
+                    <button type="button" className="btn-outline" onClick={() => setPkgOpen(false)}>Batal</button>
+                    <button type="submit" form="package-form" className="btn-primary" disabled={pkgSaving}>{pkgSaving ? 'Menyimpan...' : 'Simpan'}</button>
+                </div>
+            }>
+                <form id="package-form" onSubmit={handlePkgSubmit} className="space-y-4">
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                        <div className="sm:col-span-2">
+                            <Field label="Nama Paket" required error={pkgErrors.name?.[0]}>
+                                <input className="input" value={pkgForm.name} onChange={(e) => setPkgForm({ ...pkgForm, name: e.target.value })} required placeholder="Wedding Premium" />
+                            </Field>
+                        </div>
+                        <Field label="Tipe" required error={pkgErrors.type?.[0]}>
+                            <select className="input" value={pkgForm.type} onChange={(e) => setPkgForm({ ...pkgForm, type: e.target.value })}>
+                                {TYPE_OPTIONS.map((t) => (
+                                    <option key={t} value={t}>{t}</option>
+                                ))}
+                            </select>
                         </Field>
                     </div>
 
-                    <Field label="Deskripsi" hint="opsional" error={catErrors.description?.[0]}>
-                        <textarea className="input min-h-[70px]" value={catForm.description} onChange={(e) => setCatForm({ ...catForm, description: e.target.value })} />
+                    <Field label="Isi Paket (layanan satuan)" required>
+                        <div className="max-h-64 space-y-1.5 overflow-y-auto rounded-xl border border-line p-2">
+                            {services.map((s) => {
+                                const sel = pkgForm.items.find((i) => i.service_id === s.id);
+                                return (
+                                    <div key={s.id} className={`flex items-center gap-3 rounded-lg border px-3 py-2 transition-colors ${sel ? 'border-brand-500 bg-brand-500/10' : 'border-line'}`}>
+                                        <label className="flex flex-1 cursor-pointer items-center gap-3">
+                                            <input type="checkbox" checked={!!sel} onChange={() => togglePkgItem(s.id)} className="h-4 w-4 rounded border-line text-brand-600" />
+                                            <span className="min-w-0">
+                                                <span className="block truncate text-sm font-medium text-ink">{s.name}</span>
+                                                <span className="text-xs text-ink-muted">{s.event || '-'} · {s.media} {s.duration ? `· ${s.duration}` : ''}</span>
+                                            </span>
+                                        </label>
+                                        {sel ? (
+                                            <div className="flex shrink-0 items-center gap-1">
+                                                <button type="button" className="rounded-lg p-1 text-ink-muted hover:bg-surface-muted" onClick={() => setPkgForm({ ...pkgForm, items: pkgForm.items.map((i) => i.service_id === s.id ? { ...i, qty: Math.max(1, (i.qty || 1) - 1) } : i) })} aria-label="Kurang">
+                                                    <Icon name="x" size={14} />
+                                                </button>
+                                                <span className="w-6 text-center text-sm font-semibold text-ink">{sel.qty}</span>
+                                                <button type="button" className="rounded-lg p-1 text-ink-muted hover:bg-surface-muted" onClick={() => setPkgForm({ ...pkgForm, items: pkgForm.items.map((i) => i.service_id === s.id ? { ...i, qty: (i.qty || 1) + 1 } : i) })} aria-label="Tambah">
+                                                    <Icon name="plus" size={14} />
+                                                </button>
+                                                <span className="ml-2 w-20 text-right text-sm font-semibold text-brand-600 dark:text-brand-400">{formatRupiah(Number(s.price) * (sel.qty || 1))}</span>
+                                            </div>
+                                        ) : (
+                                            <span className="w-20 shrink-0 text-right text-sm text-ink-muted">{formatRupiah(s.price)}</span>
+                                        )}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                        {pkgErrors.items && <p className="mt-1 text-xs text-red-500">{pkgErrors.items[0]}</p>}
                     </Field>
 
+                    <div className="rounded-xl border border-line bg-surface-muted/50 p-4">
+                        <div className="mb-2 flex flex-wrap items-center gap-3">
+                            <span className="text-sm text-ink-muted">Harga dasar:</span>
+                            <span className="font-bold text-ink">{formatRupiah(pkgBasePrice)}</span>
+                        </div>
+                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                            <Field label="Mode Harga">
+                                <select className="input" value={pkgForm.price_mode} onChange={(e) => setPkgForm({ ...pkgForm, price_mode: e.target.value })}>
+                                    <option value="auto">Otomatis (jumlah item − diskon)</option>
+                                    <option value="manual">Manual</option>
+                                </select>
+                            </Field>
+                            {pkgForm.price_mode === 'manual' ? (
+                                <Field label="Harga Manual (Rp)" error={pkgErrors.manual_price?.[0]}>
+                                    <input className="input" type="number" min="0" value={pkgForm.manual_price} onChange={(e) => setPkgForm({ ...pkgForm, manual_price: e.target.value })} />
+                                </Field>
+                            ) : (
+                                <>
+                                    <Field label="Diskon">
+                                        <select className="input" value={pkgForm.promo_type} onChange={(e) => setPkgForm({ ...pkgForm, promo_type: e.target.value })}>
+                                            {PROMO_OPTIONS.map((o) => (
+                                                <option key={o.value} value={o.value}>{o.label}</option>
+                                            ))}
+                                        </select>
+                                    </Field>
+                                    {pkgForm.promo_type !== 'none' && (
+                                        <Field label={pkgForm.promo_type === 'percent' ? 'Nilai (%)' : 'Nilai (Rp)'} error={pkgErrors.promo_value?.[0]}>
+                                            <input className="input" type="number" min="0" value={pkgForm.promo_value} onChange={(e) => setPkgForm({ ...pkgForm, promo_value: e.target.value })} />
+                                        </Field>
+                                    )}
+                                </>
+                            )}
+                        </div>
+                        <div className="mt-3 flex items-center justify-between border-t border-line pt-3">
+                            <div className="flex items-center gap-2">
+                                {pkgDiscount > 0 && (
+                                    <span className="text-sm font-semibold text-emerald-600 dark:text-emerald-400">Hemat {formatRupiah(pkgDiscount)}</span>
+                                )}
+                            </div>
+                            <div>
+                                <span className="text-sm text-ink-muted">Harga akhir: </span>
+                                <span className="text-xl font-bold text-brand-600 dark:text-brand-400">{formatRupiah(pkgFinal)}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <Field label="Deskripsi" hint="opsional" error={pkgErrors.description?.[0]}>
+                        <textarea className="input min-h-[60px]" value={pkgForm.description} onChange={(e) => setPkgForm({ ...pkgForm, description: e.target.value })} />
+                    </Field>
+
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                        <Field label="Urutan Tampil">
+                            <input className="input" type="number" min="0" value={pkgForm.display_order} onChange={(e) => setPkgForm({ ...pkgForm, display_order: e.target.value })} />
+                        </Field>
+                        <Field label="Label">
+                            <div className="flex flex-wrap gap-4 pt-2">
+                                <label className="flex cursor-pointer items-center gap-2 text-sm text-ink">
+                                    <input type="checkbox" checked={pkgForm.is_featured} onChange={(e) => setPkgForm({ ...pkgForm, is_featured: e.target.checked })} className="h-4 w-4 rounded border-line text-brand-600" />
+                                    Unggulan (kartu utama)
+                                </label>
+                                <label className="flex cursor-pointer items-center gap-2 text-sm text-ink">
+                                    <input type="checkbox" checked={pkgForm.is_popular} onChange={(e) => setPkgForm({ ...pkgForm, is_popular: e.target.checked })} className="h-4 w-4 rounded border-line text-brand-600" />
+                                    Populer
+                                </label>
+                                <label className="flex cursor-pointer items-center gap-2 text-sm text-ink">
+                                    <input type="checkbox" checked={pkgForm.is_active} onChange={(e) => setPkgForm({ ...pkgForm, is_active: e.target.checked })} className="h-4 w-4 rounded border-line text-brand-600" />
+                                    Aktif
+                                </label>
+                            </div>
+                        </Field>
+                    </div>
+                </form>
+            </Modal>
+
+            <Modal open={catOpen} onClose={() => setCatOpen(false)} title={catEditing ? 'Edit Kategori' : 'Tambah Kategori'} footer={
+                <div className="flex justify-end gap-2">
+                    <button type="button" className="btn-outline" onClick={() => setCatOpen(false)}>Batal</button>
+                    <button type="submit" form="category-form" className="btn-primary" disabled={catSaving}>{catSaving ? 'Menyimpan...' : 'Simpan'}</button>
+                </div>
+            }>
+                <form id="category-form" onSubmit={handleCatSubmit} className="space-y-4">
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                        <Field label="Label" hint="mis. Satuan">
+                            <input className="input" value={catForm.label} onChange={(e) => setCatForm({ ...catForm, label: e.target.value })} />
+                        </Field>
+                        <Field label="Judul" required error={catErrors.title?.[0]}>
+                            <input className="input" value={catForm.title} onChange={(e) => setCatForm({ ...catForm, title: e.target.value })} required />
+                        </Field>
+                    </div>
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                        <Field label="Tipe" required>
+                            <select className="input" value={catForm.type} onChange={(e) => setCatForm({ ...catForm, type: e.target.value })}>
+                                {TYPE_OPTIONS.map((t) => (
+                                    <option key={t} value={t}>{t}</option>
+                                ))}
+                            </select>
+                        </Field>
                         <Field label="Tampilan">
                             <select className="input" value={catForm.layout} onChange={(e) => setCatForm({ ...catForm, layout: e.target.value })}>
                                 <option value="table">Tabel</option>
@@ -373,108 +587,22 @@ export default function Services() {
                         <Field label="Urutan">
                             <input className="input" type="number" min="0" value={catForm.order} onChange={(e) => setCatForm({ ...catForm, order: e.target.value })} />
                         </Field>
-                        <Field label="Status">
-                            <label className="flex h-[42px] cursor-pointer items-center gap-2 text-sm text-ink">
-                                <input type="checkbox" checked={catForm.published} onChange={(e) => setCatForm({ ...catForm, published: e.target.checked })} className="h-4 w-4 rounded border-line text-brand-600" />
-                                Tampilkan di publik
-                            </label>
-                        </Field>
                     </div>
-
-                    {catForm.layout === 'table' && (
-                        <Field label="Kolom Tabel" hint="kolom pertama selalu nama layanan">
-                            <div className="space-y-2">
-                                {catForm.columns.map((col, i) => (
-                                    <div key={i} className="flex items-center gap-2">
-                                        <input
-                                            className="input flex-1"
-                                            value={col}
-                                            placeholder={i === 0 ? 'Layanan / Paket' : `Kolom ${i}`}
-                                            onChange={(e) => setCatForm({ ...catForm, columns: catForm.columns.map((c, j) => (j === i ? e.target.value : c)) })}
-                                        />
-                                        {catForm.columns.length > 1 && (
-                                            <button
-                                                type="button"
-                                                className="rounded-lg p-2 text-ink-muted hover:bg-surface-muted hover:text-red-500"
-                                                onClick={() => setCatForm({ ...catForm, columns: catForm.columns.filter((_, j) => j !== i) })}
-                                                aria-label="Hapus kolom"
-                                            >
-                                                <Icon name="x" size={16} />
-                                            </button>
-                                        )}
-                                    </div>
-                                ))}
-                                <button type="button" className="btn-outline" onClick={() => setCatForm({ ...catForm, columns: [...catForm.columns, ''] })}>
-                                    <Icon name="plus" size={14} /> Tambah Kolom
-                                </button>
-                            </div>
-                        </Field>
-                    )}
-
-                    <div>
-                        <label className="label">Item / Baris</label>
-                        <div className="space-y-2">
-                            {catForm.items.map((it, idx) => (
-                                <div key={idx} className="flex flex-wrap items-center gap-2 rounded-xl border border-line bg-surface-muted/40 p-2">
-                                    <input
-                                        className="input w-40 flex-1 sm:flex-none"
-                                        placeholder="Nama"
-                                        value={it.name}
-                                        onChange={(e) => updateCatItem(idx, 'name', e.target.value)}
-                                    />
-                                    {catForm.layout === 'table'
-                                        ? catForm.columns.map((col, ci) => (
-                                              <input
-                                                  key={ci}
-                                                  className="input w-32 flex-1"
-                                                  placeholder={ci === 0 ? 'Layanan' : `Harga ${ci}`}
-                                                  value={it.values?.[ci - 1] || ''}
-                                                  onChange={(e) => {
-                                                      const vals = [...(it.values || [])];
-                                                      vals[ci - 1] = e.target.value;
-                                                      updateCatItem(idx, 'values', vals);
-                                                  }}
-                                              />
-                                          ))
-                                        : (
-                                            <input
-                                                className="input w-32 flex-1"
-                                                placeholder="Harga"
-                                                value={it.values?.[0] || ''}
-                                                onChange={(e) => updateCatItem(idx, 'values', [e.target.value])}
-                                            />
-                                        )}
-                                    <button
-                                        type="button"
-                                        className="rounded-lg p-2 text-ink-muted hover:bg-surface-muted hover:text-red-500"
-                                        onClick={() => setCatForm({ ...catForm, items: catForm.items.filter((_, j) => j !== idx) })}
-                                        aria-label="Hapus item"
-                                    >
-                                        <Icon name="x" size={16} />
-                                    </button>
-                                </div>
-                            ))}
-                            <button
-                                type="button"
-                                className="btn-outline"
-                                onClick={() =>
-                                    setCatForm({
-                                        ...catForm,
-                                        items: [...catForm.items, { name: '', values: catForm.layout === 'table' ? catForm.columns.slice(1).map(() => '') : [''] }],
-                                    })
-                                }
-                            >
-                                <Icon name="plus" size={14} /> Tambah Item
-                            </button>
-                        </div>
-                        {catErrors.items && <p className="mt-1 text-xs text-red-500">{catErrors.items[0]}</p>}
-                    </div>
+                    <Field label="Deskripsi" hint="opsional" error={catErrors.description?.[0]}>
+                        <textarea className="input min-h-[70px]" value={catForm.description} onChange={(e) => setCatForm({ ...catForm, description: e.target.value })} />
+                    </Field>
+                    <Field label="Status">
+                        <label className="flex h-[42px] cursor-pointer items-center gap-2 text-sm text-ink">
+                            <input type="checkbox" checked={catForm.published} onChange={(e) => setCatForm({ ...catForm, published: e.target.checked })} className="h-4 w-4 rounded border-line text-brand-600" />
+                            Tampilkan di publik
+                        </label>
+                    </Field>
                 </form>
             </Modal>
 
-            <Confirm open={!!deleting} onClose={() => setDeleting(null)} onConfirm={handleDelete} />
-            <Confirm open={!!catDeleting} onClose={() => setCatDeleting(null)} onConfirm={handleCatDelete} title="Hapus kategori harga?" message="Semua item di dalam kategori ini juga akan dihapus." />
-            <IconPicker open={iconOpen} onClose={() => setIconOpen(false)} value={form.icon} onSelect={(name) => setForm({ ...form, icon: name })} />
+            <Confirm open={!!svcDeleting} onClose={() => setSvcDeleting(null)} onConfirm={handleSvcDelete} title="Hapus layanan satuan?" message="Paket yang memakai layanan ini juga akan ikut berubah." />
+            <Confirm open={!!pkgDeleting} onClose={() => setPkgDeleting(null)} onConfirm={handlePkgDelete} title="Hapus paket?" message="Project yang sudah memakai paket ini tetap memakai snapshot harga." />
+            <Confirm open={!!catDeleting} onClose={() => setCatDeleting(null)} onConfirm={handleCatDelete} title="Hapus kategori?" />
             {node}
         </>
     );

@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Services\AuditLogger;
 use App\Models\Service;
-use App\Support\ContentSanitizer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
@@ -21,7 +20,7 @@ class ServiceController extends Controller
         $data = $this->validateData($request);
 
         $service = Service::create($data);
-        app(\App\Services\AuditLogger::class)->log('service.created', 'Layanan dibuat', $service);
+        app(AuditLogger::class)->log('service.created', 'Layanan satuan dibuat: ' . $service->name, $service);
 
         return response()->json($service, 201);
     }
@@ -31,31 +30,29 @@ class ServiceController extends Controller
         $data = $this->validateData($request);
 
         $service->update($data);
-        app(\App\Services\AuditLogger::class)->log('service.updated', 'Layanan diperbarui', $service);
+        app(AuditLogger::class)->log('service.updated', 'Layanan satuan diperbarui: ' . $service->name, $service);
 
         return response()->json($service);
     }
 
     public function destroy(Service $service)
     {
+        app(AuditLogger::class)->log('service.deleted', 'Layanan satuan dihapus: ' . $service->name, $service);
         $service->delete();
-        app(\App\Services\AuditLogger::class)->log('service.deleted', 'Layanan dihapus', $service);
 
         return response()->json(['ok' => true]);
     }
 
     private function validateData(Request $request): array
     {
-        $data = Validator::make($request->all(), [
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'icon' => 'nullable|string|max:100',
-            'starting_price' => 'nullable|numeric|min:0',
+        return Validator::make($request->all(), [
+            'name' => 'required|string|max:255',
+            'event' => 'nullable|string|max:255',
+            'media' => 'required|in:photo,video,drone,photobooth,livestream',
+            'duration' => 'nullable|string|max:255',
+            'price' => 'required|numeric|min:0',
+            'active' => 'boolean',
             'order' => 'integer|min:0',
         ])->validate();
-
-        $data['description'] = ContentSanitizer::plainText($data['description'] ?? '');
-
-        return $data;
     }
 }

@@ -45,10 +45,10 @@
                 <div class="card p-5">
                     <p class="text-sm font-semibold text-ink">Paket Populer</p>
                     <ul class="mt-3 space-y-2 text-sm text-ink-muted">
-                        @foreach ($services->take(4) as $service)
+                        @foreach ($packages->take(4) as $pkg)
                             <li class="flex items-center gap-2">
                                 <span class="h-1.5 w-1.5 rounded-full bg-brand-500"></span>
-                                {{ $service->name }}
+                                {{ $pkg['name'] }}
                             </li>
                         @endforeach
                     </ul>
@@ -94,8 +94,8 @@
                             <label for="package" class="label">Paket / Jenis Acara</label>
                             <select id="package" name="package" class="input">
                                 <option value="">Pilih paket...</option>
-                                @foreach ($services as $service)
-                                    <option value="{{ $service->name }}" {{ old('package') === $service->name ? 'selected' : '' }}>{{ $service->name }}</option>
+                                @foreach ($packages as $pkg)
+                                    <option value="{{ $pkg['name'] }}" {{ old('package') === $pkg['name'] ? 'selected' : '' }}>{{ $pkg['name'] }}</option>
                                 @endforeach
                             </select>
                             @error('package') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror

@@ -60,6 +60,7 @@ class ProjectController extends Controller
             'client_notes' => 'nullable|string|max:1000',
             'name' => 'required|string|max:255',
             'type' => 'nullable|string|max:100',
+            'package_id' => 'nullable|exists:packages,id',
             'event_date' => 'nullable|date',
             'description' => 'nullable|string',
             'price' => 'nullable|numeric|min:0',
@@ -80,14 +81,36 @@ class ProjectController extends Controller
         $password = Str::random(10);
         $this->ensureClientUser($client, $password);
 
+        $package = null;
+        $snapshot = null;
+        if (!empty($data['package_id'])) {
+            $package = \App\Models\Package::with('services')->find($data['package_id']);
+            if ($package) {
+                $snapshot = [
+                    'package' => $package->name,
+                    'package_id' => $package->id,
+                    'items' => $package->services->map(fn ($s) => [
+                        'service' => $s->name,
+                        'price' => (float) $s->price,
+                        'qty' => (int) $s->pivot->qty,
+                        'line_total' => (float) $s->price * (int) $s->pivot->qty,
+                    ])->values(),
+                    'discount' => ['type' => $package->promo_type, 'value' => $package->promo_value ?? 0],
+                    'total' => $package->computedPrice(),
+                ];
+            }
+        }
+
         $project = Project::create([
             'client_id' => $client->id,
             'user_id' => $client->user_id,
             'name' => $data['name'],
             'type' => $data['type'] ?? null,
+            'package_id' => $package?->id ?? null,
             'event_date' => $data['event_date'] ?? null,
             'description' => $data['description'] ?? null,
-            'price' => $data['price'] ?? null,
+            'price' => $data['price'] ?? ($package ? $package->computedPrice() : null),
+            'pricing_snapshot' => $snapshot,
             'status' => $data['status'],
             'start_date' => $data['start_date'] ?? null,
             'end_date' => $data['end_date'] ?? null,
@@ -227,6 +250,7 @@ class ProjectController extends Controller
         $data = $request->validate([
             'name' => 'required|string|max:255',
             'type' => 'nullable|string|max:100',
+            'package_id' => 'nullable|exists:packages,id',
             'event_date' => 'nullable|date',
             'description' => 'nullable|string',
             'price' => 'nullable|numeric|min:0',
@@ -236,6 +260,30 @@ class ProjectController extends Controller
         ]);
 
         $data['description'] = ContentSanitizer::plainText($data['description'] ?? '');
+
+        if (array_key_exists('package_id', $data)) {
+            $project->package_id = $data['package_id'] ?: null;
+            if ($project->package_id) {
+                $package = \App\Models\Package::with('services')->find($project->package_id);
+                if ($package) {
+                    $project->pricing_snapshot = [
+                        'package' => $package->name,
+                        'package_id' => $package->id,
+                        'items' => $package->services->map(fn ($s) => [
+                            'service' => $s->name,
+                            'price' => (float) $s->price,
+                            'qty' => (int) $s->pivot->qty,
+                            'line_total' => (float) $s->price * (int) $s->pivot->qty,
+                        ])->values(),
+                        'discount' => ['type' => $package->promo_type, 'value' => $package->promo_value ?? 0],
+                        'total' => $package->computedPrice(),
+                    ];
+                    $data['price'] = $data['price'] ?? $package->computedPrice();
+                }
+            } else {
+                $project->pricing_snapshot = null;
+            }
+        }
 
         $project->update($data);
 

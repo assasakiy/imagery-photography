@@ -50,7 +50,7 @@ class ContactController extends Controller
 
     public function services()
     {
-        $services = \App\Models\Service::orderBy('order')->get();
+        $services = \App\Models\Service::active()->orderBy('order')->get();
         return view('services.index', compact('services'));
     }
 }

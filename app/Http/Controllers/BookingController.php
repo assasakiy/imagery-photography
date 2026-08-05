@@ -17,9 +17,22 @@ class BookingController extends Controller
             'social_whatsapp',
         ])->pluck('value', 'key')->toArray();
 
-        $services = Service::orderBy('order')->get();
+        $services = Service::active()->orderBy('order')->get();
 
-        return view('booking.index', compact('contents', 'services'));
+        $packages = \App\Models\Package::with('services')->active()->orderBy('display_order')->get()->map(function ($p) {
+            return [
+                'id' => $p->id,
+                'name' => $p->name,
+                'type' => $p->type,
+                'price' => $p->computedPrice(),
+                'base_price' => $p->basePrice(),
+                'discount' => $p->discountValue(),
+                'is_featured' => $p->is_featured,
+                'items' => $p->services->map(fn ($s) => $s->name)->values(),
+            ];
+        });
+
+        return view('booking.index', compact('contents', 'services', 'packages'));
     }
 
     public function store(Request $request)

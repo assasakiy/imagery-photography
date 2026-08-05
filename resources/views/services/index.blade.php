@@ -7,11 +7,19 @@
     @php
         $servicesIntro = \App\Models\LandingContent::getValue('services_intro', '');
         $whatsappUrl = \App\Models\LandingContent::getValue('social_whatsapp', 'https://wa.me/6287764426909');
-        $icons = [
-            'camera' => 'M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z M12 13a3 3 0 1 0 0-6 3 3 0 0 0 0 6z',
-            'video' => 'M22 8l-6 4 6 4V8z M2 6h14v12H2z',
-            'heart' => 'M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7z',
+
+        $allServices = $services; // master satuan
+        $minPhoto = $allServices->where('media', 'photo')->min('price');
+        $minVideo = $allServices->where('media', 'video')->min('price');
+
+        $allPackages = \App\Models\Package::with('services')->active()->orderBy('display_order')->get();
+        $featuredPackage = $allPackages->firstWhere('is_featured', true) ?? $allPackages->firstWhere('is_popular', true) ?? $allPackages->first();
+
+        $mediaMeta = [
+            'photo' => ['label' => 'Photography', 'icon' => 'M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z M12 13a3 3 0 1 0 0-6 3 3 0 0 0 0 6z', 'min' => $minPhoto],
+            'video' => ['label' => 'Videography', 'icon' => 'M22 8l-6 4 6 4V8z M2 6h14v12H2z', 'min' => $minVideo],
         ];
+        $cards = array_values(array_filter($mediaMeta, fn ($m) => $m['min'] !== null));
     @endphp
 
     <section class="relative overflow-hidden border-b border-line bg-zinc-100/60 dark:bg-zinc-900/40">
@@ -25,31 +33,47 @@
         </div>
     </section>
 
-    {{-- Service cards --}}
-    @if ($services->isNotEmpty())
-        <section class="container-site py-20">
-            <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
-                @foreach ($services as $service)
-                    <div class="card group relative overflow-hidden p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-brand-600/10">
-                        <div class="absolute right-0 top-0 h-24 w-24 translate-x-8 -translate-y-8 rounded-full bg-brand-600/10 transition-transform duration-300 group-hover:scale-150"></div>
-                        <div class="mb-5 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-500/15 text-brand-600 dark:text-brand-400">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{ $icons[$service->icon] ?? $icons['camera'] }}"/></svg>
-                        </div>
-                        <h2 class="text-lg font-bold text-ink">{{ $service->title }}</h2>
-                        <p class="mt-2 text-sm leading-relaxed text-ink-muted">{{ content_plain($service->description) }}</p>
-                        @if ($service->starting_price)
-                            <p class="mt-5 text-sm text-ink-muted">Mulai dari</p>
-                            <p class="text-2xl font-bold text-brand-600 dark:text-brand-400">Rp {{ number_format($service->starting_price, 0, ',', '.') }}</p>
+    {{-- Widget kartu utama (dihitung otomatis) --}}
+    <section class="container-site py-20">
+        <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
+            @foreach ($cards as $card)
+                <div class="card group relative overflow-hidden p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-brand-600/10">
+                    <div class="absolute right-0 top-0 h-24 w-24 translate-x-8 -translate-y-8 rounded-full bg-brand-600/10 transition-transform duration-300 group-hover:scale-150"></div>
+                    <div class="mb-5 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-500/15 text-brand-600 dark:text-brand-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{ $card['icon'] }}"/></svg>
+                    </div>
+                    <h2 class="text-lg font-bold text-ink">{{ $card['label'] }}</h2>
+                    <p class="mt-5 text-sm text-ink-muted">Mulai dari</p>
+                    <p class="text-2xl font-bold text-brand-600 dark:text-brand-400">Rp {{ number_format($card['min'], 0, ',', '.') }}</p>
+                </div>
+            @endforeach
+
+            @if ($featuredPackage)
+                <div class="card group relative overflow-hidden border-amber-500/40 p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-amber-500/10">
+                    <div class="absolute right-0 top-0 h-24 w-24 translate-x-8 -translate-y-8 rounded-full bg-amber-500/10 transition-transform duration-300 group-hover:scale-150"></div>
+                    <div class="mb-5 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-500/15 text-amber-600 dark:text-amber-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <h2 class="text-lg font-bold text-ink">{{ $featuredPackage->name }}</h2>
+                        @if ($featuredPackage->is_popular)
+                            <span class="rounded-full bg-emerald-500/15 px-2 py-0.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400">Populer</span>
                         @endif
                     </div>
-                @endforeach
-            </div>
-        </section>
-    @endif
+                    <p class="mt-2 text-sm leading-relaxed text-ink-muted">{{ $featuredPackage->services->pluck('name')->join(', ') }}</p>
+                    @if ($featuredPackage->discountValue() > 0)
+                        <p class="mt-5 text-sm text-ink-muted line-through">Rp {{ number_format($featuredPackage->basePrice(), 0, ',', '.') }}</p>
+                        <p class="text-sm font-semibold text-emerald-600 dark:text-emerald-400">Hemat Rp {{ number_format($featuredPackage->discountValue(), 0, ',', '.') }}</p>
+                    @endif
+                    <p class="mt-1 text-2xl font-bold text-brand-600 dark:text-brand-400">Rp {{ number_format($featuredPackage->computedPrice(), 0, ',', '.') }}</p>
+                </div>
+            @endif
+        </div>
+    </section>
 
-    {{-- Price tables (dinamis dari dashboard) --}}
+    {{-- Tabel/grid per kategori tampilan --}}
     @php
-        $priceCategories = \App\Models\ServiceCategory::with('items')->where('published', true)->orderBy('order')->get();
+        $priceCategories = \App\Models\ServiceCategory::where('published', true)->orderBy('order')->get();
     @endphp
 
     @if ($priceCategories->isNotEmpty())
@@ -67,39 +91,92 @@
                             @endif
                         </div>
 
-                        @if ($cat->layout === 'grid')
-                            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                                @foreach ($cat->items as $item)
-                                    <div class="card flex items-center justify-between p-5">
-                                        <span class="font-semibold text-ink">{{ $item->name }}</span>
-                                        @if (($item->values[0] ?? '') !== '')
-                                            <span class="text-lg font-bold text-brand-600 dark:text-brand-400">{{ $item->values[0] }}</span>
-                                        @endif
-                                    </div>
-                                @endforeach
-                            </div>
-                        @else
-                            <div class="card overflow-hidden">
-                                <table class="table">
-                                    <thead>
-                                        <tr>
-                                            @foreach ($cat->columns ?: ['Layanan', 'Harga'] as $col)
-                                                <th>{{ $col }}</th>
-                                            @endforeach
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach ($cat->items as $item)
+                        @if ($cat->type === 'satuan')
+                            @php
+                                $satuanItems = $allServices->where('active', true)->sortBy('order');
+                            @endphp
+                            @if ($cat->layout === 'grid')
+                                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                                    @foreach ($satuanItems as $item)
+                                        <div class="card flex items-center justify-between p-5">
+                                            <div>
+                                                <span class="font-semibold text-ink">{{ $item->name }}</span>
+                                                @if ($item->duration)
+                                                    <p class="text-xs text-ink-muted">{{ $item->duration }}</p>
+                                                @endif
+                                            </div>
+                                            <span class="text-lg font-bold text-brand-600 dark:text-brand-400">Rp {{ number_format($item->price, 0, ',', '.') }}</span>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @else
+                                <div class="card overflow-hidden">
+                                    <table class="table">
+                                        <thead>
                                             <tr>
-                                                <td class="font-semibold text-ink">{{ $item->name }}</td>
-                                                @foreach ($item->values ?: [] as $val)
-                                                    <td class="text-ink">{{ $val }}</td>
+                                                @foreach ($cat->columns ?: ['Layanan', 'Harga'] as $col)
+                                                    <th>{{ $col }}</th>
                                                 @endforeach
                                             </tr>
-                                        @endforeach
-                                    </tbody>
-                                </table>
-                            </div>
+                                        </thead>
+                                        <tbody>
+                                            @foreach ($satuanItems as $item)
+                                                <tr>
+                                                    <td class="font-semibold text-ink">{{ $item->name }}
+                                                        @if ($item->duration)
+                                                            <span class="block text-xs font-normal text-ink-muted">{{ $item->duration }}</span>
+                                                        @endif
+                                                    </td>
+                                                    <td class="text-ink">Rp {{ number_format($item->price, 0, ',', '.') }}</td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                            @endif
+                        @else
+                            @php
+                                $catPackages = $allPackages->where('type', $cat->type);
+                            @endphp
+                            @if ($cat->layout === 'grid')
+                                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                                    @foreach ($catPackages as $pkg)
+                                        <div class="card flex flex-col justify-between p-5">
+                                            <div>
+                                                <span class="font-semibold text-ink">{{ $pkg->name }}</span>
+                                                <p class="mt-1 text-xs text-ink-muted">{{ $pkg->services->pluck('name')->join(', ') }}</p>
+                                            </div>
+                                            <div class="mt-3">
+                                                @if ($pkg->discountValue() > 0)
+                                                    <p class="text-xs text-ink-muted line-through">Rp {{ number_format($pkg->basePrice(), 0, ',', '.') }}</p>
+                                                    <p class="text-xs font-semibold text-emerald-600 dark:text-emerald-400">Hemat Rp {{ number_format($pkg->discountValue(), 0, ',', '.') }}</p>
+                                                @endif
+                                                <span class="text-lg font-bold text-brand-600 dark:text-brand-400">Rp {{ number_format($pkg->computedPrice(), 0, ',', '.') }}</span>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @else
+                                <div class="card overflow-hidden">
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                @foreach ($cat->columns ?: ['Paket', 'Harga'] as $col)
+                                                    <th>{{ $col }}</th>
+                                                @endforeach
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach ($catPackages as $pkg)
+                                                <tr>
+                                                    <td class="font-semibold text-ink">{{ $pkg->name }}</td>
+                                                    <td class="text-ink">Rp {{ number_format($pkg->computedPrice(), 0, ',', '.') }}</td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                            @endif
                         @endif
                     </div>
                 @endforeach
@@ -120,14 +197,14 @@
         </section>
     @endif
 
-            <div class="rounded-3xl bg-gradient-to-r from-brand-700 via-brand-600 to-brand-500 p-8 text-center sm:p-12">
-                <h2 class="text-2xl font-bold text-white sm:text-3xl">Siap Mengabadikan Momen Anda?</h2>
-                <p class="mx-auto mt-3 max-w-xl text-sm text-brand-100 sm:text-base">Konsultasikan kebutuhan Anda secara gratis. Kami akan bantu pilih paket yang paling tepat.</p>
-                <a href="{{ $whatsappUrl }}" target="_blank" rel="noreferrer" class="btn mt-6 bg-white text-brand-700 shadow-lg hover:bg-brand-50">
-                    Hubungi via WhatsApp
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14m-7-7 7 7-7 7"/></svg>
-                </a>
-            </div>
+    <section class="container-site pb-20">
+        <div class="rounded-3xl bg-gradient-to-r from-brand-700 via-brand-600 to-brand-500 p-8 text-center sm:p-12">
+            <h2 class="text-2xl font-bold text-white sm:text-3xl">Siap Mengabadikan Momen Anda?</h2>
+            <p class="mx-auto mt-3 max-w-xl text-sm text-brand-100 sm:text-base">Konsultasikan kebutuhan Anda secara gratis. Kami akan bantu pilih paket yang paling tepat.</p>
+            <a href="{{ $whatsappUrl }}" target="_blank" rel="noreferrer" class="btn mt-6 bg-white text-brand-700 shadow-lg hover:bg-brand-50">
+                Hubungi via WhatsApp
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14m-7-7 7 7-7 7"/></svg>
+            </a>
         </div>
     </section>
 @endsection

@@ -7,21 +7,27 @@ use Illuminate\Support\Str;
 
 class Service extends Model
 {
-    protected $fillable = ['title', 'slug', 'description', 'icon', 'starting_price', 'order'];
+    protected $fillable = ['name', 'slug', 'event', 'media', 'duration', 'price', 'active', 'order'];
 
     protected function casts(): array
     {
         return [
-            'starting_price' => 'decimal:2',
+            'price' => 'decimal:2',
+            'active' => 'boolean',
         ];
     }
 
     protected static function booted(): void
     {
-        static::creating(function (Service $service) {
+        static::saving(function (Service $service) {
             if (empty($service->slug)) {
-                $service->slug = Str::slug($service->title);
+                $service->slug = Str::slug($service->name) . '-' . Str::slug($service->media ?? '') . '-' . Str::slug($service->event ?? '');
             }
         });
+    }
+
+    public function scopeActive($q)
+    {
+        return $q->where('active', true);
     }
 }

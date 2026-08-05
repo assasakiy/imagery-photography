@@ -30,6 +30,7 @@ const emptyForm = {
     client_notes: '',
     name: '',
     type: '',
+    package_id: '',
     event_date: '',
     description: '',
     price: '',
@@ -45,6 +46,7 @@ export default function Projects() {
     const [meta, setMeta] = useState({});
     const [status, setStatus] = useState('');
     const [clients, setClients] = useState([]);
+    const [packages, setPackages] = useState([]);
     const [loading, setLoading] = useState(true);
     const [open, setOpen] = useState(false);
     const [editing, setEditing] = useState(null);
@@ -70,6 +72,7 @@ export default function Projects() {
 
     useEffect(() => {
         if (isAdmin) api.get('/clients', { params: { per_page: 100 } }).then(({ data }) => setClients(data.data));
+        if (isAdmin) api.get('/packages', { params: { active_only: 1 } }).then(({ data }) => setPackages(data));
     }, [isAdmin]);
 
     const openCreate = () => {
@@ -91,6 +94,7 @@ export default function Projects() {
             client_notes: '',
             name: item.name,
             type: item.type || '',
+            package_id: item.package_id || '',
             event_date: item.event_date?.split('T')[0] || '',
             description: item.description || '',
             price: item.price || '',
@@ -299,6 +303,51 @@ export default function Projects() {
                     <Field label="Jenis" hint="opsional" error={errors.type?.[0]}>
                         <input className="input" placeholder="Wedding, Prewedding, Event..." value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })} />
                     </Field>
+                    {isAdmin && packages.length > 0 && (
+                        <div className="sm:col-span-2">
+                            <Field label="Paket" hint="pilih paket untuk mengisi harga otomatis">
+                                <select
+                                    className="input"
+                                    value={form.package_id}
+                                    onChange={(e) => {
+                                        const pid = e.target.value;
+                                        const pkg = packages.find((p) => String(p.id) === pid);
+                                        setForm({
+                                            ...form,
+                                            package_id: pid,
+                                            name: form.name || (pkg ? pkg.name : ''),
+                                            type: form.type || (pkg ? pkg.type : ''),
+                                            price: pkg ? pkg.price : form.price,
+                                        });
+                                    }}
+                                >
+                                    <option value="">Tanpa paket (harga manual)</option>
+                                    {packages.map((p) => (
+                                        <option key={p.id} value={p.id}>{p.name} — {formatRupiah(p.price)}</option>
+                                    ))}
+                                </select>
+                            </Field>
+                            {(() => {
+                                const pkg = packages.find((p) => String(p.id) === form.package_id);
+                                if (!pkg) return null;
+                                return (
+                                    <div className="mt-2 rounded-xl border border-line bg-surface-muted/50 p-3 text-sm">
+                                        <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-muted">Isi Paket</p>
+                                        <div className="flex flex-wrap gap-1.5">
+                                            {(pkg.items || []).map((it, i) => (
+                                                <span key={i} className="rounded-lg bg-surface px-2 py-1 text-xs text-ink">
+                                                    {it.name} {it.qty > 1 ? `x${it.qty}` : ''} · {formatRupiah(it.line_total)}
+                                                </span>
+                                            ))}
+                                        </div>
+                                        {pkg.discount > 0 && (
+                                            <p className="mt-2 text-xs font-semibold text-emerald-600 dark:text-emerald-400">Hemat {formatRupiah(pkg.discount)}</p>
+                                        )}
+                                    </div>
+                                );
+                            })()}
+                        </div>
+                    )}
                     <Field label="Tanggal Acara" hint="opsional" error={errors.event_date?.[0]}>
                         <input className="input" type="date" value={form.event_date} onChange={(e) => setForm({ ...form, event_date: e.target.value })} />
                     </Field>
