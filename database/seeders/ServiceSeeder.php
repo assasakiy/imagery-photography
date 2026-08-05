@@ -33,7 +33,7 @@ class ServiceSeeder extends Seeder
         $services = [];
         foreach ($satuan as $i => [$event, $media, $duration, $price]) {
             $services[sprintf('%s|%s', $event, $media)] = Service::create([
-                'name' => $event . ' ' . ucfirst($media),
+                'name' => $event,
                 'event' => $event,
                 'media' => strtolower($media),
                 'duration' => $duration,

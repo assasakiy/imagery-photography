@@ -105,15 +105,21 @@
 
                             @if ($isSatuan && $cat->layout === 'grid')
                                 <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                                    @foreach ($items as $item)
-                                        <div class="card flex items-center justify-between p-5">
-                                            <div>
-                                                <span class="font-semibold text-ink">{{ $item->name }}</span>
-                                                @if ($item->duration)
-                                                    <p class="mt-0.5 text-xs text-ink-muted">{{ $item->duration }}</p>
-                                                @endif
-                                            </div>
-                                            <span class="text-lg font-bold text-brand-600 dark:text-brand-400">Rp {{ number_format($item->price, 0, ',', '.') }}</span>
+                                    @foreach ($items->groupBy('event') as $event => $rows)
+                                        <div class="card p-5">
+                                            <span class="font-semibold text-ink">{{ $event }}</span>
+                                            <ul class="mt-3 space-y-2">
+                                                @foreach ($rows as $svc)
+                                                    <li class="flex items-center justify-between gap-3 text-sm">
+                                                        <span class="capitalize text-ink-muted">{{ $svc->media }}
+                                                            @if ($svc->duration)
+                                                                <span class="block text-xs text-ink-muted/70">{{ $svc->duration }}</span>
+                                                            @endif
+                                                        </span>
+                                                        <span class="font-bold text-brand-600 dark:text-brand-400">Rp {{ number_format($svc->price, 0, ',', '.') }}</span>
+                                                    </li>
+                                                @endforeach
+                                            </ul>
                                         </div>
                                     @endforeach
                                 </div>
@@ -136,6 +142,14 @@
                                     @endforeach
                                 </div>
                             @else
+                                @php
+                                    $mediaCols = [];
+                                    foreach (($cat->columns ?: []) as $i => $col) {
+                                        if ($i === 0) continue;
+                                        $mediaCols[] = ['label' => $col, 'media' => str_contains(strtolower($col), 'foto') ? 'photo' : (str_contains(strtolower($col), 'video') ? 'video' : (str_contains(strtolower($col), 'drone') ? 'drone' : null))];
+                                    }
+                                    $groupedEvents = $isSatuan ? $items->groupBy('event')->sortKeys() : collect();
+                                @endphp
                                 <div class="card overflow-hidden">
                                     <table class="table">
                                         <thead>
@@ -146,16 +160,33 @@
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            @foreach ($items as $row)
-                                                <tr>
-                                                    <td class="font-semibold text-ink">{{ $isSatuan ? $row->name : $row->name }}
-                                                        @if ($isSatuan && $row->duration)
-                                                            <span class="block text-xs font-normal text-ink-muted">{{ $row->duration }}</span>
-                                                        @endif
-                                                    </td>
-                                                    <td class="text-ink">Rp {{ number_format($isSatuan ? $row->price : $row->computedPrice(), 0, ',', '.') }}</td>
-                                                </tr>
-                                            @endforeach
+                                            @if ($isSatuan)
+                                                @foreach ($groupedEvents as $event => $rows)
+                                                    <tr>
+                                                        <td class="font-semibold text-ink">{{ $event }}</td>
+                                                        @foreach ($mediaCols as $mc)
+                                                            @php $svc = $rows->firstWhere('media', $mc['media']); @endphp
+                                                            <td class="text-ink">
+                                                                @if ($svc)
+                                                                    Rp {{ number_format($svc->price, 0, ',', '.') }}
+                                                                    @if ($svc->duration)
+                                                                        <span class="block text-xs font-normal text-ink-muted">{{ $svc->duration }}</span>
+                                                                    @endif
+                                                                @else
+                                                                    <span class="text-ink-muted">-</span>
+                                                                @endif
+                                                            </td>
+                                                        @endforeach
+                                                    </tr>
+                                                @endforeach
+                                            @else
+                                                @foreach ($items as $row)
+                                                    <tr>
+                                                        <td class="font-semibold text-ink">{{ $row->name }}</td>
+                                                        <td class="text-ink">Rp {{ number_format($row->computedPrice(), 0, ',', '.') }}</td>
+                                                    </tr>
+                                                @endforeach
+                                            @endif
                                         </tbody>
                                     </table>
                                 </div>
