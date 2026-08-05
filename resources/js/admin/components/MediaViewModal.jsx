@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Modal, formatDate } from './ui';
 import Icon from './Icon';
 
@@ -10,13 +10,31 @@ const formatSize = (bytes) => {
 };
 
 export default function MediaViewModal({ open, item, onClose, onEdit, onCopyUrl }) {
-    const [showInfo, setShowInfo] = useState(false);
+    const [infoOpen, setInfoOpen] = useState(false);
+    const infoRef = useRef(null);
 
     useEffect(() => {
-        if (item) setShowInfo(false);
+        if (item) setInfoOpen(false);
     }, [item?.id]);
 
+    useEffect(() => {
+        if (!infoOpen) return;
+        const onClick = (e) => {
+            if (infoRef.current && !infoRef.current.contains(e.target)) setInfoOpen(false);
+        };
+        document.addEventListener('mousedown', onClick);
+        return () => document.removeEventListener('mousedown', onClick);
+    }, [infoOpen]);
+
     if (!open || !item) return null;
+
+    const rows = [
+        { label: 'Nama', value: item.name },
+        { label: 'Nama File', value: item.file_name },
+        { label: 'Tipe', value: item.mime_type },
+        { label: 'Ukuran', value: formatSize(item.size) },
+        { label: 'Diunggah', value: formatDate(item.created_at) },
+    ];
 
     return (
         <Modal open={open} onClose={onClose} title="Pratinjau Media" wide>
@@ -29,51 +47,37 @@ export default function MediaViewModal({ open, item, onClose, onEdit, onCopyUrl 
                             <Icon name={item.type === 'video' ? 'video' : 'file'} size={48} />
                         </div>
                     )}
-                    <button
-                        onClick={() => setShowInfo((s) => !s)}
-                        className={`absolute right-3 top-3 rounded-full p-2 shadow transition-colors ${
-                            showInfo ? 'bg-brand-600 text-white' : 'bg-white/90 text-zinc-700 hover:bg-white'
-                        }`}
-                        title={showInfo ? 'Sembunyikan info' : 'Tampilkan info'}
-                    >
-                        <Icon name="more-horizontal" size={18} />
-                    </button>
+
+                    <div ref={infoRef} className="absolute right-3 top-3">
+                        <button
+                            onClick={() => setInfoOpen((s) => !s)}
+                            className={`rounded-full p-2 shadow transition-colors ${
+                                infoOpen ? 'bg-brand-600 text-white' : 'bg-white/90 text-zinc-700 hover:bg-white'
+                            }`}
+                            title="Info"
+                        >
+                            <Icon name="more-horizontal" size={18} />
+                        </button>
+
+                        {infoOpen && (
+                            <div className="absolute right-0 top-11 z-10 w-64 overflow-hidden rounded-xl border border-line bg-surface shadow-2xl">
+                                <div className="border-b border-line px-3 py-2 text-xs font-semibold uppercase tracking-wider text-ink-muted">
+                                    Detail File
+                                </div>
+                                <div className="space-y-2.5 p-3">
+                                    {rows.map((row) => (
+                                        <div key={row.label}>
+                                            <p className="text-[11px] font-medium uppercase tracking-wide text-ink-muted">{row.label}</p>
+                                            <p className="break-all text-sm text-ink">{row.value}</p>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                    </div>
                 </div>
 
-                {showInfo && (
-                    <div className="grid grid-cols-1 gap-4 rounded-2xl border border-line bg-surface-muted/50 p-4 sm:grid-cols-2">
-                        <div>
-                            <label className="label">Nama</label>
-                            <p className="break-all rounded-xl border border-line bg-surface px-3 py-2 text-sm text-ink">{item.name}</p>
-                        </div>
-                        <div>
-                            <label className="label">Nama File</label>
-                            <p className="break-all rounded-xl border border-line bg-surface px-3 py-2 text-sm text-ink-muted">{item.file_name}</p>
-                        </div>
-                        <div>
-                            <label className="label">Tipe</label>
-                            <p className="rounded-xl border border-line bg-surface px-3 py-2 text-sm text-ink-muted">{item.mime_type}</p>
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <label className="label">Ukuran</label>
-                                <p className="rounded-xl border border-line bg-surface px-3 py-2 text-sm text-ink-muted">{formatSize(item.size)}</p>
-                            </div>
-                            <div>
-                                <label className="label">Diunggah</label>
-                                <p className="rounded-xl border border-line bg-surface px-3 py-2 text-sm text-ink-muted">{formatDate(item.created_at)}</p>
-                            </div>
-                        </div>
-                    </div>
-                )}
-
                 <div className="flex flex-wrap justify-end gap-2 pt-1">
-                    <button
-                        className="btn-outline"
-                        onClick={() => setShowInfo((s) => !s)}
-                    >
-                        <Icon name="more-horizontal" size={16} /> Info
-                    </button>
                     <a href={item.url} target="_blank" rel="noopener noreferrer" className="btn-outline">
                         <Icon name="eye" size={16} /> Buka
                     </a>
