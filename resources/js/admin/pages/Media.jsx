@@ -178,20 +178,20 @@ export default function Media() {
 
             {sheet && (
                 <div className="fixed inset-0 z-50 md:hidden">
-                    <div className="animate-fade-in absolute inset-0 bg-black/50" onClick={() => setSheet(null)} />
-                    <div className="animate-sheet-up absolute inset-x-0 bottom-0 overflow-hidden rounded-t-2xl border border-b-0 border-line bg-surface shadow-2xl">
-                        <div className="flex items-center justify-between gap-2 border-b border-line px-4 py-3">
+                    <div className="animate-fade-in absolute inset-0 bg-zinc-950/40 backdrop-blur-sm" onClick={() => setSheet(null)} />
+                    <div className="animate-sheet-up absolute inset-x-0 bottom-0 max-h-[80vh] flex-col overflow-hidden rounded-t-2xl border border-b-0 border-line bg-white shadow-xl shadow-black/5 dark:bg-zinc-900">
+                        <div className="flex items-center justify-between border-b border-line px-4 py-3">
                             <div className="min-w-0">
-                                <p className="truncate text-sm font-semibold text-ink">{sheet.name}</p>
+                                <p className="text-sm font-bold text-ink">{sheet.name}</p>
                                 <p className="truncate text-xs text-ink-muted">{sheet.file_name}</p>
                             </div>
-                            <button onClick={() => setSheet(null)} className="rounded-lg p-1 text-ink-muted hover:bg-surface-muted" aria-label="Tutup">
-                                <Icon name="x" size={18} />
+                            <button onClick={() => setSheet(null)} aria-label="Tutup" className="rounded-lg p-1 text-ink-muted transition-colors hover:bg-surface-muted hover:text-ink">
+                                <Icon name="x" size={16} />
                             </button>
                         </div>
-                        <div className="flex flex-col py-1">
+                        <div className="max-h-[60vh] overflow-y-auto">
                             <button
-                                className="flex items-center gap-3 px-4 py-3 text-left text-sm text-ink transition-colors hover:bg-surface-muted"
+                                className="flex w-full items-center gap-3 border-b border-line px-4 py-3 text-left text-sm text-ink transition-colors hover:bg-surface-muted"
                                 onClick={() => {
                                     setViewing(sheet);
                                     setSheet(null);
@@ -200,7 +200,7 @@ export default function Media() {
                                 <Icon name="eye" size={18} /> Lihat
                             </button>
                             <button
-                                className="flex items-center gap-3 px-4 py-3 text-left text-sm text-ink transition-colors hover:bg-surface-muted"
+                                className="flex w-full items-center gap-3 border-b border-line px-4 py-3 text-left text-sm text-ink transition-colors hover:bg-surface-muted"
                                 onClick={() => {
                                     copyUrl(sheet.url);
                                     setSheet(null);
@@ -209,18 +209,13 @@ export default function Media() {
                                 <Icon name="link" size={18} /> Salin URL
                             </button>
                             <button
-                                className="flex items-center gap-3 px-4 py-3 text-left text-sm text-red-600 transition-colors hover:bg-surface-muted"
+                                className="flex w-full items-center gap-3 border-b border-line px-4 py-3 text-left text-sm text-red-600 transition-colors hover:bg-surface-muted"
                                 onClick={() => {
                                     setDeleting(sheet);
                                     setSheet(null);
                                 }}
                             >
                                 <Icon name="trash" size={18} /> Hapus
-                            </button>
-                        </div>
-                        <div className="p-3 pt-1">
-                            <button className="w-full rounded-xl border border-line py-2.5 text-sm font-medium text-ink-muted" onClick={() => setSheet(null)}>
-                                Batal
                             </button>
                         </div>
                     </div>
