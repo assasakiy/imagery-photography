@@ -149,19 +149,29 @@ export default function Media() {
                 ))}
                 {selecting ? (
                     <div className="ml-auto flex flex-wrap items-center gap-2">
-                        <button className="text-sm font-medium text-brand-600 hover:underline dark:text-brand-400" onClick={toggleSelectAll}>
-                            {items.length && items.every((i) => selected.has(i.id)) ? 'Batal pilih semua' : 'Pilih semua'}
+                        <button
+                            className="inline-flex items-center gap-1.5 text-sm font-medium text-brand-600 hover:underline dark:text-brand-400"
+                            onClick={toggleSelectAll}
+                            title={items.length && items.every((i) => selected.has(i.id)) ? 'Batal pilih semua' : 'Pilih semua'}
+                        >
+                            <Icon name={items.length && items.every((i) => selected.has(i.id)) ? 'check-square' : 'square'} size={16} />
+                            <span className="hidden sm:inline">{items.length && items.every((i) => selected.has(i.id)) ? 'Batal pilih semua' : 'Pilih semua'}</span>
                         </button>
-                        <button className="btn bg-red-600 px-3 py-1.5 text-white hover:bg-red-700 disabled:opacity-40" disabled={selected.size === 0} onClick={() => setBulkConfirm(true)}>
-                            <Icon name="trash" size={14} /> Hapus ({selected.size})
+                        <button
+                            className="btn bg-red-600 px-3 py-1.5 text-white hover:bg-red-700 disabled:opacity-40"
+                            disabled={selected.size === 0}
+                            onClick={() => setBulkConfirm(true)}
+                            title={`Hapus ${selected.size} file`}
+                        >
+                            <Icon name="trash" size={14} /> ({selected.size})
                         </button>
-                        <button className="btn-outline px-3 py-1.5" onClick={cancelSelect}>
-                            Batal
+                        <button className="btn-outline px-3 py-1.5" onClick={cancelSelect} title="Batal">
+                            <Icon name="x" size={16} />
                         </button>
                     </div>
                 ) : (
                     <button className="btn-outline ml-auto px-3 py-1.5" onClick={() => setSelecting(true)} title="Pilih">
-                        <Icon name="check" size={16} /> <span className="hidden sm:inline">Pilih</span>
+                        <Icon name="check-square" size={16} /> <span className="hidden sm:inline">Pilih</span>
                     </button>
                 )}
             </div>

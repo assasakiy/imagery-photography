@@ -131,6 +131,13 @@ const paths = {
         </>
     ),
     check: <path d="M20 6 9 17l-5-5" />,
+    'square': <rect x="3" y="3" width="18" height="18" rx="4" />,
+    'check-square': (
+        <>
+            <rect x="3" y="3" width="18" height="18" rx="4" />
+            <path d="m9 12 2 2 4-4" />
+        </>
+    ),
     x: <path d="M18 6 6 18M6 6l12 12" />,
     search: (
         <>
