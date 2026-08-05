@@ -65,7 +65,7 @@
                         @endif
                     </div>
                     <h2 class="text-lg font-bold text-ink">{{ $featuredPackage->name }}</h2>
-                    <p class="mt-1 flex-1 text-sm leading-relaxed text-ink-muted">{{ $featuredPackage->services->pluck('name')->join(', ') }}</p>
+                    <p class="mt-1 flex-1 text-sm leading-relaxed text-ink-muted">{{ $featuredPackage->summary() }}</p>
                     <div class="mt-6">
                         @if ($featuredPackage->discountValue() > 0)
                             <p class="text-sm text-ink-muted line-through">Rp {{ number_format($featuredPackage->basePrice(), 0, ',', '.') }}</p>
@@ -129,7 +129,7 @@
                                         <div class="card flex flex-col justify-between p-5">
                                             <div>
                                                 <span class="font-semibold text-ink">{{ $pkg->name }}</span>
-                                                <p class="mt-1 text-xs text-ink-muted">{{ $pkg->services->pluck('name')->join(', ') }}</p>
+                                                <p class="mt-1 text-xs text-ink-muted">{{ $pkg->summary() }}</p>
                                             </div>
                                             <div class="mt-3">
                                                 @if ($pkg->discountValue() > 0)

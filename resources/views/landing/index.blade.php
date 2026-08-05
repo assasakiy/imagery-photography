@@ -131,7 +131,7 @@
                     @endif
                 </div>
                 <h3 class="text-lg font-bold text-ink">{{ $pkg->name }}</h3>
-                <p class="mt-2 text-sm leading-relaxed text-ink-muted">{{ $pkg->services->pluck('name')->join(', ') }}</p>
+                <p class="mt-2 text-sm leading-relaxed text-ink-muted">{{ $pkg->summary() }}</p>
                 <div class="pt-5">
                     @if ($pkg->discountValue() > 0)
                         <p class="text-sm text-ink-muted line-through">Rp {{ number_format($pkg->basePrice(), 0, ',', '.') }}</p>

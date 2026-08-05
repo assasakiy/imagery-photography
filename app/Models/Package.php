@@ -79,4 +79,16 @@ class Package extends Model
     {
         return $q->where('is_active', true);
     }
+
+    public function summary(): string
+    {
+        $byEvent = $this->services->groupBy(fn ($s) => $s->event ?: $s->name);
+        $parts = [];
+        foreach ($byEvent as $event => $rows) {
+            $media = $rows->pluck('media')->map(fn ($m) => ucfirst($m))->unique()->join(' + ');
+            $parts[] = $event . ' (' . $media . ')';
+        }
+
+        return implode(', ', $parts);
+    }
 }
