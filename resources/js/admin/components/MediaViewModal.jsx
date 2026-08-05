@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Modal, formatDate } from './ui';
 import Icon from './Icon';
 
@@ -11,20 +11,10 @@ const formatSize = (bytes) => {
 
 export default function MediaViewModal({ open, item, onClose, onEdit, onCopyUrl }) {
     const [infoOpen, setInfoOpen] = useState(false);
-    const infoRef = useRef(null);
 
     useEffect(() => {
         if (item) setInfoOpen(false);
     }, [item?.id]);
-
-    useEffect(() => {
-        if (!infoOpen) return;
-        const onClick = (e) => {
-            if (infoRef.current && !infoRef.current.contains(e.target)) setInfoOpen(false);
-        };
-        document.addEventListener('mousedown', onClick);
-        return () => document.removeEventListener('mousedown', onClick);
-    }, [infoOpen]);
 
     if (!open || !item) return null;
 
@@ -48,33 +38,29 @@ export default function MediaViewModal({ open, item, onClose, onEdit, onCopyUrl 
                         </div>
                     )}
 
-                    <div ref={infoRef} className="absolute right-3 top-3">
-                        <button
-                            onClick={() => setInfoOpen((s) => !s)}
-                            className={`rounded-full p-2 shadow transition-colors ${
-                                infoOpen ? 'bg-brand-600 text-white' : 'bg-white/90 text-zinc-700 hover:bg-white'
-                            }`}
-                            title="Info"
-                        >
-                            <Icon name="more-horizontal" size={18} />
-                        </button>
-
-                        {infoOpen && (
-                            <div className="absolute right-0 top-11 z-10 w-64 overflow-hidden rounded-xl border border-line bg-surface shadow-2xl">
-                                <div className="border-b border-line px-3 py-2 text-xs font-semibold uppercase tracking-wider text-ink-muted">
-                                    Detail File
-                                </div>
-                                <div className="space-y-2.5 p-3">
+                    {infoOpen && (
+                        <div className="absolute inset-0 z-10 overflow-y-auto bg-black/85 p-4 backdrop-blur-sm sm:p-6">
+                            <div className="mx-auto max-w-xl">
+                                <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-white/70">Detail File</p>
+                                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                                     {rows.map((row) => (
                                         <div key={row.label}>
-                                            <p className="text-[11px] font-medium uppercase tracking-wide text-ink-muted">{row.label}</p>
-                                            <p className="break-all text-sm text-ink">{row.value}</p>
+                                            <p className="text-[11px] font-medium uppercase tracking-wide text-white/60">{row.label}</p>
+                                            <p className="break-all text-sm text-white">{row.value}</p>
                                         </div>
                                     ))}
                                 </div>
                             </div>
-                        )}
-                    </div>
+                        </div>
+                    )}
+
+                    <button
+                        onClick={() => setInfoOpen((s) => !s)}
+                        className="absolute right-3 top-3 z-20 rounded-full bg-white/90 p-2 text-zinc-700 shadow transition-colors hover:bg-white"
+                        title="Info"
+                    >
+                        <Icon name="more-horizontal" size={18} />
+                    </button>
                 </div>
 
                 <div className="flex flex-wrap justify-end gap-2 pt-1">
