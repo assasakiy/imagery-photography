@@ -5,14 +5,12 @@ namespace Database\Seeders;
 use App\Models\Package;
 use App\Models\Service;
 use App\Models\ServiceCategory;
-use App\Models\ServiceItem;
 use Illuminate\Database\Seeder;
 
 class ServiceSeeder extends Seeder
 {
     public function run(): void
     {
-        ServiceItem::query()->delete();
         ServiceCategory::query()->delete();
         Package::query()->delete();
         Service::query()->delete();
