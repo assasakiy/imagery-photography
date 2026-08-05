@@ -17,7 +17,13 @@ const emptyCategory = {
     items: [],
 };
 
+const VIEWS = [
+    { key: 'services', label: 'Layanan', icon: 'briefcase' },
+    { key: 'categories', label: 'Kategori Harga', icon: 'file' },
+];
+
 export default function Services() {
+    const [view, setView] = useState('services');
     const [items, setItems] = useState([]);
     const [loading, setLoading] = useState(true);
     const [open, setOpen] = useState(false);
@@ -181,51 +187,65 @@ export default function Services() {
                 title="Layanan"
                 subtitle="Kelola layanan dan harga yang tampil di halaman Layanan."
                 action={
-                    <button className="btn-primary" onClick={openCreate}>
-                        <Icon name="plus" size={18} /> Tambah Layanan
-                    </button>
+                    view === 'categories' ? (
+                        <button className="btn-primary" onClick={openCatCreate}>
+                            <Icon name="plus" size={16} /> Tambah Kategori
+                        </button>
+                    ) : (
+                        <button className="btn-primary" onClick={openCreate}>
+                            <Icon name="plus" size={18} /> Tambah Layanan
+                        </button>
+                    )
                 }
             />
 
-            {items.length ? (
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-                    {items.map((item) => (
-                        <div key={item.id} className="card group relative p-5">
-                            <div className="absolute right-3 top-3 flex gap-1">
-                                <button onClick={() => openEdit(item)} className="rounded-lg p-1.5 text-ink-muted opacity-0 transition-opacity hover:bg-surface-muted hover:text-brand-600 group-hover:opacity-100" aria-label="Edit">
-                                    <Icon name="edit" size={16} />
-                                </button>
-                                <button onClick={() => setDeleting(item)} className="rounded-lg p-1.5 text-ink-muted opacity-0 transition-opacity hover:bg-surface-muted hover:text-red-500 group-hover:opacity-100" aria-label="Hapus">
-                                    <Icon name="trash" size={16} />
-                                </button>
-                            </div>
-                            <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-500/15 text-brand-600 dark:text-brand-400">
-                                <Icon name={item.icon} size={24} />
-                            </div>
-                            <div>
-                                <h3 className="font-bold text-ink">{item.title}</h3>
-                                <p className="mt-1 text-sm text-ink-muted">{item.description}</p>
-                            </div>
-                            <p className="mt-3 font-bold text-brand-600 dark:text-brand-400">{formatRupiah(item.starting_price)}</p>
-                        </div>
-                    ))}
-                </div>
-            ) : (
-                <EmptyState title="Belum ada layanan" />
-            )}
-
-            <div className="mt-10 flex items-center justify-between">
-                <div>
-                    <h2 className="text-xl font-bold text-ink">Kategori Harga & Tabel</h2>
-                    <p className="mt-1 text-sm text-ink-muted">Kelola tabel harga (satuan, premium, ultimate) yang tampil di halaman Layanan.</p>
-                </div>
-                <button className="btn-primary" onClick={openCatCreate}>
-                    <Icon name="plus" size={16} /> Tambah Kategori
-                </button>
+            <div className="mb-5 flex gap-1 overflow-x-auto rounded-2xl border border-line bg-surface p-1">
+                {VIEWS.map((v) => (
+                    <button
+                        key={v.key}
+                        type="button"
+                        onClick={() => setView(v.key)}
+                        className={`flex flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-xl px-3 py-2.5 text-sm font-semibold transition-colors ${
+                            view === v.key ? 'bg-brand-600 text-white shadow' : 'text-ink-muted hover:bg-surface-muted hover:text-ink'
+                        }`}
+                    >
+                        <Icon name={v.icon} size={16} /> {v.label}
+                    </button>
+                ))}
             </div>
 
-            <div className="mt-5 grid grid-cols-1 gap-4 lg:grid-cols-2">
-                {categories.map((cat) => (
+            {view === 'services' ? (
+                items.length ? (
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+                        {items.map((item) => (
+                            <div key={item.id} className="card group relative p-5">
+                                <div className="absolute right-3 top-3 flex gap-1">
+                                    <button onClick={() => openEdit(item)} className="rounded-lg p-1.5 text-ink-muted opacity-0 transition-opacity hover:bg-surface-muted hover:text-brand-600 group-hover:opacity-100" aria-label="Edit">
+                                        <Icon name="edit" size={16} />
+                                    </button>
+                                    <button onClick={() => setDeleting(item)} className="rounded-lg p-1.5 text-ink-muted opacity-0 transition-opacity hover:bg-surface-muted hover:text-red-500 group-hover:opacity-100" aria-label="Hapus">
+                                        <Icon name="trash" size={16} />
+                                    </button>
+                                </div>
+                                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-500/15 text-brand-600 dark:text-brand-400">
+                                    <Icon name={item.icon} size={24} />
+                                </div>
+                                <div>
+                                    <h3 className="font-bold text-ink">{item.title}</h3>
+                                    <p className="mt-1 text-sm text-ink-muted">{item.description}</p>
+                                </div>
+                                <p className="mt-3 font-bold text-brand-600 dark:text-brand-400">{formatRupiah(item.starting_price)}</p>
+                            </div>
+                        ))}
+                    </div>
+                ) : (
+                    <EmptyState title="Belum ada layanan" />
+                )
+            ) : (
+                <>
+                    {categories.length ? (
+                        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                            {categories.map((cat) => (
                     <div key={cat.id} className="card p-5">
                         <div className="mb-3 flex items-start justify-between gap-3">
                             <div className="min-w-0">
@@ -289,11 +309,11 @@ export default function Services() {
                         )}
                     </div>
                 ))}
-            </div>
-            {!categories.length && !loading && (
-                <div className="mt-5">
-                    <EmptyState title="Belum ada kategori harga" message="Tambahkan kategori pertama Anda." icon="briefcase" />
-                </div>
+                        </div>
+                    ) : (
+                        <EmptyState title="Belum ada kategori harga" message="Tambahkan kategori pertama Anda." icon="briefcase" />
+                    )}
+                </>
             )}
 
             <Modal open={open} onClose={() => setOpen(false)} title={editing ? 'Edit Layanan' : 'Tambah Layanan'} footer={footer}>
