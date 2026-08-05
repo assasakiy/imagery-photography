@@ -22,7 +22,7 @@ class PortfolioController extends Controller
         $perPage = $request->integer('per_page', 12);
 
         $portfolios = $query->orderBy('order')->paginate($perPage);
-        $portfolios->getCollection()->transform(fn (Portfolio $portfolio) => $this->serialize($portfolio));
+        $portfolios->through(fn (Portfolio $portfolio) => $this->serialize($portfolio));
 
         return response()->json($portfolios);
     }
