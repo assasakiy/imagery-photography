@@ -45,7 +45,7 @@ export function EmptyState({ icon = 'image', title, message }) {
     );
 }
 
-export function Modal({ open, onClose, title, children, wide = false, fullscreen = false, bodyClassName = '' }) {
+export function Modal({ open, onClose, title, children, wide = false, fullscreen = false, bodyClassName = '', footer = null }) {
     if (!open) return null;
 
     const shell = fullscreen
@@ -65,6 +65,7 @@ export function Modal({ open, onClose, title, children, wide = false, fullscreen
                     </button>
                 </div>
                 <div className={`flex min-h-0 flex-1 flex-col overflow-y-auto ${bodyClassName || 'p-4 sm:p-6'}`}>{children}</div>
+                {footer && <div className={fullscreen ? 'shrink-0 border-t border-line' : 'mt-6'}>{footer}</div>}
             </div>
         </div>
     );

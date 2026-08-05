@@ -26,8 +26,25 @@ export default function MediaViewModal({ open, item, onClose, onEdit, onCopyUrl 
         { label: 'Diunggah', value: formatDate(item.created_at) },
     ];
 
+    const footer = (
+        <div className="flex items-center justify-end gap-2 px-3 py-2">
+            <button className="btn-outline px-2.5 py-1.5" onClick={() => setInfoOpen((s) => !s)} title="Info">
+                <Icon name="more-horizontal" size={16} />
+                <span className="hidden sm:inline">Info</span>
+            </button>
+            <button className="btn-outline px-2.5 py-1.5" onClick={() => onCopyUrl?.(item.url)} title="Salin URL">
+                <Icon name="link" size={16} />
+                <span className="hidden sm:inline">Salin URL</span>
+            </button>
+            <button className="btn-primary px-2.5 py-1.5" onClick={() => onEdit?.(item)} title="Edit">
+                <Icon name="edit" size={16} />
+                <span className="hidden sm:inline">Edit</span>
+            </button>
+        </div>
+    );
+
     return (
-        <Modal open={open} onClose={onClose} title="Pratinjau Media" fullscreen bodyClassName="p-[2px]">
+        <Modal open={open} onClose={onClose} title="Pratinjau Media" fullscreen bodyClassName="p-[2px]" footer={footer}>
             <div className="flex h-full min-h-0 flex-col gap-[2px]">
                 <div className="relative flex min-h-0 flex-1 items-center justify-center overflow-hidden bg-black/40">
                     {item.type === 'image' ? (
@@ -60,21 +77,6 @@ export default function MediaViewModal({ open, item, onClose, onEdit, onCopyUrl 
                             </div>
                         </div>
                     )}
-                </div>
-
-                <div className="flex shrink-0 items-center justify-end gap-2 border-t border-line px-3 py-2">
-                    <button className="btn-outline px-2.5 py-1.5" onClick={() => setInfoOpen((s) => !s)} title="Info">
-                        <Icon name="more-horizontal" size={16} />
-                        <span className="hidden sm:inline">Info</span>
-                    </button>
-                    <button className="btn-outline px-2.5 py-1.5" onClick={() => onCopyUrl?.(item.url)} title="Salin URL">
-                        <Icon name="link" size={16} />
-                        <span className="hidden sm:inline">Salin URL</span>
-                    </button>
-                    <button className="btn-primary px-2.5 py-1.5" onClick={() => onEdit?.(item)} title="Edit">
-                        <Icon name="edit" size={16} />
-                        <span className="hidden sm:inline">Edit</span>
-                    </button>
                 </div>
             </div>
         </Modal>
