@@ -15,8 +15,19 @@ export default function Media() {
     const [uploadOpen, setUploadOpen] = useState(false);
     const [viewing, setViewing] = useState(null);
     const [editing, setEditing] = useState(null);
+    const [menu, setMenu] = useState(null);
     const fileRef = useRef(null);
+    const menuRef = useRef(null);
     const { show, node } = useToast();
+
+    useEffect(() => {
+        if (!menu) return;
+        const onClick = (e) => {
+            if (menuRef.current && !menuRef.current.contains(e.target)) setMenu(null);
+        };
+        document.addEventListener('mousedown', onClick);
+        return () => document.removeEventListener('mousedown', onClick);
+    }, [menu]);
 
     const load = (page = 1) => {
         setLoading(true);
@@ -55,6 +66,20 @@ export default function Media() {
         } catch {
             show('Gagal menyalin URL.', 'error');
         }
+    };
+
+    const openMenu = (e, item) => {
+        e.stopPropagation();
+        if (menu?.id === item.id) {
+            setMenu(null);
+            return;
+        }
+        const rect = e.currentTarget.getBoundingClientRect();
+        setMenu({
+            id: item.id,
+            x: Math.max(12, rect.right - 176),
+            y: Math.min(rect.bottom + 6, window.innerHeight - 140),
+        });
     };
 
     const handleDelete = async () => {
@@ -144,6 +169,13 @@ export default function Media() {
                                             <Icon name="trash" size={16} />
                                         </button>
                                     </div>
+                                    <button
+                                        onClick={(e) => openMenu(e, item)}
+                                        className="absolute right-2 top-2 rounded-full bg-white/90 p-1.5 text-zinc-700 shadow transition-colors hover:bg-white"
+                                        title="Aksi"
+                                    >
+                                        <Icon name="more-horizontal" size={16} />
+                                    </button>
                                 </div>
                                 <div className="truncate px-2 py-1.5 text-xs text-ink-muted">{item.file_name}</div>
                             </div>
@@ -166,6 +198,43 @@ export default function Media() {
                 </>
             ) : (
                 <EmptyState title="Belum ada media" message="Upload file pertama Anda." />
+            )}
+
+            {menu && (
+                <div ref={menuRef} className="fixed z-[70]" style={{ left: menu.x, top: menu.y }}>
+                    <div className="w-44 overflow-hidden rounded-xl border border-line bg-surface py-1 shadow-2xl">
+                        <button
+                            className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-ink transition-colors hover:bg-surface-muted"
+                            onClick={() => {
+                                const item = items.find((m) => m.id === menu.id);
+                                setViewing(item);
+                                setMenu(null);
+                            }}
+                        >
+                            <Icon name="eye" size={16} /> Lihat
+                        </button>
+                        <button
+                            className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-ink transition-colors hover:bg-surface-muted"
+                            onClick={() => {
+                                const item = items.find((m) => m.id === menu.id);
+                                copyUrl(item?.url);
+                                setMenu(null);
+                            }}
+                        >
+                            <Icon name="link" size={16} /> Salin URL
+                        </button>
+                        <button
+                            className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-red-600 transition-colors hover:bg-surface-muted"
+                            onClick={() => {
+                                const item = items.find((m) => m.id === menu.id);
+                                setDeleting(item);
+                                setMenu(null);
+                            }}
+                        >
+                            <Icon name="trash" size={16} /> Hapus
+                        </button>
+                    </div>
+                </div>
             )}
 
             <Confirm open={!!deleting} onClose={() => setDeleting(null)} onConfirm={handleDelete} title="Hapus file?" message="File ini akan dihapus dari server." />

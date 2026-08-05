@@ -64,9 +64,6 @@ export default function MediaViewModal({ open, item, onClose, onEdit, onCopyUrl 
                 </div>
 
                 <div className="flex shrink-0 flex-wrap justify-end gap-2">
-                    <a href={item.url} target="_blank" rel="noopener noreferrer" className="btn-outline">
-                        <Icon name="eye" size={16} /> Buka
-                    </a>
                     <button className="btn-outline" onClick={() => onCopyUrl?.(item.url)}>
                         <Icon name="link" size={16} /> Salin URL
                     </button>
