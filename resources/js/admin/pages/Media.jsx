@@ -78,7 +78,7 @@ export default function Media() {
         setMenu({
             id: item.id,
             x: Math.max(12, rect.right - 176),
-            y: Math.min(rect.bottom + 6, window.innerHeight - 140),
+            y: Math.max(12, rect.top - 138),
         });
     };
 
@@ -158,7 +158,7 @@ export default function Media() {
                                             <Icon name={item.type === 'video' ? 'video' : 'file'} size={28} />
                                         </div>
                                     )}
-                                    <div className="absolute inset-0 flex items-center justify-center gap-2 bg-black/50 opacity-0 transition-opacity group-hover:opacity-100">
+                                    <div className="absolute inset-0 hidden items-center justify-center gap-2 bg-black/50 opacity-0 transition-opacity group-hover:opacity-100 md:flex">
                                         <button onClick={() => setViewing(item)} className="rounded-lg bg-white p-2 text-zinc-900" title="Lihat">
                                             <Icon name="eye" size={16} />
                                         </button>
@@ -171,7 +171,7 @@ export default function Media() {
                                     </div>
                                     <button
                                         onClick={(e) => openMenu(e, item)}
-                                        className="absolute right-2 top-2 rounded-full bg-white/90 p-1.5 text-zinc-700 shadow transition-colors hover:bg-white"
+                                        className="absolute right-2 top-2 rounded-full bg-white/90 p-1.5 text-zinc-700 shadow transition-colors hover:bg-white md:hidden"
                                         title="Aksi"
                                     >
                                         <Icon name="more-horizontal" size={16} />
