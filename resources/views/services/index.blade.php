@@ -112,6 +112,9 @@
                                                 @foreach ($rows as $svc)
                                                     <li class="flex items-center justify-between gap-3 text-sm">
                                                         <span class="capitalize text-ink-muted">{{ $svc->media }}
+                                                            @if ($svc->terms)
+                                                                <span class="block text-xs text-ink-muted/70">{{ $svc->terms }}</span>
+                                                            @endif
                                                             @if ($svc->duration)
                                                                 <span class="block text-xs text-ink-muted/70">{{ $svc->duration }}</span>
                                                             @endif
@@ -169,6 +172,9 @@
                                                             <td class="text-ink">
                                                                 @if ($svc)
                                                                     Rp {{ number_format($svc->price, 0, ',', '.') }}
+                                                                    @if ($svc->terms)
+                                                                        <span class="block text-xs font-normal text-ink-muted">{{ $svc->terms }}</span>
+                                                                    @endif
                                                                     @if ($svc->duration)
                                                                         <span class="block text-xs font-normal text-ink-muted">{{ $svc->duration }}</span>
                                                                     @endif

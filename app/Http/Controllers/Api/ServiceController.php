@@ -50,6 +50,7 @@ class ServiceController extends Controller
             'event' => 'nullable|string|max:255',
             'media' => 'required|in:photo,video,drone,photobooth,livestream',
             'duration' => 'nullable|string|max:255',
+            'terms' => 'nullable|string|max:255',
             'price' => 'required|numeric|min:0',
             'active' => 'boolean',
             'order' => 'integer|min:0',

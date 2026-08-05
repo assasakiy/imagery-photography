@@ -16,27 +16,28 @@ class ServiceSeeder extends Seeder
         Service::query()->delete();
 
         $satuan = [
-            ['Akad', 'photo', 'Edit + Softfile', 400000],
-            ['Wedding', 'photo', 'Edit + Softfile', 450000],
-            ['Nyongkolan', 'photo', 'Edit + Softfile', 500000],
-            ['Ulang Tahun', 'photo', 'Edit + Softfile', 350000],
-            ['Hunting', 'photo', '3 Jam', 300000],
-            ['Wisuda', 'photo', '1 Jam', 450000],
-            ['Akad', 'video', '3-4 Menit', 500000],
-            ['Wedding', 'video', '3-4 Menit', 550000],
-            ['Nyongkolan', 'video', '3-4 Menit', 600000],
-            ['Ulang Tahun', 'video', '3-4 Menit', 450000],
-            ['Hunting', 'video', '1-2 Menit', 300000],
-            ['Wisuda', 'video', '1-2 Menit', 450000],
+            ['Akad', 'photo', null, 'Edit + Softfile', 400000],
+            ['Wedding', 'photo', null, 'Edit + Softfile', 450000],
+            ['Nyongkolan', 'photo', null, 'Edit + Softfile', 500000],
+            ['Ulang Tahun', 'photo', null, 'Edit + Softfile', 350000],
+            ['Hunting', 'photo', '3 Jam', 'Edit + Softfile', 300000],
+            ['Wisuda', 'photo', '1 Jam', 'Edit + Softfile', 450000],
+            ['Akad', 'video', '3-4 Menit', null, 500000],
+            ['Wedding', 'video', '3-4 Menit', null, 550000],
+            ['Nyongkolan', 'video', '3-4 Menit', null, 600000],
+            ['Ulang Tahun', 'video', '3-4 Menit', null, 450000],
+            ['Hunting', 'video', '1-2 Menit', null, 300000],
+            ['Wisuda', 'video', '1-2 Menit', null, 450000],
         ];
 
         $services = [];
-        foreach ($satuan as $i => [$event, $media, $duration, $price]) {
+        foreach ($satuan as $i => [$event, $media, $duration, $terms, $price]) {
             $services[sprintf('%s|%s', $event, $media)] = Service::create([
                 'name' => $event,
                 'event' => $event,
                 'media' => strtolower($media),
                 'duration' => $duration,
+                'terms' => $terms,
                 'price' => $price,
                 'order' => $i + 1,
                 'active' => true,

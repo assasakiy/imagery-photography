@@ -17,7 +17,7 @@ const PROMO_OPTIONS = [
     { value: 'percent', label: 'Persen (%)' },
 ];
 
-const emptyService = { name: '', event: '', media: 'photo', duration: '', price: '', active: true, order: 0 };
+const emptyService = { name: '', event: '', media: 'photo', duration: '', terms: '', price: '', active: true, order: 0 };
 const emptyPackage = {
     name: '', type: 'bundling', price_mode: 'auto', promo_type: 'none', promo_value: '',
     manual_price: '', description: '', is_popular: false, is_featured: false, is_active: true, display_order: 0, items: [],
@@ -75,7 +75,7 @@ export default function Services() {
     const openSvcCreate = () => { setSvcEditing(null); setSvcForm(emptyService); setSvcErrors({}); setSvcOpen(true); };
     const openSvcEdit = (item) => {
         setSvcEditing(item);
-        setSvcForm({ name: item.name, event: item.event || '', media: item.media || 'photo', duration: item.duration || '', price: item.price, active: Boolean(item.active), order: item.order || 0 });
+        setSvcForm({ name: item.name, event: item.event || '', media: item.media || 'photo', duration: item.duration || '', terms: item.terms || '', price: item.price, active: Boolean(item.active), order: item.order || 0 });
         setSvcErrors({});
         setSvcOpen(true);
     };
@@ -257,6 +257,7 @@ export default function Services() {
                                     <th>Nama</th>
                                     <th>Event</th>
                                     <th>Media</th>
+                                    <th>Ketentuan</th>
                                     <th>Durasi</th>
                                     <th>Harga</th>
                                     <th>Status</th>
@@ -269,6 +270,7 @@ export default function Services() {
                                         <td className="font-medium text-ink">{s.name}</td>
                                         <td className="text-ink">{s.event || '-'}</td>
                                         <td><span className="badge bg-brand-500/15 text-brand-600 dark:text-brand-400">{s.media}</span></td>
+                                        <td className="text-xs text-ink-muted">{s.terms || '-'}</td>
                                         <td className="text-xs text-ink-muted">{s.duration || '-'}</td>
                                         <td className="font-semibold text-ink">{formatRupiah(s.price)}</td>
                                         <td>
@@ -403,9 +405,12 @@ export default function Services() {
                             </select>
                         </Field>
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
-                        <Field label="Durasi" hint="mis. Edit + Softfile" error={svcErrors.duration?.[0]}>
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                        <Field label="Durasi" hint="mis. 3 Jam" error={svcErrors.duration?.[0]}>
                             <input className="input" value={svcForm.duration} onChange={(e) => setSvcForm({ ...svcForm, duration: e.target.value })} />
+                        </Field>
+                        <Field label="Ketentuan" hint="mis. Edit + Softfile" error={svcErrors.terms?.[0]}>
+                            <input className="input" value={svcForm.terms} onChange={(e) => setSvcForm({ ...svcForm, terms: e.target.value })} />
                         </Field>
                         <Field label="Harga (Rp)" required error={svcErrors.price?.[0]}>
                             <input className="input" type="number" min="0" value={svcForm.price} onChange={(e) => setSvcForm({ ...svcForm, price: e.target.value })} required />

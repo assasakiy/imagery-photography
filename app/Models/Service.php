@@ -7,7 +7,7 @@ use Illuminate\Support\Str;
 
 class Service extends Model
 {
-    protected $fillable = ['name', 'slug', 'event', 'media', 'duration', 'price', 'active', 'order'];
+    protected $fillable = ['name', 'slug', 'event', 'media', 'duration', 'terms', 'price', 'active', 'order'];
 
     protected function casts(): array
     {
