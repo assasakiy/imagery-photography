@@ -45,24 +45,26 @@ export function EmptyState({ icon = 'image', title, message }) {
     );
 }
 
-export function Modal({ open, onClose, title, children, wide = false }) {
+export function Modal({ open, onClose, title, children, wide = false, fullscreen = false }) {
     if (!open) return null;
 
+    const shell = fullscreen
+        ? 'relative h-full w-full overflow-y-auto bg-surface shadow-2xl'
+        : `relative max-h-[90vh] w-full overflow-y-auto rounded-2xl border border-line bg-surface p-6 shadow-2xl ${
+              wide ? 'max-w-3xl' : 'max-w-lg'
+          }`;
+
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className={`fixed inset-0 z-50 flex items-center justify-center ${fullscreen ? 'p-0' : 'p-4'}`}>
             <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-            <div
-                className={`relative max-h-[90vh] w-full overflow-y-auto rounded-2xl border border-line bg-surface p-6 shadow-2xl ${
-                    wide ? 'max-w-3xl' : 'max-w-lg'
-                }`}
-            >
-                <div className="mb-4 flex items-center justify-between">
+            <div className={shell}>
+                <div className={fullscreen ? 'flex items-center justify-between border-b border-line px-4 py-3 sm:px-6' : 'mb-4 flex items-center justify-between'}>
                     <h2 className="text-lg font-bold text-ink">{title}</h2>
                     <button onClick={onClose} className="rounded-lg p-1 text-ink-muted hover:bg-surface-muted" aria-label="Tutup">
                         <Icon name="x" size={20} />
                     </button>
                 </div>
-                {children}
+                <div className={fullscreen ? 'min-h-0 p-4 sm:p-6' : ''}>{children}</div>
             </div>
         </div>
     );

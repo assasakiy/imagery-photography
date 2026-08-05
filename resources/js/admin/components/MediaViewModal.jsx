@@ -27,11 +27,11 @@ export default function MediaViewModal({ open, item, onClose, onEdit, onCopyUrl 
     ];
 
     return (
-        <Modal open={open} onClose={onClose} title="Pratinjau Media" wide>
+        <Modal open={open} onClose={onClose} title="Pratinjau Media" fullscreen>
             <div className="space-y-4">
                 <div className="relative flex items-center justify-center overflow-hidden rounded-2xl border border-line bg-black/40">
                     {item.type === 'image' ? (
-                        <img src={item.url} alt={item.name} className="max-h-[45vh] w-full object-contain" />
+                        <img src={item.url} alt={item.name} className="max-h-[65vh] w-full object-contain" />
                     ) : (
                         <div className="flex h-48 w-full items-center justify-center text-ink-muted">
                             <Icon name={item.type === 'video' ? 'video' : 'file'} size={48} />
