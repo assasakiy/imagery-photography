@@ -158,20 +158,24 @@ export default function Media() {
                             <span className="hidden sm:inline">{items.length && items.every((i) => selected.has(i.id)) ? 'Batal pilih semua' : 'Pilih semua'}</span>
                         </button>
                         <button
-                            className="btn bg-red-600 px-3 py-1.5 text-white hover:bg-red-700 disabled:opacity-40"
+                            className="inline-flex items-center rounded-lg p-1.5 text-red-600 transition-colors hover:bg-red-500/10 disabled:opacity-40"
                             disabled={selected.size === 0}
                             onClick={() => setBulkConfirm(true)}
                             title={`Hapus ${selected.size} file`}
                         >
-                            <Icon name="trash" size={14} /> ({selected.size})
+                            <Icon name="trash" size={18} /> <span className="text-sm font-semibold">({selected.size})</span>
                         </button>
-                        <button className="btn-outline px-3 py-1.5" onClick={cancelSelect} title="Batal">
-                            <Icon name="x" size={16} />
+                        <button className="rounded-lg p-1.5 text-ink-muted transition-colors hover:bg-surface-muted hover:text-ink" onClick={cancelSelect} title="Batal">
+                            <Icon name="x" size={18} />
                         </button>
                     </div>
                 ) : (
-                    <button className="btn-outline ml-auto px-3 py-1.5" onClick={() => setSelecting(true)} title="Pilih">
-                        <Icon name="check-square" size={16} /> <span className="hidden sm:inline">Pilih</span>
+                    <button
+                        className="ml-auto inline-flex items-center gap-1.5 rounded-lg p-1.5 text-sm font-medium text-brand-600 transition-colors hover:bg-brand-500/10 dark:text-brand-400"
+                        onClick={() => setSelecting(true)}
+                        title="Pilih"
+                    >
+                        <Icon name="check-square" size={18} /> <span className="hidden sm:inline">Pilih</span>
                     </button>
                 )}
             </div>
