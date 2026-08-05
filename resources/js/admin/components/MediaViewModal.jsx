@@ -27,9 +27,9 @@ export default function MediaViewModal({ open, item, onClose, onEdit, onCopyUrl 
     ];
 
     return (
-        <Modal open={open} onClose={onClose} title="Pratinjau Media" fullscreen>
-            <div className="flex h-full min-h-0 flex-col gap-4">
-                <div className="relative flex min-h-0 flex-1 items-center justify-center overflow-hidden rounded-2xl border border-line bg-black/40">
+        <Modal open={open} onClose={onClose} title="Pratinjau Media" fullscreen bodyClassName="p-[2px]">
+            <div className="flex h-full min-h-0 flex-col gap-[2px]">
+                <div className="relative flex min-h-0 flex-1 items-center justify-center overflow-hidden bg-black/40">
                     {item.type === 'image' ? (
                         <img src={item.url} alt={item.name} className="h-full w-full object-contain" />
                     ) : item.type === 'video' ? (
@@ -60,21 +60,16 @@ export default function MediaViewModal({ open, item, onClose, onEdit, onCopyUrl 
                             </div>
                         </div>
                     )}
-
-                    <button
-                        onClick={() => setInfoOpen((s) => !s)}
-                        className="absolute right-3 top-3 z-20 rounded-full bg-white/90 p-2 text-zinc-700 shadow transition-colors hover:bg-white"
-                        title="Info"
-                    >
-                        <Icon name="more-horizontal" size={18} />
-                    </button>
                 </div>
 
-                <div className="flex shrink-0 flex-wrap justify-end gap-2">
-                    <button className="btn-outline" onClick={() => onCopyUrl?.(item.url)}>
+                <div className="flex shrink-0 items-center justify-end gap-2 border-t border-line px-3 py-2">
+                    <button className="btn-outline px-2.5 py-1.5" onClick={() => setInfoOpen((s) => !s)} title="Info">
+                        <Icon name="more-horizontal" size={16} />
+                    </button>
+                    <button className="btn-outline px-2.5 py-1.5" onClick={() => onCopyUrl?.(item.url)}>
                         <Icon name="link" size={16} /> Salin URL
                     </button>
-                    <button className="btn-primary" onClick={() => onEdit?.(item)}>
+                    <button className="btn-primary px-2.5 py-1.5" onClick={() => onEdit?.(item)}>
                         <Icon name="edit" size={16} /> Edit
                     </button>
                 </div>
