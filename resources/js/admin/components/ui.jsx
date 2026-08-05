@@ -50,7 +50,7 @@ export function Modal({ open, onClose, title, children, wide = false, fullscreen
 
     const shell = fullscreen
         ? 'relative flex h-full w-full flex-col bg-surface shadow-2xl'
-        : `relative flex max-h-[90vh] w-full flex-col rounded-2xl border border-line bg-surface shadow-2xl ${
+        : `relative flex max-h-[90vh] w-full flex-col overflow-hidden rounded-2xl border border-line bg-surface shadow-2xl ${
               wide ? 'max-w-3xl' : 'max-w-lg'
           }`;
 
@@ -65,7 +65,9 @@ export function Modal({ open, onClose, title, children, wide = false, fullscreen
                     </button>
                 </div>
                 <div className={`flex min-h-0 flex-1 flex-col overflow-y-auto ${bodyClassName || 'p-6'}`}>{children}</div>
-                {footer && <div className={`shrink-0 border-line ${fullscreen ? 'border-t' : 'border-t bg-surface px-6 py-4'}`}>{footer}</div>}
+                {footer && (
+                    <div className={`shrink-0 border-t border-line ${fullscreen ? '' : 'bg-surface px-4 py-3 [&_.btn]:px-4 [&_.btn]:py-2'}`}>{footer}</div>
+                )}
             </div>
         </div>
     );
