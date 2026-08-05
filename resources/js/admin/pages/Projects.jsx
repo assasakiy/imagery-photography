@@ -217,8 +217,19 @@ export default function Projects() {
                 </div>
             )}
 
-            <Modal open={open} onClose={() => setOpen(false)} title={editing ? 'Edit Project' : 'Buat Project'} wide>
-                <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <Modal
+                open={open}
+                onClose={() => setOpen(false)}
+                title={editing ? 'Edit Project' : 'Buat Project'}
+                wide
+                footer={
+                    <div className="flex justify-end gap-2">
+                        <button type="button" className="btn-outline" onClick={() => setOpen(false)}>Batal</button>
+                        <button type="submit" form="project-form" className="btn-primary" disabled={saving}>{saving ? 'Menyimpan...' : 'Simpan'}</button>
+                    </div>
+                }
+            >
+                <form id="project-form" onSubmit={handleSubmit} className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     {isAdmin && !editing && (
                         <>
                             <div className="sm:col-span-2">
@@ -312,14 +323,30 @@ export default function Projects() {
                     <Field label="Tanggal Selesai" hint="opsional">
                         <input className="input" type="date" value={form.end_date} onChange={(e) => setForm({ ...form, end_date: e.target.value })} />
                     </Field>
-                    <div className="flex justify-end gap-2 pt-2 sm:col-span-2">
-                        <button type="button" className="btn-outline" onClick={() => setOpen(false)}>Batal</button>
-                        <button type="submit" className="btn-primary" disabled={saving}>{saving ? 'Menyimpan...' : 'Simpan'}</button>
-                    </div>
                 </form>
             </Modal>
 
-            <Modal open={!!createdCreds} onClose={() => setCreatedCreds(null)} title="Kredensial Klien">
+            <Modal
+                open={!!createdCreds}
+                onClose={() => setCreatedCreds(null)}
+                title="Kredensial Klien"
+                footer={
+                    createdCreds && (
+                        <div className="flex flex-col gap-2">
+                            <button
+                                className="btn-primary w-full"
+                                onClick={() =>
+                                    copyCreds(
+                                        `Login: ${createdCreds.login_url}\nEmail: ${createdCreds.email}\nKata sandi: ${createdCreds.password}\nAkses tanpa login: ${createdCreds.access_url}`
+                                    )
+                                }
+                            >
+                                <Icon name="check" size={16} /> Salin Semua
+                            </button>
+                        </div>
+                    )
+                }
+            >
                 {createdCreds && (
                     <div className="space-y-4">
                         <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-sm text-emerald-700 dark:text-emerald-400">
@@ -355,16 +382,6 @@ export default function Projects() {
                             </div>
                             <code className="block truncate text-xs text-ink">{createdCreds.access_url}</code>
                         </div>
-                        <button
-                            className="btn-primary w-full"
-                            onClick={() =>
-                                copyCreds(
-                                    `Login: ${createdCreds.login_url}\nEmail: ${createdCreds.email}\nKata sandi: ${createdCreds.password}\nAkses tanpa login: ${createdCreds.access_url}`
-                                )
-                            }
-                        >
-                            <Icon name="check" size={16} /> Salin Semua
-                        </button>
                     </div>
                 )}
             </Modal>

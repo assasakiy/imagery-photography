@@ -112,8 +112,13 @@ export default function Services() {
                 <EmptyState title="Belum ada layanan" />
             )}
 
-            <Modal open={open} onClose={() => setOpen(false)} title={editing ? 'Edit Layanan' : 'Tambah Layanan'}>
-                <form onSubmit={handleSubmit} className="space-y-4">
+            <Modal open={open} onClose={() => setOpen(false)} title={editing ? 'Edit Layanan' : 'Tambah Layanan'} footer={
+                <div className="flex justify-end gap-2">
+                    <button type="button" className="btn-outline" onClick={() => setOpen(false)}>Batal</button>
+                    <button type="submit" form="service-form" className="btn-primary" disabled={saving}>{saving ? 'Menyimpan...' : 'Simpan'}</button>
+                </div>
+            }>
+                <form id="service-form" onSubmit={handleSubmit} className="space-y-4">
                     <Field label="Nama Layanan" required error={errors.title?.[0]}>
                         <input className="input" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} required />
                     </Field>
@@ -140,10 +145,6 @@ export default function Services() {
                         <Field label="Urutan">
                             <input className="input" type="number" min="0" value={form.order} onChange={(e) => setForm({ ...form, order: e.target.value })} />
                         </Field>
-                    </div>
-                    <div className="flex justify-end gap-2 pt-2">
-                        <button type="button" className="btn-outline" onClick={() => setOpen(false)}>Batal</button>
-                        <button type="submit" className="btn-primary" disabled={saving}>{saving ? 'Menyimpan...' : 'Simpan'}</button>
                     </div>
                 </form>
             </Modal>

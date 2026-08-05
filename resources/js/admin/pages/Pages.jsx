@@ -115,8 +115,13 @@ export default function Pages() {
                 <EmptyState title="Belum ada halaman" />
             )}
 
-            <Modal open={open} onClose={() => setOpen(false)} title={editing ? 'Edit Halaman' : 'Tambah Halaman'} wide>
-                <form onSubmit={handleSubmit} className="space-y-4">
+            <Modal open={open} onClose={() => setOpen(false)} title={editing ? 'Edit Halaman' : 'Tambah Halaman'} wide footer={
+                <div className="flex justify-end gap-2">
+                    <button type="button" className="btn-outline" onClick={() => setOpen(false)}>Batal</button>
+                    <button type="submit" form="page-form" className="btn-primary" disabled={saving}>{saving ? 'Menyimpan...' : 'Simpan'}</button>
+                </div>
+            }>
+                <form id="page-form" onSubmit={handleSubmit} className="space-y-4">
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                         <Field label="Slug" required hint="a-z, 0-9, tanda hubung" error={errors.slug?.[0]}>
                             <input className="input" value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value })} required placeholder="kebijakan-privasi" />
@@ -147,10 +152,6 @@ export default function Pages() {
                             Tampilkan di halaman publik
                         </label>
                     </Field>
-                    <div className="flex justify-end gap-2 pt-2">
-                        <button type="button" className="btn-outline" onClick={() => setOpen(false)}>Batal</button>
-                        <button type="submit" className="btn-primary" disabled={saving}>{saving ? 'Menyimpan...' : 'Simpan'}</button>
-                    </div>
                 </form>
             </Modal>
 

@@ -50,7 +50,7 @@ export function Modal({ open, onClose, title, children, wide = false, fullscreen
 
     const shell = fullscreen
         ? 'relative flex h-full w-full flex-col bg-surface shadow-2xl'
-        : `relative max-h-[90vh] w-full overflow-y-auto rounded-2xl border border-line bg-surface p-6 shadow-2xl ${
+        : `relative flex max-h-[90vh] w-full flex-col rounded-2xl border border-line bg-surface shadow-2xl ${
               wide ? 'max-w-3xl' : 'max-w-lg'
           }`;
 
@@ -58,14 +58,14 @@ export function Modal({ open, onClose, title, children, wide = false, fullscreen
         <div className={`fixed inset-0 z-50 flex items-center justify-center ${fullscreen ? 'p-0' : 'p-4'}`}>
             <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
             <div className={shell}>
-                <div className={fullscreen ? 'flex shrink-0 items-center justify-between border-b border-line px-4 py-3 sm:px-6' : 'mb-4 flex items-center justify-between'}>
+                <div className={`shrink-0 ${fullscreen ? 'flex items-center justify-between border-b border-line px-4 py-3 sm:px-6' : 'flex items-center justify-between px-6 py-4'}`}>
                     <h2 className="text-lg font-bold text-ink">{title}</h2>
                     <button onClick={onClose} className="rounded-lg p-1 text-ink-muted hover:bg-surface-muted" aria-label="Tutup">
                         <Icon name="x" size={20} />
                     </button>
                 </div>
-                <div className={`flex min-h-0 flex-1 flex-col overflow-y-auto ${bodyClassName || 'p-4 sm:p-6'}`}>{children}</div>
-                {footer && <div className={fullscreen ? 'shrink-0 border-t border-line' : 'mt-6'}>{footer}</div>}
+                <div className={`flex min-h-0 flex-1 flex-col overflow-y-auto ${bodyClassName || 'p-6'}`}>{children}</div>
+                {footer && <div className={`shrink-0 border-line ${fullscreen ? 'border-t' : 'border-t bg-surface px-6 py-4'}`}>{footer}</div>}
             </div>
         </div>
     );
@@ -73,17 +73,23 @@ export function Modal({ open, onClose, title, children, wide = false, fullscreen
 
 export function Confirm({ open, onClose, onConfirm, title = 'Yakin hapus?', message = 'Aksi ini tidak bisa dibatalkan.' }) {
     return (
-        <Modal open={open} onClose={onClose} title={title}>
+        <Modal
+            open={open}
+            onClose={onClose}
+            title={title}
+            footer={
+                <div className="flex justify-end gap-2">
+                    <button className="btn-outline" onClick={onClose}>
+                        Batal
+                    </button>
+                    <button className="btn bg-red-600 text-white hover:bg-red-700" onClick={onConfirm}>
+                        <Icon name="trash" size={16} />
+                        Hapus
+                    </button>
+                </div>
+            }
+        >
             <p className="text-sm text-ink-muted">{message}</p>
-            <div className="mt-6 flex justify-end gap-2">
-                <button className="btn-outline" onClick={onClose}>
-                    Batal
-                </button>
-                <button className="btn bg-red-600 text-white hover:bg-red-700" onClick={onConfirm}>
-                    <Icon name="trash" size={16} />
-                    Hapus
-                </button>
-            </div>
         </Modal>
     );
 }

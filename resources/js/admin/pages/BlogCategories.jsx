@@ -107,18 +107,19 @@ export default function BlogCategories() {
                 <EmptyState title="Belum ada kategori" />
             )}
 
-            <Modal open={open} onClose={() => setOpen(false)} title={editing ? 'Edit Kategori' : 'Tambah Kategori'}>
-                <form onSubmit={handleSubmit} className="space-y-4">
+            <Modal open={open} onClose={() => setOpen(false)} title={editing ? 'Edit Kategori' : 'Tambah Kategori'} footer={
+                <div className="flex justify-end gap-2">
+                    <button type="button" className="btn-outline" onClick={() => setOpen(false)}>Batal</button>
+                    <button type="submit" form="category-form" className="btn-primary" disabled={saving}>{saving ? 'Menyimpan...' : 'Simpan'}</button>
+                </div>
+            }>
+                <form id="category-form" onSubmit={handleSubmit} className="space-y-4">
                     <Field label="Nama" required error={errors.name?.[0]}>
                         <input className="input" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
                     </Field>
                     <Field label="Deskripsi" hint="opsional" error={errors.description?.[0]}>
                         <textarea className="input min-h-[80px]" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
                     </Field>
-                    <div className="flex justify-end gap-2 pt-2">
-                        <button type="button" className="btn-outline" onClick={() => setOpen(false)}>Batal</button>
-                        <button type="submit" className="btn-primary" disabled={saving}>{saving ? 'Menyimpan...' : 'Simpan'}</button>
-                    </div>
                 </form>
             </Modal>
 

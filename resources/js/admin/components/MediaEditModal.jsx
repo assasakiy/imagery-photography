@@ -29,8 +29,20 @@ export default function MediaEditModal({ open, item, onClose, onSaved }) {
         }
     };
 
+    const footer = (
+        <div className="flex justify-end gap-2">
+            <button className="btn-outline" onClick={onClose}>
+                Batal
+            </button>
+            <button className="btn-primary" disabled={saving || !name.trim()} onClick={save}>
+                {saving ? <ButtonSpinner /> : <Icon name="check" size={16} />}
+                Simpan
+            </button>
+        </div>
+    );
+
     return (
-        <Modal open={open} onClose={onClose} title="Edit Media">
+        <Modal open={open} onClose={onClose} title="Edit Media" footer={footer}>
             {node}
             <div className="space-y-4">
                 <div className="flex items-center gap-3 rounded-xl border border-line bg-surface-muted p-3">
@@ -50,16 +62,6 @@ export default function MediaEditModal({ open, item, onClose, onSaved }) {
                 <Field label="Nama" hint="Label gambar">
                     <input className="input" value={name} onChange={(e) => setName(e.target.value)} placeholder="Nama gambar" autoFocus />
                 </Field>
-
-                <div className="flex justify-end gap-2 pt-1">
-                    <button className="btn-outline" onClick={onClose}>
-                        Batal
-                    </button>
-                    <button className="btn-primary" disabled={saving || !name.trim()} onClick={save}>
-                        {saving ? <ButtonSpinner /> : <Icon name="check" size={16} />}
-                        Simpan
-                    </button>
-                </div>
             </div>
         </Modal>
     );

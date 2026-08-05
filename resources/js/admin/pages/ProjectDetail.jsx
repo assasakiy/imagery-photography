@@ -345,7 +345,23 @@ export default function ProjectDetail() {
             )}
 
             {/* Credentials modal (after regenerate) */}
-            <Modal open={!!creds} onClose={() => setCreds(null)} title="Kredensial Baru">
+            <Modal
+                open={!!creds}
+                onClose={() => setCreds(null)}
+                title="Kredensial Baru"
+                footer={
+                    creds && (
+                        <div className="flex flex-col gap-2">
+                            <button
+                                className="btn-primary w-full"
+                                onClick={() => copyText(`Login: ${creds.login_url}\nEmail: ${creds.email}\nKata sandi: ${creds.password}\nAkses tanpa login: ${creds.access_url}`)}
+                            >
+                                <Icon name="check" size={16} /> Salin Semua
+                            </button>
+                        </div>
+                    )
+                }
+            >
                 {creds && (
                     <div className="space-y-4">
                         <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-sm text-emerald-700 dark:text-emerald-400">
@@ -361,12 +377,6 @@ export default function ProjectDetail() {
                             <p className="mt-3 text-ink-muted">Tautan Akses</p>
                             <code className="block truncate text-xs text-ink">{creds.access_url}</code>
                         </div>
-                        <button
-                            className="btn-primary w-full"
-                            onClick={() => copyText(`Login: ${creds.login_url}\nEmail: ${creds.email}\nKata sandi: ${creds.password}\nAkses tanpa login: ${creds.access_url}`)}
-                        >
-                            <Icon name="check" size={16} /> Salin Semua
-                        </button>
                     </div>
                 )}
             </Modal>

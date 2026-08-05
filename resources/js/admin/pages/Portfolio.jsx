@@ -193,8 +193,22 @@ export default function Portfolio() {
                 </div>
             )}
 
-            <Modal open={open} onClose={() => setOpen(false)} title={editing ? 'Edit Portofolio' : 'Tambah Portofolio'}>
-                <form onSubmit={handleSubmit} className="space-y-4">
+            <Modal
+                open={open}
+                onClose={() => setOpen(false)}
+                title={editing ? 'Edit Portofolio' : 'Tambah Portofolio'}
+                footer={
+                    <div className="flex justify-end gap-2">
+                        <button type="button" className="btn-outline" onClick={() => setOpen(false)}>
+                            Batal
+                        </button>
+                        <button type="submit" form="portfolio-form" className="btn-primary" disabled={saving}>
+                            {saving ? 'Menyimpan...' : 'Simpan'}
+                        </button>
+                    </div>
+                }
+            >
+                <form id="portfolio-form" onSubmit={handleSubmit} className="space-y-4">
                     <div>
                         <label className="label">
                             Judul <span className="text-red-500">*</span>
@@ -274,15 +288,6 @@ export default function Portfolio() {
                         />
                         Tampilkan di halaman utama (unggulan)
                     </label>
-
-                    <div className="flex justify-end gap-2 pt-2">
-                        <button type="button" className="btn-outline" onClick={() => setOpen(false)}>
-                            Batal
-                        </button>
-                        <button type="submit" className="btn-primary" disabled={saving}>
-                            {saving ? 'Menyimpan...' : 'Simpan'}
-                        </button>
-                    </div>
                 </form>
             </Modal>
 

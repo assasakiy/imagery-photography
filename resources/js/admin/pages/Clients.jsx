@@ -168,8 +168,13 @@ export default function Clients() {
                 <EmptyState title="Tidak ada klien" message={debounced ? 'Ubah kata kunci pencarian Anda.' : 'Tambahkan klien pertama Anda.'} />
             )}
 
-            <Modal open={open} onClose={() => setOpen(false)} title={editing ? 'Edit Klien' : 'Tambah Klien'} wide>
-                <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <Modal open={open} onClose={() => setOpen(false)} title={editing ? 'Edit Klien' : 'Tambah Klien'} wide footer={
+                <div className="flex justify-end gap-2">
+                    <button type="button" className="btn-outline" onClick={() => setOpen(false)}>Batal</button>
+                    <button type="submit" form="client-form" className="btn-primary" disabled={saving}>{saving ? 'Menyimpan...' : 'Simpan'}</button>
+                </div>
+            }>
+                <form id="client-form" onSubmit={handleSubmit} className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <Field label="Nama" required error={errors.name?.[0]}>
                         <input className="input" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
                     </Field>
@@ -185,10 +190,6 @@ export default function Clients() {
                     <Field label="Catatan" hint="opsional" error={errors.notes?.[0]}>
                         <textarea className="input min-h-[80px]" value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
                     </Field>
-                    <div className="flex items-end justify-end gap-2 sm:col-span-2">
-                        <button type="button" className="btn-outline" onClick={() => setOpen(false)}>Batal</button>
-                        <button type="submit" className="btn-primary" disabled={saving}>{saving ? 'Menyimpan...' : 'Simpan'}</button>
-                    </div>
                 </form>
             </Modal>
 

@@ -113,8 +113,13 @@ export default function Faq() {
                 <EmptyState title="Belum ada FAQ" />
             )}
 
-            <Modal open={open} onClose={() => setOpen(false)} title={editing ? 'Edit FAQ' : 'Tambah FAQ'} wide>
-                <form onSubmit={handleSubmit} className="space-y-4">
+            <Modal open={open} onClose={() => setOpen(false)} title={editing ? 'Edit FAQ' : 'Tambah FAQ'} wide footer={
+                <div className="flex justify-end gap-2">
+                    <button type="button" className="btn-outline" onClick={() => setOpen(false)}>Batal</button>
+                    <button type="submit" form="faq-form" className="btn-primary" disabled={saving}>{saving ? 'Menyimpan...' : 'Simpan'}</button>
+                </div>
+            }>
+                <form id="faq-form" onSubmit={handleSubmit} className="space-y-4">
                     <Field label="Pertanyaan" required error={errors.question?.[0]}>
                         <input className="input" value={form.question} onChange={(e) => setForm({ ...form, question: e.target.value })} required />
                     </Field>
@@ -136,10 +141,6 @@ export default function Faq() {
                                 Tampilkan di halaman FAQ
                             </label>
                         </Field>
-                    </div>
-                    <div className="flex justify-end gap-2 pt-2">
-                        <button type="button" className="btn-outline" onClick={() => setOpen(false)}>Batal</button>
-                        <button type="submit" className="btn-primary" disabled={saving}>{saving ? 'Menyimpan...' : 'Simpan'}</button>
                     </div>
                 </form>
             </Modal>

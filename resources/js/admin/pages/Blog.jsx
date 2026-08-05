@@ -216,8 +216,19 @@ export default function Blog() {
                 <EmptyState title="Belum ada artikel" message="Klik 'Tulis Artikel' untuk membuat postingan pertama." />
             )}
 
-            <Modal open={open} onClose={() => setOpen(false)} title={editing ? 'Edit Artikel' : 'Tulis Artikel'} wide>
-                <form onSubmit={handleSubmit} className="space-y-4">
+            <Modal
+                open={open}
+                onClose={() => setOpen(false)}
+                title={editing ? 'Edit Artikel' : 'Tulis Artikel'}
+                wide
+                footer={
+                    <div className="flex justify-end gap-2">
+                        <button type="button" className="btn-outline" onClick={() => setOpen(false)}>Batal</button>
+                        <button type="submit" form="blog-form" className="btn-primary" disabled={saving}>{saving ? 'Menyimpan...' : 'Simpan'}</button>
+                    </div>
+                }
+            >
+                <form id="blog-form" onSubmit={handleSubmit} className="space-y-4">
                     <Field label="Judul" required error={errors.title?.[0]}>
                         <input className="input" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} required />
                     </Field>
@@ -345,11 +356,6 @@ export default function Blog() {
                         {errors.cover && <p className="mt-1 text-xs text-red-500">{errors.cover[0]}</p>}
                         {errors.image_url && <p className="mt-1 text-xs text-red-500">{errors.image_url[0]}</p>}
                     </Field>
-
-                    <div className="flex justify-end gap-2 pt-2">
-                        <button type="button" className="btn-outline" onClick={() => setOpen(false)}>Batal</button>
-                        <button type="submit" className="btn-primary" disabled={saving}>{saving ? 'Menyimpan...' : 'Simpan'}</button>
-                    </div>
                 </form>
             </Modal>
 

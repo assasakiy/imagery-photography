@@ -611,7 +611,37 @@ export default function ProfileSettings() {
 
             {node}
 
-            <Modal open={viewOpen} onClose={() => setViewOpen(false)} title={pendingAvatar ? 'Pratinjau Foto Baru' : 'Lihat Foto Profil'}>
+            <Modal
+                open={viewOpen}
+                onClose={() => setViewOpen(false)}
+                title={pendingAvatar ? 'Pratinjau Foto Baru' : 'Lihat Foto Profil'}
+                footer={
+                    pendingAvatar ? (
+                        <div className="flex flex-col gap-2">
+                            <p className="text-center text-xs text-ink-muted">Simpan foto baru ini sebagai foto profil Anda?</p>
+                            <div className="flex gap-2">
+                                <button type="button" className="btn-outline flex-1" onClick={cancelAvatar} disabled={saving}>
+                                    Batal
+                                </button>
+                                <button type="button" className="btn-primary flex-1" onClick={confirmAvatar} disabled={saving}>
+                                    {saving && <ButtonSpinner />} Konfirmasi
+                                </button>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="flex justify-end gap-2">
+                            <button type="button" className="btn-outline" onClick={() => { setMediaTarget('avatar'); setMediaOpen(true); }}>
+                                <Icon name="edit" size={16} /> Ubah
+                            </button>
+                            {avatarUrl && (
+                                <button type="button" className="btn bg-red-600 text-white hover:bg-red-700" onClick={() => setRemoveOpen(true)}>
+                                    <Icon name="trash" size={16} /> Hapus
+                                </button>
+                            )}
+                        </div>
+                    )
+                }
+            >
                 <div className="flex flex-col items-center gap-4 py-2">
                     <div className="h-40 w-40 overflow-hidden rounded-full bg-surface-muted ring-4 ring-line">
                         {pendingAvatar ? (
@@ -629,52 +659,63 @@ export default function ProfileSettings() {
                         <p className="text-sm text-ink-muted">{profile.email || ''}</p>
                         {profile.bio && <p className="mt-3 max-w-xs text-sm text-ink-muted">{profile.bio}</p>}
                     </div>
+                </div>
+            </Modal>
 
-                    {pendingAvatar ? (
-                        <div className="mb-1 flex w-full flex-col gap-2">
-                            <p className="text-center text-xs text-ink-muted">Simpan foto baru ini sebagai foto profil Anda?</p>
+            <Modal
+                open={removeOpen}
+                onClose={() => setRemoveOpen(false)}
+                title="Hapus Foto Profil"
+                footer={
+                    <div className="flex justify-end gap-2">
+                        <button type="button" className="btn-outline" onClick={() => setRemoveOpen(false)} disabled={saving}>
+                            Batal
+                        </button>
+                        <button
+                            type="button"
+                            className="btn bg-red-600 text-white hover:bg-red-700"
+                            onClick={removeAvatar}
+                            disabled={saving}
+                        >
+                            <Icon name="trash" size={16} /> {saving ? 'Menghapus…' : 'Hapus'}
+                        </button>
+                    </div>
+                }
+            >
+                <p className="text-sm text-ink-muted">Hapus foto profil Anda? Tindakan ini hanya menghapus foto profil, bukan akun.</p>
+            </Modal>
+
+            <Modal
+                open={coverViewOpen}
+                onClose={() => setCoverViewOpen(false)}
+                title={pendingCover ? 'Pratinjau Banner Baru' : 'Lihat Banner Profil'}
+                footer={
+                    pendingCover ? (
+                        <div className="flex flex-col gap-2">
+                            <p className="text-center text-xs text-ink-muted">Simpan banner baru ini?</p>
                             <div className="flex gap-2">
-                                <button type="button" className="btn-outline flex-1" onClick={cancelAvatar} disabled={saving}>
+                                <button type="button" className="btn-outline flex-1" onClick={cancelCover} disabled={saving}>
                                     Batal
                                 </button>
-                                <button type="button" className="btn-primary flex-1" onClick={confirmAvatar} disabled={saving}>
+                                <button type="button" className="btn-primary flex-1" onClick={confirmCover} disabled={saving}>
                                     {saving && <ButtonSpinner />} Konfirmasi
                                 </button>
                             </div>
                         </div>
                     ) : (
-                        <div className="flex gap-2">
-                            <button type="button" className="btn-outline" onClick={() => { setMediaTarget('avatar'); setMediaOpen(true); }}>
+                        <div className="flex justify-end gap-2">
+                            <button type="button" className="btn-outline" onClick={() => { setMediaTarget('cover'); setMediaOpen(true); }}>
                                 <Icon name="edit" size={16} /> Ubah
                             </button>
-                            {avatarUrl && (
-                                <button type="button" className="btn bg-red-600 text-white hover:bg-red-700" onClick={() => setRemoveOpen(true)}>
+                            {coverUrl && (
+                                <button type="button" className="btn bg-red-600 text-white hover:bg-red-700" onClick={() => setCoverRemoveOpen(true)}>
                                     <Icon name="trash" size={16} /> Hapus
                                 </button>
                             )}
                         </div>
-                    )}
-                </div>
-            </Modal>
-
-            <Modal open={removeOpen} onClose={() => setRemoveOpen(false)} title="Hapus Foto Profil">
-                <p className="text-sm text-ink-muted">Hapus foto profil Anda? Tindakan ini hanya menghapus foto profil, bukan akun.</p>
-                <div className="mt-6 flex justify-end gap-2">
-                    <button type="button" className="btn-outline" onClick={() => setRemoveOpen(false)} disabled={saving}>
-                        Batal
-                    </button>
-                    <button
-                        type="button"
-                        className="btn bg-red-600 text-white hover:bg-red-700"
-                        onClick={removeAvatar}
-                        disabled={saving}
-                    >
-                        <Icon name="trash" size={16} /> {saving ? 'Menghapus…' : 'Hapus'}
-                    </button>
-                </div>
-            </Modal>
-
-            <Modal open={coverViewOpen} onClose={() => setCoverViewOpen(false)} title={pendingCover ? 'Pratinjau Banner Baru' : 'Lihat Banner Profil'}>
+                    )
+                }
+            >
                 <div className="flex flex-col items-center gap-4 py-2">
                     <div className="h-40 w-full overflow-hidden rounded-2xl bg-surface-muted ring-1 ring-line sm:h-48">
                         {pendingCover ? (
@@ -688,50 +729,48 @@ export default function ProfileSettings() {
                     <p className="text-sm text-ink-muted">
                         {pendingCover ? 'Simpan banner baru ini?' : 'Banner ini ditampilkan di bagian atas profil Anda.'}
                     </p>
-
-                    {pendingCover ? (
-                        <div className="flex w-full gap-2">
-                            <button type="button" className="btn-outline flex-1" onClick={cancelCover} disabled={saving}>
-                                Batal
-                            </button>
-                            <button type="button" className="btn-primary flex-1" onClick={confirmCover} disabled={saving}>
-                                {saving && <ButtonSpinner />} Konfirmasi
-                            </button>
-                        </div>
-                    ) : (
-                        <div className="flex gap-2">
-                            <button type="button" className="btn-outline" onClick={() => { setMediaTarget('cover'); setMediaOpen(true); }}>
-                                <Icon name="edit" size={16} /> Ubah
-                            </button>
-                            {coverUrl && (
-                                <button type="button" className="btn bg-red-600 text-white hover:bg-red-700" onClick={() => setCoverRemoveOpen(true)}>
-                                    <Icon name="trash" size={16} /> Hapus
-                                </button>
-                            )}
-                        </div>
-                    )}
                 </div>
             </Modal>
 
-            <Modal open={coverRemoveOpen} onClose={() => setCoverRemoveOpen(false)} title="Hapus Banner Profil">
+            <Modal
+                open={coverRemoveOpen}
+                onClose={() => setCoverRemoveOpen(false)}
+                title="Hapus Banner Profil"
+                footer={
+                    <div className="flex justify-end gap-2">
+                        <button type="button" className="btn-outline" onClick={() => setCoverRemoveOpen(false)} disabled={saving}>
+                            Batal
+                        </button>
+                        <button
+                            type="button"
+                            className="btn bg-red-600 text-white hover:bg-red-700"
+                            onClick={removeCover}
+                            disabled={saving}
+                        >
+                            <Icon name="trash" size={16} /> {saving ? 'Menghapus…' : 'Hapus'}
+                        </button>
+                    </div>
+                }
+            >
                 <p className="text-sm text-ink-muted">Hapus banner profil Anda? Tindakan ini hanya menghapus banner, bukan akun.</p>
-                <div className="mt-6 flex justify-end gap-2">
-                    <button type="button" className="btn-outline" onClick={() => setCoverRemoveOpen(false)} disabled={saving}>
-                        Batal
-                    </button>
-                    <button
-                        type="button"
-                        className="btn bg-red-600 text-white hover:bg-red-700"
-                        onClick={removeCover}
-                        disabled={saving}
-                    >
-                        <Icon name="trash" size={16} /> {saving ? 'Menghapus…' : 'Hapus'}
-                    </button>
-                </div>
             </Modal>
 
-            <Modal open={deleteOpen} onClose={() => setDeleteOpen(false)} title="Hapus Akun">
-                <form onSubmit={deleteAccount}>
+            <Modal
+                open={deleteOpen}
+                onClose={() => setDeleteOpen(false)}
+                title="Hapus Akun"
+                footer={
+                    <div className="flex justify-end gap-2">
+                        <button type="button" className="btn-outline" onClick={() => setDeleteOpen(false)} disabled={deleting}>
+                            Batal
+                        </button>
+                        <button type="submit" form="delete-account-form" className="btn bg-red-600 text-white hover:bg-red-700" disabled={deleting}>
+                            <Icon name="trash" size={16} /> {deleting ? 'Menghapus…' : 'Hapus Akun'}
+                        </button>
+                    </div>
+                }
+            >
+                <form id="delete-account-form" onSubmit={deleteAccount}>
                     <p className="text-sm text-ink-muted">
                         Tindakan ini permanen. Masukkan kata sandi Anda untuk mengonfirmasi penghapusan akun.
                     </p>
@@ -739,14 +778,6 @@ export default function ProfileSettings() {
                         <Field label="Kata sandi" required error={errors.password?.[0]}>
                             <input className="input" type="password" value={deletePass} onChange={(e) => setDeletePass(e.target.value)} required />
                         </Field>
-                    </div>
-                    <div className="mt-6 flex justify-end gap-2">
-                        <button type="button" className="btn-outline" onClick={() => setDeleteOpen(false)} disabled={deleting}>
-                            Batal
-                        </button>
-                        <button type="submit" className="btn bg-red-600 text-white hover:bg-red-700" disabled={deleting}>
-                            <Icon name="trash" size={16} /> {deleting ? 'Menghapus…' : 'Hapus Akun'}
-                        </button>
                     </div>
                 </form>
             </Modal>

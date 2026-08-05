@@ -235,9 +235,14 @@ function Moderation() {
                 <EmptyState icon="star" title="Belum ada review" />
             )}
 
-            <Modal open={!!editing} onClose={() => setEditing(null)} title="Edit Review">
+            <Modal open={!!editing} onClose={() => setEditing(null)} title="Edit Review" footer={
+                <div className="flex justify-end gap-2">
+                    <button type="button" className="btn-outline" onClick={() => setEditing(null)}>Batal</button>
+                    <button type="submit" form="review-form" className="btn-primary">Simpan</button>
+                </div>
+            }>
                 {editing && (
-                    <form onSubmit={handleEdit} className="space-y-4">
+                    <form id="review-form" onSubmit={handleEdit} className="space-y-4">
                         <Field label="Nama">
                             <input className="input" value={editing.name} onChange={(e) => setEditing({ ...editing, name: e.target.value })} />
                         </Field>
@@ -250,10 +255,6 @@ function Moderation() {
                         <Field label="Review">
                             <textarea className="input min-h-[100px]" value={editing.content} onChange={(e) => setEditing({ ...editing, content: e.target.value })} />
                         </Field>
-                        <div className="flex justify-end gap-2">
-                            <button type="button" className="btn-outline" onClick={() => setEditing(null)}>Batal</button>
-                            <button type="submit" className="btn-primary">Simpan</button>
-                        </div>
                     </form>
                 )}
             </Modal>

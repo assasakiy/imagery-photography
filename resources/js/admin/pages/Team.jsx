@@ -121,8 +121,18 @@ function AdminTab() {
                 <EmptyState icon="users" title="Belum ada admin" />
             )}
 
-            <Modal open={open} onClose={() => setOpen(false)} title="Undang Admin">
-                <form onSubmit={submit} className="space-y-4">
+            <Modal
+                open={open}
+                onClose={() => setOpen(false)}
+                title="Undang Admin"
+                footer={
+                    <div className="flex justify-end gap-2">
+                        <button type="button" className="btn-outline" onClick={() => setOpen(false)}>Batal</button>
+                        <button type="submit" form="admin-form" className="btn-primary" disabled={saving}>{saving ? 'Membuat…' : 'Buat Admin'}</button>
+                    </div>
+                }
+            >
+                <form id="admin-form" onSubmit={submit} className="space-y-4">
                     <Field label="Nama" required error={errors.name?.[0]}>
                         <input className="input" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
                     </Field>
@@ -158,14 +168,21 @@ function AdminTab() {
                             Kredensial selalu tampil setelah akun dibuat, bisa Anda salin/kirim manual.
                         </p>
                     </Field>
-                    <div className="flex justify-end gap-2 pt-2">
-                        <button type="button" className="btn-outline" onClick={() => setOpen(false)}>Batal</button>
-                        <button type="submit" className="btn-primary" disabled={saving}>{saving ? 'Membuat…' : 'Buat Admin'}</button>
-                    </div>
                 </form>
             </Modal>
 
-            <Modal open={!!credentials} onClose={() => setCredentials(null)} title="Kredensial Admin Dibuat">
+            <Modal
+                open={!!credentials}
+                onClose={() => setCredentials(null)}
+                title="Kredensial Admin Dibuat"
+                footer={
+                    credentials && (
+                        <div className="flex flex-col gap-2">
+                            <button className="btn-primary w-full" onClick={() => setCredentials(null)}>Selesai</button>
+                        </div>
+                    )
+                }
+            >
                 {credentials && (
                     <div className="space-y-4">
                         <p className="text-sm text-ink-muted">
@@ -191,7 +208,6 @@ function AdminTab() {
                                 </button>
                             </div>
                         </div>
-                        <button className="btn-primary w-full" onClick={() => setCredentials(null)}>Selesai</button>
                     </div>
                 )}
             </Modal>
@@ -352,8 +368,18 @@ function TeamTab() {
                 <EmptyState icon="users" title="Belum ada anggota tim" message="Ambil dari profil pengguna atau tambah manual." />
             )}
 
-            <Modal open={open} onClose={() => setOpen(false)} title={editing ? 'Edit Anggota Tim' : 'Tambah Anggota Tim'}>
-                <form onSubmit={submit} className="space-y-4">
+            <Modal
+                open={open}
+                onClose={() => setOpen(false)}
+                title={editing ? 'Edit Anggota Tim' : 'Tambah Anggota Tim'}
+                footer={
+                    <div className="flex justify-end gap-2">
+                        <button type="button" className="btn-outline" onClick={() => setOpen(false)}>Batal</button>
+                        <button type="submit" form="member-form" className="btn-primary" disabled={saving}>{saving ? 'Menyimpan…' : 'Simpan'}</button>
+                    </div>
+                }
+            >
+                <form id="member-form" onSubmit={submit} className="space-y-4">
                     <div className="flex items-start gap-4">
                         <div className="relative">
                             <div className="h-24 w-24 overflow-hidden rounded-2xl border border-line bg-surface-muted">
@@ -394,10 +420,6 @@ function TeamTab() {
                         <Field label="WhatsApp URL">
                             <input className="input" value={form.social_whatsapp} onChange={(e) => setForm({ ...form, social_whatsapp: e.target.value })} />
                         </Field>
-                    </div>
-                    <div className="flex justify-end gap-2 pt-2">
-                        <button type="button" className="btn-outline" onClick={() => setOpen(false)}>Batal</button>
-                        <button type="submit" className="btn-primary" disabled={saving}>{saving ? 'Menyimpan…' : 'Simpan'}</button>
                     </div>
                 </form>
             </Modal>

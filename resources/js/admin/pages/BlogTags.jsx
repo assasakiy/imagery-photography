@@ -100,15 +100,16 @@ export default function BlogTags() {
                 <EmptyState title="Belum ada tag" />
             )}
 
-            <Modal open={open} onClose={() => setOpen(false)} title={editing ? 'Edit Tag' : 'Tambah Tag'}>
-                <form onSubmit={handleSubmit} className="space-y-4">
+            <Modal open={open} onClose={() => setOpen(false)} title={editing ? 'Edit Tag' : 'Tambah Tag'} footer={
+                <div className="flex justify-end gap-2">
+                    <button type="button" className="btn-outline" onClick={() => setOpen(false)}>Batal</button>
+                    <button type="submit" form="tag-form" className="btn-primary" disabled={saving}>{saving ? 'Menyimpan...' : 'Simpan'}</button>
+                </div>
+            }>
+                <form id="tag-form" onSubmit={handleSubmit} className="space-y-4">
                     <Field label="Nama" required error={errors.name?.[0]}>
                         <input className="input" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
                     </Field>
-                    <div className="flex justify-end gap-2 pt-2">
-                        <button type="button" className="btn-outline" onClick={() => setOpen(false)}>Batal</button>
-                        <button type="submit" className="btn-primary" disabled={saving}>{saving ? 'Menyimpan...' : 'Simpan'}</button>
-                    </div>
                 </form>
             </Modal>
 
