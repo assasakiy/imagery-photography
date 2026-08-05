@@ -15,19 +15,9 @@ export default function Media() {
     const [uploadOpen, setUploadOpen] = useState(false);
     const [viewing, setViewing] = useState(null);
     const [editing, setEditing] = useState(null);
-    const [menu, setMenu] = useState(null);
+    const [sheet, setSheet] = useState(null);
     const fileRef = useRef(null);
-    const menuRef = useRef(null);
     const { show, node } = useToast();
-
-    useEffect(() => {
-        if (!menu) return;
-        const onClick = (e) => {
-            if (menuRef.current && !menuRef.current.contains(e.target)) setMenu(null);
-        };
-        document.addEventListener('mousedown', onClick);
-        return () => document.removeEventListener('mousedown', onClick);
-    }, [menu]);
 
     const load = (page = 1) => {
         setLoading(true);
@@ -66,20 +56,6 @@ export default function Media() {
         } catch {
             show('Gagal menyalin URL.', 'error');
         }
-    };
-
-    const openMenu = (e, item) => {
-        e.stopPropagation();
-        if (menu?.id === item.id) {
-            setMenu(null);
-            return;
-        }
-        const rect = e.currentTarget.getBoundingClientRect();
-        setMenu({
-            id: item.id,
-            x: Math.max(12, rect.right - 176),
-            y: Math.max(12, rect.top - 138),
-        });
     };
 
     const handleDelete = async () => {
@@ -170,7 +146,7 @@ export default function Media() {
                                         </button>
                                     </div>
                                     <button
-                                        onClick={(e) => openMenu(e, item)}
+                                        onClick={() => setSheet(item)}
                                         className="absolute right-2 top-2 rounded-full bg-white/90 p-1.5 text-zinc-700 shadow transition-colors hover:bg-white md:hidden"
                                         title="Aksi"
                                     >
@@ -200,39 +176,53 @@ export default function Media() {
                 <EmptyState title="Belum ada media" message="Upload file pertama Anda." />
             )}
 
-            {menu && (
-                <div ref={menuRef} className="fixed z-[70]" style={{ left: menu.x, top: menu.y }}>
-                    <div className="w-44 overflow-hidden rounded-xl border border-line bg-surface py-1 shadow-2xl">
-                        <button
-                            className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-ink transition-colors hover:bg-surface-muted"
-                            onClick={() => {
-                                const item = items.find((m) => m.id === menu.id);
-                                setViewing(item);
-                                setMenu(null);
-                            }}
-                        >
-                            <Icon name="eye" size={16} /> Lihat
-                        </button>
-                        <button
-                            className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-ink transition-colors hover:bg-surface-muted"
-                            onClick={() => {
-                                const item = items.find((m) => m.id === menu.id);
-                                copyUrl(item?.url);
-                                setMenu(null);
-                            }}
-                        >
-                            <Icon name="link" size={16} /> Salin URL
-                        </button>
-                        <button
-                            className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-red-600 transition-colors hover:bg-surface-muted"
-                            onClick={() => {
-                                const item = items.find((m) => m.id === menu.id);
-                                setDeleting(item);
-                                setMenu(null);
-                            }}
-                        >
-                            <Icon name="trash" size={16} /> Hapus
-                        </button>
+            {sheet && (
+                <div className="fixed inset-0 z-50 md:hidden">
+                    <div className="animate-fade-in absolute inset-0 bg-black/50" onClick={() => setSheet(null)} />
+                    <div className="animate-sheet-up absolute inset-x-0 bottom-0 overflow-hidden rounded-t-2xl border border-b-0 border-line bg-surface shadow-2xl">
+                        <div className="flex items-center justify-between gap-2 border-b border-line px-4 py-3">
+                            <div className="min-w-0">
+                                <p className="truncate text-sm font-semibold text-ink">{sheet.name}</p>
+                                <p className="truncate text-xs text-ink-muted">{sheet.file_name}</p>
+                            </div>
+                            <button onClick={() => setSheet(null)} className="rounded-lg p-1 text-ink-muted hover:bg-surface-muted" aria-label="Tutup">
+                                <Icon name="x" size={18} />
+                            </button>
+                        </div>
+                        <div className="flex flex-col py-1">
+                            <button
+                                className="flex items-center gap-3 px-4 py-3 text-left text-sm text-ink transition-colors hover:bg-surface-muted"
+                                onClick={() => {
+                                    setViewing(sheet);
+                                    setSheet(null);
+                                }}
+                            >
+                                <Icon name="eye" size={18} /> Lihat
+                            </button>
+                            <button
+                                className="flex items-center gap-3 px-4 py-3 text-left text-sm text-ink transition-colors hover:bg-surface-muted"
+                                onClick={() => {
+                                    copyUrl(sheet.url);
+                                    setSheet(null);
+                                }}
+                            >
+                                <Icon name="link" size={18} /> Salin URL
+                            </button>
+                            <button
+                                className="flex items-center gap-3 px-4 py-3 text-left text-sm text-red-600 transition-colors hover:bg-surface-muted"
+                                onClick={() => {
+                                    setDeleting(sheet);
+                                    setSheet(null);
+                                }}
+                            >
+                                <Icon name="trash" size={18} /> Hapus
+                            </button>
+                        </div>
+                        <div className="p-3 pt-1">
+                            <button className="w-full rounded-xl border border-line py-2.5 text-sm font-medium text-ink-muted" onClick={() => setSheet(null)}>
+                                Batal
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}
