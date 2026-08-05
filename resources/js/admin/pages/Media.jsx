@@ -1,7 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
 import api from '../api';
 import Icon from '../components/Icon';
-import { PageHeader, Spinner, EmptyState, Confirm, useToast, Modal, ButtonSpinner } from '../components/ui';
+import { PageHeader, Spinner, EmptyState, Confirm, useToast, Modal, ButtonSpinner, Field, formatDate } from '../components/ui';
+
+const formatSize = (bytes) => {
+    if (!bytes && bytes !== 0) return '-';
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+};
 
 export default function Media() {
     const [items, setItems] = useState([]);
@@ -11,6 +18,9 @@ export default function Media() {
     const [deleting, setDeleting] = useState(null);
     const [dragOver, setDragOver] = useState(false);
     const [uploadOpen, setUploadOpen] = useState(false);
+    const [viewing, setViewing] = useState(null);
+    const [nameDraft, setNameDraft] = useState('');
+    const [savingName, setSavingName] = useState(false);
     const fileRef = useRef(null);
     const { show, node } = useToast();
 
@@ -50,6 +60,26 @@ export default function Media() {
             show('URL disalin.');
         } catch {
             show('Gagal menyalin URL.', 'error');
+        }
+    };
+
+    const openView = (item) => {
+        setViewing(item);
+        setNameDraft(item.name || '');
+    };
+
+    const saveName = async () => {
+        if (!viewing || !nameDraft.trim()) return;
+        setSavingName(true);
+        try {
+            const { data } = await api.put(`/media/${viewing.id}`, { name: nameDraft.trim() });
+            setViewing(data);
+            setItems((prev) => prev.map((m) => (m.id === data.id ? data : m)));
+            show('Nama media diperbarui.');
+        } catch (e) {
+            show(e?.response?.data?.message || 'Gagal memperbarui nama.', 'error');
+        } finally {
+            setSavingName(false);
         }
     };
 
@@ -125,6 +155,9 @@ export default function Media() {
                                         </div>
                                     )}
                                     <div className="absolute inset-0 flex items-center justify-center gap-2 bg-black/50 opacity-0 transition-opacity group-hover:opacity-100">
+                                        <button onClick={() => openView(item)} className="rounded-lg bg-white p-2 text-zinc-900" title="Lihat">
+                                            <Icon name="eye" size={16} />
+                                        </button>
                                         <button onClick={() => copyUrl(item.url)} className="rounded-lg bg-white p-2 text-zinc-900" title="Salin URL">
                                             <Icon name="link" size={16} />
                                         </button>
@@ -157,6 +190,70 @@ export default function Media() {
             )}
 
             <Confirm open={!!deleting} onClose={() => setDeleting(null)} onConfirm={handleDelete} title="Hapus file?" message="File ini akan dihapus dari server." />
+
+            <Modal open={!!viewing} onClose={() => setViewing(null)} title="Pratinjau Media" wide>
+                {viewing && (
+                    <div className="space-y-4">
+                        <div className="flex items-center justify-center overflow-hidden rounded-2xl border border-line bg-black/40">
+                            {viewing.type === 'image' ? (
+                                <img src={viewing.url} alt={viewing.name} className="max-h-[45vh] w-full object-contain" />
+                            ) : (
+                                <div className="flex h-48 w-full items-center justify-center text-ink-muted">
+                                    <Icon name={viewing.type === 'video' ? 'video' : 'file'} size={48} />
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                            <Field label="Nama">
+                                <input
+                                    className="input"
+                                    value={nameDraft}
+                                    onChange={(e) => setNameDraft(e.target.value)}
+                                    placeholder="Nama gambar"
+                                />
+                            </Field>
+                            <div>
+                                <label className="label">Nama File</label>
+                                <p className="break-all rounded-xl border border-line bg-surface-muted px-3 py-2 text-sm text-ink-muted">
+                                    {viewing.file_name}
+                                </p>
+                            </div>
+                            <div>
+                                <label className="label">Tipe</label>
+                                <p className="rounded-xl border border-line bg-surface-muted px-3 py-2 text-sm text-ink-muted">{viewing.mime_type}</p>
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="label">Ukuran</label>
+                                    <p className="rounded-xl border border-line bg-surface-muted px-3 py-2 text-sm text-ink-muted">{formatSize(viewing.size)}</p>
+                                </div>
+                                <div>
+                                    <label className="label">Diunggah</label>
+                                    <p className="rounded-xl border border-line bg-surface-muted px-3 py-2 text-sm text-ink-muted">{formatDate(viewing.created_at)}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="flex flex-wrap justify-end gap-2 pt-1">
+                            <a href={viewing.url} target="_blank" rel="noopener noreferrer" className="btn-outline">
+                                <Icon name="eye" size={16} /> Buka
+                            </a>
+                            <button className="btn-outline" onClick={() => copyUrl(viewing.url)}>
+                                <Icon name="link" size={16} /> Salin URL
+                            </button>
+                            <button
+                                className="btn-primary"
+                                disabled={savingName || !nameDraft.trim() || nameDraft.trim() === viewing.name}
+                                onClick={saveName}
+                            >
+                                {savingName ? <ButtonSpinner /> : <Icon name="check" size={16} />}
+                                Simpan
+                            </button>
+                        </div>
+                    </div>
+                )}
+            </Modal>
             {node}
         </>
     );

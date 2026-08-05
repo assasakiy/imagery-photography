@@ -76,6 +76,18 @@ class MediaController extends Controller
         return response()->json(['ok' => true]);
     }
 
+    public function update(Request $request, Media $media)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+        ]);
+
+        $media->update(['name' => $request->input('name')]);
+        app(\App\Services\AuditLogger::class)->log('media.updated', 'Media diperbarui: ' . $media->file_name, $media);
+
+        return response()->json($this->serialize($media));
+    }
+
     private function serialize(Media $media): array
     {
         $type = explode('/', $media->mime_type ?? '')[0];

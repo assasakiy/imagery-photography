@@ -79,7 +79,7 @@ Route::middleware(['web', 'auth:sanctum', 'maintenance'])->group(function () {
         Route::apiResource('portfolios', PortfolioController::class)->except(['create', 'edit']);
         Route::apiResource('media', MediaController::class)
             ->parameters(['media' => 'media'])
-            ->only(['index', 'store', 'destroy']);
+            ->only(['index', 'store', 'update', 'destroy']);
         Route::apiResource('services', ServiceController::class)->except(['create', 'edit']);
         Route::apiResource('clients', ClientController::class)->except(['create', 'edit']);
 
