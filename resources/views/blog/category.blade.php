@@ -1,0 +1,48 @@
+@extends('layouts.app')
+
+@section('title', $category->name . ' — Blog')
+@section('meta_description', 'Kumpulan artikel kategori ' . $category->name . ' di blog Sopian Lalu Imagery.')
+
+@section('content')
+    <section class="relative overflow-hidden border-b border-line bg-zinc-100/60 dark:bg-zinc-900/40">
+        <div class="absolute -right-32 -top-32 h-96 w-96 rounded-full bg-brand-600/10 blur-3xl"></div>
+        <div class="container-site py-16 md:py-20">
+            <p class="mb-3 text-sm font-semibold uppercase tracking-widest text-brand-600 dark:text-brand-400">Kategori</p>
+            <h1 class="section-heading text-ink">{{ $category->name }}</h1>
+            @if ($category->description)
+                <p class="mt-4 max-w-2xl text-ink-muted">{{ $category->description }}</p>
+            @endif
+        </div>
+    </section>
+
+    @include('partials.blog-filters', ['activeCategory' => $category->slug])
+
+    <section class="container-site py-12">
+        <nav class="mb-8 text-sm text-ink-muted">
+            <a href="{{ route('home') }}" class="hover:text-brand-600 dark:hover:text-brand-400">Beranda</a>
+            <span class="mx-2">/</span>
+            <a href="{{ route('blog') }}" class="hover:text-brand-600 dark:hover:text-brand-400">Blog</a>
+            <span class="mx-2">/</span>
+            <span class="text-ink">{{ $category->name }}</span>
+        </nav>
+
+        @if ($posts->isEmpty())
+            <div class="card p-12 text-center">
+                <p class="text-ink">Belum ada artikel di kategori ini.</p>
+            </div>
+        @else
+            <div class="mb-6">
+                <p class="mb-2 text-sm font-semibold uppercase tracking-widest text-brand-600 dark:text-brand-400">Artikel</p>
+                <h2 class="section-heading text-ink">{{ $posts->total() }} Artikel</h2>
+            </div>
+            <div class="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
+                @foreach ($posts as $post)
+                    @include('partials.blog-card', ['post' => $post])
+                @endforeach
+            </div>
+            <div class="mt-10">
+                {{ $posts->links() }}
+            </div>
+        @endif
+    </section>
+@endsection

@@ -1,0 +1,30 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+class AuditLog extends Model
+{
+    use HasFactory;
+
+    protected $fillable = [
+        'user_id',
+        'user_name',
+        'user_role',
+        'action',
+        'description',
+        'subject_type',
+        'subject_id',
+        'old_value',
+        'new_value',
+        'ip',
+        'user_agent',
+    ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+}

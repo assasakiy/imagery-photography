@@ -1,0 +1,135 @@
+# AGENTS.md — Sopian Lalu Imagery (imagery.assasakiy.my.id)
+
+Instruksi kerja untuk AI agent/coding agent pada proyek ini. Baca penuh sebelum mulai.
+
+## 1. Tujuan (Goal)
+Membangun ulang website portofolio fotografi/videografi "Sopian Lalu Imagery" menjadi modern:
+- **Publik (Blade SSR)** untuk SEO: landing, gallery, detail gallery, layanan, kontak.
+- **Dashboard admin & klien (React SPA)**: kelola portfolio, media, layanan, klien, proyek, pembayaran, pesan, landing, pengaturan.
+- **Asset default dari WordPress** (sopianlaluimagery.wordpress.com), bisa diganti di dashboard — sekali diganti = tersimpan, tidak bisa balik otomatis; kembali ke default = tempel URL WordPress manual.
+- **Keamanan**: RBAC via Spatie Permission. **Media** via Spatie MediaLibrary.
+- **Notifikasi**: in-app (API), email SMTP opsional, WhatsApp (driver pluggable schema-driven), webhook outgoing.
+- Desain dark & elegan, responsif, dark/light toggle, ikon SVG, struktur berlapis.
+
+## 2. Arsitektur & Lokasi
+- Monolith Laravel 13 di `/var/www/imagery`, nginx host port **8081** (80/443 milik Traefik Coolify), domain `imagery.assasakiy.my.id`.
+- **Layers (struktur berlapis):**
+  Routes (`routes/web.php`, `routes/api.php`) → Controllers → **Services (`app/Services`)** → Models → Views.
+  - `app/Services/`: `AssetResolver`, `WhatsApp/` (interface `WhatsAppDriver`, `WhatsAppManager`, `WhatsAppDriverRegistry` schema-driven, `WhatsAppSendResult`, driver `GoWA/EvolutionApi/Waha/Fonnte/Twilio/CustomApi/Meta`), `NotificationService`, `WebhookDispatcher`, `RuntimeSettings`.
+- **Publik**: Blade SSR di `resources/views/` (dark elegant).
+- **Dashboard**: React SPA (react-router + axios + Tailwind v4) dimount di `/dashboard`, konsumsi `/api/*` (Sanctum cookie auth). Build via Vite multi-entry.
+
+## 3. Stack & Versi
+- PHP 8.3, Laravel 13, MySQL, Tailwind v4, Vite 8, React 18, Node 22.
+- Wajib: `spatie/laravel-permission`, `spatie/laravel-medialibrary`, `laravel/sanctum`.
+- Ekstensi PHP tersedia: gd, exif, fileinfo, mbstring (konversi gambar via GD).
+
+## 4. Design System (berlapis)
+- **CSS Layers** Tailwind v4: `@theme` design tokens → `@layer base/components/utilities`.
+- Tokens: font Instrument Sans; palet dark (zinc/neutral) + aksen brand; radius besar; spacing konsisten.
+- **Dark/Light**: toggle simpan `localStorage`, default `prefers-color-scheme`, kelas `dark` di `<html>`, transisi `transition-colors`.
+- **Responsive**: mobile-first, hamburger menu, grid adaptif, tabel bisa discroll (overflow-x).
+- **Komponen Blade**: `button`, `card`, `icon` (SVG Lucide inline), `section-heading`, `navbar`, `footer`, `input`.
+- **Komponen React**: layout → ui → feature berhirarki.
+
+## 5. Konvensi Form & Auth
+- Login: checkbox **"Jangan lupakan saya"** (perpanjang session) + **show/hide password**.
+- Semua form: field **wajib `*` / opsional** ditandai, validasi client-side + server-side (Laravel Validator), error inline.
+- Bahasa UI: **Indonesia**. Mata uang: IDR.
+
+## 6. Aturan Asset
+- `portfolios.image_url` = URL default (di-seed dari WordPress).
+- Upload → simpan via Spatie Media (koleksi `cover`), kosongkan `image_url`.
+- Tempel URL manual → set `image_url`, kosongkan media.
+- Prioritas tampil: **Spatie media → `image_url` → placeholder**. Tanpa tombol reset otomatis.
+- Hero/logo/about: `landing_contents` bernilai `media:{id}` / URL / kosong (→ default WP atau placeholder).
+
+## 7. RBAC (Spatie Permission)
+- Roles: `owner` (tertinggi), `admin`, `client`.
+- Permissions: `manage-portfolio`, `manage-media`, `manage-services`, `manage-clients`, `manage-messages`, `manage-payments`, `manage-landing`, `manage-settings`, `view-projects`, `manage-reviews`, `submit-reviews`, `manage-blog`, `manage-faq`, `manage-pages`.
+- Gate via middleware `role:`/`permission:` (gantikan `CheckRole` & kolom `users.role`).
+- Route `route:list` menganggap `admin|owner` = grup owner (sintaks Spatie memaknai `|` sebagai "atau" antar role).
+
+## 8. Notifikasi
+- **In-app**: badge/feed di React via API (polling ringan, tanpa WebSocket).
+- **Email SMTP**: prioritas konfigurasi `settings` DB → `.env` → jika tak ada, **skip aman (log, bukan error)**.
+- **WhatsApp**: `WhatsAppDriverRegistry` schema-driven (key,name,description,fields[]). Daftar driver: GoWA, Evolution API, WAHA, Fonnte, Twilio, Custom REST, Meta Cloud API. Config tersimpan sebagai satu JSON `whatsapp_config` = `{driver, config:{...}}` (legacy `whatsapp_token`/`whatsapp_webhook_url`/`whatsapp_driver`/env otomatis dimigrasikan saat dibaca). Semua driver mengembalikan `WhatsAppSendResult` ter-normalisasi (`success, provider, message, provider_message_id, raw`) — frontend tidak bergantung format provider. Field password di-mask `••••••••` dan dipertahankan saat PUT (tidak ditimpa nilai asli). Paksa IPv4 (`CURLOPT_IPRESOLVE_V4`) untuk semua outbound karena VM tanpa IPv6.
+- **Webhook outgoing**: event penting (pesan baru, pembayaran dikonfirmasi, proyek update) → POST JSON ke URL terkonfigurasi via queue (`QUEUE_CONNECTION=database`).
+
+## 9. Alur Kerja (Plan → Design → Build)
+1. **Plan**: baca AGENTS.md, eksplorasi kode & DB, ambil konten dari WordPress, susun rencana, konfirmasi ke user.
+2. **Design**: siapkan design tokens & komponen dasar sebelum fitur.
+3. **Backend**: composer deps, migrations, seeders (`WordPressContentSeeder`), services.
+4. **Dashboard React**: auth + layout + halaman CRUD + pengaturan.
+5. **Publik Blade**: redesign dark, gallery masonry+lightbox+filter, tabel harga layanan, `gallery/show` baru.
+6. **Notifikasi**: in-app, email, WhatsApp, webhook.
+7. **Build & verifikasi**: build asset, migrate, seed, tes route.
+
+## 10. Perintah Penting
+```bash
+composer require laravel/sanctum spatie/laravel-permission spatie/laravel-medialibrary
+npm i react react-dom react-router-dom axios @vitejs/plugin-react
+npm run build        # produksi
+php artisan migrate --force
+php artisan db:seed --class=WordPressContentSeeder
+composer test        # phpunit
+```
+
+## 11. Catatan
+- Jangan ubah file tanpa instruksi; ikuti konvensi yang ada.
+- Jangan commit tanpa diminta.
+- Produksi (APP_DEBUG=false) — backup DB & storage sebelum migrate/seed besar.
+
+## 12. Hasil Sesi 2026-08-02 (verifikasi & perbaikan)
+- **Media delete diperbaiki**: `Route::apiResource('media', ...)` meng-generate param `{medium}` (singularisasi Laravel) yang TIDAK cocok dengan parameter `$media` di controller → model binding gagal (instance kosong, delete diam-diam tidak jalan). Solusi: `->parameters(['media' => 'media'])`. Jika menambah resource `media` lagi, wajib ulangi ini.
+- **`LandingContent::setValue`** sekarang mempertahankan `group` saat update (sebelumnya update `updateOrCreate` menimpa group → `hero_subtitle` pindah ke `general`).
+- **`MediaLibrary`** butuh `protected $fillable = ['id'];` agar `firstOrCreate(['id' => 1], ...)` tidak memicu MassAssignmentException.
+- **Landing images** disimpan di koleksi `library` bersama pada `MediaLibrary` (media id), ref di `landing_contents` = `media:{id}`. `reset_images` hanya mengosongkan key — **media jadi orphan** (baris & file tidak ikut terhapus). TODO: hapus media saat reset.
+- **Client access token single-use by design**: scope `valid()` = `used_at IS NULL` + belum expire; `used_at` di-set pada klik pertama. Klik kedua → redirect `/login` (burned). Pertimbangkan multi-use jika klien perlu login ulang.
+- **Semua flow diverifikasi via curl** (`--resolve imagery.assasakiy.my.id:8081:127.0.0.1`, cookie jar `-b/-c`, header `X-XSRF-TOKEN` dari cookie decrypt): media upload/list/delete, portfolio upload→media & paste-URL→reset media, landing content/upload/reset, client create + project create + token access → dashboard klien (role `client`, perms `view-projects`), admin `/api/user` (9 perms).
+- DB saat ini dalam keadaan seed bersih: 35 portfolio, 2 roles, 9 perms, 0 project/client/message/payment, media table kosong.
+
+## 13. Sesi 2026-08-02 (lanjutan: blog/FAQ/halaman/booking, kredensial klien, CSRF Laravel 13)
+- **CSRF Laravel 13 (`PreventRequestForgery`)**: `getTokenFromRequest` TIDAK lagi fallback ke `session()->token()` saat header `X-XSRF-TOKEN` absen (beda dgn `ValidateCsrfToken` lama). Browser lolos via `Sec-Fetch-Site: same-origin` (`hasValidOrigin`) dan/atau header token. Untuk test curl/Python: WAJIB kirim header `X-XSRF-TOKEN` (nilai = cookie `XSRF-TOKEN` yang di-URL-decode) pada SEMUA POST/PUT/PATCH/DELETE, termasuk yang tanpa body, plus opsional `Sec-Fetch-Site: same-origin`. Tanpa header → 419 walaupun token benar.
+- **`Store::regenerate()` di Laravel 13 = migrate + `regenerateToken()`** (token CSRF ikut dirotasi). `Auth::login()` memanggil `session->regenerate(true)` internal → token berubah SETELAH `PreventRequestForgery` menangkap token lama → cookie `XSRF-TOKEN` pada response login SELALU stale untuk session baru. SPA menyinkronkan ulang otomatis lewat GET berikutnya (AuthProvider `refresh()` GET `/user` re-set cookie) + interceptor 419 di `resources/js/admin/api.js` (refresh csrf-cookie lalu retry sekali).
+- **Hapus `$request->session()->regenerate()` redundan** di `AuthController@login` & `verifyOtp` (duplikat dari regenerate internal `Auth::login`).
+- **`ensureClientUser` sekarang reset password** user klien yang sudah ada saat proyek baru dibuat (sebelumnya early-return → password di creds tidak pernah terpasang untuk klien existing). Desain: satu akun klien untuk semua proyeknya.
+- **Content pages & blog**: routes web `tentang|faq|privacy|terms|booking|blog` + controller `AboutPageController` (pakai `route('gallery')`, bukan `gallery.index`), `FaqController`, `PageController` (by slug), `BookingController` (simpan `contact_messages` type `booking`), `BlogController` (web). `resources/views/{about,faq,page,booking,blog}/`.
+- **API blog/faq/pages/settings**: routes di `routes/api.php` di bawah `permission:manage-*`. `Route::apiResource('blog',...)->names('api.blog')` — WAJIB `names()` agar tak bentrok dgn route web `blog.show`. Blog tags dikirim sebagai JSON-encoded string (`["a","b"]`), di-decode `decodeTags()`. Publikasi via `applyPublishing()` (set `published_at` saat publish baru).
+- **`POST /api/projects`**: terima `client_mode=existing|new`, inline `client_name/phone/email/notes` (nullable, `required_without:client_id`), field `type` (event/wedding/…) & `event_date`, `status` WAJIB (`pending` default dari SPA). Response `{project, credentials}` berisi `login_url`, `email`, `password`, `access_url`. `POST /api/projects/{project}/regenerate-credentials` untuk reset token (opsional reset password) — dipakai juga saat create untuk klien existing.
+- **`/access/{token}`**: klien terotentikasi → redirect `/dashboard`; belum login → `/login`.
+- **Skrip test di `/home/opc`**: `spa_test.py` (siklus login/logout penuh), `final_test.py`, `access_test.py` — Python CookieJar meniru browser (harus unquote nilai cookie `XSRF-TOKEN`). `/etc/hosts` sudah berisi `127.0.0.1 imagery.assasakiy.my.id`. `/tmp/opencode` TIDAK writable (Permission denied) — gunakan `/home/opc`.
+- **F2 Settings**: `GET/PUT /api/settings` → `brand_color`, `google_auth_enabled`, `google_client_id/secret` (masked •, skip save), `google_redirect_url` di UI `Settings.jsx`. Seeder `StaticContentSeeder` (pages 2, faqs 5, blog-cats 3) sudah jalan.
+
+## 14. Sesi 2026-08-02 (role owner, landing/settings owner-only, team & review, media refactor)
+- **Role `owner`** ditambahkan (tertinggi, satu-satunya pengelola branding/landing/settings & pengundang admin). `User::isOwner()/isStaff()`; `role:owner` middleware untuk `/api/team*`, `/api/landing`, `/api/settings`; owner dianggap admin untuk `route:list`.
+- **Migrasi/seeder**: `create_team_members_table`, `create_reviews_table`, `add_phone_to_users_table`, seeder role+permissions+owner (`owner@imagery.my.id`), landing contents, team members, reviews.
+- **API tim**: `TeamController::store` membuat `User` role `admin` + kirim `AdminInvitationMail`/WhatsApp; `TeamMemberController` (owner-only) + `import` dari akun admin. `TeamMember` punya `photo_url`, `bio`, `social_*`, `resolvePhotoUrl()` (menerima `media:{id}` atau URL).
+- **API review**: klien (permission `submit-reviews`) kirim `POST /api/reviews` (status `pending`); admin/owner setujui/tolak via `PATCH /api/reviews/{id}/status`; muncul di landing bila approved.
+- **Media refactor**: `Portfolio.jsx`, `Blog.jsx`, `Landing.jsx` memakai `MediaPicker.jsx` (library/upload/URL), submit `media_id`/`media:{id}`; backend `PortfolioController`, `BlogController::attachMedia()`, `LandingController` simpan nilai mentah. `AssetResolver::landingImage()` me-resolve `media:{id}`.
+- **`NotificationService::toAdmins`** = role `admin|owner` (in-app).
+- **Blade publik baru**: `layouts/app.blade.php` ditulis ulang (header sticky + nav underline + login/bell/dropdown + mobile menu + favicon dinamis + footer), `partials/social-icon.blade.php`, konten landing (artikel, review, FAQ, tombol Selengkapnya), halaman about (timeline, grid tim, sosmed).
+- **Kredensial pemilik**: `owner@imagery.my.id` / `owner123` (password diubah 2026-08-04). Backup DB lama `storage/backups/pre-owner-20260802-202238.sql`.
+
+## 15. Sesi 2026-08-02 (perbaikan UI header, halaman profil modern, preferensi notifikasi, hapus akun)
+- **Bug "Lihat Situs"**: `Link to="/"` di dalam SPA di-route-balik ke `/dashboard` (route `*`). Ganti jadi `<a href="/">` (sidebar & logo mobile di `Layout.jsx`). Hati-hati: jangan pakai `Link`/`<Route path="/">` untuk keluar SPA.
+- **StrictMode crash `l is not a function`**: `useEffect(load, [])` dengan `load` arrow-**expression** (return Promise) memicu React memanggil hasil effect sebagai cleanup → `TypeError`. Pola aman: `const load = () => { ... }; useEffect(() => { load(); }, deps);`. Sudah diperbaiki di `Team.jsx` & `Reviews.jsx` (4 tempat). Semua `load` lain sudah blok-body.
+- **Header dashboard** (`Layout.jsx`): tombol dark dipindah ke dekat lonceng; dropdown profil disederhanakan (hanya **Profil Saya + Keluar** saat di dashboard); ikon chevron berputar 180° saat dropdown terbuka; avatar user ditampilkan bila ada.
+- **Header publik** (`app.blade.php` + `app.js` + `app.css`): tombol dark dipindah dekat notifikasi (urutan bell → dark → profil); dropdown pintar (saat di landing tampil **Dashboard + Keluar**, tidak ada lagi "Lihat Situs"/"Profil Saya"); chevron-down (sembunyi di mobile, hanya avatar); dropdown animasi turun pakai `.dropdown-panel`/`.is-open` di `app.css`.
+- **Kolom `users` baru** (migrasi `..._211000_add_profile_columns_to_users_table`): `bio`, `avatar_url`, `social_facebook`, `social_instagram`, `social_tiktok`, `social_whatsapp`, `notif_inapp`, `notif_email`, `notif_whatsapp` (bool default true). `User::resolveAvatarUrl()` (dukung `media:{id}`).
+- **`ProfileController`** diperluas: `show`/`update` menangani bio, avatar, media sosial, preferensi notifikasi + kata sandi; **`DELETE /api/profile`** = hapus akun (wajib password, role owner diblokir, session di-logout, `teamMember`/`client` ikut terhapus).
+- **`NotificationService`** menghormati preferensi user: `inApp()` skip `notif_inapp=false`; `email()` menerima `User` dan skip `notif_email=false`; `whatsapp(..., ?User $forUser)` skip `notif_whatsapp=false`. Caller diupdate (`PaymentController::confirm`, `ProjectController::update`, `TeamController::store`).
+- **`ProfileSettings.jsx`** ditulis ulang jadi halaman profil modern: hero card (cover + foto profil via `MediaPicker`, tombol hapus foto), tab **Profil / Media Sosial / Kata Sandi / Preferensi**, ringkasan akun, dan **Zona Berbahaya** (hapus akun dengan konfirmasi password). Simpan memanggil `AuthContext.refresh()` agar avatar/nama di topbar ikut ter-update.
+- **`AuthController::userPayload`** kini menyertakan `avatar` & `bio`; `TeamMemberController::import` menyalin `bio`/`photo_url`/`social_*` dari user.
+- **Verifikasi curl**: login owner, GET/PUT profile (bio/sosmed/pref/avatar `media:{id}`), filter notif (notif_inapp=false → notifikasi in-app tidak terkirim), hapus akun (password salah 422, benar `{ok:true}`), owner tidak bisa dihapus. Test data dibersihkan.
+
+## 16. Sesi 2026-08-03/04 (WhatsApp schema-driven + adapter, swift-button, SELinux/GoWA, Tiptap, favicon)
+- **`WhatsAppDriverRegistry`** = sumber kebenaran schema & driver (`CLASSES`, `SCHEMAS`): key, name, description, fields[] (key/label/type/required/default/placeholder/help). Daftar driver: GoWA (base_url, username+password basic auth, device_id, endpoint_send `/send/message`, endpoint_status `/app/devices`), Evolution API (base_url, api_key header `apikey`, instance), WAHA (base_url, api_key header `X-Api-Key`, chatId `@c.us`), Fonnte (api_token, `Authorization`, asForm), Twilio (account_sid+auth_token+from, `whatsapp:+`+digits), Custom REST (method/base_url/endpoint/auth_type none|bearer|basic|api_key/header_key/header_value/body_template JSON `{{phone}}`/`{{message}}`), Meta Cloud API (access_token, phone_number_id, api_version v21.0).
+- **`WhatsAppSendResult`** (hasil ter-normalisasi): `{success, provider, message, provider_message_id, raw}`. Semua driver memetakan respons provider ke bentuk ini; `WhatsAppManager::send()` return result; `NotificationService::whatsapp()` tetap `bool` (`.success`). **`testWhatsapp`** di `SettingsController` kini melaporkan `result->message` (ramah, bukan raw `cURL error`). Driver TIDAK melempar exception transport — `WhatsAppSendResult::fromException()` menghasilkan pesan ramah.
+- **Bug swift-button persist**: `set()` asinkron membuat `save()` membaca nilai lama (stale). Fix: `save(keys, overrides={})` memakai `overrides[k] ?? form[k]`; toggle channel email/WA mengirim nilai eksplisit. `Settings.jsx`: card SMTP & WA pakai swift Toggle (`notif_email_enabled`/`notif_wa_enabled`) yang auto-save; form hanya tampil saat on; card Notifikasi (email/WA) toggle auto-save + event list & tombol Simpan hanya saat enabled.
+- **VM tanpa IPv6** → `https://gowa.assasakiy.my.id` resolve ke IPv6 Cloudflare (`2606:4700:...`) → koneksi IPv6 gagal instan. Solusi: paksa IPv4 `->withOptions(['curl' => [CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4]])` di semua driver WhatsApp.
+- **ROOT CAUSA koneksi speak php-fpm gagal "after 0 ms"**: SELinux **Enforcing** dan host php-fpm (systemd) berjalan di domain **`httpd_t`** dengan boolean **`httpd_can_network_connect` = off** → `connect()` ditolak instan. CLI (`unconfined_t`) dan php-fpm container (`spc_t`) tidak kena. **Fix: `sudo setsebool -P httpd_can_network_connect on`** (persisten). Gejala pembeda: curl/CLI bisa, web/php-fpm tidak, selalu "after 0 ms".
+- **GoWA base_url JANGAN diberi `:3000`**: port 3000 = internal GoWA; `gowa.assasakiy.my.id` di belakang Cloudflare yang hanya mem-proxy 80/443. Reverse-proxy sudah memetakan :443 → GoWA :3000, jadi `base_url` cukup `https://gowa.assasakiy.my.id`. Respons sukses GoWA: `{"code":"SUCCESS",...,"results":{"message_id":...}}`; `ERROR`/`UNAUTHORIZED` → gagal.
+- **Tiptap v3 duplikat extension**: `StarterKit` versi 3 sudah menyertakan `link` & `underline`. Menambahkan `Link`/`Underline` eksplisit → warning "Duplicate extension names". Fix `RichEditor.jsx`: `StarterKit.configure({ link: false, underline: false })`, tetap pakai ekstensi eksplisit agar opsi `Link.configure({...})` berlaku.
+- **Mixed-content http:// favicon**: `AssetResolver::resolveImageValue()` kini menaikkan `http://` → `https://` pada semua asset URL (aman untuk situs HTTPS). `APP_URL` sudah https (asset() otomatis https untuk default).
+- **Model `Setting` TIDAK clear cache `runtime_settings` (1 jam)**; hanya `SettingsController::update` yang memanggil `RuntimeSettings::forget()`. Saat mengubah setting via tinker langsung, WAJIB panggil `app(RuntimeSettings::class)->forget()` lalu verifikasi; kalau tidak, `get()` masih membaca nilai cached lama.

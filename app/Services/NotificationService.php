@@ -1,0 +1,354 @@
+<?php
+
+namespace App\Services;
+
+use App\Mail\AlertMail;
+use Illuminate\Contracts\Mail\Mailable;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
+use App\Models\User;
+use App\Notifications\InAppNotification;
+
+class NotificationService
+{
+    /**
+     * Katalog event notifikasi. Key dipakai sebagai gate per-kanal.
+     */
+    public const EVENTS = [
+        'booking.new' => 'Booking baru',
+        'message.new' => 'Pesan kontak / booking baru',
+        'review.new' => 'Review baru menunggu persetujuan',
+        'review.approved' => 'Review disetujui',
+        'project.created' => 'Proyek baru dibuat',
+        'project.updated' => 'Proyek diperbarui',
+        'project.status_changed' => 'Status proyek berubah',
+        'project.credentials_regenerated' => 'Kredensial klien direset',
+        'payment.submitted' => 'Pembayaran dikirim klien',
+        'payment.confirmed' => 'Pembayaran dikonfirmasi',
+        'payment.rejected' => 'Pembayaran ditolak',
+        'team.invited' => 'Anggota tim diundang',
+        'auth.otp' => 'OTP login',
+        'auth.login' => 'Login mencurigakan',
+    ];
+
+    /**
+     * Event yang WAJIB dikirim ke pemilik akun (keamanan akun).
+     * Tidak bisa dimatikan oleh admin maupun user.
+     */
+    public const MANDATORY_EVENTS = ['auth.otp', 'auth.login'];
+
+    /**
+     * Event yang berlaku untuk tiap kanal.
+     */
+    public const CHANNEL_EVENTS = [
+        'inapp' => [
+            'booking.new', 'message.new', 'review.new', 'review.approved',
+            'project.created', 'project.updated', 'project.status_changed',
+            'project.credentials_regenerated', 'payment.submitted', 'payment.confirmed',
+            'payment.rejected', 'team.invited', 'auth.login',
+        ],
+        'email' => [
+            'booking.new', 'message.new', 'review.new', 'review.approved',
+            'project.created', 'project.updated', 'project.status_changed',
+            'project.credentials_regenerated', 'payment.submitted', 'payment.confirmed',
+            'payment.rejected', 'team.invited', 'auth.otp', 'auth.login',
+        ],
+        'whatsapp' => [
+            'booking.new', 'message.new', 'review.new',
+            'project.status_changed', 'payment.submitted', 'payment.confirmed',
+            'auth.otp', 'auth.login',
+        ],
+        'webhook' => [
+            'booking.new', 'message.new', 'review.new', 'review.approved',
+            'project.created', 'project.updated', 'project.status_changed',
+            'project.credentials_regenerated', 'payment.submitted', 'payment.confirmed',
+            'payment.rejected', 'team.invited',
+        ],
+    ];
+
+    public function __construct(
+        private readonly RuntimeSettings $settings,
+        private readonly \App\Services\WhatsApp\WhatsAppManager $whatsapp,
+        private readonly WebhookDispatcher $webhooks,
+    ) {}
+
+    /**
+     * Cek apakah sebuah event aktif untuk sebuah kanal (fallback kunci global lama).
+     */
+    public function eventEnabled(string $event, ?string $channel = null): bool    {
+        if (!array_key_exists($event, self::EVENTS)) {
+            return true;
+        }
+
+        if ($channel && in_array($event, self::MANDATORY_EVENTS, true)) {
+            return true;
+        }
+
+        if ($channel) {
+            $channelKey = 'notif_' . $channel . '_event_' . str_replace('.', '_', $event);
+            $value = $this->settings->get($channelKey);
+
+            if ($value !== null) {
+                return $value !== '0';
+            }
+        }
+
+        return $this->settings->get('notif_event_' . str_replace('.', '_', $event), '1') !== '0';
+    }
+
+    /**
+     * Daftar event untuk sebuah kanal, siap dipakai dashboard/profile.
+     */
+    public function channelEvents(string $channel): array
+    {
+        $events = [];
+
+        foreach (self::CHANNEL_EVENTS[$channel] ?? [] as $key) {
+            $events[] = [
+                'key' => $key,
+                'label' => self::EVENTS[$key] ?? $key,
+                'enabled' => in_array($key, self::MANDATORY_EVENTS, true)
+                    ? true
+                    : $this->settings->channelEnabled($channel) && $this->eventEnabled($key, $channel),
+                'mandatory' => in_array($key, self::MANDATORY_EVENTS, true),
+            ];
+        }
+
+        return $events;
+    }
+
+    /**
+     * Apakah transport sebuah kanal terpasang.
+     */
+    private function channelConfigured(string $channel): bool
+    {
+        return match ($channel) {
+            'email' => $this->settings->emailConfigured(),
+            'whatsapp' => $this->settings->whatsappConfigured(),
+            default => true,
+        };
+    }
+
+    /**
+     * Check efektif: bolehkah event dikirim via channel untuk user tertentu?
+     * Event mandatory hanya butuh transport terpasang (pref user & flag admin diabaikan).
+     */
+    private function channelAllowed(string $event, string $channel, ?User $user): bool
+    {
+        if (!array_key_exists($event, self::EVENTS)) {
+            return true;
+        }
+
+        if (!in_array($event, self::CHANNEL_EVENTS[$channel] ?? [], true)) {
+            return false;
+        }
+
+        if (in_array($event, self::MANDATORY_EVENTS, true)) {
+            return $this->channelConfigured($channel);
+        }
+
+        if (!$this->settings->channelAvailable($channel)) {
+            return false;
+        }
+
+        if (!$this->eventEnabled($event, $channel)) {
+            return false;
+        }
+
+        if ($user) {
+            if ($channel === 'email' && $user->notif_email === false) {
+                return false;
+            }
+            if ($channel === 'whatsapp' && $user->notif_whatsapp === false) {
+                return false;
+            }
+
+            $prefs = $user->notif_events ?? [];
+
+            if (isset($prefs[$channel]) && is_array($prefs[$channel]) && !in_array($event, $prefs[$channel], true)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Send email via SMTP. Mengikuti pengaturan dashboard, fallback .env.
+     */
+    public function email(string|Mailable $mailable, string|User $to, ?string $event = null): void
+    {
+        $user = $to instanceof User ? $to : null;
+        $address = $to instanceof User ? $to->email : $to;
+
+        if ($event) {
+            if (!$this->channelAllowed($event, 'email', $user)) {
+                Log::info('Email skipped: not allowed for channel/user.', ['event' => $event, 'to' => $address]);
+
+                return;
+            }
+        } elseif ($user && $user->notif_email === false) {
+            Log::info('Email skipped: user disabled email notifications.', ['to' => $address]);
+
+            return;
+        }
+
+        if (!$this->settings->emailConfigured()) {
+            Log::info('Email skipped: no SMTP transport configured.', ['to' => $address]);
+
+            return;
+        }
+
+        config([
+            'mail.default' => 'smtp',
+            'mail.mailers.smtp.host' => $this->settings->mailHost(),
+            'mail.mailers.smtp.port' => $this->settings->mailPort(),
+            'mail.mailers.smtp.username' => $this->settings->mailUsername(),
+            'mail.mailers.smtp.password' => $this->settings->mailPassword(),
+            'mail.mailers.smtp.encryption' => null,
+            'mail.from.address' => $this->settings->mailFromAddress() ?? $address,
+            'mail.from.name' => $this->settings->mailFromName(),
+        ]);
+
+        Mail::purge('smtp');
+
+        Mail::to($address)->send($mailable);
+    }
+
+    /**
+     * Send WhatsApp message melalui driver aktif.
+     */
+    public function whatsapp(string $phone, string $message, ?string $driver = null, ?User $forUser = null, ?string $event = null): bool
+    {
+        if ($event) {
+            if (!$this->channelAllowed($event, 'whatsapp', $forUser)) {
+                Log::info('WhatsApp skipped: not allowed for channel/user.', ['event' => $event, 'phone' => $phone]);
+
+                return false;
+            }
+        } elseif ($forUser && $forUser->notif_whatsapp === false) {
+            Log::info('WhatsApp skipped: user disabled WhatsApp notifications.', ['phone' => $phone]);
+
+            return false;
+        }
+
+        return $this->whatsapp->send($phone, $message, $driver)->success;
+    }
+
+    /**
+     * Dispatch webhook payload (queued).
+     */
+    public function webhook(string $event, array $payload): void
+    {
+        if (!$this->eventEnabled($event, 'webhook')) {
+            return;
+        }
+
+        if (empty($this->settings->webhookUrls())) {
+            return;
+        }
+
+        DispatchWebhookJob::dispatch($event, $payload);
+    }
+
+    /**
+     * Send an in-app database notification to one or more users.
+     */
+    public function inApp(iterable|User $users, string $title, string $message, ?string $url = null, ?string $event = null): void
+    {
+        if ($event && !$this->eventEnabled($event, 'inapp')) {
+            return;
+        }
+
+        if ($users instanceof User) {
+            $users = collect([$users]);
+        }
+
+        foreach ($users as $user) {
+            if (!$user->notif_inapp) {
+                continue;
+            }
+
+            $user->notify(new InAppNotification($title, $message, $url, $event));
+        }
+    }
+
+    /**
+     * Send a notification to every admin/owner user.
+     */
+    public function toAdmins(string $title, string $message, ?string $url = null, ?string $event = null): void
+    {
+        $this->inApp(User::role(['admin', 'owner'])->get(), $title, $message, $url, $event);
+    }
+
+    /**
+     * Kanal pengiriman OTP untuk seorang user (fleksibel bila email & WA keduanya ada).
+     */
+    public function otpChannel(User $user): ?string
+    {
+        $email = $this->settings->emailConfigured();
+        $wa = $this->settings->whatsappConfigured();
+
+        if ($email && $wa) {
+            return in_array($user->notif_otp_channel, ['email', 'whatsapp'], true)
+                ? $user->notif_otp_channel
+                : 'whatsapp';
+        }
+
+        if ($email) {
+            return 'email';
+        }
+
+        if ($wa) {
+            return 'whatsapp';
+        }
+
+        return null;
+    }
+
+    /**
+     * Kirim OTP ke user lewat kanal pilihannya (wajib, tidak bisa dimatikan).
+     */
+    public function sendOtp(User $user, string $phone, string $code): bool
+    {
+        $channel = $this->otpChannel($user);
+        $message = "Kode OTP masuk Sopian Lalu Imagery: {$code}. Berlaku 5 menit. Jangan bagikan kode ini kepada siapa pun.";
+
+        if ($channel === 'email') {
+            if (empty($user->email)) {
+                return false;
+            }
+
+            $this->email(new AlertMail($user->name, 'Kode OTP Login — Sopian Lalu Imagery', $message, $code), $user->email, 'auth.otp');
+
+            return true;
+        }
+
+        if ($channel === 'whatsapp') {
+            return $this->whatsapp($phone, $message, null, $user, 'auth.otp');
+        }
+
+        return false;
+    }
+
+    /**
+     * Notif login mencurigakan (wajib, hanya untuk pemilik akun, tidak spam).
+     */
+    public function notifySuspiciousLogin(User $user): void
+    {
+        $ip = request()->ip() ?: 'tidak diketahui';
+        $ua = (string) request()->userAgent();
+        $time = now()->format('d/m/Y H:i');
+        $message = "Terjadi login ke akun Anda pada {$time}.\nIP: {$ip}\nBrowser/Perangkat: {$ua}\n\nJika ini bukan Anda, segera ganti kata sandi dan hubungi admin.";
+
+        if ($this->settings->emailConfigured() && $user->email) {
+            $this->email(new AlertMail($user->name, 'Login Mencurigakan — Sopian Lalu Imagery', $message), $user->email, 'auth.login');
+
+            return;
+        }
+
+        if ($this->settings->whatsappConfigured() && $user->phone) {
+            $this->whatsapp($user->phone, $message, null, $user, 'auth.login');
+        }
+    }
+}
