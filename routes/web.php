@@ -10,6 +10,7 @@ use App\Http\Controllers\GalleryController;
 use App\Http\Controllers\GoogleAuthController;
 use App\Http\Controllers\LandingPageController;
 use App\Http\Controllers\PageController;
+use App\Http\Controllers\WatermarkController;
 use Illuminate\Support\Facades\Route;
 
 // Public pages (Blade SSR - SEO friendly)
@@ -33,6 +34,7 @@ Route::middleware('maintenance')->group(function () {
     Route::get('/blog/kategori/{slug}', [BlogController::class, 'category'])->name('blog.category');
     Route::get('/blog/tag/{slug}', [BlogController::class, 'tag'])->name('blog.tag');
     Route::get('/blog/{slug}', [BlogController::class, 'show'])->name('blog.show');
+    Route::get('/watermark/{hash}', [WatermarkController::class, 'show'])->name('watermark');
 });
 
 // Auth

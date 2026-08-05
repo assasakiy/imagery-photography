@@ -31,7 +31,7 @@
             @foreach ($portfolios as $portfolio)
                 <div class="reveal mb-5 break-inside-avoid" data-gallery-item data-category="{{ $portfolio->category }}">
                     <a href="{{ route('gallery.show', $portfolio->slug) }}" class="group relative block overflow-hidden rounded-2xl ring-1 ring-line" data-lightbox-trigger data-title="{{ $portfolio->title }}" data-caption="{{ $portfolio->description }}">
-                        <img src="{{ $portfolio->cover_url }}" alt="{{ $portfolio->title }}" loading="lazy" class="w-full transition-transform duration-500 group-hover:scale-105">
+                        <img src="{{ watermark_url($portfolio->cover_url) }}" alt="{{ $portfolio->title }}" loading="lazy" class="w-full transition-transform duration-500 group-hover:scale-105">
                         <div class="absolute inset-0 bg-gradient-to-t from-zinc-950/70 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
                         <div class="absolute inset-x-0 bottom-0 p-4 opacity-0 transition-all duration-300 group-hover:opacity-100">
                             <p class="text-[10px] font-semibold uppercase tracking-widest text-brand-300">{{ $portfolio->category }}</p>

@@ -20,7 +20,7 @@
         <div class="grid grid-cols-1 gap-10 lg:grid-cols-5">
             <div class="lg:col-span-3">
                 <div class="reveal overflow-hidden rounded-3xl ring-1 ring-line">
-                    <img src="{{ $portfolio->cover_url }}" alt="{{ $portfolio->title }}" class="w-full">
+                    <img src="{{ watermark_url($portfolio->cover_url) }}" alt="{{ $portfolio->title }}" class="w-full">
                 </div>
             </div>
 
@@ -58,7 +58,7 @@
                 <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
                     @foreach ($related as $item)
                         <a href="{{ route('gallery.show', $item->slug) }}" class="group relative block overflow-hidden rounded-2xl ring-1 ring-line">
-                            <img src="{{ $item->cover_url }}" alt="{{ $item->title }}" loading="lazy" class="aspect-[4/3] w-full object-cover transition-transform duration-500 group-hover:scale-105">
+                            <img src="{{ watermark_url($item->cover_url) }}" alt="{{ $item->title }}" loading="lazy" class="aspect-[4/3] w-full object-cover transition-transform duration-500 group-hover:scale-105">
                             <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-zinc-950/80 to-transparent p-4">
                                 <h3 class="text-sm font-bold text-white">{{ $item->title }}</h3>
                             </div>

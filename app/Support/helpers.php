@@ -16,3 +16,10 @@ if (! function_exists('content_plain')) {
         return ContentSanitizer::plainText($html);
     }
 }
+
+if (! function_exists('watermark_url')) {
+    function watermark_url(string $source): string
+    {
+        return app(\App\Services\WatermarkService::class)->publicUrl($source);
+    }
+}

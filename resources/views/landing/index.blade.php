@@ -96,7 +96,7 @@
                 <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
                     @foreach ($portfolios as $portfolio)
                         <a href="{{ route('gallery.show', $portfolio->slug) }}" class="reveal group relative overflow-hidden rounded-2xl ring-1 ring-line" data-lightbox-trigger data-title="{{ $portfolio->title }}" data-caption="{{ $portfolio->description }}">
-                            <img src="{{ $portfolio->cover_url }}" alt="{{ $portfolio->title }}" loading="lazy" class="aspect-[4/5] w-full object-cover transition-transform duration-500 group-hover:scale-105">
+                            <img src="{{ watermark_url($portfolio->cover_url) }}" alt="{{ $portfolio->title }}" loading="lazy" class="aspect-[4/5] w-full object-cover transition-transform duration-500 group-hover:scale-105">
                             <div class="absolute inset-0 bg-gradient-to-t from-zinc-950/80 via-zinc-950/10 to-transparent opacity-80 transition-opacity duration-300 group-hover:opacity-100"></div>
                             <div class="absolute inset-x-0 bottom-0 translate-y-2 p-5 opacity-90 transition-transform duration-300 group-hover:translate-y-0">
                                 <p class="text-xs font-semibold uppercase tracking-widest text-brand-300">{{ $portfolio->category }}</p>
