@@ -1,6 +1,6 @@
-# Sopian Lalu Imagery
+# Imagery Photography
 
-Website resmi **Sopian Lalu Imagery** — jasa *photography & videography* profesional di Lombok. Mengabadikan momen pernikahan, prewedding, hingga acara Anda.
+Website **Imagery Photography** — jasa *photography & videography* profesional. Mengabadikan momen pernikahan, prewedding, hingga acara Anda.
 
 Repo ini berisi monolith Laravel dengan dua sisi:
 
@@ -130,4 +130,6 @@ Repo siap untuk **Nixpacks** (auto-detect Laravel) atau Dockerfile. Catatan pent
 
 ## Lisensi
 
-Proprietary — © Sopian Lalu Imagery. Semua hak cipta dilindungi.
+**Open Source** — didistribusikan sebagai perangkat lunak sumber terbuka.
+
+Powered by [Assasakiy Media](https://github.com/assasakiy).
