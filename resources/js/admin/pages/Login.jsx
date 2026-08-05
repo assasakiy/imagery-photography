@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import Icon from '../components/Icon';
 import Button from '../components/Button';
 import { useAuth } from '../context/AuthContext';
@@ -154,9 +154,9 @@ export default function Login() {
                     </form>
 
                     <p className="mt-6 text-center text-xs text-ink-muted">
-                        <Link to="/" className="font-medium text-brand-600 hover:underline dark:text-brand-400">
+                        <a href="/" className="font-medium text-brand-600 hover:underline dark:text-brand-400">
                             ← Kembali ke beranda
-                        </Link>
+                        </a>
                     </p>
                 </div>
             </div>

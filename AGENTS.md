@@ -64,6 +64,8 @@ Membangun ulang website portofolio fotografi/videografi "Sopian Lalu Imagery" me
 5. **Publik Blade**: redesign dark, gallery masonry+lightbox+filter, tabel harga layanan, `gallery/show` baru.
 6. **Notifikasi**: in-app, email, WhatsApp, webhook.
 7. **Build & verifikasi**: build asset, migrate, seed, tes route.
+8. **Git (wajib)**: setiap penambahan/perubahan fitur yang selesai & terverifikasi WAJIB di-commit lalu di-push.
+9. **Dokumentasi (wajib)**: setiap penambahan/perubahan fitur WAJIB dicatat di AGENTS.md (section "Hasil Sesi") — tulis apa yang diubah, file kunci, konvensi baru, bug yang ditemukan, dan cara verifikasi — SEBELUM commit.
 
 ## 10. Perintah Penting
 ```bash
@@ -75,9 +77,12 @@ php artisan db:seed --class=WordPressContentSeeder
 composer test        # phpunit
 ```
 
-## 11. Catatan
+## 11. Catatan & Alur Git
+- **Dokumentasi WAJIB sebelum commit**: setiap penambahan/perubahan fitur WAJIB menambah/memperbarui catatan sesi di AGENTS.md (bagian "Hasil Sesi"): ringkasan perubahan, file yang disentuh, konvensi/bug yang ditemukan, cara verifikasi. Commit dokumentasi ikut dalam commit fitur.
+- **Git WAJIB untuk setiap fitur**: setiap penambahan/perubahan fitur yang selesai & sudah build+verifikasi sukses, agent HARUS `git add -A`, `git commit` (pesan ringkas sesuai perubahan), lalu `git push origin main`. Jangan menunggu diminta.
+- Remote: `origin` = `https://github.com/assasakiy/imagery-photography.git` (repo PRIVAT).
+- Periksa `git status` sebelum commit; jangan commit `.env`, dump SQL (`storage/backups/`), file storage, atau credential (sudah di-ignore).
 - Jangan ubah file tanpa instruksi; ikuti konvensi yang ada.
-- Jangan commit tanpa diminta.
 - Produksi (APP_DEBUG=false) — backup DB & storage sebelum migrate/seed besar.
 
 ## 12. Hasil Sesi 2026-08-02 (verifikasi & perbaikan)
@@ -133,3 +138,8 @@ composer test        # phpunit
 - **Tiptap v3 duplikat extension**: `StarterKit` versi 3 sudah menyertakan `link` & `underline`. Menambahkan `Link`/`Underline` eksplisit → warning "Duplicate extension names". Fix `RichEditor.jsx`: `StarterKit.configure({ link: false, underline: false })`, tetap pakai ekstensi eksplisit agar opsi `Link.configure({...})` berlaku.
 - **Mixed-content http:// favicon**: `AssetResolver::resolveImageValue()` kini menaikkan `http://` → `https://` pada semua asset URL (aman untuk situs HTTPS). `APP_URL` sudah https (asset() otomatis https untuk default).
 - **Model `Setting` TIDAK clear cache `runtime_settings` (1 jam)**; hanya `SettingsController::update` yang memanggil `RuntimeSettings::forget()`. Saat mengubah setting via tinker langsung, WAJIB panggil `app(RuntimeSettings::class)->forget()` lalu verifikasi; kalau tidak, `get()` masih membaca nilai cached lama.
+
+## 17. Sesi 2026-08-05 (alur Git + dokumentasi wajib)
+- **§9 & §11 diperbarui**: setiap penambahan/perubahan fitur WAJIB (a) memperbarui dokumentasi di AGENTS.md (bagian "Hasil Sesi", ditulis SEBELUM commit) dan (b) `git add -A` → `git commit` → `git push origin main` tanpa menunggu diminta. Repo `origin` bersifat PRIVAT (diubah 2026-08-05 via Settings → Change visibility).
+- **Perubahan visual**: blog search (input `type="text" inputmode="search"` + `pl-12`, ikon 18px `pointer-events-none`), CTA slot kosong grid unggulan (`@for` `max(0,5-count)` → `route('services')`/`route('booking')`), header publik (`@guest` pada tombol Pesan/Pesan Sekarang, FAQ dihapus dari menu mobile, profil pindah ke menu mobile @auth, dropdown profil `hidden md:block`), notifikasi (bottom sheet mobile + dropdown desktop, `?category=` filter, `clearAll`, ikon pesan dihapus dari header dashboard), IP detection (`ResolveClientIp` middleware: CF-Connecting-IP → X-Forwarded-For → X-Real-IP, timpa REMOTE_ADDR, di-prepend di `bootstrap/app.php`).
+- **Bug tombol "Kembali ke beranda" di `/login`**: dipakai `<Link to="/">` → di-intercept react-router → route catch-all `*` → `<Navigate to="/dashboard">` → belum login → kembali ke `/login` (tampak "tidak bisa" ke home). Fix `Login.jsx`: ganti ke `<a href="/">` (full page load, keluar SPA) + hapus import `Link`. Verifikasi: bundle berisi `children:...('a',{href:'/',...})`. Pola sama dengan bug "Lihat Situs" di §15.
