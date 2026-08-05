@@ -77,6 +77,7 @@ Route::middleware(['web', 'auth:sanctum', 'maintenance'])->group(function () {
         Route::patch('/payments/{payment}/reject', [PaymentController::class, 'reject']);
 
         Route::apiResource('portfolios', PortfolioController::class)->except(['create', 'edit']);
+        Route::delete('/media/bulk', [MediaController::class, 'bulkDestroy']);
         Route::apiResource('media', MediaController::class)
             ->parameters(['media' => 'media'])
             ->only(['index', 'store', 'update', 'destroy']);

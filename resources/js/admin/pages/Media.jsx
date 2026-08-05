@@ -5,6 +5,13 @@ import { PageHeader, Spinner, EmptyState, Confirm, useToast, Modal, ButtonSpinne
 import MediaViewModal from '../components/MediaViewModal';
 import MediaEditModal from '../components/MediaEditModal';
 
+const TABS = [
+    { key: '', label: 'Semua', icon: 'images' },
+    { key: 'image', label: 'Foto', icon: 'image' },
+    { key: 'video', label: 'Video', icon: 'video' },
+    { key: 'document', label: 'Dokumen', icon: 'file' },
+];
+
 export default function Media() {
     const [items, setItems] = useState([]);
     const [meta, setMeta] = useState({});
@@ -16,12 +23,16 @@ export default function Media() {
     const [viewing, setViewing] = useState(null);
     const [editing, setEditing] = useState(null);
     const [sheet, setSheet] = useState(null);
+    const [typeFilter, setTypeFilter] = useState('');
+    const [selecting, setSelecting] = useState(false);
+    const [selected, setSelected] = useState(new Set());
+    const [bulkConfirm, setBulkConfirm] = useState(false);
     const fileRef = useRef(null);
     const { show, node } = useToast();
 
     const load = (page = 1) => {
         setLoading(true);
-        api.get('/media', { params: { page, per_page: 24 } })
+        api.get('/media', { params: { page, per_page: 24, type: typeFilter || undefined } })
             .then(({ data }) => {
                 setItems(data.data);
                 setMeta(data);
@@ -29,7 +40,36 @@ export default function Media() {
             .finally(() => setLoading(false));
     };
 
-    useEffect(() => load(), []);
+    useEffect(() => {
+        setSelected(new Set());
+        load(1);
+    }, [typeFilter]);
+
+    const toggleSelect = (id) => {
+        setSelected((prev) => {
+            const next = new Set(prev);
+            if (next.has(id)) next.delete(id);
+            else next.add(id);
+            return next;
+        });
+    };
+
+    const toggleSelectAll = () => {
+        setSelected((prev) => {
+            const next = new Set(prev);
+            if (items.length && items.every((i) => next.has(i.id))) {
+                items.forEach((i) => next.delete(i.id));
+            } else {
+                items.forEach((i) => next.add(i.id));
+            }
+            return next;
+        });
+    };
+
+    const cancelSelect = () => {
+        setSelecting(false);
+        setSelected(new Set());
+    };
 
     const upload = async (file) => {
         if (!file) return;
@@ -65,6 +105,19 @@ export default function Media() {
         load(meta.current_page);
     };
 
+    const handleBulkDelete = async () => {
+        try {
+            const res = await api.delete('/media/bulk', { data: { ids: [...selected] } });
+            show(`${res.data.deleted} file dihapus.`);
+            cancelSelect();
+            load(meta.current_page);
+        } catch (e) {
+            show('Gagal menghapus file.', 'error');
+        } finally {
+            setBulkConfirm(false);
+        }
+    };
+
     const handleSaved = (updated) => {
         setItems((prev) => prev.map((m) => (m.id === updated.id ? updated : m)));
         if (viewing?.id === updated.id) setViewing(updated);
@@ -76,11 +129,48 @@ export default function Media() {
                 title="Media"
                 subtitle="Kumpulan file yang bisa dipakai di seluruh situs."
                 action={
-                    <button className="btn-primary" onClick={() => setUploadOpen(true)}>
-                        <Icon name="upload" size={16} /> Upload Media
-                    </button>
+                    <div className="flex flex-wrap items-center gap-2">
+                        {selecting ? (
+                            <>
+                                <button className="btn bg-red-600 text-white hover:bg-red-700 disabled:opacity-40" disabled={selected.size === 0} onClick={() => setBulkConfirm(true)}>
+                                    <Icon name="trash" size={16} /> Hapus ({selected.size})
+                                </button>
+                                <button className="btn-outline" onClick={cancelSelect}>
+                                    Batal
+                                </button>
+                            </>
+                        ) : (
+                            <>
+                                <button className="btn-outline" onClick={() => setSelecting(true)}>
+                                    <Icon name="check" size={16} /> Pilih
+                                </button>
+                                <button className="btn-primary" onClick={() => setUploadOpen(true)}>
+                                    <Icon name="upload" size={16} /> Upload Media
+                                </button>
+                            </>
+                        )}
+                    </div>
                 }
             />
+
+            <div className="mb-5 flex flex-wrap items-center gap-2">
+                {TABS.map((tab) => (
+                    <button
+                        key={tab.key}
+                        onClick={() => setTypeFilter(tab.key)}
+                        className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
+                            typeFilter === tab.key ? 'bg-brand-600 text-white' : 'bg-surface-muted text-ink-muted hover:text-ink'
+                        }`}
+                    >
+                        <Icon name={tab.icon} size={14} /> {tab.label}
+                    </button>
+                ))}
+                {selecting && (
+                    <button className="ml-auto text-sm font-medium text-brand-600 hover:underline dark:text-brand-400" onClick={toggleSelectAll}>
+                        {items.length && items.every((i) => selected.has(i.id)) ? 'Batal pilih semua' : 'Pilih semua'}
+                    </button>
+                )}
+            </div>
 
             <Modal open={uploadOpen} onClose={() => setUploadOpen(false)} title="Upload Media">
                 <div
@@ -124,38 +214,62 @@ export default function Media() {
             ) : items.length ? (
                 <>
                     <div className="grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-6">
-                        {items.map((item) => (
-                            <div key={item.id} className="card group overflow-hidden">
-                                <div className="relative aspect-square overflow-hidden">
-                                    {item.type === 'image' ? (
-                                        <img src={item.url} alt={item.name} loading="lazy" className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
-                                    ) : (
-                                        <div className="flex h-full w-full items-center justify-center bg-surface-muted text-ink-muted">
-                                            <Icon name={item.type === 'video' ? 'video' : 'file'} size={28} />
-                                        </div>
-                                    )}
-                                    <div className="absolute inset-0 hidden items-center justify-center gap-2 bg-black/50 opacity-0 transition-opacity group-hover:opacity-100 md:flex">
-                                        <button onClick={() => setViewing(item)} className="rounded-lg bg-white p-2 text-zinc-900" title="Lihat">
-                                            <Icon name="eye" size={16} />
-                                        </button>
-                                        <button onClick={() => copyUrl(item.url)} className="rounded-lg bg-white p-2 text-zinc-900" title="Salin URL">
-                                            <Icon name="link" size={16} />
-                                        </button>
-                                        <button onClick={() => setDeleting(item)} className="rounded-lg bg-red-500 p-2 text-white" title="Hapus">
-                                            <Icon name="trash" size={16} />
-                                        </button>
+                        {items.map((item) => {
+                            const isSelected = selected.has(item.id);
+                            return (
+                                <div
+                                    key={item.id}
+                                    className={`card group overflow-hidden ${selecting ? (isSelected ? 'ring-2 ring-brand-600' : '') : ''}`}
+                                    onClick={selecting ? () => toggleSelect(item.id) : undefined}
+                                >
+                                    <div className="relative aspect-square overflow-hidden">
+                                        {item.type === 'image' ? (
+                                            <img src={item.url} alt={item.name} loading="lazy" className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
+                                        ) : (
+                                            <div className="flex h-full w-full items-center justify-center bg-surface-muted text-ink-muted">
+                                                <Icon name={item.type === 'video' ? 'video' : 'file'} size={28} />
+                                            </div>
+                                        )}
+                                        {selecting ? (
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    toggleSelect(item.id);
+                                                }}
+                                                className={`absolute left-2 top-2 z-10 flex h-6 w-6 items-center justify-center rounded-md border-2 shadow transition-colors ${
+                                                    isSelected ? 'border-brand-600 bg-brand-600 text-white' : 'border-white bg-white/80 text-transparent'
+                                                }`}
+                                                aria-label="Pilih"
+                                            >
+                                                <Icon name="check" size={14} />
+                                            </button>
+                                        ) : (
+                                            <>
+                                                <div className="absolute inset-0 hidden items-center justify-center gap-2 bg-black/50 opacity-0 transition-opacity group-hover:opacity-100 md:flex">
+                                                    <button onClick={() => setViewing(item)} className="rounded-lg bg-white p-2 text-zinc-900" title="Lihat">
+                                                        <Icon name="eye" size={16} />
+                                                    </button>
+                                                    <button onClick={() => copyUrl(item.url)} className="rounded-lg bg-white p-2 text-zinc-900" title="Salin URL">
+                                                        <Icon name="link" size={16} />
+                                                    </button>
+                                                    <button onClick={() => setDeleting(item)} className="rounded-lg bg-red-500 p-2 text-white" title="Hapus">
+                                                        <Icon name="trash" size={16} />
+                                                    </button>
+                                                </div>
+                                                <button
+                                                    onClick={() => setSheet(item)}
+                                                    className="absolute right-2 top-2 rounded-full bg-white/90 p-1.5 text-zinc-700 shadow transition-colors hover:bg-white md:hidden"
+                                                    title="Aksi"
+                                                >
+                                                    <Icon name="more-horizontal" size={16} />
+                                                </button>
+                                            </>
+                                        )}
                                     </div>
-                                    <button
-                                        onClick={() => setSheet(item)}
-                                        className="absolute right-2 top-2 rounded-full bg-white/90 p-1.5 text-zinc-700 shadow transition-colors hover:bg-white md:hidden"
-                                        title="Aksi"
-                                    >
-                                        <Icon name="more-horizontal" size={16} />
-                                    </button>
+                                    <div className="truncate px-2 py-1.5 text-xs text-ink-muted">{item.file_name}</div>
                                 </div>
-                                <div className="truncate px-2 py-1.5 text-xs text-ink-muted">{item.file_name}</div>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
 
                     {meta.last_page > 1 && (
@@ -223,6 +337,13 @@ export default function Media() {
             )}
 
             <Confirm open={!!deleting} onClose={() => setDeleting(null)} onConfirm={handleDelete} title="Hapus file?" message="File ini akan dihapus dari server." />
+            <Confirm
+                open={bulkConfirm}
+                onClose={() => setBulkConfirm(false)}
+                onConfirm={handleBulkDelete}
+                title="Hapus file terpilih?"
+                message={`${selected.size} file akan dihapus dari server.`}
+            />
 
             <MediaViewModal open={!!viewing} item={viewing} onClose={() => setViewing(null)} onEdit={(item) => setEditing(item)} onCopyUrl={copyUrl} />
             <MediaEditModal open={!!editing} item={editing} onClose={() => setEditing(null)} onSaved={handleSaved} />

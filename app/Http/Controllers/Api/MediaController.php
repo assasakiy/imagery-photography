@@ -29,7 +29,15 @@ class MediaController extends Controller
         }
 
         if ($request->filled('type')) {
-            $query->where('mime_type', 'like', $request->input('type') . '%');
+            match ($request->input('type')) {
+                'image' => $query->where('mime_type', 'like', 'image/%'),
+                'video' => $query->where('mime_type', 'like', 'video/%'),
+                'audio' => $query->where('mime_type', 'like', 'audio/%'),
+                'document' => $query->where(fn ($w) => $w
+                    ->where('mime_type', 'like', 'application/%')
+                    ->orWhere('mime_type', 'like', 'text/%')),
+                default => $query->where('mime_type', 'like', $request->input('type') . '%'),
+            };
         }
 
         if ($q = trim((string) $request->input('q'))) {
@@ -74,6 +82,24 @@ class MediaController extends Controller
         app(\App\Services\AuditLogger::class)->log('media.deleted', 'Media dihapus: ' . $media->file_name);
 
         return response()->json(['ok' => true]);
+    }
+
+    public function bulkDestroy(Request $request)
+    {
+        $request->validate([
+            'ids' => 'required|array|min:1',
+            'ids.*' => 'integer|distinct',
+        ]);
+
+        $ids = $request->input('ids');
+        $mediaItems = Media::whereIn('id', $ids)->get();
+
+        foreach ($mediaItems as $media) {
+            $media->delete();
+            app(\App\Services\AuditLogger::class)->log('media.deleted', 'Media dihapus: ' . $media->file_name);
+        }
+
+        return response()->json(['ok' => true, 'deleted' => $mediaItems->count()]);
     }
 
     public function update(Request $request, Media $media)
