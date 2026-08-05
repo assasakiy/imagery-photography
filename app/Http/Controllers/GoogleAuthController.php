@@ -46,7 +46,7 @@ class GoogleAuthController extends Controller
 
         $user = User::where('email', $googleUser->getEmail())->first();
 
-        if (!$user || !$user->isAdmin()) {
+        if (!$user || !$user->isAdmin() || !$user->canUseLoginMethod('google')) {
             return redirect('/login')->withErrors(['form' => 'Akun Google tidak terdaftar sebagai admin di situs ini.']);
         }
 

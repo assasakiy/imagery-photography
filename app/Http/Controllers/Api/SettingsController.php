@@ -48,6 +48,8 @@ class SettingsController extends Controller
             'login_attempts_lockout_minutes' => $settings->loginAttemptsLockoutMinutes(),
             'login_remember_enabled' => $settings->loginRememberEnabled(),
             'login_remember_days' => $settings->loginRememberDays(),
+            'login_methods_global' => $this->loginMethodsPayload($settings),
+            'file_retention_days' => (int) $settings->get('file_retention_days', 0),
             'maintenance_enabled' => $settings->maintenanceEnabled(),
             'maintenance_message' => $settings->maintenanceMessage(),
             'email_configured' => $settings->emailConfigured(),
@@ -86,6 +88,9 @@ class SettingsController extends Controller
             'login_attempts_lockout_minutes' => 'nullable|integer|min:1|max:1440',
             'login_remember_enabled' => 'boolean',
             'login_remember_days' => 'nullable|integer|min:1|max:3650',
+            'login_methods_global' => 'nullable|array',
+            'login_methods_global.*' => 'nullable|boolean',
+            'file_retention_days' => 'nullable|integer|min:0|max:3650',
             'maintenance_enabled' => 'boolean',
             'maintenance_message' => 'nullable|string',
             'notif_email_enabled' => 'boolean',
@@ -137,6 +142,11 @@ class SettingsController extends Controller
 
             if ($key === 'site_description' || $key === 'maintenance_message') {
                 $value = ContentSanitizer::clean((string) $value);
+            }
+
+            if ($key === 'login_methods_global') {
+                Setting::setValue('login_methods_global', json_encode($value ?? []));
+                continue;
             }
 
             Setting::setValue($key, (string) $value);
@@ -288,5 +298,17 @@ class SettingsController extends Controller
 
             return response()->json(['message' => 'Gagal mengirim WhatsApp uji: ' . $e->getMessage()], 422);
         }
+    }
+
+    private function loginMethodsPayload(RuntimeSettings $settings): array
+    {
+        $active = $settings->globalLoginMethods();
+
+        return [
+            'password' => in_array('password', $active, true),
+            'otp' => in_array('otp', $active, true),
+            'google' => in_array('google', $active, true),
+            'token' => in_array('token', $active, true),
+        ];
     }
 }

@@ -6,7 +6,14 @@ use Illuminate\Database\Eloquent\Model;
 
 class ProjectFile extends Model
 {
-    protected $fillable = ['project_id', 'filename', 'original_name', 'path', 'size', 'type'];
+    protected $fillable = ['project_id', 'filename', 'original_name', 'path', 'size', 'type', 'expires_at'];
+
+    protected function casts(): array
+    {
+        return [
+            'expires_at' => 'datetime',
+        ];
+    }
 
     public function project()
     {

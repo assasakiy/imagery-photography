@@ -15,7 +15,7 @@ class ClientController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Client::with('projects');
+        $query = Client::with(['projects', 'user:id,name,email,login_method,allowed_methods']);
 
         if ($request->filled('search')) {
             $query->where(fn ($q) => $q
@@ -45,7 +45,7 @@ class ClientController extends Controller
             'password' => Hash::make(Str::random(16)),
             'role' => 'client',
         ]);
-        $user->assignRole('client');
+        $user->assignRole(['client', 'subscriber']);
 
         $client = Client::create(array_merge($data, ['user_id' => $user->id]));
         app(\App\Services\AuditLogger::class)->log('client.created', 'Klien dibuat', $client);
@@ -61,17 +61,28 @@ class ClientController extends Controller
             'phone' => 'nullable|string|max:20',
             'company' => 'nullable|string|max:255',
             'notes' => 'nullable|string',
+            'allowed_methods' => 'nullable|array',
+            'allowed_methods.*' => 'nullable|in:password,otp,google,token',
         ]);
 
         $data['notes'] = ContentSanitizer::plainText($data['notes'] ?? '');
 
         $client->update($data);
         app(\App\Services\AuditLogger::class)->log('client.updated', 'Klien diperbarui', $client);
-        if ($client->user && !empty($data['email'])) {
-            $client->user->update(['email' => $data['email'], 'name' => $data['name']]);
+
+        if ($client->user) {
+            $userData = ['name' => $data['name']];
+            if (!empty($data['email'])) {
+                $userData['email'] = $data['email'];
+            }
+            if (array_key_exists('allowed_methods', $data)) {
+                $userData['allowed_methods'] = $data['allowed_methods'] ?: null;
+                $userData['login_method'] = $data['allowed_methods'] ? 'custom' : null;
+            }
+            $client->user->update($userData);
         }
 
-        return response()->json($client->load('projects'));
+        return response()->json($client->load(['projects', 'user:id,name,email,login_method,allowed_methods']));
     }
 
     public function destroy(Client $client)

@@ -240,7 +240,7 @@ class ProjectController extends Controller
             'password' => Hash::make($password),
             'role' => 'client',
         ]);
-        $user->assignRole('client');
+        $user->assignRole(['client', 'subscriber']);
 
         $client->update(['user_id' => $user->id]);
     }
@@ -352,6 +352,12 @@ class ProjectController extends Controller
         $file = $request->file('file');
         $path = $file->store('project-files/' . $project->id, 'public');
 
+        $expiresAt = null;
+        $retentionDays = $project->retentionDays();
+        if ($retentionDays) {
+            $expiresAt = now()->addDays($retentionDays);
+        }
+
         ProjectFile::create([
             'project_id' => $project->id,
             'filename' => $file->hashName(),
@@ -359,6 +365,7 @@ class ProjectController extends Controller
             'path' => $path,
             'size' => $file->getSize(),
             'type' => $file->getMimeType(),
+            'expires_at' => $expiresAt,
         ]);
 
         ProjectUpdate::create([
@@ -395,15 +402,40 @@ class ProjectController extends Controller
         return response()->json($project->updates()->get());
     }
 
-    public function downloadFile(ProjectFile $file)
+    public function downloadFile(Request $request, ProjectFile $file)
     {
         $user = Auth::user();
         if ($user->isClient() && $file->project->client?->user_id !== $user->id) {
             abort(403);
         }
 
+        if ($file->expires_at && $file->expires_at->isPast()) {
+            abort(403, 'File sudah diarsipkan. Hubungi admin untuk bantuan.');
+        }
+
+        if ($user->isClient() && $file->project->archived_at) {
+            abort(403, 'Galeri ini sudah diarsipkan.');
+        }
+
         app(AuditLogger::class)->log('project.file_downloaded', 'File diunduh: "' . $file->original_name . '" (project ' . $file->project->name . ')', $file);
+        app(\App\Services\HistoryService::class)->downloaded($user, ProjectFile::class, $file->id, ['name' => $file->original_name]);
 
         return Storage::disk('public')->download($file->path, $file->original_name);
+    }
+
+    public function archive(Request $request, Project $project)
+    {
+        $project->update(['archived_at' => now()]);
+        app(AuditLogger::class)->log('project.archived', 'Galeri diarsipkan: "' . $project->name . '"', $project);
+
+        return response()->json($project);
+    }
+
+    public function restore(Request $request, Project $project)
+    {
+        $project->update(['archived_at' => null]);
+        app(AuditLogger::class)->log('project.restored', 'Galeri dikembalikan: "' . $project->name . '"', $project);
+
+        return response()->json($project);
     }
 }

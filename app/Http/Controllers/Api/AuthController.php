@@ -39,7 +39,7 @@ class AuthController extends Controller
 
         $user = $this->resolveUser($identifier);
 
-        if (!$user || !Hash::check($data['password'], $user->password)) {
+        if (!$user || !$user->canUseLoginMethod('password') || !Hash::check($data['password'], $user->password)) {
             $this->recordFailedAttempt($settings);
             app(LoginTracker::class)->recordFailed($user, 'password');
             app(AuditLogger::class)->log('auth.login_failed', 'Percobaan login gagal: ' . $identifier);
@@ -168,7 +168,7 @@ class AuthController extends Controller
             ->orWhere('email', $data['phone'])
             ->first();
 
-        if (!$user) {
+        if (!$user || !$user->canUseLoginMethod('otp')) {
             return response()->json(['message' => 'Nomor/akun tidak ditemukan.'], 422);
         }
 
@@ -227,7 +227,8 @@ class AuthController extends Controller
             'id' => $user->id,
             'name' => $user->name,
             'email' => $user->email,
-            'role' => $user->getRoleNames()->first() ?? $user->role,
+            'role' => $user->primaryRole(),
+            'roles' => $user->getRoleNames()->values(),
             'permissions' => $user->getAllPermissions()->pluck('name'),
             'client_id' => $user->client?->id,
             'avatar' => $user->resolveAvatarUrl(),

@@ -3,11 +3,11 @@
 namespace Database\Seeders;
 
 use App\Models\LandingContent;
-use App\Models\Service;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use Spatie\Permission\PermissionRegistrar;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
@@ -78,30 +78,11 @@ class DatabaseSeeder extends Seeder
             );
         }
 
-        $services = [
-            ['Photography', 'Dokumentasi foto profesional untuk berbagai acara seperti wedding, prewedding, event, dan portrait.', 'camera', 500000],
-            ['Videography', 'Rekaman video berkualitas tinggi dengan editing profesional untuk momen spesial Anda.', 'video', 1000000],
-            ['Wedding Package', 'Paket lengkap foto dan video untuk hari pernikahan Anda.', 'heart', 3000000],
-        ];
-
-        foreach ($services as $i => [$title, $desc, $icon, $price]) {
-            Service::firstOrCreate(
-                ['title' => $title],
-                [
-                    'slug' => Str::slug($title),
-                    'description' => $desc,
-                    'icon' => $icon,
-                    'starting_price' => $price,
-                    'order' => $i + 1,
-                ]
-            );
-        }
-
         $this->seedTeamMembers($owner, $admin);
 
         $this->seedSampleReviews();
 
-        $this->command->info('Seeded: roles, permissions, owner, admin, landing contents, services, team, reviews');
+        $this->command->info('Seeded: roles, permissions, owner, admin, landing contents, team, reviews');
     }
 
     private function seedRolesAndPermissions(): void
@@ -122,22 +103,30 @@ class DatabaseSeeder extends Seeder
             'manage-team',
             'view-projects',
             'submit-reviews',
+            'read-blog',
+            'manage-bookmarks',
+            'view-history',
+            'manage-subscribers',
         ];
 
         foreach ($permissions as $permission) {
             Permission::firstOrCreate(['name' => $permission, 'guard_name' => 'web']);
         }
 
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+
         $ownerRole = Role::firstOrCreate(['name' => 'owner', 'guard_name' => 'web']);
         $adminRole = Role::firstOrCreate(['name' => 'admin', 'guard_name' => 'web']);
         $clientRole = Role::firstOrCreate(['name' => 'client', 'guard_name' => 'web']);
+        $subscriberRole = Role::firstOrCreate(['name' => 'subscriber', 'guard_name' => 'web']);
 
         $ownerRole->syncPermissions($permissions);
 
         $adminPermissions = array_diff($permissions, ['manage-landing', 'manage-settings', 'manage-team']);
         $adminRole->syncPermissions($adminPermissions);
 
-        $clientRole->syncPermissions(['view-projects', 'submit-reviews']);
+        $clientRole->syncPermissions(['view-projects', 'submit-reviews', 'read-blog', 'manage-bookmarks', 'view-history']);
+        $subscriberRole->syncPermissions(['read-blog', 'manage-bookmarks', 'view-history']);
     }
 
     private function seedTeamMembers(User $owner, User $admin): void

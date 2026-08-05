@@ -32,6 +32,17 @@ class DashboardController extends Controller
 
         $client = $this->userClient();
 
+        if (!$client && request()->user()->isSubscriber() && !request()->user()->isClient()) {
+            return response()->json([
+                'role' => 'subscriber',
+                'projects' => 0,
+                'in_progress' => 0,
+                'completed' => 0,
+                'total_spent' => 0,
+                'recent_projects' => [],
+            ]);
+        }
+
         return response()->json([
             'role' => 'client',
             'projects' => $client ? Project::with('client')->where('client_id', $client->id)->count() : 0,

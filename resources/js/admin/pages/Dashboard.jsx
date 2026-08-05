@@ -122,7 +122,7 @@ export default function Dashboard() {
 
             <div className="card mt-6 overflow-hidden">
                 <div className="flex items-center justify-between border-b border-line px-5 py-4">
-                    <h2 className="font-bold text-ink">Proyek Saya</h2>
+                    <h2 className="font-bold text-ink">Pesanan Saya</h2>
                     <Link to="/dashboard/projects" className="text-sm font-medium text-brand-600 hover:underline dark:text-brand-400">
                         Lihat semua
                     </Link>

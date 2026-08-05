@@ -19,6 +19,9 @@ use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\ProjectController;
 use App\Http\Controllers\Api\ReviewController;
 use App\Http\Controllers\Api\ServiceController;
+use App\Http\Controllers\Api\CustomerController;
+use App\Http\Controllers\Api\BookmarkController;
+use App\Http\Controllers\Api\HistoryController;
 use App\Http\Controllers\Api\PackageController;
 use App\Http\Controllers\Api\ServiceCategoryController;
 use App\Http\Controllers\Api\SettingsController;
@@ -62,6 +65,20 @@ Route::middleware(['web', 'auth:sanctum', 'maintenance'])->group(function () {
         Route::post('/projects/{project}/payments', [PaymentController::class, 'store']);
     });
 
+    Route::get('/customer/dashboard', [CustomerController::class, 'dashboard']);
+    Route::get('/customer/bookings', [CustomerController::class, 'bookings']);
+    Route::get('/customer/invoices', [CustomerController::class, 'invoices']);
+    Route::get('/customer/payments', [CustomerController::class, 'payments']);
+    Route::get('/customer/gallery', [CustomerController::class, 'gallery']);
+    Route::get('/customer/messages', [CustomerController::class, 'messages']);
+    Route::post('/customer/messages', [CustomerController::class, 'sendMessage']);
+
+    Route::get('/bookmarks', [BookmarkController::class, 'index']);
+    Route::post('/bookmarks', [BookmarkController::class, 'store']);
+    Route::delete('/bookmarks/{type}/{id}', [BookmarkController::class, 'destroy'])->where(['type' => 'blog|portfolio|package']);
+
+    Route::get('/history', [HistoryController::class, 'index']);
+
     Route::middleware('role:owner|admin')->group(function () {
         Route::get('/audit', [AuditLogController::class, 'index']);
         Route::get('/audit/actions', [AuditLogController::class, 'actions']);
@@ -73,6 +90,8 @@ Route::middleware(['web', 'auth:sanctum', 'maintenance'])->group(function () {
         Route::post('/projects/{project}/files', [ProjectController::class, 'uploadFile']);
         Route::delete('/files/{file}', [ProjectController::class, 'deleteFile']);
         Route::post('/projects/{project}/regenerate-credentials', [ProjectController::class, 'regenerateCredentials']);
+        Route::patch('/projects/{project}/archive', [ProjectController::class, 'archive']);
+        Route::patch('/projects/{project}/restore', [ProjectController::class, 'restore']);
 
         Route::get('/payments', [PaymentController::class, 'index']);
         Route::patch('/payments/{payment}/confirm', [PaymentController::class, 'confirm']);

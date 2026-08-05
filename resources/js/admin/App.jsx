@@ -14,6 +14,12 @@ const PAGE_TITLES = {
     '/dashboard/payments': 'Pembayaran',
     '/dashboard/messages': 'Pesan',
     '/dashboard/notifications': 'Notifikasi',
+    '/dashboard/client-bookings': 'Booking Saya',
+    '/dashboard/client-invoices': 'Tagihan',
+    '/dashboard/client-gallery': 'Galeri Saya',
+    '/dashboard/client-messages': 'Pesan',
+    '/dashboard/bookmarks': 'Bookmark',
+    '/dashboard/history': 'Riwayat',
     '/dashboard/landing': 'Halaman Depan',
     '/dashboard/blog': 'Blog',
     '/dashboard/blog/categories': 'Kategori Blog',
@@ -70,10 +76,16 @@ import Team from './pages/Team';
 import Reviews from './pages/Reviews';
 import AuditLog from './pages/AuditLog';
 import ProfileSettings from './pages/ProfileSettings';
+import ClientBookings from './pages/ClientBookings';
+import ClientInvoices from './pages/ClientInvoices';
+import ClientGallery from './pages/ClientGallery';
+import ClientMessages from './pages/ClientMessages';
+import Bookmarks from './pages/Bookmarks';
+import History from './pages/History';
 
 const STAFF_ROLES = ['admin', 'owner'];
 
-function Protected({ children, adminOnly = false, ownerOnly = false }) {
+function Protected({ children, adminOnly = false, ownerOnly = false, notStaffCase = false }) {
     const { user, loading } = useAuth();
     const location = useLocation();
 
@@ -81,6 +93,7 @@ function Protected({ children, adminOnly = false, ownerOnly = false }) {
     if (!user) return <Navigate to="/login" state={{ from: location }} replace />;
     if (ownerOnly && user.role !== 'owner') return <Navigate to="/dashboard" replace />;
     if (adminOnly && !STAFF_ROLES.includes(user.role)) return <Navigate to="/dashboard" replace />;
+    if (notStaffCase && STAFF_ROLES.includes(user.role)) return <Navigate to="/dashboard" replace />;
     return children;
 }
 
@@ -111,6 +124,12 @@ function AppRoutes() {
                 <Route path="clients" element={<Protected adminOnly><Clients /></Protected>} />
                 <Route path="projects" element={<Projects />} />
                 <Route path="projects/:id" element={<ProjectDetail />} />
+                <Route path="client-bookings" element={<Protected notStaffCase><ClientBookings /></Protected>} />
+                <Route path="client-invoices" element={<Protected notStaffCase><ClientInvoices /></Protected>} />
+                <Route path="client-gallery" element={<Protected notStaffCase><ClientGallery /></Protected>} />
+                <Route path="client-messages" element={<Protected notStaffCase><ClientMessages /></Protected>} />
+                <Route path="bookmarks" element={<Protected notStaffCase><Bookmarks /></Protected>} />
+                <Route path="history" element={<Protected notStaffCase><History /></Protected>} />
                 <Route path="payments" element={<Protected adminOnly><Payments /></Protected>} />
                 <Route path="messages" element={<Protected adminOnly><Messages /></Protected>} />
                 <Route path="messages/:id" element={<Protected adminOnly><Messages /></Protected>} />

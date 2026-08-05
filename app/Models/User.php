@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
@@ -32,6 +33,8 @@ class User extends Authenticatable
         'notif_whatsapp',
         'notif_events',
         'notif_otp_channel',
+        'login_method',
+        'allowed_methods',
     ];
 
     protected $hidden = [
@@ -48,6 +51,7 @@ class User extends Authenticatable
             'notif_email' => 'boolean',
             'notif_whatsapp' => 'boolean',
             'notif_events' => 'array',
+            'allowed_methods' => 'array',
         ];
     }
 
@@ -81,6 +85,11 @@ class User extends Authenticatable
         return $this->resolveMediaValue('cover_url');
     }
 
+    public function isStaff(): bool
+    {
+        return $this->hasRole(['owner', 'admin']);
+    }
+
     public function isAdmin(): bool
     {
         return $this->hasRole('admin');
@@ -91,14 +100,24 @@ class User extends Authenticatable
         return $this->hasRole('owner');
     }
 
-    public function isStaff(): bool
-    {
-        return $this->isOwner() || $this->isAdmin();
-    }
-
     public function isClient(): bool
     {
         return $this->hasRole('client');
+    }
+
+    public function isSubscriber(): bool
+    {
+        return $this->hasRole('subscriber');
+    }
+
+    public function primaryRole(): string
+    {
+        if ($this->hasRole('owner')) return 'owner';
+        if ($this->hasRole('admin')) return 'admin';
+        if ($this->hasRole('client')) return 'client';
+        if ($this->hasRole('subscriber')) return 'subscriber';
+
+        return $this->role ?: 'user';
     }
 
     public function client()
@@ -114,5 +133,31 @@ class User extends Authenticatable
     public function projects()
     {
         return $this->hasMany(Project::class, 'user_id');
+    }
+
+    public function bookmarks(): HasMany
+    {
+        return $this->hasMany(Bookmark::class);
+    }
+
+    public function historyEvents(): HasMany
+    {
+        return $this->hasMany(HistoryEvent::class);
+    }
+
+    public function allowedLoginMethods(): array
+    {
+        $methods = ['password', 'otp', 'google', 'token'];
+
+        if (!empty($this->allowed_methods)) {
+            return array_values(array_intersect($methods, $this->allowed_methods));
+        }
+
+        return app(\App\Services\RuntimeSettings::class)->globalLoginMethods();
+    }
+
+    public function canUseLoginMethod(string $method): bool
+    {
+        return in_array($method, $this->allowedLoginMethods(), true);
     }
 }

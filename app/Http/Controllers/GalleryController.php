@@ -17,6 +17,11 @@ class GalleryController extends Controller
     public function show(string $slug)
     {
         $portfolio = Portfolio::where('slug', $slug)->firstOrFail();
+
+        if ($user = request()->user()) {
+            app(\App\Services\HistoryService::class)->viewed($user, Portfolio::class, $portfolio->id, ['title' => $portfolio->title]);
+        }
+
         $related = Portfolio::where('category', $portfolio->category)
             ->where('id', '!=', $portfolio->id)
             ->orderBy('order')

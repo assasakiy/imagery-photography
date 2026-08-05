@@ -261,6 +261,19 @@ class RuntimeSettings
         return $this->get('login_remember_enabled') === '1';
     }
 
+    public function globalLoginMethods(): array
+    {
+        $raw = $this->get('login_methods_global');
+
+        if (!$raw) {
+            return ['password', 'otp', 'google', 'token'];
+        }
+
+        $decoded = json_decode($raw, true);
+
+        return is_array($decoded) ? $decoded : ['password', 'otp', 'google', 'token'];
+    }
+
     public function loginRememberDays(): int
     {
         return max(1, (int) $this->get('login_remember_days', '30'));

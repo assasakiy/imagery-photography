@@ -151,8 +151,8 @@ export default function Projects() {
     return (
         <>
             <PageHeader
-                title={isAdmin ? 'Proyek' : 'Proyek Saya'}
-                subtitle={isAdmin ? 'Kelola project, file, dan status klien.' : 'Pantau progress dan file project Anda.'}
+                title={isAdmin ? 'Proyek' : 'Pesanan'}
+                subtitle={isAdmin ? 'Kelola project, file, dan status klien.' : 'Pantau progress dan file pesanan Anda.'}
                 action={
                     isAdmin ? (
                         <button className="btn-primary" onClick={openCreate}>

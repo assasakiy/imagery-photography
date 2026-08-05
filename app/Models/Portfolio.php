@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\Bookmarkable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 use Spatie\MediaLibrary\HasMedia;
@@ -10,7 +11,7 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 class Portfolio extends Model implements HasMedia
 {
-    use InteractsWithMedia;
+    use Bookmarkable, InteractsWithMedia;
 
     protected $fillable = ['title', 'slug', 'description', 'category', 'image_url', 'is_featured', 'order'];
 

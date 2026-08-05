@@ -9,6 +9,7 @@ class Project extends Model
     protected $fillable = [
         'client_id', 'user_id', 'name', 'type', 'package_id', 'event_date', 'description',
         'price', 'pricing_snapshot', 'status', 'start_date', 'end_date',
+        'retention_days', 'archived_at', 'deleted_at',
     ];
 
     protected function casts(): array
@@ -18,12 +19,24 @@ class Project extends Model
             'pricing_snapshot' => 'array',
             'start_date' => 'date',
             'end_date' => 'date',
+            'archived_at' => 'datetime',
+            'deleted_at' => 'datetime',
         ];
     }
 
     public function package()
     {
         return $this->belongsTo(Package::class);
+    }
+
+    public function isArchived(): bool
+    {
+        return $this->archived_at !== null;
+    }
+
+    public function retentionDays(): ?int
+    {
+        return $this->retention_days ?? (int) app(\App\Services\RuntimeSettings::class)->get('file_retention_days', 0) ?: null;
     }
 
     public function client()

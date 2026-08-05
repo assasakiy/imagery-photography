@@ -30,11 +30,23 @@ const ownerNav = [
 
 const clientNav = [
     { to: '/dashboard', icon: 'dashboard', label: 'Dashboard', end: true },
-    { to: '/dashboard/projects', icon: 'folder-open', label: 'Proyek Saya' },
+    { to: '/dashboard/projects', icon: 'folder-open', label: 'Pesanan' },
+    { to: '/dashboard/client-bookings', icon: 'calendar', label: 'Booking' },
+    { to: '/dashboard/client-invoices', icon: 'credit-card', label: 'Tagihan' },
+    { to: '/dashboard/client-gallery', icon: 'image', label: 'Galeri Saya' },
+    { to: '/dashboard/client-messages', icon: 'message-circle', label: 'Pesan' },
     { to: '/dashboard/reviews', icon: 'star', label: 'Review' },
+    { to: '/dashboard/bookmarks', icon: 'heart', label: 'Bookmark' },
+    { to: '/dashboard/history', icon: 'clock', label: 'Riwayat' },
 ];
 
-const ROLE_LABEL = { owner: 'Pemilik', admin: 'Dashboard Admin', client: 'Portal Klien' };
+const subscribeNav = [
+    { to: '/dashboard', icon: 'dashboard', label: 'Dashboard', end: true },
+    { to: '/dashboard/bookmarks', icon: 'heart', label: 'Bookmark' },
+    { to: '/dashboard/history', icon: 'clock', label: 'Riwayat' },
+];
+
+const ROLE_LABEL = { owner: 'Pemilik', admin: 'Dashboard Admin', client: 'Portal Klien', subscriber: 'Portal Subscriber' };
 
 export default function Layout() {
     const { user, logout } = useAuth();
@@ -47,7 +59,8 @@ export default function Layout() {
 
     const role = user?.role;
     const isStaff = ['admin', 'owner'].includes(role);
-    const nav = role === 'owner' ? ownerNav : isStaff ? adminNav : clientNav;
+    const isClient = role === 'client';
+    const nav = role === 'owner' ? ownerNav : isStaff ? adminNav : isClient ? clientNav : subscribeNav;
 
     const appConfig = window.APP_CONFIG || {};
     const siteLogo = appConfig.logo || '';

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\Bookmarkable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
@@ -10,7 +11,7 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 
 class Blog extends Model implements HasMedia
 {
-    use InteractsWithMedia, SoftDeletes;
+    use Bookmarkable, InteractsWithMedia, SoftDeletes;
 
     protected $fillable = [
         'author_id', 'category_id', 'title', 'slug', 'excerpt',

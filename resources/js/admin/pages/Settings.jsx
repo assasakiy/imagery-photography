@@ -30,7 +30,7 @@ const TAB_FIELDS = {
     social: ['google_auth_enabled', 'google_client_id', 'google_client_secret', 'google_redirect_url'],
     webhook: ['webhook_urls'],
     notifications: ['notif_email_enabled', 'notif_wa_enabled'],
-    security: ['login_attempts_max', 'login_attempts_lockout_minutes', 'login_remember_enabled', 'login_remember_days'],
+    security: ['login_attempts_max', 'login_attempts_lockout_minutes', 'login_remember_enabled', 'login_remember_days', 'login_methods_global', 'file_retention_days'],
     maintenance: ['maintenance_enabled', 'maintenance_message'],
 };
 
@@ -60,6 +60,8 @@ const emptyForm = {
     login_attempts_lockout_minutes: 15,
     login_remember_enabled: true,
     login_remember_days: 30,
+    login_methods_global: { password: true, otp: true, google: true, token: true },
+    file_retention_days: 0,
     maintenance_enabled: false,
     maintenance_message: '',
     notif_email_enabled: true,
@@ -118,6 +120,8 @@ function normalize(data) {
         login_attempts_lockout_minutes: data.login_attempts_lockout_minutes ?? 15,
         login_remember_enabled: !!data.login_remember_enabled,
         login_remember_days: data.login_remember_days ?? 30,
+        login_methods_global: data.login_methods_global ?? { password: true, otp: true, google: true, token: true },
+        file_retention_days: data.file_retention_days ?? 0,
         maintenance_enabled: !!data.maintenance_enabled,
         maintenance_message: data.maintenance_message || '',
         notif_email_enabled: data.email_enabled !== false,
@@ -739,6 +743,41 @@ export default function Settings() {
                             <input className="input" type="number" min="1" max="3650" disabled={!form.login_remember_enabled} value={form.login_remember_days} onChange={(e) => set('login_remember_days', e.target.value)} />
                         </Field>
                     </div>
+
+                    <div className="mt-6 border-t border-line pt-5">
+                        <h2 className="font-semibold text-ink">Metode Login</h2>
+                        <p className="mt-1 text-xs text-ink-muted">Metode yang diizinkan untuk semua user. Bisa dioverride per akun klien/admin.</p>
+                        <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                            {Object.entries(form.login_methods_global || {}).map(([method, enabled]) => (
+                                <label key={method} className="flex cursor-pointer items-center gap-2 rounded-xl border border-line px-4 py-3 text-sm text-ink">
+                                    <input
+                                        type="checkbox"
+                                        checked={!!enabled}
+                                        onChange={(e) => set('login_methods_global', { ...form.login_methods_global, [method]: e.target.checked })}
+                                        className="h-4 w-4 rounded border-line text-brand-600"
+                                    />
+                                    <span className="capitalize">{method}</span>
+                                </label>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div className="mt-6 border-t border-line pt-5">
+                        <h2 className="font-semibold text-ink">Retensi File</h2>
+                        <p className="mt-1 text-xs text-ink-muted">Berapa lama file hasil (galeri) tersedia untuk diunduh klien setelah upload. 0 = tidak pernah kedaluwarsa.</p>
+                        <div className="mt-3 sm:max-w-xs">
+                            <Field label="Masa simpan (hari)" hint="0 = tanpa batas" error={errors.file_retention_days?.[0]}>
+                                <select className="input" value={form.file_retention_days} onChange={(e) => set('file_retention_days', e.target.value)}>
+                                    <option value="0">Tidak pernah kedaluwarsa</option>
+                                    <option value="30">30 hari</option>
+                                    <option value="90">90 hari</option>
+                                    <option value="180">180 hari</option>
+                                    <option value="365">365 hari</option>
+                                </select>
+                            </Field>
+                        </div>
+                    </div>
+
                     <div className="mt-6 flex justify-end border-t border-line pt-5">
                         <Button icon="check" loading={saving} disabled={!dirty(TAB_FIELDS.security)} onClick={() => save(TAB_FIELDS.security)}>Simpan Keamanan</Button>
                     </div>
