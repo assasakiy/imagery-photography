@@ -36,8 +36,8 @@
             rememberEnabled: @json($shellSettings->loginRememberEnabled()),
             otp: {
                 enabled: @json($shellSettings->loginMethodEnabled('otp')),
-                whatsapp: @json($shellSettings->whatsappConfigured()),
-                email: @json($shellSettings->emailConfigured()),
+                whatsapp: @json($shellSettings->channelEnabled('whatsapp')),
+                email: @json($shellSettings->channelEnabled('email')),
             },
         };
     </script>

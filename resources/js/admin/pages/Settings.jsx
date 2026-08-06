@@ -783,12 +783,12 @@ export default function Settings() {
                         <div className="mt-6 border-t border-line pt-5">
                             <h2 className="font-semibold text-ink">Metode Login</h2>
                             <p className="mt-1 text-xs text-ink-muted">
-                                Hanya metode yang siap digunakan yang ditampilkan (OTP perlu Email/WhatsApp terkonfigurasi, Google perlu Login Sosial aktif).
+                                Hanya metode yang aktif/siap digunakan yang ditampilkan (OTP perlu integrasi WhatsApp/Email aktif, Google perlu Login Sosial aktif).
                             </p>
                             <div className="mt-4 space-y-3">
                                 {Object.entries(form.login_methods_global || {})
                                     .filter(([method]) => method === 'password' || method === 'token' ||
-                                        (method === 'otp' && (meta.email_configured || meta.whatsapp_configured)) ||
+                                        (method === 'otp' && (meta.email_enabled || meta.whatsapp_enabled)) ||
                                         (method === 'google' && meta.google_auth_enabled && meta.google_client_id))
                                     .map(([method, enabled]) => (
                                         <Toggle
