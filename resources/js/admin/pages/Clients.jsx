@@ -325,6 +325,8 @@ export default function Clients() {
                 loading={credLoading}
                 onIssueToken={issueToken}
                 issuing={issuing}
+                onEdit={() => { const d = detail; setDetail(null); openEdit(d); }}
+                onDelete={() => { setDetail(null); setDeleteTarget(detail); }}
             />
 
             {node}

@@ -272,6 +272,8 @@ function AdminTab() {
                 onIssueToken={issueToken}
                 issuing={issuing}
                 showProjects={false}
+                onEdit={() => { const d = detail; setDetail(null); openEdit(d); }}
+                onDelete={() => { setDetail(null); setDeleting(detail); }}
             />
 
             <Confirm open={!!deleting} onClose={() => setDeleting(null)} onConfirm={handleDelete} title="Hapus admin?" message="Admin ini tidak akan bisa login lagi." />
