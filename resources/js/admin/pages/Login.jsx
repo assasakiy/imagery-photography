@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import Icon from '../components/Icon';
 import Button from '../components/Button';
 import { useAuth } from '../context/AuthContext';
@@ -12,12 +12,14 @@ export default function Login() {
     const { login } = useAuth();
     const { theme, toggle } = useTheme();
     const navigate = useNavigate();
+    const location = useLocation();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [remember, setRemember] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [errors, setErrors] = useState({});
     const [loading, setLoading] = useState(false);
+    const notice = location.state?.notice;
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -91,6 +93,13 @@ export default function Login() {
                         </div>
                     )}
 
+                    {notice && (
+                        <div className="mb-4 flex items-center gap-2 rounded-xl bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700 dark:bg-emerald-500/10">
+                            <Icon name="check" size={18} />
+                            {notice}
+                        </div>
+                    )}
+
                     <form onSubmit={handleSubmit} className="space-y-4" noValidate>
                         <div>
                             <label htmlFor="email" className="label">
@@ -145,6 +154,13 @@ export default function Login() {
                                     />
                                     Jangan lupakan saya
                                 </label>
+                            </div>
+                        )}
+                        {!APP.rememberEnabled && (
+                            <div className="flex justify-end">
+                                <Link to="/forgot" className="text-sm font-medium text-brand-600 hover:underline dark:text-brand-400">
+                                    Lupa Password?
+                                </Link>
                             </div>
                         )}
 

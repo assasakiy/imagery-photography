@@ -4,10 +4,12 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Client;
+use App\Models\ClientAccessToken;
 use App\Models\User;
 use App\Services\AuditLogger;
 use App\Services\LoginTracker;
 use App\Services\NotificationService;
+use App\Services\NotificationType;
 use App\Services\RuntimeSettings;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -219,6 +221,92 @@ class AuthController extends Controller
             'configured' => $settings->whatsappConfigured(),
             'base_url' => $cfg['config']['base_url'] ?? null,
         ]);
+    }
+
+    /**
+     * Lupa password / akun: buat token recovery + kirim magic link (dan OTP via mekanisme existing).
+     */
+    public function forgot(Request $request)
+    {
+        $data = $request->validate([
+            'identifier' => 'required|string',
+        ]);
+
+        $identifier = trim($data['identifier']);
+        $user = \App\Models\User::where('email', $identifier)->first()
+            ?? \App\Models\User::whereHas('client', fn ($q) => $q->where('phone', $identifier))->first();
+
+        if (!$user) {
+            return response()->json(['message' => 'Akun tidak ditemukan.'], 422);
+        }
+
+        if (!$user->client) {
+            return response()->json(['message' => 'Akun bukan portal klien.'], 422);
+        }
+
+        $token = ClientAccessToken::createToken($user->client, $user, 'recovery', null, null);
+
+        app(NotificationService::class)->send(
+            NotificationType::PASSWORD_RESET,
+            $user,
+            ['name' => $user->name, 'url' => $token->url]
+        );
+
+        app(AuditLogger::class)->log('auth.forgot', 'Permintaan reset password: ' . $user->email, $user);
+
+        return response()->json(['message' => 'Tautan reset kata sandi telah dikirim ke WhatsApp/Email Anda.']);
+    }
+
+    private function resolvePasswordToken(string $token): ?\App\Models\ClientAccessToken
+    {
+        return \App\Models\ClientAccessToken::where('token', $token)
+            ->whereIn('purpose', ['recovery'])
+            ->valid()
+            ->first();
+    }
+
+    public function resetPassword(Request $request)
+    {
+        $data = $request->validate([
+            'token' => 'required|string',
+            'password' => 'required|string|min:6|confirmed',
+        ]);
+
+        $token = $this->resolvePasswordToken($data['token']);
+        if (!$token || !$token->user) {
+            return response()->json(['message' => 'Tautan reset tidak valid atau sudah kadaluarsa.'], 422);
+        }
+
+        $token->user->update(['password' => Hash::make($data['password'])]);
+        $token->update(['used_at' => now()]);
+
+        app(AuditLogger::class)->log('auth.password_reset', 'Kata sandi direset via tautan: ' . $token->user->email, $token->user);
+
+        return response()->json(['message' => 'Kata sandi berhasil direset. Silakan masuk.']);
+    }
+
+    /**
+     * Set password pertama (aktivaasi akun baru / invite). Token purpose 'invite'.
+     */
+    public function setPassword(Request $request)
+    {
+        $data = $request->validate([
+            'token' => 'required|string',
+            'password' => 'required|string|min:8|confirmed',
+        ]);
+
+        $token = \App\Models\ClientAccessToken::where('token', $data['token'])->valid()->first();
+
+        if (!$token || !$token->user) {
+            return response()->json(['message' => 'Tautan aktivasi tidak valid atau sudah kadaluarsa.'], 422);
+        }
+
+        $token->user->update(['password' => Hash::make($data['password'])]);
+        $token->update(['used_at' => now()]);
+
+        app(AuditLogger::class)->log('auth.password_set', 'Kata sandi awal dibuat untuk: ' . $token->user->email, $token->user);
+
+        return response()->json(['message' => 'Akun berhasil diaktifkan. Silakan masuk.']);
     }
 
     private function userPayload($user): array

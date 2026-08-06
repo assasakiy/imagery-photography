@@ -29,6 +29,10 @@ class NotificationService
         'team.invited' => 'Anggota tim diundang',
         'auth.otp' => 'OTP login',
         'auth.login' => 'Login mencurigakan',
+        'auth.invite' => 'Aktivasi akun klien',
+        'auth.magic_link' => 'Tautan masuk / aktivasi',
+        'order.gallery_ready' => 'Galeri siap diunduh',
+        'billing.invoice' => 'Invoice diterbitkan',
     ];
 
     /**
@@ -52,11 +56,13 @@ class NotificationService
             'project.created', 'project.updated', 'project.status_changed',
             'project.credentials_regenerated', 'payment.submitted', 'payment.confirmed',
             'payment.rejected', 'team.invited', 'auth.otp', 'auth.login',
+            'auth.invite', 'auth.magic_link', 'order.gallery_ready', 'billing.invoice',
         ],
         'whatsapp' => [
             'booking.new', 'message.new', 'review.new',
             'project.status_changed', 'payment.submitted', 'payment.confirmed',
             'auth.otp', 'auth.login',
+            'auth.invite', 'auth.magic_link', 'order.gallery_ready', 'billing.invoice',
         ],
         'webhook' => [
             'booking.new', 'message.new', 'review.new', 'review.approved',
@@ -350,5 +356,54 @@ class NotificationService
         if ($this->settings->whatsappConfigured() && $user->phone) {
             $this->whatsapp($user->phone, $message, null, $user, 'auth.login');
         }
+    }
+
+    /**
+     * Kirim notifikasi generik berdasarkan jenis (NotificationType).
+     * Routing channel ditentukan oleh template/kategori, bukan preferensi client.
+     */
+    public function send(NotificationType $type, User $user, array $data = []): void
+    {
+        $channelOrder = $type->channelOrder();
+        $emailCopy = $type->emailAsCopy();
+        $message = $data['message'] ?? $type->waShortMessage($data);
+        $url = $data['url'] ?? null;
+        $event = $this->typeEvent($type);
+
+        $waSent = false;
+
+        foreach ($channelOrder as $channel) {
+            if ($channel === 'whatsapp') {
+                if (!empty($user->phone) && $this->whatsapp($user->phone, $message, null, $user, $event)) {
+                    $waSent = true;
+                }
+                continue;
+            }
+
+            if ($channel === 'email' && !empty($user->email)) {
+                $emailBody = $message . ($url ? "\n\n$url" : '');
+                $this->email(new AlertMail($user->name, $type->subject(), $emailBody, null), $user->email, $event);
+            }
+        }
+
+        // Email salinan utk jenis operasional penting setelah WA sukses.
+        if ($waSent && $emailCopy && !empty($user->email)) {
+            $emailBody = $message . ($url ? "\n\n$url" : '');
+            $this->email(new AlertMail($user->name, $type->subject(), $emailBody, null), $user->email, $event);
+        }
+    }
+
+    private function typeEvent(NotificationType $type): string
+    {
+        return match ($type) {
+            NotificationType::ACCOUNT_INVITE => 'auth.invite',
+            NotificationType::PASSWORD_RESET, NotificationType::MAGIC_LINK => 'auth.magic_link',
+            NotificationType::BOOKING_CREATED, NotificationType::BOOKING_APPROVED => 'booking.new',
+            NotificationType::PROJECT_PROGRESS => 'project.updated',
+            NotificationType::GALLERY_READY, NotificationType::DOWNLOAD_LINK => 'order.gallery_ready',
+            NotificationType::INVOICE_CREATED => 'billing.invoice',
+            NotificationType::PAYMENT_RECEIVED => 'payment.confirmed',
+            NotificationType::BLOG_PUBLISHED, NotificationType::NEWSLETTER => 'message.new',
+        };
     }
 }

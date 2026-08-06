@@ -18,7 +18,35 @@ export default function Clients() {
     const [errors, setErrors] = useState({});
     const [saving, setSaving] = useState(false);
     const [deleting, setDeleting] = useState(null);
+    const [creds, setCreds] = useState(null);
+    const [credLoading, setCredLoading] = useState(false);
+    const [issuing, setIssuing] = useState(null);
     const { show, node } = useToast();
+
+    const openCreds = async (item) => {
+        setCredLoading(true);
+        try {
+            const { data } = await api.get(`/clients/${item.id}/credentials`);
+            setCreds(data);
+        } catch {
+            show('Gagal memuat kredensial.', 'error');
+        } finally {
+            setCredLoading(false);
+        }
+    };
+
+    const issueToken = async (purpose, send = true) => {
+        if (!creds) return;
+        setIssuing(purpose);
+        try {
+            const { data } = await api.post(`/clients/${creds.client_id}/token/${purpose}`, { send });
+            show(purpose === 'invite' ? 'Undangan dibuat & dikirim.' : 'Tautan dibuat' + (send ? ' & dikirim.' : '.'));
+        } catch {
+            show('Gagal membuat tautan.', 'error');
+        } finally {
+            setIssuing(null);
+        }
+    };
 
     const load = (page = 1, q = debounced) => {
         setLoading(true);
@@ -148,6 +176,9 @@ export default function Clients() {
                                     <td className="text-sm text-ink-muted">{formatDate(item.created_at)}</td>
                                     <td>
                                         <div className="flex gap-1">
+                                            <button onClick={() => openCreds(item)} className="icon-btn" aria-label="Kredensial">
+                                                <Icon name="lock" size={16} />
+                                            </button>
                                             <button onClick={() => openEdit(item)} className="icon-btn" aria-label="Edit">
                                                 <Icon name="edit" size={16} />
                                             </button>
@@ -231,6 +262,71 @@ export default function Clients() {
             </Modal>
 
             <Confirm open={!!deleting} onClose={() => setDeleting(null)} onConfirm={handleDelete} message="Project terkait klien ini tidak ikut terhapus." />
+
+            <Modal open={!!creds} onClose={() => setCreds(null)} title="Kredensial & Akses Klien" wide>
+                {credLoading ? (
+                    <Spinner />
+                ) : creds ? (
+                    <div className="space-y-5">
+                        <div className="grid grid-cols-2 gap-3">
+                            <div className="rounded-xl bg-surface-muted p-3">
+                                <p className="text-xs text-ink-muted">Nama</p>
+                                <p className="font-semibold text-ink">{creds.name}</p>
+                            </div>
+                            <div className="rounded-xl bg-surface-muted p-3">
+                                <p className="text-xs text-ink-muted">Email</p>
+                                <p className="truncate text-sm text-ink">{creds.email || '-'}</p>
+                            </div>
+                            <div className="rounded-xl bg-surface-muted p-3">
+                                <p className="text-xs text-ink-muted">WhatsApp</p>
+                                <p className="text-sm text-ink">{creds.phone || '-'}</p>
+                            </div>
+                            <div className="rounded-xl bg-surface-muted p-3">
+                                <p className="text-xs text-ink-muted">Akun</p>
+                                <p className="text-sm text-ink">
+                                    {creds.user?.has_password ? 'Kata sandi aktif' : 'Belum ada kata sandi'}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label className="label">Kirim Tautan</label>
+                            <p className="mb-3 text-xs text-ink-muted">
+                                Undangan utk aktivasi akun baru · Recovery utk lupa password. Prioritas pengiriman WhatsApp → Email.
+                            </p>
+                            <div className="flex flex-wrap gap-2">
+                                <button className="btn-primary" disabled={issuing === 'invite'} onClick={() => issueToken('invite', true)}>
+                                    <Icon name="send" size={16} /> {issuing === 'invite' ? 'Mengirim...' : 'Kirim Undangan'}
+                                </button>
+                                <button className="btn-outline" disabled={issuing === 'recovery'} onClick={() => issueToken('recovery', true)}>
+                                    <Icon name="refresh" size={16} /> {issuing === 'recovery' ? 'Mengirim...' : 'Kirim Recovery'}
+                                </button>
+                                <button className="btn-outline" disabled={issuing === 'project'} onClick={() => issueToken('project', true)}>
+                                    <Icon name="link" size={16} /> {issuing === 'project' ? 'Mengirim...' : 'Kirim Link Akses'}
+                                </button>
+                            </div>
+                        </div>
+
+                        {creds.tokens?.length > 0 && (
+                            <div>
+                                <label className="label">Tautan Terbaru</label>
+                                <div className="space-y-2">
+                                    {creds.tokens.map((t) => (
+                                        <div key={t.id || t.token} className="flex items-center gap-2 rounded-lg bg-surface-muted px-3 py-2 text-xs">
+                                            <span className="badge">{t.purpose}</span>
+                                            <code className="flex-1 truncate text-ink">{t.token}</code>
+                                            <span className="text-ink-muted">{t.used_at ? 'dipakai' : formatDate(t.created_at)}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                ) : (
+                    <EmptyState title="Tidak ada data" />
+                )}
+            </Modal>
+
             {node}
         </>
     );

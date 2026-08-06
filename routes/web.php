@@ -56,3 +56,10 @@ Route::middleware(['auth', 'maintenance'])->group(function () {
         return view('app');
     })->where('any', '.*');
 });
+
+// Halaman guest SPA (lupa/reset/set password)
+Route::middleware(['guest', 'maintenance'])->group(function () {
+    Route::get('/forgot', fn () => view('app'))->name('forgot');
+});
+Route::get('/set-password', fn () => view('app'))->name('set-password');
+Route::get('/reset-password', fn () => view('app'))->name('reset-password');

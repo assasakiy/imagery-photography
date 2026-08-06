@@ -34,6 +34,9 @@ Route::middleware('web')->group(function () {
     Route::post('/send-otp', [AuthController::class, 'sendOtp']);
     Route::post('/verify-otp', [AuthController::class, 'verifyOtp']);
     Route::get('/whatsapp-status', [AuthController::class, 'whatsappStatus']);
+    Route::post('/forgot', [AuthController::class, 'forgot']);
+    Route::post('/set-password', [AuthController::class, 'setPassword']);
+    Route::post('/reset-password', [AuthController::class, 'resetPassword']);
 });
 
 Route::middleware(['web', 'auth:sanctum', 'maintenance'])->group(function () {
@@ -106,6 +109,8 @@ Route::middleware(['web', 'auth:sanctum', 'maintenance'])->group(function () {
         Route::apiResource('packages', PackageController::class)->except(['create', 'edit']);
         Route::apiResource('service-categories', ServiceCategoryController::class)->except(['create', 'edit']);
         Route::apiResource('clients', ClientController::class)->except(['create', 'edit']);
+        Route::get('/clients/{client}/credentials', [ClientController::class, 'credentials']);
+        Route::post('/clients/{client}/token/{purpose}', [ClientController::class, 'issueToken'])->whereIn('purpose', ['invite', 'recovery', 'project']);
 
         Route::get('/messages', [MessageController::class, 'index']);
         Route::get('/messages/{message}', [MessageController::class, 'show']);

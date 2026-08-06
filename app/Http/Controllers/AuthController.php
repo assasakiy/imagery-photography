@@ -78,6 +78,18 @@ class AuthController extends Controller
             return redirect('/login')->withErrors(['token' => 'Link akses tidak valid atau sudah kadaluarsa.']);
         }
 
+        if ($accessToken->purpose === 'invite') {
+            $accessToken->update(['used_at' => now()]);
+
+            return redirect('/set-password?token=' . $token);
+        }
+
+        if ($accessToken->purpose === 'recovery') {
+            $accessToken->update(['used_at' => now()]);
+
+            return redirect('/reset-password?token=' . $token);
+        }
+
         $accessToken->update(['used_at' => now()]);
 
         Auth::login($accessToken->user);

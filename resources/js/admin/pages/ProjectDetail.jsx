@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import QRCode from 'qrcode';
 import api from '../api';
 import Icon from '../components/Icon';
 import { useAuth } from '../context/AuthContext';
@@ -16,9 +15,6 @@ export default function ProjectDetail() {
     const [updateText, setUpdateText] = useState('');
     const [uploading, setUploading] = useState(false);
     const [paymentForm, setPaymentForm] = useState({ amount: '', method: 'manual_transfer', notes: '', proof: null });
-    const [qrData, setQrData] = useState('');
-    const [creds, setCreds] = useState(null);
-    const [regenerating, setRegenerating] = useState(false);
     const fileRef = useRef(null);
     const proofRef = useRef(null);
     const { show, node } = useToast();
@@ -28,54 +24,6 @@ export default function ProjectDetail() {
     };
 
     useEffect(load, [id]);
-
-    const accessUrl = project?.access_tokens?.[0]?.url;
-
-    useEffect(() => {
-        if (!accessUrl) {
-            setQrData('');
-            return;
-        }
-        QRCode.toDataURL(accessUrl, { width: 220, margin: 1, color: { dark: '#18181b' } })
-            .then(setQrData)
-            .catch(() => setQrData(''));
-    }, [accessUrl]);
-
-    const copyText = async (text) => {
-        try {
-            await navigator.clipboard.writeText(text);
-            show('Disalin ke clipboard.');
-        } catch {
-            show('Gagal menyalin.', 'error');
-        }
-    };
-
-    const credentialsText = () => {
-        const cred = creds || (project?.access_tokens?.[0] ? { login_url: window.location.origin + '/login', access_url: accessUrl } : null);
-        if (!cred) return '';
-        return `Halo ${project.client?.name || 'klien'},\n\nProject Anda "${project.name}" sudah dapat diakses.\n\n${cred.login_url ? 'Login: ' + cred.login_url + '\n' : ''}${cred.email ? 'Email: ' + cred.email + '\n' : ''}${cred.password ? 'Kata sandi: ' + cred.password + '\n' : ''}${cred.access_url ? 'Akses tanpa login: ' + cred.access_url : ''}\n\nTerima kasih!\nSopian Lalu Imagery`;
-    };
-
-    const waShare = () => {
-        const phone = project.client?.phone;
-        if (!phone) return null;
-        const wa = '628' + phone.replace(/\D/g, '').replace(/^62|^0/, '');
-        return `https://wa.me/${wa}?text=${encodeURIComponent(credentialsText())}`;
-    };
-
-    const regenerate = async (resetPassword) => {
-        setRegenerating(true);
-        try {
-            const { data } = await api.post(`/projects/${id}/regenerate-credentials`, { reset_password: resetPassword });
-            setCreds(data.credentials);
-            show('Kredensial baru dibuat.');
-            load();
-        } catch (err) {
-            show('Gagal membuat kredensial baru.', 'error');
-        } finally {
-            setRegenerating(false);
-        }
-    };
 
     if (loading) return <Spinner />;
     if (!project) return <p className="text-ink-muted">Project tidak ditemukan.</p>;
@@ -279,107 +227,34 @@ export default function ProjectDetail() {
                 </div>
             </div>
 
-            {/* Credentials (admin) */}
-            {isAdmin && project.access_tokens?.length > 0 && (
+            {/* Client info (read-only) + link ke halaman Klien */}
+            {project.client && (
                 <div className="card mt-6 p-5">
-                    <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                    <div className="mb-4 flex items-center justify-between gap-3">
                         <div>
-                            <h3 className="font-semibold text-ink">Kredensial Klien</h3>
-                            <p className="mt-1 text-sm text-ink-muted">
-                                Bagikan tautan akses atau login ini ke klien untuk melihat project.
-                            </p>
+                            <h3 className="font-semibold text-ink">Klien</h3>
+                            <p className="mt-1 text-sm text-ink-muted">Informasi kontak klien pesanan ini.</p>
                         </div>
-                        <div className="flex gap-2">
-                            <button className="btn-outline" onClick={() => regenerate(false)} disabled={regenerating}>
-                                <Icon name="refresh" size={16} /> {regenerating ? 'Memproses...' : 'Token Baru'}
-                            </button>
-                            <button className="btn-outline" onClick={() => regenerate(true)} disabled={regenerating}>
-                                <Icon name="refresh" size={16} /> Reset Kata Sandi & Token
-                            </button>
-                        </div>
+                        <Link to="/dashboard/clients" className="btn-outline">
+                            <Icon name="user" size={16} /> Lihat Detail Klien
+                        </Link>
                     </div>
-
-                    <div className="grid grid-cols-1 gap-5 sm:grid-cols-[auto,1fr]">
-                        {qrData && (
-                            <div className="flex flex-col items-center gap-2">
-                                <img src={qrData} alt="QR Akses" className="h-44 w-44 rounded-xl border border-line bg-white p-2" />
-                                <p className="text-xs text-ink-muted">Scan untuk akses</p>
-                            </div>
-                        )}
-
-                        <div className="space-y-3">
-                            <div>
-                                <p className="mb-1 text-xs font-medium uppercase tracking-wider text-ink-muted">Tautan Akses (tanpa login)</p>
-                                <div className="flex items-center gap-2">
-                                    <code className="flex-1 truncate rounded-lg bg-surface-muted px-3 py-2 text-xs text-ink">{accessUrl}</code>
-                                    <button className="btn-outline shrink-0" onClick={() => copyText(accessUrl)}>
-                                        <Icon name="link" size={16} /> Salin
-                                    </button>
-                                </div>
-                            </div>
-                            <div>
-                                <p className="mb-1 text-xs font-medium uppercase tracking-wider text-ink-muted">Tautan Login Klien</p>
-                                <div className="flex items-center gap-2">
-                                    <code className="flex-1 truncate rounded-lg bg-surface-muted px-3 py-2 text-xs text-ink">{window.location.origin}/login</code>
-                                    <button className="btn-outline shrink-0" onClick={() => copyText(window.location.origin + '/login')}>
-                                        <Icon name="link" size={16} /> Salin
-                                    </button>
-                                </div>
-                            </div>
-                            <div className="flex flex-wrap gap-2 pt-1">
-                                <button className="btn-primary" onClick={() => copyText(credentialsText())}>
-                                    <Icon name="check" size={16} /> Salin Semua
-                                </button>
-                                {waShare() && (
-                                    <a className="btn-outline" href={waShare()} target="_blank" rel="noreferrer">
-                                        <Icon name="send" size={16} /> Kirim via WhatsApp
-                                    </a>
-                                )}
-                            </div>
-                            <p className="text-xs text-ink-muted">
-                                Token berlaku 1 tahun dan bisa dipakai berkali-kali. Kata sandi baru dibuat saat project dibuat atau direset.
-                            </p>
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                        <div className="rounded-xl bg-surface-muted p-3">
+                            <p className="text-xs text-ink-muted">Nama</p>
+                            <p className="font-semibold text-ink">{project.client.name}</p>
+                        </div>
+                        <div className="rounded-xl bg-surface-muted p-3">
+                            <p className="text-xs text-ink-muted">Email</p>
+                            <p className="truncate text-sm text-ink">{project.client.email || '-'}</p>
+                        </div>
+                        <div className="rounded-xl bg-surface-muted p-3">
+                            <p className="text-xs text-ink-muted">WhatsApp</p>
+                            <p className="text-sm text-ink">{project.client.phone || '-'}</p>
                         </div>
                     </div>
                 </div>
             )}
-
-            {/* Credentials modal (after regenerate) */}
-            <Modal
-                open={!!creds}
-                onClose={() => setCreds(null)}
-                title="Kredensial Baru"
-                footer={
-                    creds && (
-                        <div className="flex flex-col gap-2">
-                            <button
-                                className="btn-primary w-full"
-                                onClick={() => copyText(`Login: ${creds.login_url}\nEmail: ${creds.email}\nKata sandi: ${creds.password}\nAkses tanpa login: ${creds.access_url}`)}
-                            >
-                                <Icon name="check" size={16} /> Salin Semua
-                            </button>
-                        </div>
-                    )
-                }
-            >
-                {creds && (
-                    <div className="space-y-4">
-                        <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-sm text-emerald-700 dark:text-emerald-400">
-                            Kata sandi hanya ditampilkan sekali ini. Simpan dan bagikan ke klien.
-                        </div>
-                        <div className="space-y-2 rounded-xl bg-surface-muted p-4 text-sm">
-                            <p className="text-ink-muted">Email</p>
-                            <code className="block truncate text-xs text-ink">{creds.email}</code>
-                            <p className="mt-3 text-ink-muted">Kata Sandi</p>
-                            <code className="block truncate font-mono text-xs text-ink">{creds.password}</code>
-                            <p className="mt-3 text-ink-muted">Tautan Login</p>
-                            <code className="block truncate text-xs text-ink">{creds.login_url}</code>
-                            <p className="mt-3 text-ink-muted">Tautan Akses</p>
-                            <code className="block truncate text-xs text-ink">{creds.access_url}</code>
-                        </div>
-                    </div>
-                )}
-            </Modal>
 
             {/* Payments (client: submit; admin: table) */}
             <div className="card mt-6 p-5">

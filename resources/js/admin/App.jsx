@@ -55,6 +55,9 @@ import { ThemeProvider } from './context/ThemeContext';
 import Layout from './components/Layout';
 import { Spinner } from './components/ui';
 import Login from './pages/Login';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
+import SetPassword from './pages/SetPassword';
 import Dashboard from './pages/Dashboard';
 import Portfolio from './pages/Portfolio';
 import Media from './pages/Media';
@@ -109,6 +112,9 @@ function AppRoutes() {
     return (
         <Routes>
             <Route path="/login" element={<LoginRoute />} />
+            <Route path="/forgot" element={<ForgotPassword />} />
+            <Route path="/set-password" element={<SetPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route
                 path="/dashboard"
                 element={
