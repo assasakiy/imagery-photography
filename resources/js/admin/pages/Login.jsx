@@ -154,6 +154,9 @@ export default function Login() {
                                     />
                                     Jangan lupakan saya
                                 </label>
+                                <Link to="/forgot" className="text-sm font-medium text-brand-600 hover:underline dark:text-brand-400">
+                                    Lupa Password?
+                                </Link>
                             </div>
                         )}
                         {!APP.rememberEnabled && (
