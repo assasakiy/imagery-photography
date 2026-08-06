@@ -44,7 +44,7 @@ class ProjectController extends Controller
             abort(403);
         }
 
-        $project->load(['user.profile', 'files', 'payments', 'updates.user', 'accessTokens']);
+        $project->load(['user.profile', 'files', 'payments', 'updates.user', 'accessTokens', 'invoice', 'booking', 'reviews']);
 
         return response()->json($project);
     }
@@ -63,7 +63,7 @@ class ProjectController extends Controller
             'event_date' => 'nullable|date',
             'description' => 'nullable|string',
             'price' => 'nullable|numeric|min:0',
-            'status' => 'required|in:pending,in_progress,completed,delivered',
+            'status' => 'nullable|in:' . implode(',', \App\Models\Project::STATUSES),
             'start_date' => 'nullable|date',
             'end_date' => 'nullable|date|after_or_equal:start_date',
         ]);
@@ -111,7 +111,7 @@ class ProjectController extends Controller
             'description' => $data['description'] ?? null,
             'price' => $data['price'] ?? ($package ? $package->computedPrice() : null),
             'pricing_snapshot' => $snapshot,
-            'status' => $data['status'],
+            'status' => $data['status'] ?? 'scheduled',
             'start_date' => $data['start_date'] ?? null,
             'end_date' => $data['end_date'] ?? null,
         ]);
@@ -128,7 +128,10 @@ class ProjectController extends Controller
             'user_id' => Auth::id(),
             'message' => 'Project "' . $project->name . '" telah dibuat.',
             'type' => 'milestone',
+            'kind' => 'system',
         ]);
+
+        $this->createInvoice($project);
 
         $notifications = app(NotificationService::class);
         $notifications->webhook('project.created', ['project_id' => $project->id, 'name' => $project->name]);
@@ -201,7 +204,7 @@ class ProjectController extends Controller
             'event_date' => 'nullable|date',
             'description' => 'nullable|string',
             'price' => 'nullable|numeric|min:0',
-            'status' => 'required|in:pending,in_progress,completed,delivered',
+            'status' => 'nullable|in:' . implode(',', \App\Models\Project::STATUSES),
             'start_date' => 'nullable|date',
             'end_date' => 'nullable|date|after_or_equal:start_date',
         ]);
@@ -232,6 +235,9 @@ class ProjectController extends Controller
             }
         }
 
+        $newStatus = $data['status'] ?? $project->status;
+        $this->ensureStatusTimeline($project, $newStatus);
+
         $project->update($data);
 
         app(AuditLogger::class)->log('project.updated', 'Project diperbarui: "' . $project->name . '"', $project);
@@ -239,18 +245,18 @@ class ProjectController extends Controller
         ProjectUpdate::create([
             'project_id' => $project->id,
             'user_id' => Auth::id(),
-            'message' => 'Project "' . $project->name . '" diupdate ke status: ' . $data['status'],
+            'message' => 'Project "' . $project->name . '" diupdate ke status: ' . $newStatus,
             'type' => 'update',
         ]);
 
         $notifications = app(NotificationService::class);
-        $notifications->webhook('project.updated', ['project_id' => $project->id, 'status' => $data['status']]);
+        $notifications->webhook('project.updated', ['project_id' => $project->id, 'status' => $newStatus]);
 
         if ($project->user) {
             if ($project->user->phone) {
                 $notifications->whatsapp(
                     $project->user->phone,
-                    "Halo {$project->user->name}, status project *{$project->name}* Anda: *" . strtoupper(str_replace('_', ' ', $data['status'])) . '*',
+                    "Halo {$project->user->name}, status project *{$project->name}* Anda: *" . strtoupper(str_replace('_', ' ', $newStatus)) . '*',
                     null,
                     $project->user,
                     'project.updated'
@@ -259,28 +265,26 @@ class ProjectController extends Controller
             $notifications->inApp(
                 $project->user,
                 'Status project diperbarui',
-                "Project \"{$project->name}\" kini berstatus: " . strtoupper(str_replace('_', ' ', $data['status'])) . '.',
+                "Project \"{$project->name}\" kini berstatus: " . strtoupper(str_replace('_', ' ', $newStatus)) . '.',
                 '/dashboard/projects/' . $project->id,
                 'project.updated'
             );
         }
+
+        $this->syncInvoiceAmount($project);
 
         return response()->json($project->load('user.profile'));
     }
 
     public function updateStatus(Request $request, Project $project)
     {
-        $request->validate(['status' => 'required|in:pending,in_progress,completed,delivered']);
+        $request->validate(['status' => 'required|in:' . implode(',', \App\Models\Project::STATUSES)]);
+        $old = $project->status;
         $project->update(['status' => $request->status]);
 
         app(AuditLogger::class)->log('project.status_changed', 'Status project "' . $project->name . '" menjadi ' . $request->status, $project);
 
-        ProjectUpdate::create([
-            'project_id' => $project->id,
-            'user_id' => Auth::id(),
-            'message' => 'Status berubah menjadi: ' . $request->status,
-            'type' => 'milestone',
-        ]);
+        $this->ensureStatusTimeline($project, $request->status, $old);
 
         app(NotificationService::class)->webhook('project.status_changed', [
             'project_id' => $project->id,
@@ -292,7 +296,10 @@ class ProjectController extends Controller
 
     public function uploadFile(Request $request, Project $project)
     {
-        $request->validate(['file' => 'required|file|max:512000']);
+        $request->validate([
+            'file' => 'required|file|max:512000',
+            'gallery_status' => 'nullable|in:preparing,preview_ready,released',
+        ]);
 
         $file = $request->file('file');
         $path = $file->store('project-files/' . $project->id, 'public');
@@ -310,6 +317,8 @@ class ProjectController extends Controller
             'path' => $path,
             'size' => $file->getSize(),
             'type' => $file->getMimeType(),
+            'category' => $this->inferCategory($file),
+            'gallery_status' => $request->gallery_status ?? 'preparing',
             'expires_at' => $expiresAt,
         ]);
 
@@ -318,6 +327,7 @@ class ProjectController extends Controller
             'user_id' => Auth::id(),
             'message' => 'File "' . $file->getClientOriginalName() . '" telah diupload.',
             'type' => 'update',
+            'kind' => 'manual',
         ]);
 
         return response()->json($project->files()->latest()->get(), 201);
@@ -342,6 +352,7 @@ class ProjectController extends Controller
             'user_id' => Auth::id(),
             'message' => $request->message,
             'type' => 'note',
+            'kind' => 'manual',
         ]);
 
         return response()->json($project->updates()->get());
@@ -362,10 +373,40 @@ class ProjectController extends Controller
             abort(403, 'Galeri ini sudah diarsipkan.');
         }
 
+        // Download penuh hanya utk staff ATAU klien yg sudah lunas (galeri released).
+        if ($user->isClient()) {
+            $paid = $file->project->isPaid();
+            if (!$paid) {
+                abort(403, 'Pelunasan belum selesai. Anda dapat melihat preview, bukan mengunduh file HD.');
+            }
+            if ($file->gallery_status === 'preparing') {
+                abort(403, 'Galeri masih disiapkan.');
+            }
+        }
+
         app(AuditLogger::class)->log('project.file_downloaded', 'File diunduh: "' . $file->original_name . '" (project ' . $file->project->name . ')', $file);
         app(\App\Services\HistoryService::class)->downloaded($user, ProjectFile::class, $file->id, ['name' => $file->original_name]);
 
         return Storage::disk('public')->download($file->path, $file->original_name);
+    }
+
+    /** Admin menandai status gallery & memicu timeline system. */
+    public function setGalleryStatus(Request $request, Project $project)
+    {
+        $request->validate(['gallery_status' => 'required|in:preparing,preview_ready,released']);
+
+        $project->files()->update(['gallery_status' => $request->gallery_status]);
+
+        if ($request->gallery_status === 'preview_ready' && $project->status === 'editing') {
+            $project->update(['status' => 'awaiting_confirmation']);
+            $project->addSystemUpdate('Preview tersedia — menunggu konfirmasi klien.');
+            app(AuditLogger::class)->log('project.preview_ready', 'Preview tersedia utk project "' . $project->name . '"', $project);
+        } elseif ($request->gallery_status === 'released') {
+            $project->addSystemUpdate('Galeri dirilis penuh untuk klien.');
+            app(AuditLogger::class)->log('project.gallery_released', 'Galeri project "' . $project->name . '" dirilis', $project);
+        }
+
+        return response()->json($project->files()->latest()->get());
     }
 
     public function archive(Request $request, Project $project)
@@ -382,5 +423,56 @@ class ProjectController extends Controller
         app(AuditLogger::class)->log('project.restored', 'Galeri dikembalikan: "' . $project->name . '"', $project);
 
         return response()->json($project);
+    }
+
+    /** Buat invoice utk proyek baru (saat project dibuat / booking diterima). */
+    private function createInvoice(Project $project): \App\Models\Invoice
+    {
+        $invoice = $project->invoice()->firstOrCreate([
+            'number' => 'INV-' . str_pad((string) $project->id, 5, '0', STR_PAD_LEFT),
+            'issued_at' => now()->toDateString(),
+            'due_at' => now()->addDays(7)->toDateString(),
+            'base_amount' => $project->price ?? 0,
+            'paid_amount' => 0,
+            'status' => 'unpaid',
+        ]);
+
+        $project->addSystemUpdate('Invoice ' . $invoice->number . ' dibuat sebesar Rp ' . number_format((float) ($project->price ?? 0), 0, ',', '.') . '.');
+
+        return $invoice;
+    }
+
+    /** Sinkronkan nominal & status invoice mengikuti harga/tagihan proyek. */
+    private function syncInvoiceAmount(Project $project): void
+    {
+        $invoice = $project->invoice;
+        if (!$invoice) {
+            return;
+        }
+        $invoice->base_amount = $project->price ?? 0;
+        $invoice->refreshStatus();
+    }
+
+    /** Catatan timeline system saat status berubah (tanpa duplikat utk status sama). */
+    private function ensureStatusTimeline(Project $project, string $status, ?string $old = null): void
+    {
+        if ($old === $status) {
+            return;
+        }
+        $label = \App\Models\Project::STATUS_LABELS[$status] ?? $status;
+        $project->addSystemUpdate('Status project menjadi: ' . $label . '.');
+    }
+
+    private function inferCategory($file): string
+    {
+        $mime = $file->getMimeType() ?? '';
+        if (str_starts_with($mime, 'image')) {
+            return 'photo';
+        }
+        if (str_starts_with($mime, 'video')) {
+            return 'video';
+        }
+
+        return 'document';
     }
 }

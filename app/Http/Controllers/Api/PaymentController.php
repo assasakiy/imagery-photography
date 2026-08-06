@@ -57,6 +57,18 @@ class PaymentController extends Controller
 
         app(AuditLogger::class)->log('payment.submitted', 'Pembayaran dikirim: Rp ' . number_format((float) $data['amount'], 0, ',', '.') . ' untuk project "' . $project->name . '"', $payment);
 
+        if (!$project->invoice) {
+            $invoice = $project->invoice()->create([
+                'number' => 'INV-' . str_pad((string) $project->id, 5, '0', STR_PAD_LEFT),
+                'issued_at' => now()->toDateString(),
+                'due_at' => now()->addDays(7)->toDateString(),
+                'base_amount' => $project->price ?? 0,
+                'paid_amount' => 0,
+                'status' => 'unpaid',
+            ]);
+            $project->addSystemUpdate('Invoice ' . $invoice->number . ' dibuat sebesar Rp ' . number_format((float) ($project->price ?? 0), 0, ',', '.') . '.');
+        }
+
         return response()->json($payment, 201);
     }
 
@@ -65,6 +77,19 @@ class PaymentController extends Controller
         $payment->update(['status' => 'confirmed', 'paid_at' => now()]);
 
         app(AuditLogger::class)->log('payment.confirmed', 'Pembayaran dikonfirmasi: Rp ' . number_format((float) $payment->amount, 0, ',', '.') . ' (project ' . $payment->project->name . ')', $payment);
+
+        // Sinkronkan invoice + timeline system.
+        $project = $payment->project;
+        if ($project) {
+            $invoice = $project->invoice;
+            if ($invoice) {
+                $paid = $project->payments()->where('status', 'confirmed')->sum('amount');
+                $invoice->paid_amount = $paid;
+                $invoice->refreshStatus();
+            }
+            $totalPaid = $project->totalPaid();
+            $project->addSystemUpdate('Pembayaran Rp ' . number_format((float) $payment->amount, 0, ',', '.') . ' dikonfirmasi. Total dibayar: Rp ' . number_format((float) $totalPaid, 0, ',', '.') . '.');
+        }
 
         $notifications = app(NotificationService::class);
         $notifications->webhook('payment.confirmed', ['payment_id' => $payment->id, 'project_id' => $payment->project_id]);

@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class ProjectUpdate extends Model
 {
-    protected $fillable = ['project_id', 'user_id', 'message', 'type'];
+    protected $fillable = ['project_id', 'user_id', 'message', 'type', 'kind'];
 
     public function project()
     {

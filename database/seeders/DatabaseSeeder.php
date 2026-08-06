@@ -87,7 +87,9 @@ class DatabaseSeeder extends Seeder
 
         $this->seedSampleReviews();
 
-        $this->command->info('Seeded: roles, permissions, owner, admin, landing contents, team, reviews');
+        $this->call(BookingAndProjectSeeder::class);
+
+        $this->command->info('Seeded: roles, permissions, owner, admin, landing contents, team, reviews, bookings');
     }
 
     private function seedRolesAndPermissions(): void

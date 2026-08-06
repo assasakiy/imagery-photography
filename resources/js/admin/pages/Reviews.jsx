@@ -266,6 +266,5 @@ function Moderation() {
 }
 
 export default function Reviews() {
-    const { user } = useAuth();
-    return user?.role === 'client' ? <ClientReview /> : <Moderation />;
+    return <Moderation />;
 }

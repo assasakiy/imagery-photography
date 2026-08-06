@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\AuditLogController;
 use App\Http\Controllers\Api\BlogCategoryController;
+use App\Http\Controllers\Api\BookingApiController;
 use App\Http\Controllers\Api\BlogController;
 use App\Http\Controllers\Api\BlogTagController;
 use App\Http\Controllers\Api\ClientController;
@@ -98,10 +99,19 @@ Route::middleware(['web', 'auth:sanctum', 'maintenance'])->group(function () {
         Route::post('/projects/{project}/regenerate-credentials', [ProjectController::class, 'regenerateCredentials']);
         Route::patch('/projects/{project}/archive', [ProjectController::class, 'archive']);
         Route::patch('/projects/{project}/restore', [ProjectController::class, 'restore']);
+        Route::patch('/projects/{project}/gallery-status', [ProjectController::class, 'setGalleryStatus']);
+
+        Route::get('/bookings', [BookingApiController::class, 'index']);
+        Route::get('/bookings/{booking}', [BookingApiController::class, 'show']);
+        Route::put('/bookings/{booking}', [BookingApiController::class, 'update']);
+        Route::post('/bookings/{booking}/accept', [BookingApiController::class, 'accept']);
+        Route::post('/bookings/{booking}/reject', [BookingApiController::class, 'reject']);
 
         Route::get('/payments', [PaymentController::class, 'index']);
         Route::patch('/payments/{payment}/confirm', [PaymentController::class, 'confirm']);
         Route::patch('/payments/{payment}/reject', [PaymentController::class, 'reject']);
+
+        Route::get('/invoices', [App\Http\Controllers\Api\InvoiceController::class, 'index']);
 
         Route::apiResource('portfolios', PortfolioController::class)->except(['create', 'edit']);
         Route::delete('/media/bulk', [MediaController::class, 'bulkDestroy']);

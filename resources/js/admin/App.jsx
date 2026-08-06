@@ -64,6 +64,8 @@ import Portfolio from './pages/Portfolio';
 import Media from './pages/Media';
 import Services from './pages/Services';
 import Clients from './pages/Clients';
+import Bookings from './pages/Bookings';
+import Invoices from './pages/Invoices';
 import Projects from './pages/Projects';
 import ProjectDetail from './pages/ProjectDetail';
 import Payments from './pages/Payments';
@@ -83,7 +85,6 @@ import RecycleBin from './pages/RecycleBin';
 import ProfileSettings from './pages/ProfileSettings';
 import ClientBookings from './pages/ClientBookings';
 import ClientInvoices from './pages/ClientInvoices';
-import ClientGallery from './pages/ClientGallery';
 import ClientMessages from './pages/ClientMessages';
 import Bookmarks from './pages/Bookmarks';
 import History from './pages/History';
@@ -130,11 +131,12 @@ function AppRoutes() {
                 <Route path="media" element={<Protected adminOnly><Media /></Protected>} />
                 <Route path="services" element={<Protected adminOnly><Services /></Protected>} />
                 <Route path="clients" element={<Protected adminOnly><Clients /></Protected>} />
+                <Route path="bookings" element={<Protected adminOnly><Bookings /></Protected>} />
                 <Route path="projects" element={<Projects />} />
                 <Route path="projects/:id" element={<ProjectDetail />} />
+                <Route path="invoices" element={<Protected adminOnly><Invoices /></Protected>} />
                 <Route path="client-bookings" element={<Protected notStaffCase><ClientBookings /></Protected>} />
                 <Route path="client-invoices" element={<Protected notStaffCase><ClientInvoices /></Protected>} />
-                <Route path="client-gallery" element={<Protected notStaffCase><ClientGallery /></Protected>} />
                 <Route path="client-messages" element={<Protected notStaffCase><ClientMessages /></Protected>} />
                 <Route path="bookmarks" element={<Protected notStaffCase><Bookmarks /></Protected>} />
                 <Route path="history" element={<Protected notStaffCase><History /></Protected>} />

@@ -2,10 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\ContactMessage;
+use App\Models\Booking;
 use App\Models\LandingContent;
+use App\Models\Package;
 use App\Models\Service;
+use App\Services\AuditLogger;
+use App\Services\ClientRegistrationService;
 use App\Services\NotificationService;
+use App\Support\ContentSanitizer;
 use Illuminate\Http\Request;
 
 class BookingController extends Controller
@@ -19,7 +23,7 @@ class BookingController extends Controller
 
         $services = Service::active()->orderBy('order')->get();
 
-        $packages = \App\Models\Package::with('services')->active()->orderBy('display_order')->get()->map(function ($p) {
+        $packages = Package::with('services')->active()->orderBy('display_order')->get()->map(function ($p) {
             return [
                 'id' => $p->id,
                 'name' => $p->name,
@@ -39,46 +43,68 @@ class BookingController extends Controller
     {
         $data = $request->validate([
             'name' => 'required|string|max:255',
-            'phone' => 'required_without:email|nullable|string|max:20',
-            'email' => 'required_without:phone|nullable|email|max:255',
-            'event_date' => 'nullable|date',
+            'email' => 'required|email|max:255',
+            'phone' => 'nullable|string|max:20',
+            'package_id' => 'nullable|exists:packages,id',
             'package' => 'nullable|string|max:255',
+            'event_date' => 'nullable|date',
+            'location' => 'nullable|string|max:255',
             'message' => 'nullable|string',
         ]);
 
-        $data['type'] = 'booking';
-        $data['message'] = $data['message'] ?? '';
+        $data['notes'] = ContentSanitizer::plainText($data['message'] ?? '');
+        $data['location'] = ContentSanitizer::plainText($data['location'] ?? '');
+        unset($data['message']);
 
-        $booking = ContactMessage::create($data);
+        // User pending + booking + invite.
+        $reg = app(ClientRegistrationService::class);
+        $result = $reg->registerWithInvite(
+            ['name' => $data['name'], 'email' => $data['email'] ?? null, 'phone' => $data['phone'] ?? null],
+            'client',
+            null,
+            null
+        );
+        $user = $result['user'];
+
+        $package = null;
+        $packageId = $data['package_id'] ?? null;
+        if ($packageId) {
+            $package = Package::find($packageId);
+        }
+
+        $booking = Booking::create([
+            'user_id' => $user->id,
+            'package_id' => $package?->id ?? null,
+            'name' => $data['name'],
+            'email' => $data['email'] ?? null,
+            'phone' => $data['phone'] ?? null,
+            'package_label' => $data['package'] ?? $package?->name ?? null,
+            'event_date' => $data['event_date'] ?? null,
+            'location' => $data['location'] ?? null,
+            'notes' => $data['notes'] ?? null,
+            'price' => $package?->computedPrice() ?? null,
+            'status' => 'pending',
+        ]);
 
         $notifications = app(NotificationService::class);
         $notifications->toAdmins(
             'Booking baru: ' . $booking->name,
-            "{$booking->name} (" . ($booking->phone ?: $booking->email) . ") memesan untuk " . ($booking->package ?: 'paket umum') . ($booking->event_date ? ' pada ' . $booking->event_date : '') . '.',
-            '/dashboard/messages/' . $booking->id,
+            "{$booking->name} (" . ($booking->phone ?: $booking->email) . ") memesan untuk " . ($booking->package_label ?: 'paket umum') . ($booking->event_date ? ' pada ' . $booking->event_date->format('d M Y') : '') . '.',
+            '/dashboard/bookings/' . $booking->id,
             'booking.new'
         );
         $notifications->webhook('booking.new', [
             'id' => $booking->id,
+            'booking_no' => $booking->booking_no,
             'name' => $booking->name,
             'phone' => $booking->phone,
             'email' => $booking->email,
             'event_date' => $booking->event_date,
-            'package' => $booking->package,
+            'package' => $booking->package_label,
+            'location' => $booking->location,
         ]);
 
-        app(\App\Services\AuditLogger::class)->log('booking.created', 'Booking baru: ' . $booking->name . ' (' . ($booking->phone ?: $booking->email) . ')', $booking);
-
-        app(\App\Services\ClientRegistrationService::class)->registerWithInvite(
-            [
-                'name' => $data['name'],
-                'email' => $data['email'] ?? null,
-                'phone' => $data['phone'] ?? null,
-            ],
-            'client',
-            null,
-            $booking
-        );
+        app(AuditLogger::class)->log('booking.created', 'Booking baru ' . $booking->booking_no . ': ' . $booking->name . ' (' . ($booking->phone ?: $booking->email) . ')', $booking);
 
         return back()->with('success', 'Booking diterima! Kami akan menghubungi Anda via WhatsApp segera. Akun klien Anda telah dibuat — cek WhatsApp/Email Anda untuk mengaktifkan akun.');
     }

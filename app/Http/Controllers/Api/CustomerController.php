@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Booking;
 use App\Models\ContactMessage;
+use App\Models\Invoice;
 use App\Models\Payment;
 use App\Models\ProjectFile;
 use Illuminate\Http\Request;
@@ -40,30 +42,33 @@ class CustomerController extends Controller
         $user = $request->user();
 
         return response()->json(
-            ContactMessage::where('type', 'booking')
-                ->where(fn ($q) => $q->where('email', $user->email)->orWhere('phone', $user->phone))
+            Booking::where('user_id', $user->id)
                 ->orderByDesc('created_at')
-                ->get(['id', 'name', 'phone', 'email', 'package', 'event_date', 'message', 'created_at'])
+                ->get(['id', 'booking_no', 'name', 'phone', 'email', 'package_label', 'event_date', 'location', 'notes', 'price', 'status', 'project_id', 'created_at'])
         );
     }
 
     public function invoices(Request $request)
     {
-        $projects = $request->user()->projects()->with('payments')->get();
+        $projectIds = $request->user()->projects()->pluck('id');
 
-        return response()->json($projects->map(function ($p) {
-            $paid = $p->payments->where('status', 'confirmed')->sum('amount');
+        $invoices = Invoice::with(['project'])
+            ->whereIn('project_id', $projectIds)
+            ->orderByDesc('id')
+            ->get()
+            ->map(fn ($inv) => [
+                'id' => $inv->id,
+                'number' => $inv->number,
+                'project_id' => $inv->project_id,
+                'project' => $inv->project?->name,
+                'price' => $inv->base_amount,
+                'paid' => $inv->paid_amount,
+                'remaining' => $inv->remaining(),
+                'status' => $inv->status,
+                'issued_at' => $inv->issued_at,
+            ]);
 
-            return [
-                'id' => $p->id,
-                'number' => 'INV-' . str_pad((string) $p->id, 5, '0', STR_PAD_LEFT),
-                'project' => $p->name,
-                'price' => $p->price,
-                'paid' => $paid,
-                'remaining' => max(0, ($p->price ?? 0) - $paid),
-                'status' => $p->status,
-            ];
-        }));
+        return response()->json($invoices);
     }
 
     public function payments(Request $request)

@@ -17,8 +17,8 @@ class DashboardController extends Controller
             return response()->json([
                 'role' => 'admin',
                 'total_projects' => Project::count(),
-                'active_projects' => Project::whereIn('status', ['in_progress', 'pending'])->count(),
-                'completed_projects' => Project::whereIn('status', ['completed', 'delivered'])->count(),
+                'active_projects' => Project::whereIn('status', ['scheduled', 'shooting', 'editing', 'awaiting_confirmation'])->count(),
+                'completed_projects' => Project::whereIn('status', ['completed', 'archived'])->count(),
                 'total_clients' => User::role('client')->count(),
                 'total_revenue' => Payment::where('status', 'confirmed')->sum('amount'),
                 'pending_payments' => Payment::where('status', 'pending')->count(),
@@ -46,8 +46,8 @@ class DashboardController extends Controller
         return response()->json([
             'role' => 'client',
             'projects' => $user->projects()->count(),
-            'in_progress' => $user->projects()->where('status', 'in_progress')->count(),
-            'completed' => $user->projects()->whereIn('status', ['completed', 'delivered'])->count(),
+            'in_progress' => $user->projects()->whereIn('status', ['scheduled', 'shooting', 'editing', 'awaiting_confirmation'])->count(),
+            'completed' => $user->projects()->whereIn('status', ['completed', 'archived'])->count(),
             'total_spent' => Payment::whereHas('project', fn ($q) => $q->where('user_id', $user->id))->where('status', 'confirmed')->sum('amount'),
             'recent_projects' => $user->projects()->with('user.profile')->latest()->take(5)->get(),
         ]);

@@ -6,10 +6,12 @@ import { useAuth } from '../context/AuthContext';
 import { PageHeader, Spinner, EmptyState, Modal, Field, useToast, formatRupiah, formatDate } from '../components/ui';
 
 export const statusOptions = [
-    { value: 'pending', label: 'Menunggu', color: 'bg-amber-500/15 text-amber-600 dark:text-amber-400' },
-    { value: 'in_progress', label: 'Berjalan', color: 'bg-sky-500/15 text-sky-600 dark:text-sky-400' },
+    { value: 'scheduled', label: 'Dijadwalkan', color: 'bg-amber-500/15 text-amber-600 dark:text-amber-400' },
+    { value: 'shooting', label: 'Pemotretan', color: 'bg-sky-500/15 text-sky-600 dark:text-sky-400' },
+    { value: 'editing', label: 'Editing', color: 'bg-indigo-500/15 text-indigo-600 dark:text-indigo-400' },
+    { value: 'awaiting_confirmation', label: 'Menunggu Konfirmasi', color: 'bg-orange-500/15 text-orange-600 dark:text-orange-400' },
     { value: 'completed', label: 'Selesai', color: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' },
-    { value: 'delivered', label: 'Terkirim', color: 'bg-brand-500/15 text-brand-600 dark:text-brand-400' },
+    { value: 'archived', label: 'Diarsipkan', color: 'bg-zinc-500/15 text-zinc-600 dark:text-zinc-400' },
 ];
 
 export function statusLabel(value) {

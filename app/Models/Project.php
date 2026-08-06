@@ -9,6 +9,17 @@ class Project extends Model
 {
     use SoftDeletesWithWho;
 
+    public const STATUSES = ['scheduled', 'shooting', 'editing', 'awaiting_confirmation', 'completed', 'archived'];
+
+    public const STATUS_LABELS = [
+        'scheduled' => 'Dijadwalkan',
+        'shooting' => 'Pemotretan',
+        'editing' => 'Editing',
+        'awaiting_confirmation' => 'Menunggu Konfirmasi',
+        'completed' => 'Selesai',
+        'archived' => 'Diarsipkan',
+    ];
+
     protected $fillable = [
         'user_id', 'name', 'type', 'package_id', 'event_date', 'description',
         'price', 'pricing_snapshot', 'status', 'start_date', 'end_date',
@@ -31,6 +42,21 @@ class Project extends Model
     public function package()
     {
         return $this->belongsTo(Package::class);
+    }
+
+    public function booking()
+    {
+        return $this->hasOne(Booking::class);
+    }
+
+    public function invoice()
+    {
+        return $this->hasOne(Invoice::class);
+    }
+
+    public function reviews()
+    {
+        return $this->hasMany(Review::class);
     }
 
     public function isArchived(): bool
@@ -87,5 +113,26 @@ class Project extends Model
     public function remainingBalance()
     {
         return ($this->price ?? 0) - $this->totalPaid();
+    }
+
+    public function isPaid(): bool
+    {
+        return $this->remainingBalance() <= 0;
+    }
+
+    public function statusLabel(): string
+    {
+        return self::STATUS_LABELS[$this->status] ?? $this->status;
+    }
+
+    /** Tambah event Timeline SISTEM (auto). */
+    public function addSystemUpdate(string $message): void
+    {
+        ProjectUpdate::create([
+            'project_id' => $this->id,
+            'message' => $message,
+            'type' => 'milestone',
+            'kind' => 'system',
+        ]);
     }
 }

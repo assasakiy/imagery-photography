@@ -13,7 +13,7 @@ class ReviewController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Review::with('client');
+        $query = Review::with(['client', 'project']);
 
         if ($request->filled('status')) {
             $query->where('status', $request->input('status'));
@@ -34,31 +34,46 @@ class ReviewController extends Controller
         $user = $request->user();
 
         $data = $request->validate([
+            'project_id' => 'required|exists:projects,id',
             'name' => 'required|string|max:255',
             'service' => 'nullable|string|max:255',
             'rating' => 'required|integer|between:1,5',
+            'recommend_score' => 'nullable|integer|between:0,10',
+            'title' => 'nullable|string|max:255',
             'content' => 'required|string|max:2000',
         ]);
 
-        $data['content'] = ContentSanitizer::plainText($data['content']);
+        $project = $user->projects()->findOrFail($data['project_id']);
 
-        $existing = Review::where('client_id', $user->id)->first();
-
-        if ($existing) {
-            return response()->json(['message' => 'Anda sudah mengirim review.'], 422);
+        if (!$project->isPaid() || $project->status !== 'completed') {
+            abort(403, 'Review hanya dapat diberikan setelah proyek selesai dan lunas.');
         }
 
-        $review = Review::create($data + [
+        $existing = Review::where('client_id', $user->id)->where('project_id', $project->id)->first();
+        if ($existing) {
+            return response()->json(['message' => 'Anda sudah memberikan review untuk proyek ini.'], 422);
+        }
+
+        $data['content'] = ContentSanitizer::plainText($data['content']);
+
+        $review = Review::create([
             'client_id' => $user->id,
+            'project_id' => $project->id,
+            'name' => $data['name'],
+            'service' => $data['service'],
+            'rating' => $data['rating'],
+            'recommend_score' => $data['recommend_score'] ?? null,
+            'title' => $data['title'] ?? null,
+            'content' => $data['content'],
             'status' => 'pending',
         ]);
 
-        app(\App\Services\AuditLogger::class)->log('review.created', 'Review baru dari ' . $review->name, $review);
+        app(\App\Services\AuditLogger::class)->log('review.created', 'Review baru dari ' . $review->name . ' untuk ' . $project->name, $review);
 
         app(NotificationService::class)->inApp(
             \App\Models\User::role(['owner', 'admin'])->get(),
             'Review baru menunggu persetujuan',
-            "{$review->name} memberi rating {$review->rating}/5.",
+            "{$review->name} memberi rating {$review->rating}/5 untuk {$project->name}.",
             '/dashboard/reviews',
             'review.new'
         );
@@ -72,6 +87,8 @@ class ReviewController extends Controller
             'name' => 'sometimes|string|max:255',
             'service' => 'nullable|string|max:255',
             'rating' => 'sometimes|integer|between:1,5',
+            'recommend_score' => 'nullable|integer|between:0,10',
+            'title' => 'nullable|string|max:255',
             'content' => 'sometimes|string|max:2000',
             'order' => 'integer|min:0',
         ]);
@@ -92,6 +109,7 @@ class ReviewController extends Controller
             'status' => 'required|string|in:approved,rejected,pending',
         ]);
 
+        $data['published_at'] = $data['status'] === 'approved' ? now() : null;
         $review->update($data);
 
         if ($data['status'] === 'approved' && $review->client) {
@@ -99,7 +117,7 @@ class ReviewController extends Controller
                 $review->client,
                 'Review Anda disetujui',
                 'Terima kasih! Review Anda sudah tampil di website.',
-                '/dashboard/reviews',
+                '/dashboard/projects/' . $review->project_id . '?tab=review',
                 'review.approved'
             );
         }
@@ -120,14 +138,24 @@ class ReviewController extends Controller
         return [
             'id' => $review->id,
             'client_id' => $review->client_id,
-            'client_name' => $review->client?->name,
+            'project_id' => $review->project_id,
+            'project' => $review->project?->name,
             'name' => $review->name,
             'service' => $review->service,
             'rating' => $review->rating,
+            'recommend_score' => $review->recommend_score,
+            'title' => $review->title,
             'content' => $review->content,
             'status' => $review->status,
+            'published_at' => $review->published_at,
             'order' => $review->order,
             'created_at' => $review->created_at,
+            'client' => $review->client ? [
+                'id' => $review->client->id,
+                'name' => $review->client->name,
+                'email' => $review->client->email,
+                'avatar' => $review->client->avatar(),
+            ] : null,
         ];
     }
 }

@@ -47,15 +47,15 @@
                         </div>
 
                         <div>
-                            <label for="phone" class="label">No. WhatsApp <span class="text-amber-600">(opsional jika email diisi)</span></label>
-                            <input type="text" id="phone" name="phone" value="{{ old('phone') }}" class="input" placeholder="08xxxxxxxxxx">
-                            @error('phone') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
+                            <label for="email" class="label">Email <span class="text-red-500">*</span></label>
+                            <input type="email" id="email" name="email" value="{{ old('email') }}" required class="input" placeholder="email@contoh.com">
+                            @error('email') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
                         </div>
 
                         <div>
-                            <label for="email" class="label">Email <span class="text-amber-600">(opsional jika WA diisi)</span></label>
-                            <input type="email" id="email" name="email" value="{{ old('email') }}" class="input" placeholder="email@contoh.com">
-                            @error('email') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
+                            <label for="phone" class="label">No. WhatsApp <span class="text-amber-600">(opsional)</span></label>
+                            <input type="text" id="phone" name="phone" value="{{ old('phone') }}" class="input" placeholder="08xxxxxxxxxx">
+                            @error('phone') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
                         </div>
                     </div>
 
@@ -77,19 +77,25 @@
                         </div>
 
                         <div>
-                            <label for="package" class="label">Paket / Jenis Acara</label>
-                            <select id="package" name="package" class="input">
+                            <label for="package_id" class="label">Paket / Jenis Acara</label>
+                            <select id="package_id" name="package_id" class="input">
                                 <option value="">Pilih paket...</option>
                                 @foreach ($packages as $pkg)
-                                    <option value="{{ $pkg['name'] }}" {{ old('package') === $pkg['name'] ? 'selected' : '' }}>{{ $pkg['name'] }}{{ $pkg['price'] ? ' — Rp ' . number_format($pkg['price'], 0, ',', '.') : '' }}</option>
+                                    <option value="{{ $pkg['id'] }}" {{ old('package_id') == $pkg['id'] ? 'selected' : '' }}>{{ $pkg['name'] }}{{ $pkg['price'] ? ' — Rp ' . number_format($pkg['price'], 0, ',', '.') : '' }}</option>
                                 @endforeach
                             </select>
-                            @error('package') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
+                            @error('package_id') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
+                        </div>
+
+                        <div>
+                            <label for="location" class="label">Lokasi Acara</label>
+                            <input type="text" id="location" name="location" value="{{ old('location') }}" class="input" placeholder="Alamat / tempat acara">
+                            @error('location') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
                         </div>
                     </div>
 
                     <div>
-                        <label for="message" class="label">Pesan Tambahan</label>
+                        <label for="message" class="label">Catatan</label>
                         <textarea id="message" name="message" rows="4" class="input" placeholder="Ceritakan kebutuhan Anda...">{{ old('message') }}</textarea>
                         @error('message') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
                     </div>

@@ -7,11 +7,13 @@ import api from '../api';
 
 const adminNav = [
     { to: '/dashboard', icon: 'dashboard', label: 'Dashboard', end: true },
+    { to: '/dashboard/bookings', icon: 'calendar', label: 'Booking' },
     { to: '/dashboard/portfolios', icon: 'images', label: 'Portofolio' },
     { to: '/dashboard/media', icon: 'image', label: 'Media' },
     { to: '/dashboard/services', icon: 'briefcase', label: 'Layanan' },
     { to: '/dashboard/clients', icon: 'users', label: 'Klien' },
     { to: '/dashboard/projects', icon: 'folder-open', label: 'Proyek' },
+    { to: '/dashboard/invoices', icon: 'file-text', label: 'Tagihan' },
     { to: '/dashboard/payments', icon: 'credit-card', label: 'Pembayaran' },
     { to: '/dashboard/messages', icon: 'message-circle', label: 'Pesan' },
     { to: '/dashboard/reviews', icon: 'star', label: 'Review' },
@@ -34,9 +36,7 @@ const clientNav = [
     { to: '/dashboard/projects', icon: 'folder-open', label: 'Pesanan' },
     { to: '/dashboard/client-bookings', icon: 'calendar', label: 'Booking' },
     { to: '/dashboard/client-invoices', icon: 'credit-card', label: 'Tagihan' },
-    { to: '/dashboard/client-gallery', icon: 'image', label: 'Galeri Saya' },
     { to: '/dashboard/client-messages', icon: 'message-circle', label: 'Pesan' },
-    { to: '/dashboard/reviews', icon: 'star', label: 'Review' },
     { to: '/dashboard/bookmarks', icon: 'heart', label: 'Bookmark' },
     { to: '/dashboard/history', icon: 'clock', label: 'Riwayat' },
 ];
@@ -68,6 +68,9 @@ export default function Layout() {
     const siteName = appConfig.siteName || 'Sopian Lalu Imagery';
     const siteFavicon = appConfig.favicon || '';
 
+    const [unreadMessages, setUnreadMessages] = useState(0);
+    const [unreadBookings, setUnreadBookings] = useState(0);
+
     useEffect(() => {
         document.title = `${siteName} — Dashboard`;
         if (siteFavicon) {
@@ -78,7 +81,13 @@ export default function Layout() {
 
     useEffect(() => {
         if (!user) return;
-        const load = () => api.get('/notifications/unread-count').then(({ data }) => setUnread(data.count)).catch(() => {});
+        const load = () => {
+            api.get('/notifications/unread-count').then(({ data }) => setUnread(data.count)).catch(() => {});
+            if (['admin', 'owner'].includes(user.role)) {
+                api.get('/messages-unread/count').then(({ data }) => setUnreadMessages(data.count)).catch(() => {});
+                api.get('/bookings', { params: { per_page: 1, status: 'pending' } }).then(({ data }) => setUnreadBookings(data.total)).catch(() => {});
+            }
+        };
         load();
         const timer = setInterval(load, 45000);
         return () => clearInterval(timer);
@@ -142,9 +151,14 @@ export default function Layout() {
                         >
                             <Icon name={item.icon} size={18} />
                             <span>{item.label}</span>
-                            {item.to === '/dashboard/messages' && unread > 0 && (
+                            {item.to === '/dashboard/messages' && unreadMessages > 0 && (
                                 <span className="ml-auto rounded-full bg-red-500 px-2 py-0.5 text-xs font-bold text-white">
-                                    {unread}
+                                    {unreadMessages}
+                                </span>
+                            )}
+                            {item.to === '/dashboard/bookings' && unreadBookings > 0 && (
+                                <span className="ml-auto rounded-full bg-amber-500 px-2 py-0.5 text-xs font-bold text-white">
+                                    {unreadBookings}
                                 </span>
                             )}
                         </NavLink>

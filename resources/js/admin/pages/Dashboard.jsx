@@ -147,9 +147,12 @@ export default function Dashboard() {
 export function StatusBadge({ status }) {
     const map = {
         pending: ['bg-amber-500/15 text-amber-600 dark:text-amber-400', 'Menunggu'],
-        in_progress: ['bg-sky-500/15 text-sky-600 dark:text-sky-400', 'Dikerjakan'],
+        scheduled: ['bg-amber-500/15 text-amber-600 dark:text-amber-400', 'Dijadwalkan'],
+        shooting: ['bg-sky-500/15 text-sky-600 dark:text-sky-400', 'Pemotretan'],
+        editing: ['bg-indigo-500/15 text-indigo-600 dark:text-indigo-400', 'Editing'],
+        awaiting_confirmation: ['bg-orange-500/15 text-orange-600 dark:text-orange-400', 'Menunggu Konfirmasi'],
         completed: ['bg-emerald-500/15 text-emerald-600 dark:text-emerald-400', 'Selesai'],
-        delivered: ['bg-brand-500/15 text-brand-600 dark:text-brand-400', 'Diserahkan'],
+        archived: ['bg-zinc-500/15 text-zinc-600 dark:text-zinc-400', 'Diarsipkan'],
         confirmed: ['bg-emerald-500/15 text-emerald-600 dark:text-emerald-400', 'Dikonfirmasi'],
         failed: ['bg-red-500/15 text-red-600 dark:text-red-400', 'Gagal'],
     };
