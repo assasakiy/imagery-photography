@@ -52,7 +52,7 @@ class RecycleBinController extends Controller
     private function clientItems(): array
     {
         $users = User::role('client')
-            ->with(['profile', 'deletedBy:id,name'])
+            ->with(['profile', 'deletedBy:id,username', 'deletedBy.profile'])
             ->onlyTrashed()
             ->latest('deleted_at')
             ->get();

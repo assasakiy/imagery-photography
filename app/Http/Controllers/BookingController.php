@@ -39,8 +39,8 @@ class BookingController extends Controller
     {
         $data = $request->validate([
             'name' => 'required|string|max:255',
-            'phone' => 'required|string|max:20',
-            'email' => 'nullable|email|max:255',
+            'phone' => 'required_without:email|nullable|string|max:20',
+            'email' => 'required_without:phone|nullable|email|max:255',
             'event_date' => 'nullable|date',
             'package' => 'nullable|string|max:255',
             'message' => 'nullable|string',
@@ -54,7 +54,7 @@ class BookingController extends Controller
         $notifications = app(NotificationService::class);
         $notifications->toAdmins(
             'Booking baru: ' . $booking->name,
-            "{$booking->name} ({$booking->phone}) memesan untuk " . ($booking->package ?: 'paket umum') . ($booking->event_date ? ' pada ' . $booking->event_date : '') . '.',
+            "{$booking->name} (" . ($booking->phone ?: $booking->email) . ") memesan untuk " . ($booking->package ?: 'paket umum') . ($booking->event_date ? ' pada ' . $booking->event_date : '') . '.',
             '/dashboard/messages/' . $booking->id,
             'booking.new'
         );
@@ -67,8 +67,19 @@ class BookingController extends Controller
             'package' => $booking->package,
         ]);
 
-        app(\App\Services\AuditLogger::class)->log('booking.created', 'Booking baru: ' . $booking->name . ' (' . $booking->phone . ')', $booking);
+        app(\App\Services\AuditLogger::class)->log('booking.created', 'Booking baru: ' . $booking->name . ' (' . ($booking->phone ?: $booking->email) . ')', $booking);
 
-        return back()->with('success', 'Booking diterima! Kami akan menghubungi Anda via WhatsApp segera.');
+        app(\App\Services\ClientRegistrationService::class)->registerWithInvite(
+            [
+                'name' => $data['name'],
+                'email' => $data['email'] ?? null,
+                'phone' => $data['phone'] ?? null,
+            ],
+            'client',
+            null,
+            $booking
+        );
+
+        return back()->with('success', 'Booking diterima! Kami akan menghubungi Anda via WhatsApp segera. Akun klien Anda telah dibuat — cek WhatsApp/Email Anda untuk mengaktifkan akun.');
     }
 }

@@ -38,28 +38,21 @@ class ClientController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'name' => 'nullable|string|max:255',
-            'full_name' => 'nullable|string|max:255',
-            'email' => 'nullable|email|max:255',
-            'phone' => 'nullable|string|max:20',
-            'username' => 'nullable|string|max:255|unique:users,username',
+            'name' => 'required|string|max:255',
+            'email' => 'nullable|email|max:255|required_without:phone',
+            'phone' => 'nullable|string|max:20|required_without:email',
             'company' => 'nullable|string|max:255',
-            'bio' => 'nullable|string',
-            'avatar' => 'nullable|string',
-            'cover' => 'nullable|string',
             'occupation' => 'nullable|string|max:255',
-            'website' => 'nullable|string|max:255',
         ]);
 
         $reg = app(ClientRegistrationService::class);
         $result = $reg->registerWithInvite(
             [
-                'name' => $data['name'] ?? $data['full_name'] ?? null,
+                'name' => $data['name'],
                 'email' => $data['email'] ?? null,
                 'phone' => $data['phone'] ?? null,
-                'username' => $data['username'] ?? null,
                 'company' => $data['company'] ?? null,
-                'bio' => $data['bio'] ?? null,
+                'occupation' => $data['occupation'] ?? null,
             ],
             'client',
             null,
@@ -67,32 +60,31 @@ class ClientController extends Controller
         );
 
         $user = $result['user'];
-        $this->updateProfile($user, $data);
 
         app(AuditLogger::class)->log('client.created', 'Klien dibuat: ' . $user->name, $user);
 
-        return response()->json($this->serialize($user->loadCount('projects')), 201);
+        return response()->json([
+            'user' => $this->serialize($user->loadCount('projects')),
+            'invite' => [
+                'url' => $result['invite']->url,
+                'expires_at' => $result['invite']->expires_at,
+            ],
+            'credentials' => $this->credentialsPayload($user),
+        ], 201);
     }
 
     public function update(Request $request, User $user)
     {
         $data = $request->validate([
-            'email' => 'nullable|email|max:255|unique:users,email,' . $user->id,
-            'phone' => 'nullable|string|max:20|unique:users,phone,' . $user->id,
-            'username' => 'nullable|string|max:255|unique:users,username,' . $user->id,
-            'full_name' => 'nullable|string|max:255',
+            'name' => 'required|string|max:255',
+            'email' => 'nullable|email|max:255|required_without:phone|unique:users,email,' . $user->id,
+            'phone' => 'nullable|string|max:20|required_without:email|unique:users,phone,' . $user->id,
             'company' => 'nullable|string|max:255',
-            'bio' => 'nullable|string',
             'occupation' => 'nullable|string|max:255',
-            'website' => 'nullable|string|max:255',
-            'avatar' => 'nullable|string',
-            'cover' => 'nullable|string',
-            'birth_date' => 'nullable|date',
-            'gender' => 'nullable|string|in:male,female,other',
         ]);
 
-        $user->update(collect($data)->only('email', 'phone', 'username')->all());
-        $this->updateProfile($user, $data);
+        $user->update(collect($data)->only('email', 'phone')->all());
+        $this->updateProfile($user, ['full_name' => $data['name'], 'company' => $data['company'] ?? null, 'occupation' => $data['occupation'] ?? null]);
 
         app(AuditLogger::class)->log('client.updated', 'Klien diperbarui: ' . $user->name, $user);
 
@@ -208,10 +200,17 @@ class ClientController extends Controller
 
     public function credentials(User $user)
     {
-        return response()->json([
+        return response()->json($this->credentialsPayload($user));
+    }
+
+    private function credentialsPayload(User $user): array
+    {
+        return [
             'id' => $user->id,
             'username' => $user->username,
+            'name' => $user->name,
             'email' => $user->email,
+            'phone' => $user->phone,
             'status' => $user->status,
             'has_password' => !empty($user->password),
             'tokens' => $user->accessTokens()
@@ -224,7 +223,7 @@ class ClientController extends Controller
                     'expires_at' => $t->expires_at,
                     'url' => $t->url,
                 ]),
-        ]);
+        ];
     }
 
     private function serialize(User $user): array

@@ -18,7 +18,7 @@ class LandingPageController extends Controller
         $portfolios = Portfolio::where('is_featured', true)->orderBy('order')->take(6)->get();
         $services = Service::active()->orderBy('order')->get();
         $packages = Package::with('services')->active()->orderBy('display_order')->take(3)->get();
-        $blogs = Blog::with('author:id,name')->published()->orderByDesc('published_at')->take(3)->get();
+        $blogs = Blog::with(['author:id,username', 'author.profile'])->published()->orderByDesc('published_at')->take(3)->get();
         $faqs = Faq::where('published', true)->orderBy('order')->get();
         $reviews = Review::approved()->orderBy('order')->orderByDesc('id')->take(6)->get();
 

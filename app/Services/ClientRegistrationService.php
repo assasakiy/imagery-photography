@@ -71,25 +71,15 @@ class ClientRegistrationService
     }
 
     /**
-     * Aktivasi: username (opsional gunakan yang diberikan), password, full_name → status active.
+     * Aktivasi: password → status active. Username/full_name tidak diubah (sudah diatur saat create).
      */
-    public function activate(User $user, string $password, ?string $username = null, ?string $fullName = null): void
+    public function activate(User $user, string $password): void
     {
-        $updates = [
+        $user->update([
             'password' => Hash::make($password),
             'status' => 'active',
             'activated_at' => now(),
-        ];
-
-        if ($username && $username !== $user->username) {
-            $updates['username'] = $username;
-        }
-
-        $user->update($updates);
-
-        if ($fullName) {
-            $user->profile()->updateOrCreate([], ['full_name' => $fullName]);
-        }
+        ]);
 
         ClientAccessToken::where('user_id', $user->id)
             ->where('purpose', 'invite')
@@ -134,6 +124,7 @@ class ClientRegistrationService
             'full_name' => $data['name'] ?? $data['full_name'] ?? null,
             'bio' => $data['bio'] ?? null,
             'company' => $data['company'] ?? null,
+            'occupation' => $data['occupation'] ?? null,
         ]);
 
         return $user;

@@ -80,6 +80,30 @@ export default function ProfileSettings() {
     const [deleteOpen, setDeleteOpen] = useState(false);
     const [deleting, setDeleting] = useState(false);
 
+    const [usernameStatus, setUsernameStatus] = useState({ checking: false, available: null });
+
+    useEffect(() => {
+        const raw = (profile.username || '').trim();
+        if (!raw || raw === (user?.username || '')) {
+            setUsernameStatus({ checking: false, available: null });
+            return;
+        }
+        if (!/^[a-zA-Z0-9_]+$/.test(raw)) {
+            setUsernameStatus({ checking: false, available: false });
+            return;
+        }
+        setUsernameStatus({ checking: true, available: null });
+        const t = setTimeout(async () => {
+            try {
+                const { data } = await api.get('/username-check', { params: { username: raw } });
+                setUsernameStatus({ checking: false, available: data.available });
+            } catch {
+                setUsernameStatus({ checking: false, available: null });
+            }
+        }, 400);
+        return () => clearTimeout(t);
+    }, [profile.username]);
+
     useEffect(() => {
         api.get('/profile')
             .then(({ data }) => {
@@ -378,8 +402,36 @@ export default function ProfileSettings() {
                                 <Field label="Nama" required error={errors.full_name?.[0]}>
                                     <input className="input" value={profile.full_name} onChange={(e) => setProfile({ ...profile, full_name: e.target.value })} required />
                                 </Field>
-                                <Field label="Username" hint="untuk login" error={errors.username?.[0]}>
-                                    <input className="input" autoComplete="off" value={profile.username || ''} onChange={(e) => setProfile({ ...profile, username: e.target.value })} />
+                                <Field
+                                    label="Username"
+                                    hint={
+                                        usernameStatus.checking
+                                            ? 'Memeriksa…'
+                                            : usernameStatus.available === false
+                                                ? 'Username sudah dipakai.'
+                                                : 'untuk login'
+                                    }
+                                    error={errors.username?.[0] || (usernameStatus.available === false && !errors.username?.[0] ? ['Username sudah dipakai.'] : undefined)}
+                                >
+                                    <div className="relative">
+                                        <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted">@</span>
+                                        <input
+                                            className={`input pl-7 ${usernameStatus.available === false ? '!border-red-500' : usernameStatus.available === true ? '!border-emerald-500' : ''}`}
+                                            autoComplete="off"
+                                            value={profile.username || ''}
+                                            onChange={(e) => setProfile({ ...profile, username: e.target.value })}
+                                        />
+                                        {usernameStatus.available === true && (
+                                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-emerald-500">
+                                                <Icon name="check" size={16} />
+                                            </span>
+                                        )}
+                                        {usernameStatus.available === false && (
+                                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-red-500">
+                                                <Icon name="x" size={16} />
+                                            </span>
+                                        )}
+                                    </div>
                                 </Field>
                             </div>
                             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">

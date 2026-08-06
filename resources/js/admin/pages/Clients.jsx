@@ -3,7 +3,7 @@ import api from '../api';
 import Icon from '../components/Icon';
 import { PageHeader, Spinner, EmptyState, Modal, Confirm, Field, useToast, formatDate } from '../components/ui';
 
-const emptyForm = { full_name: '', username: '', email: '', phone: '', company: '', occupation: '', website: '', notes: '' };
+const emptyForm = { name: '', email: '', phone: '', company: '', occupation: '' };
 
 export default function Clients() {
     const [items, setItems] = useState([]);
@@ -40,8 +40,9 @@ export default function Clients() {
         if (!creds) return;
         setIssuing(purpose);
         try {
-            const { data } = await api.post(`/clients/${creds.client_id}/token/${purpose}`, { send, expires_hours: inviteHours || undefined });
+            const { data } = await api.post(`/clients/${creds.id}/token/${purpose}`, { send, expires_hours: inviteHours || undefined });
             show(purpose === 'invite' ? 'Undangan dibuat & dikirim.' : 'Tautan dibuat' + (send ? ' & dikirim.' : '.'));
+            openCreds({ id: creds.id });
         } catch {
             show('Gagal membuat tautan.', 'error');
         } finally {
@@ -52,6 +53,7 @@ export default function Clients() {
     const toggleStatus = async (id, status) => {
         await api.post(`/clients/${id}/${status}`);
         show(status === 'disable' ? 'Akun dinonaktifkan.' : 'Akun diaktifkan.');
+        openCreds({ id });
         load(meta.current_page);
     };
 
@@ -60,6 +62,7 @@ export default function Clients() {
         show('Klien dipindah ke Recycle Bin.');
         setDeleteTarget(null);
         setDeleteReason('');
+        setCreds(null);
         load(meta.current_page);
     };
 
@@ -86,7 +89,7 @@ export default function Clients() {
 
     const openEdit = (item) => {
         setEditing(item);
-        setForm({ full_name: item.name, username: item.username || '', email: item.email || '', phone: item.phone || '', company: item.company || '', occupation: item.occupation || '', website: item.website || '', notes: item.notes || '' });
+        setForm({ name: item.name, email: item.email || '', phone: item.phone || '', company: item.company || '', occupation: item.occupation || '' });
         setErrors({});
         setOpen(true);
     };
@@ -99,18 +102,23 @@ export default function Clients() {
             if (editing) {
                 await api.put(`/clients/${editing.id}`, form);
                 show('Klien diperbarui.');
+                load(meta.current_page);
+                setOpen(false);
             } else {
-                await api.post('/clients', form);
+                const { data } = await api.post('/clients', form);
                 show('Klien ditambahkan.');
+                load(meta.current_page);
+                setOpen(false);
+                setCreds(data.credentials);
             }
-            load(meta.current_page);
-            setOpen(false);
         } catch (err) {
             if (err.response?.data?.errors) setErrors(err.response.data.errors);
         } finally {
             setSaving(false);
         }
     };
+
+    const update = (key, value) => setForm((f) => ({ ...f, [key]: value }));
 
     return (
         <>
@@ -149,7 +157,7 @@ export default function Clients() {
                     <table className="table">
                         <thead>
                             <tr>
-                                                                <th>Nama</th>
+                                <th>Nama</th>
                                 <th>Kontak</th>
                                 <th>Status</th>
                                 <th>Project</th>
@@ -173,11 +181,11 @@ export default function Clients() {
                                         <p className="text-xs text-ink-muted">{item.phone || '-'}</p>
                                     </td>
                                     <td>
-                                        <span className={`badge ${item.user?.status === 'active' ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' : item.user?.status === 'pending' ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400' : 'bg-zinc-500/15 text-ink-muted'}`}>
-                                            {item.user?.status === 'active' ? 'Aktif' : item.user?.status === 'pending' ? 'Menunggu' : item.user?.status === 'disabled' ? 'Nonaktif' : 'Tanpa akun'}
+                                        <span className={`badge ${item.status === 'active' ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' : item.status === 'pending' ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400' : 'bg-zinc-500/15 text-ink-muted'}`}>
+                                            {item.status === 'active' ? 'Aktif' : item.status === 'pending' ? 'Menunggu' : item.status === 'disabled' ? 'Nonaktif' : 'Tanpa akun'}
                                         </span>
                                     </td>
-                                    <td><span className="badge">{item.projects?.length ?? 0} project</span></td>
+                                    <td><span className="badge">{item.projects_count ?? 0} project</span></td>
                                     <td className="text-sm text-ink-muted">{formatDate(item.created_at)}</td>
                                     <td>
                                         <div className="flex gap-1">
@@ -219,30 +227,22 @@ export default function Clients() {
                 </div>
             }>
                 <form id="client-form" onSubmit={handleSubmit} className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    <Field label="Nama" required error={errors.full_name?.[0]}>
-                        <input className="input" value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} required />
+                    <Field label="Nama" required error={errors.name?.[0]}>
+                        <input className="input" value={form.name} onChange={(e) => update('name', e.target.value)} required placeholder="Nama lengkap" />
                     </Field>
-                    <Field label="Username" hint="opsional, untuk login" error={errors.username?.[0]}>
-                        <input className="input" autoComplete="off" value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value })} />
+                    <Field label="Email" hint="wajib jika WhatsApp kosong" error={errors.email?.[0]}>
+                        <input className="input" type="email" value={form.email} onChange={(e) => update('email', e.target.value)} placeholder="email@contoh.com" />
                     </Field>
-                    <Field label="Email" hint="opsional" error={errors.email?.[0]}>
-                        <input className="input" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
-                    </Field>
-                    <Field label="Telepon / WhatsApp" hint="opsional" error={errors.phone?.[0]}>
-                        <input className="input" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+                    <Field label="Telepon / WhatsApp" hint="wajib jika email kosong" error={errors.phone?.[0]}>
+                        <input className="input" value={form.phone} onChange={(e) => update('phone', e.target.value)} placeholder="08xxxxxxxxxx" />
                     </Field>
                     <Field label="Perusahaan" hint="opsional" error={errors.company?.[0]}>
-                        <input className="input" value={form.company} onChange={(e) => setForm({ ...form, company: e.target.value })} />
+                        <input className="input" value={form.company} onChange={(e) => update('company', e.target.value)} />
                     </Field>
                     <Field label="Pekerjaan" hint="opsional" error={errors.occupation?.[0]}>
-                        <input className="input" value={form.occupation} onChange={(e) => setForm({ ...form, occupation: e.target.value })} />
+                        <input className="input" value={form.occupation} onChange={(e) => update('occupation', e.target.value)} />
                     </Field>
-                    <Field label="Website" hint="opsional" error={errors.website?.[0]}>
-                        <input className="input" value={form.website} onChange={(e) => setForm({ ...form, website: e.target.value })} />
-                    </Field>
-                    <Field label="Catatan" hint="opsional" error={errors.notes?.[0]}>
-                        <textarea className="input min-h-[80px]" value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
-                    </Field>
+                    <p className="text-xs text-ink-muted sm:col-span-2">Email atau WhatsApp (minimal satu) akan dipakai untuk login & menerima tautan aktivasi. Username dibuat otomatis dan bisa diubah di profil.</p>
                 </form>
             </Modal>
 
@@ -270,6 +270,10 @@ export default function Clients() {
                                 <p className="font-semibold text-ink">{creds.name}</p>
                             </div>
                             <div className="rounded-xl bg-surface-muted p-3">
+                                <p className="text-xs text-ink-muted">Username</p>
+                                <p className="truncate text-sm text-ink">@{creds.username}</p>
+                            </div>
+                            <div className="rounded-xl bg-surface-muted p-3">
                                 <p className="text-xs text-ink-muted">Email</p>
                                 <p className="truncate text-sm text-ink">{creds.email || '-'}</p>
                             </div>
@@ -280,7 +284,7 @@ export default function Clients() {
                             <div className="rounded-xl bg-surface-muted p-3">
                                 <p className="text-xs text-ink-muted">Akun</p>
                                 <p className="text-sm text-ink">
-                                    {creds.user?.has_password ? 'Kata sandi aktif' : 'Belum ada kata sandi'}
+                                    {creds.has_password ? 'Kata sandi aktif' : 'Belum ada kata sandi'}
                                 </p>
                             </div>
                         </div>
@@ -316,17 +320,17 @@ export default function Clients() {
                         <div className="border-t border-line pt-4">
                             <label className="label">Status Akun</label>
                             <div className="flex flex-wrap gap-2">
-                                {creds.user?.status !== 'active' && (
-                                    <button className="btn-outline" onClick={() => toggleStatus(creds.client_id, 'activate')}>
+                                {creds.status !== 'active' && (
+                                    <button className="btn-outline" onClick={() => toggleStatus(creds.id, 'activate')}>
                                         <Icon name="check" size={16} /> Aktifkan
                                     </button>
                                 )}
-                                {creds.user?.status === 'active' && (
-                                    <button className="btn-outline" onClick={() => toggleStatus(creds.client_id, 'disable')}>
+                                {creds.status === 'active' && (
+                                    <button className="btn-outline" onClick={() => toggleStatus(creds.id, 'disable')}>
                                         <Icon name="x" size={16} /> Nonaktifkan
                                     </button>
                                 )}
-                                <button className="btn bg-red-600 text-white hover:bg-red-700" onClick={() => setDeleteTarget({ id: creds.client_id })}>
+                                <button className="btn bg-red-600 text-white hover:bg-red-700" onClick={() => setDeleteTarget({ id: creds.id })}>
                                     <Icon name="trash" size={16} /> Hapus
                                 </button>
                             </div>
@@ -336,8 +340,8 @@ export default function Clients() {
                             <div>
                                 <label className="label">Tautan Terbaru</label>
                                 <div className="space-y-2">
-                                    {creds.tokens.map((t) => (
-                                        <div key={t.id || t.token} className="flex items-center gap-2 rounded-lg bg-surface-muted px-3 py-2 text-xs">
+                                    {creds.tokens.map((t, i) => (
+                                        <div key={t.token || i} className="flex items-center gap-2 rounded-lg bg-surface-muted px-3 py-2 text-xs">
                                             <span className="badge">{t.purpose}</span>
                                             <code className="flex-1 truncate text-ink">{t.token}</code>
                                             <span className="text-ink-muted">{t.used_at ? 'dipakai' : formatDate(t.created_at)}</span>

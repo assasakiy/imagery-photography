@@ -2,7 +2,7 @@
 
 @php
     $author = $post->author;
-    $authorAvatar = $author?->resolveAvatarUrl();
+    $authorAvatar = $author?->avatar();
     $authorName = $author?->name ?? 'Sopian Lalu Imagery';
     $authorInitials = trim(
         collect(explode(' ', preg_replace('/[^a-zA-Z0-9 ]/', '', $authorName)))

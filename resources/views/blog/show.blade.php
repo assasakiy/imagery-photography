@@ -21,7 +21,7 @@
 
             @php
                 $author = $post->author;
-                $authorAvatar = $author?->resolveAvatarUrl();
+                $authorAvatar = $author?->avatar();
                 $authorName = $author?->name ?? 'Sopian Lalu Imagery';
                 $authorInitials = trim(
                     collect(explode(' ', preg_replace('/[^a-zA-Z0-9 ]/', '', $authorName)))
@@ -115,8 +115,8 @@
                             <div class="p-4">
                                 <h3 class="line-clamp-2 font-bold leading-snug text-ink transition-colors group-hover:text-brand-600 dark:group-hover:text-brand-400">{{ $item->title }}</h3>
                                 <div class="mt-2 flex items-center gap-2">
-                                    @if ($item->author?->resolveAvatarUrl())
-                                        <img src="{{ $item->author->resolveAvatarUrl() }}" alt="{{ $item->author->name }}" loading="lazy" class="h-5 w-5 rounded-full object-cover">
+                                    @if ($item->author?->avatar())
+                                        <img src="{{ $item->author->avatar() }}" alt="{{ $item->author->name }}" loading="lazy" class="h-5 w-5 rounded-full object-cover">
                                     @endif
                                     <span class="text-xs text-ink-muted">{{ $item->author?->name ?? 'Sopian Lalu Imagery' }} · {{ $item->published_at?->translatedFormat('d M Y') }}</span>
                                 </div>

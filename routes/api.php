@@ -55,6 +55,7 @@ Route::middleware(['web', 'auth:sanctum', 'maintenance'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'show']);
     Route::put('/profile', [ProfileController::class, 'update']);
     Route::delete('/profile', [ProfileController::class, 'destroy']);
+    Route::get('/username-check', [ProfileController::class, 'checkUsername']);
 
     Route::middleware('permission:submit-reviews')->group(function () {
         Route::get('/reviews/my', [ReviewController::class, 'myReview']);
@@ -157,6 +158,8 @@ Route::middleware(['web', 'auth:sanctum', 'maintenance'])->group(function () {
         Route::post('/team', [TeamController::class, 'store']);
         Route::put('/team/{user}', [TeamController::class, 'update']);
         Route::delete('/team/{user}', [TeamController::class, 'destroy']);
+        Route::get('/team/{user}/credentials', [TeamController::class, 'credentials']);
+        Route::post('/team/{user}/token/{purpose}', [TeamController::class, 'issueToken'])->whereIn('purpose', ['invite', 'recovery']);
 
         Route::get('/team-members', [TeamMemberController::class, 'index']);
         Route::post('/team-members', [TeamMemberController::class, 'store']);

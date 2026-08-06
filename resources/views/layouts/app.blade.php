@@ -35,7 +35,7 @@
         if ($authUser) {
             $authInitials = collect(explode(' ', trim($authUser->name ?? '?')))->filter()->take(2)->map(fn ($w) => strtoupper(mb_substr($w, 0, 1)))->join('');
             $authRole = ($authUser->roles->pluck('name')->first() ?? 'client');
-            $authAvatar = $authUser->resolveAvatarUrl();
+            $authAvatar = $authUser->avatar();
             $onDashboard = Route::is('dashboard');
         }
     @endphp

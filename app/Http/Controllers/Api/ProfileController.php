@@ -27,7 +27,7 @@ class ProfileController extends Controller
 
         $data = $request->validate([
             'full_name' => 'sometimes|string|max:255',
-            'username' => 'sometimes|string|max:255|unique:users,username,' . $user->id,
+            'username' => ['sometimes', 'string', 'max:255', 'regex:/^[a-zA-Z0-9_]+$/', Rule::unique('users', 'username')->ignore($user->id)],
             'email' => ['sometimes', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
             'phone' => 'nullable|string|max:30',
             'bio' => 'nullable|string|max:1000',
@@ -134,6 +134,21 @@ class ProfileController extends Controller
 
         return response()->json([
             'user' => $this->payload($user->fresh()),
+        ]);
+    }
+
+    public function checkUsername(Request $request)
+    {
+        $data = $request->validate([
+            'username' => 'required|string|max:255',
+        ]);
+
+        $username = trim($data['username']);
+        $available = !\App\Models\User::where('username', $username)->exists();
+
+        return response()->json([
+            'username' => $username,
+            'available' => $available,
         ]);
     }
 

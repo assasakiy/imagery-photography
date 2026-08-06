@@ -14,7 +14,7 @@ class BlogController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Blog::with(['author:id,name', 'category:id,name', 'tags:id,name']);
+        $query = Blog::with(['author:id,username', 'author.profile', 'category:id,name', 'tags:id,name']);
 
         if ($status = $request->input('status')) {
             $query->where('status', $status);
@@ -42,7 +42,7 @@ class BlogController extends Controller
 
     public function show(Blog $blog)
     {
-        return response()->json($this->serialize($blog->load(['author:id,name', 'category:id,name', 'tags:id,name'])));
+        return response()->json($this->serialize($blog->load(['author:id,username', 'author.profile', 'category:id,name', 'tags:id,name'])));
     }
 
     public function store(Request $request)
@@ -67,7 +67,7 @@ class BlogController extends Controller
 
         $this->syncTags($blog, $request->input('tags', []));
 
-        return response()->json($this->serialize($blog->load(['author:id,name', 'category:id,name', 'tags:id,name'])), 201);
+        return response()->json($this->serialize($blog->load(['author:id,username', 'author.profile', 'category:id,name', 'tags:id,name'])), 201);
     }
 
     public function update(Request $request, Blog $blog)
@@ -94,7 +94,7 @@ class BlogController extends Controller
 
         $this->syncTags($blog, $request->input('tags', []));
 
-        return response()->json($this->serialize($blog->load(['author:id,name', 'category:id,name', 'tags:id,name'])));
+        return response()->json($this->serialize($blog->load(['author:id,username', 'author.profile', 'category:id,name', 'tags:id,name'])));
     }
 
     private function syncInlineImages(Blog $blog): void

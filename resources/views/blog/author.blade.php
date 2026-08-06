@@ -5,7 +5,7 @@
 
 @section('content')
     @php
-        $authorAvatar = $author->resolveAvatarUrl();
+        $authorAvatar = $author->avatar();
         $authorInitials = trim(
             collect(explode(' ', preg_replace('/[^a-zA-Z0-9 ]/', '', $author->name)))
                 ->filter()

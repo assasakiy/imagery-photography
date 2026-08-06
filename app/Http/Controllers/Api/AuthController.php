@@ -295,8 +295,6 @@ class AuthController extends Controller
         $data = $request->validate([
             'token' => 'required|string',
             'password' => 'required|string|min:8|confirmed',
-            'username' => 'nullable|string|max:80|regex:/^[a-zA-Z0-9_]+$/|unique:users,username',
-            'full_name' => 'nullable|string|max:255',
         ]);
 
         $token = \App\Models\ClientAccessToken::where('token', $data['token'])->valid()->first();
@@ -307,9 +305,7 @@ class AuthController extends Controller
 
         app(\App\Services\ClientRegistrationService::class)->activate(
             $token->user,
-            $data['password'],
-            $data['username'] ?? null,
-            $data['full_name'] ?? null
+            $data['password']
         );
 
         return response()->json(['message' => 'Akun berhasil diaktifkan. Silakan masuk.']);
