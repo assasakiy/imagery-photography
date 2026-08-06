@@ -126,7 +126,18 @@ class SettingsController extends Controller
 
             if ($key === 'notif_email_enabled' || $key === 'notif_wa_enabled') {
                 $channel = $key === 'notif_email_enabled' ? 'email' : 'whatsapp';
-                Setting::setValue('notif_' . $channel . '_enabled', $value ? '1' : '0');
+                $enabled = (bool) $value;
+
+                // Guard: jangan izinkan ON bila transport tak terkonfigurasi.
+                if ($enabled) {
+                    $rt = app(RuntimeSettings::class);
+                    $configured = $channel === 'email' ? $rt->emailConfigured() : $rt->whatsappConfigured();
+                    if (!$configured) {
+                        $enabled = false;
+                    }
+                }
+
+                Setting::setValue('notif_' . $channel . '_enabled', $enabled ? '1' : '0');
                 continue;
             }
 

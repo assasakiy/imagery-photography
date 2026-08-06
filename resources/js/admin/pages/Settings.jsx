@@ -30,7 +30,8 @@ const TAB_FIELDS = {
     social: ['google_auth_enabled', 'google_client_id', 'google_client_secret', 'google_redirect_url'],
     webhook: ['webhook_urls'],
     notifications: ['notif_email_enabled', 'notif_wa_enabled'],
-    security: ['login_attempts_max', 'login_attempts_lockout_minutes', 'login_remember_enabled', 'login_remember_days', 'login_methods_global', 'file_retention_days'],
+    security_login: ['login_attempts_max', 'login_attempts_lockout_minutes', 'login_remember_enabled', 'login_remember_days', 'login_methods_global'],
+    security_file: ['file_retention_days'],
     maintenance: ['maintenance_enabled', 'maintenance_message'],
 };
 
@@ -230,11 +231,26 @@ export default function Settings() {
     };
 
     const toggleWaChannel = async (v) => {
+        if (v && !form.notif_wa_enabled) {
+            const fields = waFields.filter((f) => f.required);
+            const missing = fields.filter((f) => !(waConfig[f.key] ?? '').trim());
+            if (missing.length) {
+                show('Lengkapi konfigurasi WhatsApp terlebih dahulu.', 'error');
+                return;
+            }
+        }
         set('notif_wa_enabled', v);
         await save(['notif_wa_enabled'], { notif_wa_enabled: v });
     };
 
     const toggleEmailChannel = async (v) => {
+        if (v && !form.notif_email_enabled) {
+            const missing = ['mail_host', 'mail_port'].filter((k) => !(form[k] || '').trim());
+            if (missing.length) {
+                show('Lengkapi konfigurasi email (host & port) terlebih dahulu.', 'error');
+                return;
+            }
+        }
         set('notif_email_enabled', v);
         await save(['notif_email_enabled'], { notif_email_enabled: v });
     };
@@ -495,6 +511,12 @@ export default function Settings() {
                                     ? 'Kanal aktif — form konfigurasi di bawah ditampilkan.'
                                     : 'Kanal nonaktif — form konfigurasi disembunyikan.'}
                             />
+                            <p className="mt-2 text-xs">
+                                <span className={`badge ${meta.email_configured ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' : 'bg-red-500/15 text-red-600 dark:text-red-400'}`}>
+                                    {meta.email_configured ? 'Terkonfigurasi' : 'Belum Dikonfigurasi'}
+                                </span>
+                                <span className="ml-2 text-ink-muted">Status integrasi: {form.notif_email_enabled ? 'Aktif' : 'Nonaktif'}</span>
+                            </p>
                         </div>
 
                         {form.notif_email_enabled && (
@@ -555,6 +577,12 @@ export default function Settings() {
                                     ? 'Kanal aktif — form konfigurasi di bawah ditampilkan.'
                                     : 'Kanal nonaktif — form konfigurasi disembunyikan.'}
                             />
+                            <p className="mt-2 text-xs">
+                                <span className={`badge ${meta.whatsapp_configured ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' : 'bg-red-500/15 text-red-600 dark:text-red-400'}`}>
+                                    {meta.whatsapp_configured ? 'Terkonfigurasi' : 'Belum Dikonfigurasi'}
+                                </span>
+                                <span className="ml-2 text-ink-muted">Status integrasi: {form.notif_wa_enabled ? 'Aktif' : 'Nonaktif'}</span>
+                            </p>
                         </div>
 
                         {form.notif_wa_enabled && (
@@ -714,58 +742,72 @@ export default function Settings() {
             )}
 
             {tab === 'security' && (
-                <div className="card w-full p-6">
-                    <div className="mb-5">
-                        <h2 className="font-semibold text-ink">Keamanan Login</h2>
-                        <p className="text-xs text-ink-muted">Batas percobaan login & durasi sesi "jangan lupakan saya".</p>
-                    </div>
-                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                        <Field label="Maksimal percobaan login gagal" hint="sebelum dikunci sementara" error={errors.login_attempts_max?.[0]}>
-                            <input className="input" type="number" min="1" max="20" value={form.login_attempts_max} onChange={(e) => set('login_attempts_max', e.target.value)} />
-                        </Field>
-                        <Field label="Durasi kunci (menit)" hint="per alamat IP" error={errors.login_attempts_lockout_minutes?.[0]}>
-                            <input className="input" type="number" min="1" max="1440" value={form.login_attempts_lockout_minutes} onChange={(e) => set('login_attempts_lockout_minutes', e.target.value)} />
-                        </Field>
-                    </div>
-                    <div className="mt-4 flex items-center gap-2 text-sm">
-                        <label className="flex cursor-pointer items-center gap-2 text-ink">
-                            <input
-                                type="checkbox"
-                                checked={form.login_remember_enabled}
-                                onChange={setChecked('login_remember_enabled')}
-                                className="h-4 w-4 rounded border-line text-brand-600"
-                            />
-                            Aktifkan opsi "Jangan lupakan saya" di halaman login
-                        </label>
-                    </div>
-                    <div className="mt-4 sm:max-w-xs">
-                        <Field label="Durasi sesi ingat (hari)" hint={'saat "jangan lupakan saya" dicentang'} error={errors.login_remember_days?.[0]}>
-                            <input className="input" type="number" min="1" max="3650" disabled={!form.login_remember_enabled} value={form.login_remember_days} onChange={(e) => set('login_remember_days', e.target.value)} />
-                        </Field>
-                    </div>
+                <div className="space-y-6">
+                    <div className="card w-full p-6">
+                        <div className="mb-5">
+                            <h2 className="font-semibold text-ink">Keamanan Login</h2>
+                            <p className="text-xs text-ink-muted">Batas percobaan login, sesi "jangan lupakan saya", dan metode login.</p>
+                        </div>
+                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                            <Field label="Maksimal percobaan login gagal" hint="sebelum dikunci sementara" error={errors.login_attempts_max?.[0]}>
+                                <input className="input" type="number" min="1" max="20" value={form.login_attempts_max} onChange={(e) => set('login_attempts_max', e.target.value)} />
+                            </Field>
+                            <Field label="Durasi kunci (menit)" hint="per alamat IP" error={errors.login_attempts_lockout_minutes?.[0]}>
+                                <input className="input" type="number" min="1" max="1440" value={form.login_attempts_lockout_minutes} onChange={(e) => set('login_attempts_lockout_minutes', e.target.value)} />
+                            </Field>
+                        </div>
+                        <div className="mt-4 flex items-center gap-2 text-sm">
+                            <label className="flex cursor-pointer items-center gap-2 text-ink">
+                                <input
+                                    type="checkbox"
+                                    checked={form.login_remember_enabled}
+                                    onChange={setChecked('login_remember_enabled')}
+                                    className="h-4 w-4 rounded border-line text-brand-600"
+                                />
+                                Aktifkan opsi "Jangan lupakan saya" di halaman login
+                            </label>
+                        </div>
+                        <div className="mt-4 sm:max-w-xs">
+                            <Field label="Durasi sesi ingat (hari)" hint={'saat "jangan lupakan saya" dicentang'} error={errors.login_remember_days?.[0]}>
+                                <input className="input" type="number" min="1" max="3650" disabled={!form.login_remember_enabled} value={form.login_remember_days} onChange={(e) => set('login_remember_days', e.target.value)} />
+                            </Field>
+                        </div>
 
-                    <div className="mt-6 border-t border-line pt-5">
-                        <h2 className="font-semibold text-ink">Metode Login</h2>
-                        <p className="mt-1 text-xs text-ink-muted">Metode yang diizinkan untuk semua user. Bisa dioverride per akun klien/admin.</p>
-                        <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
-                            {Object.entries(form.login_methods_global || {}).map(([method, enabled]) => (
-                                <label key={method} className="flex cursor-pointer items-center gap-2 rounded-xl border border-line px-4 py-3 text-sm text-ink">
-                                    <input
-                                        type="checkbox"
-                                        checked={!!enabled}
-                                        onChange={(e) => set('login_methods_global', { ...form.login_methods_global, [method]: e.target.checked })}
-                                        className="h-4 w-4 rounded border-line text-brand-600"
-                                    />
-                                    <span className="capitalize">{method}</span>
-                                </label>
-                            ))}
+                        <div className="mt-6 border-t border-line pt-5">
+                            <h2 className="font-semibold text-ink">Metode Login</h2>
+                            <p className="mt-1 text-xs text-ink-muted">
+                                Hanya metode yang siap digunakan yang ditampilkan (OTP perlu Email/WhatsApp terkonfigurasi, Google perlu Login Sosial aktif).
+                            </p>
+                            <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                                {Object.entries(form.login_methods_global || {})
+                                    .filter(([method]) => method === 'password' || method === 'token' ||
+                                        (method === 'otp' && (meta.email_configured || meta.whatsapp_configured)) ||
+                                        (method === 'google' && meta.google_auth_enabled && meta.google_client_id))
+                                    .map(([method, enabled]) => (
+                                        <label key={method} className="flex cursor-pointer items-center gap-2 rounded-xl border border-line px-4 py-3 text-sm text-ink">
+                                            <input
+                                                type="checkbox"
+                                                checked={!!enabled}
+                                                onChange={(e) => set('login_methods_global', { ...form.login_methods_global, [method]: e.target.checked })}
+                                                className="h-4 w-4 rounded border-line text-brand-600"
+                                            />
+                                            <span className="capitalize">{method === 'token' ? 'Access Link' : method}</span>
+                                        </label>
+                                    ))}
+                            </div>
+                        </div>
+
+                        <div className="mt-6 flex justify-end border-t border-line pt-5">
+                            <Button icon="check" loading={saving} disabled={!dirty(TAB_FIELDS.security_login)} onClick={() => save(TAB_FIELDS.security_login)}>Simpan Keamanan Login</Button>
                         </div>
                     </div>
 
-                    <div className="mt-6 border-t border-line pt-5">
-                        <h2 className="font-semibold text-ink">Retensi File</h2>
-                        <p className="mt-1 text-xs text-ink-muted">Berapa lama file hasil (galeri) tersedia untuk diunduh klien setelah upload. 0 = tidak pernah kedaluwarsa.</p>
-                        <div className="mt-3 sm:max-w-xs">
+                    <div className="card w-full p-6">
+                        <div className="mb-5">
+                            <h2 className="font-semibold text-ink">Retensi File</h2>
+                            <p className="text-xs text-ink-muted">Berapa lama file hasil (galeri) tersedia untuk diunduh klien setelah upload. 0 = tidak pernah kedaluwarsa.</p>
+                        </div>
+                        <div className="sm:max-w-xs">
                             <Field label="Masa simpan (hari)" hint="0 = tanpa batas" error={errors.file_retention_days?.[0]}>
                                 <select className="input" value={form.file_retention_days} onChange={(e) => set('file_retention_days', e.target.value)}>
                                     <option value="0">Tidak pernah kedaluwarsa</option>
@@ -776,10 +818,9 @@ export default function Settings() {
                                 </select>
                             </Field>
                         </div>
-                    </div>
-
-                    <div className="mt-6 flex justify-end border-t border-line pt-5">
-                        <Button icon="check" loading={saving} disabled={!dirty(TAB_FIELDS.security)} onClick={() => save(TAB_FIELDS.security)}>Simpan Keamanan</Button>
+                        <div className="mt-6 flex justify-end border-t border-line pt-5">
+                            <Button icon="check" loading={saving} disabled={!dirty(TAB_FIELDS.security_file)} onClick={() => save(TAB_FIELDS.security_file)}>Simpan Retensi File</Button>
+                        </div>
                     </div>
                 </div>
             )}
