@@ -6,12 +6,22 @@ import { PageHeader, Spinner, EmptyState } from '../components/ui';
 const VIEWS = [
     { key: 'login', label: 'Riwayat Login', icon: 'clock' },
     { key: 'activity', label: 'Log Aktivitas', icon: 'list' },
+    { key: 'links', label: 'Riwayat Tautan', icon: 'link' },
 ];
 
 const STATUS_META = {
     success: { label: 'Berhasil', cls: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' },
     failed: { label: 'Gagal', cls: 'bg-red-500/15 text-red-600 dark:text-red-400' },
 };
+
+const LINK_STATUS_META = {
+    pending: { label: 'Menunggu', cls: 'bg-amber-500/15 text-amber-600 dark:text-amber-400' },
+    expired: { label: 'Kedaluwarsa', cls: 'bg-zinc-500/15 text-ink-muted' },
+    accepted: { label: 'Dipakai', cls: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' },
+    cancelled: { label: 'Dibatalkan', cls: 'bg-red-500/15 text-red-600 dark:text-red-400' },
+};
+
+const PURPOSE_LABEL = { invite: 'Undangan', recovery: 'Recovery', project: 'Akses Proyek' };
 
 const METHOD_LABEL = { password: 'Password', otp: 'OTP', google: 'Google' };
 
@@ -52,9 +62,12 @@ export default function AuditLog() {
 
     const load = (page = 1) => {
         setLoading(true);
-        const endpoint = view === 'login' ? '/audit/login-history' : '/audit';
+        const endpoint = view === 'login' ? '/audit/login-history' : view === 'links' ? '/audit/links' : '/audit';
         const params = { page, per_page: 25 };
         if (view === 'login') {
+            if (status) params.status = status;
+        } else if (view === 'links') {
+            if (action) params.purpose = action;
             if (status) params.status = status;
         } else {
             if (action) params.action = action;
@@ -105,6 +118,21 @@ export default function AuditLog() {
                         <option value="success">Berhasil</option>
                         <option value="failed">Gagal</option>
                     </select>
+                ) : view === 'links' ? (
+                    <>
+                        <select className="input w-auto" value={action} onChange={(e) => { setAction(e.target.value); }}>
+                            <option value="">Semua jenis</option>
+                            {Object.entries(PURPOSE_LABEL).map(([k, label]) => (
+                                <option key={k} value={k}>{label}</option>
+                            ))}
+                        </select>
+                        <select className="input w-auto" value={status} onChange={(e) => { setStatus(e.target.value); }}>
+                            <option value="">Semua status</option>
+                            {Object.entries(LINK_STATUS_META).map(([k, m]) => (
+                                <option key={k} value={k}>{m.label}</option>
+                            ))}
+                        </select>
+                    </>
                 ) : (
                     <select className="input w-auto" value={action} onChange={(e) => { setAction(e.target.value); }}>
                         <option value="">Semua aksi</option>
@@ -128,7 +156,7 @@ export default function AuditLog() {
             {loading ? (
                 <Spinner />
             ) : items.length === 0 ? (
-                <EmptyState icon="clock" title={view === 'login' ? 'Belum ada riwayat login' : 'Belum ada log aktivitas'} />
+                <EmptyState icon="clock" title={view === 'login' ? 'Belum ada riwayat login' : view === 'links' ? 'Belum ada riwayat tautan' : 'Belum ada log aktivitas'} />
             ) : view === 'login' ? (
                 <div className="card overflow-x-auto">
                     <table className="table">
@@ -170,6 +198,51 @@ export default function AuditLog() {
                                             <span className="text-xs text-ink-muted">-</span>
                                         )}
                                     </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            ) : view === 'links' ? (
+                <div className="card overflow-x-auto">
+                    <table className="table">
+                        <thead>
+                            <tr>
+                                <th>Dibuat</th>
+                                <th>User</th>
+                                <th>Jenis</th>
+                                <th>Status</th>
+                                <th>Tautan</th>
+                                <th>Kedaluwarsa</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {items.map((it) => (
+                                <tr key={it.id}>
+                                    <td className="whitespace-nowrap text-xs text-ink-muted">{formatDateTime(it.created_at)}</td>
+                                    <td>
+                                        <p className="font-medium text-ink">{it.user?.name || 'Akun terhapus'}</p>
+                                        {it.user?.email && <p className="text-xs text-ink-muted">{it.user.email}</p>}
+                                    </td>
+                                    <td>
+                                        <span className="badge">{PURPOSE_LABEL[it.purpose] || it.purpose}</span>
+                                    </td>
+                                    <td>
+                                        <span className={`badge ${LINK_STATUS_META[it.status]?.cls || 'bg-zinc-500/15 text-ink-muted'}`}>
+                                            {LINK_STATUS_META[it.status]?.label || it.status}
+                                            {it.used_at ? ' · dipakai' : ''}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <button
+                                            className="max-w-[220px] truncate font-mono text-xs text-brand-600 dark:text-brand-400 hover:underline"
+                                            title={it.url}
+                                            onClick={() => { navigator.clipboard.writeText(it.url).then(() => {}); }}
+                                        >
+                                            {it.url || it.token}
+                                        </button>
+                                    </td>
+                                    <td className="whitespace-nowrap text-xs text-ink-muted">{it.expires_at ? formatDateTime(it.expires_at) : '-'}</td>
                                 </tr>
                             ))}
                         </tbody>

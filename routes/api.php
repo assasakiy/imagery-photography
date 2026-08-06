@@ -88,6 +88,7 @@ Route::middleware(['web', 'auth:sanctum', 'maintenance'])->group(function () {
         Route::get('/audit', [AuditLogController::class, 'index']);
         Route::get('/audit/actions', [AuditLogController::class, 'actions']);
         Route::get('/audit/login-history', [AuditLogController::class, 'loginHistory']);
+        Route::get('/audit/links', [AuditLogController::class, 'links']);
 
         Route::post('/projects', [ProjectController::class, 'store']);
         Route::put('/projects/{project}', [ProjectController::class, 'update']);

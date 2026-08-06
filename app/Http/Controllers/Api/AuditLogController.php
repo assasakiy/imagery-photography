@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
+use App\Models\ClientAccessToken;
 use App\Models\LoginHistory;
 use Illuminate\Http\Request;
 
@@ -44,6 +45,41 @@ class AuditLogController extends Controller
         $actions = AuditLog::distinct()->orderBy('action')->pluck('action');
 
         return response()->json($actions);
+    }
+
+    public function links(Request $request)
+    {
+        $query = ClientAccessToken::with(['user', 'project'])->latest('id');
+
+        if ($request->filled('purpose')) {
+            $query->where('purpose', $request->input('purpose'));
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->input('status'));
+        }
+
+        if ($request->filled('user_id')) {
+            $query->where('user_id', $request->integer('user_id'));
+        }
+
+        if ($q = trim((string) $request->input('q'))) {
+            $query->where(fn ($w) => $w
+                ->where('token', 'like', '%' . $q . '%')
+                ->orWhereHas('user', fn ($u) => $u->where('email', 'like', '%' . $q . '%')
+                    ->orWhere('username', 'like', '%' . $q . '%')
+                    ->orWhereHas('profile', fn ($p) => $p->where('full_name', 'like', '%' . $q . '%'))));
+        }
+
+        $logs = $query->paginate(25);
+
+        $logs->getCollection()->transform(function ($token) {
+            $token->url = $token->url;
+
+            return $token;
+        });
+
+        return response()->json($logs);
     }
 
     public function loginHistory(Request $request)

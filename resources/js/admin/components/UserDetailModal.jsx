@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import Icon from './Icon';
-import { Spinner, EmptyState, useToast, formatDate } from './ui';
+import { Spinner, EmptyState, useToast } from './ui';
 
 const SOCIAL_LINKS = [
     { key: 'social_facebook', slug: 'facebook', label: 'Facebook' },
@@ -212,31 +212,6 @@ export default function UserDetailModal({ open, onClose, data, loading, onIssueT
                                         </div>
                                     ) : (
                                         <p className="text-sm text-ink-muted">Tidak ada proyek terkait.</p>
-                                    )}
-                                </div>
-
-                                <div className="border-t border-line pt-5">
-                                    <label className="label">Log Tautan</label>
-                                    <p className="mb-3 text-xs text-ink-muted">
-                                        Catatan tautan yang pernah dibuat (bersifat sementara & bisa kedaluwarsa).
-                                    </p>
-                                    {data.tokens?.length ? (
-                                        <div className="space-y-2">
-                                            {data.tokens.map((t, i) => (
-                                                <div key={t.token || i} className="flex items-center gap-2 rounded-lg bg-surface-muted px-3 py-2 text-xs">
-                                                    <span className="badge">{t.purpose}</span>
-                                                    <span className={`badge ${t.status === 'pending' ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400' : t.status === 'accepted' ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' : 'bg-zinc-500/15 text-ink-muted'}`}>
-                                                        {t.status}
-                                                    </span>
-                                                    <span className="ml-auto shrink-0 text-ink-muted">
-                                                        {formatDate(t.created_at)}
-                                                        {t.used_at ? ' · dipakai' : ''}
-                                                    </span>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    ) : (
-                                        <p className="text-sm text-ink-muted">Belum ada tautan yang dibuat.</p>
                                     )}
                                 </div>
                             </div>
