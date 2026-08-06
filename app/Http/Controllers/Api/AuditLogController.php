@@ -49,7 +49,7 @@ class AuditLogController extends Controller
 
     public function links(Request $request)
     {
-        $query = ClientAccessToken::with(['user' => fn ($q) => $q->withTrashed(), 'project'])->latest('id');
+        $query = ClientAccessToken::with(['user' => fn ($q) => $q->withTrashed()->with('profile'), 'project'])->latest('id');
 
         if ($request->filled('purpose')) {
             $query->where('purpose', $request->input('purpose'));
@@ -84,7 +84,7 @@ class AuditLogController extends Controller
 
     public function loginHistory(Request $request)
     {
-        $query = LoginHistory::with('user')->latest('id');
+        $query = LoginHistory::with(['user.profile'])->latest('id');
 
         if ($request->filled('status')) {
             $query->where('status', $request->input('status'));
