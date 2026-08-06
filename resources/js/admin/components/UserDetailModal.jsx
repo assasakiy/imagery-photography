@@ -121,9 +121,6 @@ export default function UserDetailModal({ open, onClose, data, loading, onIssueT
                                         <div className="flex flex-wrap items-center gap-2">
                                             <p className="truncate text-lg font-bold text-ink">{data.name}</p>
                                             <span className={`badge ${statusMeta.cls}`}>{statusMeta.label}</span>
-                                            {data.has_password && (
-                                                <span className="badge bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">Kata sandi aktif</span>
-                                            )}
                                         </div>
                                         {data.username && <p className="text-sm text-ink-muted">@{data.username}</p>}
                                         {(data.company || data.occupation) && (

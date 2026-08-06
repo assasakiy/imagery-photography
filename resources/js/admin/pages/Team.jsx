@@ -23,7 +23,7 @@ function AdminTab() {
     const [form, setForm] = useState(EMPTY_ADMIN);
     const [errors, setErrors] = useState({});
     const [saving, setSaving] = useState(false);
-    const [credentials, setCredentials] = useState(null);
+    const [detail, setDetail] = useState(null);
     const [credLoading, setCredLoading] = useState(false);
     const [issuing, setIssuing] = useState(null);
     const [inviteHours, setInviteHours] = useState('');
@@ -40,25 +40,25 @@ function AdminTab() {
         load();
     }, []);
 
-    const openCreds = async (item) => {
+    const openDetail = async (item) => {
         setCredLoading(true);
         try {
             const { data } = await api.get(`/team/${item.id}/credentials`);
-            setCredentials(data);
+            setDetail(data);
         } catch {
-            show('Gagal memuat kredensial.', 'error');
+            show('Gagal memuat detail.', 'error');
         } finally {
             setCredLoading(false);
         }
     };
 
     const issueToken = async (purpose, send = true) => {
-        if (!credentials) return;
+        if (!detail) return;
         setIssuing(purpose);
         try {
-            const { data } = await api.post(`/team/${credentials.id}/token/${purpose}`, { send, expires_hours: inviteHours || undefined });
+            const { data } = await api.post(`/team/${detail.id}/token/${purpose}`, { send, expires_hours: inviteHours || undefined });
             show(purpose === 'invite' ? 'Undangan dibuat & dikirim.' : 'Tautan dibuat' + (send ? ' & dikirim.' : '.'));
-            openCreds({ id: credentials.id });
+            openDetail({ id: detail.id });
             return data;
         } catch {
             show('Gagal membuat tautan.', 'error');
@@ -94,14 +94,14 @@ function AdminTab() {
         try {
             if (editing) {
                 await api.put(`/team/${editing.id}`, form);
-                setCredentials(null);
+                setDetail(null);
                 show('Admin diperbarui.');
                 setOpen(false);
                 setForm(EMPTY_ADMIN);
                 load();
             } else {
                 const { data } = await api.post('/team', form);
-                setCredentials(data.credentials);
+                setDetail(data.credentials);
                 setOpen(false);
                 setForm(EMPTY_ADMIN);
                 load();
@@ -166,10 +166,10 @@ function AdminTab() {
                                     </button>
                                     <button
                                         className="rounded-lg p-1.5 text-ink-muted hover:bg-surface-muted hover:text-brand-600"
-                                        title="Kredensial & tautan akses"
-                                        onClick={() => openCreds(item)}
+                                        title="Lihat detail"
+                                        onClick={() => openDetail(item)}
                                     >
-                                        <Icon name="lock" size={16} />
+                                        <Icon name="eye" size={16} />
                                     </button>
                                     <button className="rounded-lg p-1.5 text-ink-muted hover:bg-surface-muted hover:text-red-500" title="Hapus" onClick={() => setDeleting(item)}>
                                         <Icon name="trash" size={16} />
@@ -215,9 +215,9 @@ function AdminTab() {
             </Modal>
 
             <UserDetailModal
-                open={!!credentials}
-                onClose={() => setCredentials(null)}
-                data={credentials}
+                open={!!detail}
+                onClose={() => setDetail(null)}
+                data={detail}
                 loading={credLoading}
                 onIssueToken={issueToken}
                 issuing={issuing}

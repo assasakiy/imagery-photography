@@ -17,7 +17,7 @@ export default function Clients() {
     const [form, setForm] = useState(emptyForm);
     const [errors, setErrors] = useState({});
     const [saving, setSaving] = useState(false);
-    const [creds, setCreds] = useState(null);
+    const [detail, setDetail] = useState(null);
     const [credLoading, setCredLoading] = useState(false);
     const [issuing, setIssuing] = useState(null);
     const [deleteTarget, setDeleteTarget] = useState(null);
@@ -25,25 +25,25 @@ export default function Clients() {
     const [inviteHours, setInviteHours] = useState('');
     const { show, node } = useToast();
 
-    const openCreds = async (item) => {
+    const openDetail = async (item) => {
         setCredLoading(true);
         try {
             const { data } = await api.get(`/clients/${item.id}/credentials`);
-            setCreds(data);
+            setDetail(data);
         } catch {
-            show('Gagal memuat kredensial.', 'error');
+            show('Gagal memuat detail.', 'error');
         } finally {
             setCredLoading(false);
         }
     };
 
     const issueToken = async (purpose, send = true) => {
-        if (!creds) return;
+        if (!detail) return;
         setIssuing(purpose);
         try {
-            const { data } = await api.post(`/clients/${creds.id}/token/${purpose}`, { send, expires_hours: inviteHours || undefined });
+            const { data } = await api.post(`/clients/${detail.id}/token/${purpose}`, { send, expires_hours: inviteHours || undefined });
             show(purpose === 'invite' ? 'Undangan dibuat & dikirim.' : 'Tautan dibuat' + (send ? ' & dikirim.' : '.'));
-            openCreds({ id: creds.id });
+            openDetail({ id: detail.id });
             return data;
         } catch {
             show('Gagal membuat tautan.', 'error');
@@ -57,7 +57,7 @@ export default function Clients() {
         show('Klien dipindah ke Recycle Bin.');
         setDeleteTarget(null);
         setDeleteReason('');
-        setCreds(null);
+        setDetail(null);
         load(meta.current_page);
     };
 
@@ -104,7 +104,7 @@ export default function Clients() {
                 show('Klien ditambahkan.');
                 load(meta.current_page);
                 setOpen(false);
-                setCreds(data.credentials);
+                setDetail(data.credentials);
             }
         } catch (err) {
             if (err.response?.data?.errors) setErrors(err.response.data.errors);
@@ -184,8 +184,8 @@ export default function Clients() {
                                     <td className="text-sm text-ink-muted">{formatDate(item.created_at)}</td>
                                     <td>
                                         <div className="flex gap-1">
-                                            <button onClick={() => openCreds(item)} className="icon-btn" aria-label="Kredensial">
-                                                <Icon name="lock" size={16} />
+                                            <button onClick={() => openDetail(item)} className="icon-btn" aria-label="Lihat detail">
+                                                <Icon name="eye" size={16} />
                                             </button>
                                             <button onClick={() => openEdit(item)} className="icon-btn" aria-label="Edit">
                                                 <Icon name="edit" size={16} />
@@ -255,9 +255,9 @@ export default function Clients() {
             />
 
             <UserDetailModal
-                open={!!creds}
-                onClose={() => setCreds(null)}
-                data={creds}
+                open={!!detail}
+                onClose={() => setDetail(null)}
+                data={detail}
                 loading={credLoading}
                 onIssueToken={issueToken}
                 issuing={issuing}
