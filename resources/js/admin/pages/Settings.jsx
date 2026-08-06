@@ -495,12 +495,17 @@ export default function Settings() {
                                 <p className="text-xs text-ink-muted">Dipakai untuk notifikasi email, OTP login, dan email uji.</p>
                             </div>
                             <div className="flex items-center gap-2">
-                                <span className={`badge ${meta.email_configured ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' : 'bg-red-500/15 text-red-600 dark:text-red-400'}`}>
-                                    {meta.email_configured ? '🟢 Terkonfigurasi' : '🔴 Belum Dikonfigurasi'}
-                                </span>
-                                <button type="button" className="btn-outline" onClick={() => setOpenEmail((v) => !v)}>
-                                    <Icon name="chevron-down" size={16} className={`transition-transform ${openEmail ? 'rotate-180' : ''}`} />
-                                    Konfigurasi
+                                <button
+                                    type="button"
+                                    onClick={() => setOpenEmail((v) => !v)}
+                                    className={`badge cursor-pointer transition-colors ${
+                                        meta.email_configured
+                                            ? 'bg-emerald-500/15 text-emerald-600 hover:bg-emerald-500/25 dark:text-emerald-400'
+                                            : 'bg-red-500/15 text-red-600 hover:bg-red-500/25 dark:text-red-400'
+                                    }`}
+                                >
+                                    <Icon name="chevron-down" size={12} className={`transition-transform ${openEmail ? 'rotate-180' : ''}`} />
+                                    {meta.email_configured ? 'Terkonfigurasi' : 'Belum Dikonfigurasi'}
                                 </button>
                             </div>
                         </div>
@@ -569,12 +574,17 @@ export default function Settings() {
                                 <p className="text-xs text-ink-muted">Pilih driver, isi konfigurasinya, lalu tes koneksi.</p>
                             </div>
                             <div className="flex items-center gap-2">
-                                <span className={`badge ${meta.whatsapp_configured ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' : 'bg-red-500/15 text-red-600 dark:text-red-400'}`}>
-                                    {meta.whatsapp_configured ? '🟢 Terkonfigurasi' : '🔴 Belum Dikonfigurasi'}
-                                </span>
-                                <button type="button" className="btn-outline" onClick={() => setOpenWa((v) => !v)}>
-                                    <Icon name="chevron-down" size={16} className={`transition-transform ${openWa ? 'rotate-180' : ''}`} />
-                                    Konfigurasi
+                                <button
+                                    type="button"
+                                    onClick={() => setOpenWa((v) => !v)}
+                                    className={`badge cursor-pointer transition-colors ${
+                                        meta.whatsapp_configured
+                                            ? 'bg-emerald-500/15 text-emerald-600 hover:bg-emerald-500/25 dark:text-emerald-400'
+                                            : 'bg-red-500/15 text-red-600 hover:bg-red-500/25 dark:text-red-400'
+                                    }`}
+                                >
+                                    <Icon name="chevron-down" size={12} className={`transition-transform ${openWa ? 'rotate-180' : ''}`} />
+                                    {meta.whatsapp_configured ? 'Terkonfigurasi' : 'Belum Dikonfigurasi'}
                                 </button>
                             </div>
                         </div>
