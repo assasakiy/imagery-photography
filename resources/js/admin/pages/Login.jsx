@@ -7,7 +7,6 @@ import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 
 const APP = window.APP_CONFIG || {};
-const api_otp = (url, body) => api.post(url, body);
 
 export default function Login() {
     const { login, refresh } = useAuth();
@@ -33,7 +32,7 @@ export default function Login() {
         setOtpLoading(true);
         try {
             await ensureCsrf();
-            await api_otp('/send-otp', { phone: otpPhone });
+            await api.post('/send-otp', { identifier: otpPhone });
             setOtpSent(true);
         } catch (err) {
             setErrors({ form: err?.response?.data?.message || 'Gagal mengirim OTP.' });
@@ -48,7 +47,7 @@ export default function Login() {
         setErrors({});
         try {
             await ensureCsrf();
-            await api_otp('/verify-otp', { phone: otpPhone, otp: otpCode });
+            await api.post('/verify-otp', { identifier: otpPhone, otp: otpCode });
             await refresh();
             navigate('/dashboard');
         } catch (err) {
@@ -215,14 +214,14 @@ export default function Login() {
                             {!otpSent && (
                                 <div>
                                     <label htmlFor="otpPhone" className="label">
-                                        No. WhatsApp <span className="text-red-500">*</span>
+                                        Email / No. WhatsApp <span className="text-red-500">*</span>
                                     </label>
                                     <input
                                         id="otpPhone"
                                         type="text"
                                         required
                                         className="input"
-                                        placeholder="08xxxxxxxxxx"
+                                        placeholder="email@contoh.com / 08xxxxxxxxxx"
                                         value={otpPhone}
                                         onChange={(e) => setOtpPhone(e.target.value)}
                                     />

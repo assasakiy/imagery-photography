@@ -163,12 +163,10 @@ class AuthController extends Controller
     public function sendOtp(Request $request)
     {
         $data = $request->validate([
-            'phone' => 'required|string',
+            'identifier' => 'required|string',
         ]);
 
-        $user = \App\Models\User::whereHas('client', fn ($q) => $q->where('phone', $data['phone']))
-            ->orWhere('email', $data['phone'])
-            ->first();
+        $user = $this->resolveUser($data['identifier']);
 
         if (!$user || !$user->canUseLoginMethod('otp')) {
             return response()->json(['message' => 'Nomor/akun tidak ditemukan.'], 422);
@@ -176,10 +174,11 @@ class AuthController extends Controller
 
         $otp = (string) random_int(100000, 999999);
         session()->put('otp_' . $user->id, ['code' => Hash::make($otp), 'expires_at' => now()->addMinutes(5)]);
+        session()->put('otp_target_' . $user->id, $data['identifier']);
 
-        app(NotificationService::class)->sendOtp($user, $data['phone'], $otp);
+        app(NotificationService::class)->sendOtp($user, $user->phone ?? $data['identifier'], $otp);
 
-        app(AuditLogger::class)->log('auth.otp_sent', 'OTP dikirim untuk ' . ($user->email ?? $data['phone']));
+        app(AuditLogger::class)->log('auth.otp_sent', 'OTP dikirim untuk ' . ($user->email ?? $data['identifier']));
 
         return response()->json([
             'message' => 'OTP terkirim via WhatsApp/Email (jika terkonfigurasi).',
@@ -190,13 +189,11 @@ class AuthController extends Controller
     public function verifyOtp(Request $request)
     {
         $data = $request->validate([
-            'phone' => 'required|string',
+            'identifier' => 'required|string',
             'otp' => 'required|string',
         ]);
 
-        $user = \App\Models\User::whereHas('client', fn ($q) => $q->where('phone', $data['phone']))
-            ->orWhere('email', $data['phone'])
-            ->first();
+        $user = $this->resolveUser($data['identifier']);
 
         $stored = session()->pull('otp_' . $user?->id);
 
