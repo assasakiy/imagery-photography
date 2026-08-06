@@ -785,21 +785,28 @@ export default function Settings() {
                             <p className="mt-1 text-xs text-ink-muted">
                                 Hanya metode yang siap digunakan yang ditampilkan (OTP perlu Email/WhatsApp terkonfigurasi, Google perlu Login Sosial aktif).
                             </p>
-                            <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                            <div className="mt-4 space-y-3">
                                 {Object.entries(form.login_methods_global || {})
                                     .filter(([method]) => method === 'password' || method === 'token' ||
                                         (method === 'otp' && (meta.email_configured || meta.whatsapp_configured)) ||
                                         (method === 'google' && meta.google_auth_enabled && meta.google_client_id))
                                     .map(([method, enabled]) => (
-                                        <label key={method} className="flex cursor-pointer items-center gap-2 rounded-xl border border-line px-4 py-3 text-sm text-ink">
-                                            <input
-                                                type="checkbox"
-                                                checked={!!enabled}
-                                                onChange={(e) => set('login_methods_global', { ...form.login_methods_global, [method]: e.target.checked })}
-                                                className="h-4 w-4 rounded border-line text-brand-600"
-                                            />
-                                            <span className="capitalize">{method === 'token' ? 'Access Link' : method}</span>
-                                        </label>
+                                        <Toggle
+                                            key={method}
+                                            size="sm"
+                                            checked={!!enabled}
+                                            onChange={(v) => set('login_methods_global', { ...form.login_methods_global, [method]: v })}
+                                            label={method === 'token' ? 'Access Link' : method.charAt(0).toUpperCase() + method.slice(1)}
+                                            desc={
+                                                method === 'token'
+                                                    ? 'Masuk lewat tautan akses sekali pakai (dikirim/dibagikan admin).'
+                                                    : method === 'otp'
+                                                        ? 'Masuk lewat kode OTP via WhatsApp/Email.'
+                                                        : method === 'google'
+                                                            ? 'Masuk lewat akun Google (Login Sosial).'
+                                                            : 'Masuk dengan email/no. WhatsApp + kata sandi.'
+                                            }
+                                        />
                                     ))}
                             </div>
                         </div>
