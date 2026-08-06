@@ -2,14 +2,18 @@
 
 namespace App\Models;
 
+use App\Support\SoftDeletesWithWho;
 use Illuminate\Database\Eloquent\Model;
 
 class Project extends Model
 {
+    use SoftDeletesWithWho;
+
     protected $fillable = [
         'client_id', 'user_id', 'name', 'type', 'package_id', 'event_date', 'description',
         'price', 'pricing_snapshot', 'status', 'start_date', 'end_date',
         'retention_days', 'archived_at', 'deleted_at',
+        'deleted_by_id', 'deleted_by_name', 'delete_reason',
     ];
 
     protected function casts(): array

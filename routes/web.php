@@ -28,7 +28,7 @@ Route::middleware('maintenance')->group(function () {
     Route::get('/kebijakan-privasi', [PageController::class, 'privacy'])->name('privacy');
     Route::get('/syarat-ketentuan', [PageController::class, 'terms'])->name('terms');
     Route::get('/booking', [BookingController::class, 'index'])->name('booking');
-    Route::post('/booking', [BookingController::class, 'store'])->name('booking.store');
+    Route::post('/booking', [BookingController::class, 'store'])->name('booking.store')->middleware('throttle:booking');
     Route::get('/blog', [BlogController::class, 'index'])->name('blog');
     Route::get('/blog/penulis/{id}', [BlogController::class, 'author'])->name('blog.author');
     Route::get('/blog/kategori/{slug}', [BlogController::class, 'category'])->name('blog.category');

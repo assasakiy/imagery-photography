@@ -298,10 +298,7 @@ class AuthController extends Controller
             return response()->json(['message' => 'Tautan aktivasi tidak valid atau sudah kadaluarsa.'], 422);
         }
 
-        $token->user->update(['password' => Hash::make($data['password'])]);
-        $token->update(['used_at' => now()]);
-
-        app(AuditLogger::class)->log('auth.password_set', 'Kata sandi awal dibuat untuk: ' . $token->user->email, $token->user);
+        app(\App\Services\ClientRegistrationService::class)->activate($token->user, $data['password']);
 
         return response()->json(['message' => 'Akun berhasil diaktifkan. Silakan masuk.']);
     }

@@ -18,6 +18,7 @@ use App\Http\Controllers\Api\PortfolioController;
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\ProjectController;
 use App\Http\Controllers\Api\ReviewController;
+use App\Http\Controllers\Api\RecycleBinController;
 use App\Http\Controllers\Api\ServiceController;
 use App\Http\Controllers\Api\CustomerController;
 use App\Http\Controllers\Api\BookmarkController;
@@ -34,7 +35,7 @@ Route::middleware('web')->group(function () {
     Route::post('/send-otp', [AuthController::class, 'sendOtp']);
     Route::post('/verify-otp', [AuthController::class, 'verifyOtp']);
     Route::get('/whatsapp-status', [AuthController::class, 'whatsappStatus']);
-    Route::post('/forgot', [AuthController::class, 'forgot']);
+    Route::post('/forgot', [AuthController::class, 'forgot'])->middleware('throttle:forgot');
     Route::post('/set-password', [AuthController::class, 'setPassword']);
     Route::post('/reset-password', [AuthController::class, 'resetPassword']);
 });
@@ -111,6 +112,16 @@ Route::middleware(['web', 'auth:sanctum', 'maintenance'])->group(function () {
         Route::apiResource('clients', ClientController::class)->except(['create', 'edit']);
         Route::get('/clients/{client}/credentials', [ClientController::class, 'credentials']);
         Route::post('/clients/{client}/token/{purpose}', [ClientController::class, 'issueToken'])->whereIn('purpose', ['invite', 'recovery', 'project']);
+        Route::post('/clients/{client}/disable', [ClientController::class, 'disable']);
+        Route::post('/clients/{client}/activate', [ClientController::class, 'activate']);
+        Route::post('/clients/{client}/soft-delete', [ClientController::class, 'softDelete']);
+        Route::post('/clients/{client}/restore', [ClientController::class, 'restore']);
+        Route::delete('/clients/{client}/force-delete', [ClientController::class, 'forceDelete']);
+        Route::get('/clients-trashed', [ClientController::class, 'trashed']);
+
+        Route::get('/recycle-bin', [RecycleBinController::class, 'index']);
+        Route::post('/recycle-bin/{type}/{id}/restore', [RecycleBinController::class, 'restore'])->where('type', 'client');
+        Route::delete('/recycle-bin/{type}/{id}', [RecycleBinController::class, 'forceDelete'])->where('type', 'client');
 
         Route::get('/messages', [MessageController::class, 'index']);
         Route::get('/messages/{message}', [MessageController::class, 'show']);

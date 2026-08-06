@@ -9,11 +9,12 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
+use App\Support\SoftDeletesWithWho;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use HasApiTokens, HasFactory, HasRoles, Notifiable;
+    use HasApiTokens, HasFactory, HasRoles, Notifiable, SoftDeletesWithWho;
 
     protected $fillable = [
         'name',
@@ -33,6 +34,11 @@ class User extends Authenticatable
         'notif_whatsapp',
         'notif_events',
         'notif_otp_channel',
+        'status',
+        'activated_at',
+        'deleted_by_id',
+        'deleted_by_name',
+        'delete_reason',
     ];
 
     protected $hidden = [
@@ -49,6 +55,8 @@ class User extends Authenticatable
             'notif_email' => 'boolean',
             'notif_whatsapp' => 'boolean',
             'notif_events' => 'array',
+            'activated_at' => 'datetime',
+            'deleted_at' => 'datetime',
         ];
     }
 
@@ -105,6 +113,21 @@ class User extends Authenticatable
     public function isSubscriber(): bool
     {
         return $this->hasRole('subscriber');
+    }
+
+    public function isPending(): bool
+    {
+        return ($this->status ?? 'pending') === 'pending';
+    }
+
+    public function isDisabled(): bool
+    {
+        return ($this->status ?? 'pending') === 'disabled';
+    }
+
+    public function isActive(): bool
+    {
+        return ($this->status ?? 'pending') === 'active';
     }
 
     public function primaryRole(): string

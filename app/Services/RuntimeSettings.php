@@ -261,6 +261,13 @@ class RuntimeSettings
         return $this->get('login_remember_enabled') === '1';
     }
 
+    public function inviteExpiryHours(): int
+    {
+        $hours = (int) $this->get('invite_expiry_hours', '24');
+
+        return in_array($hours, [6, 12, 24, 48, 72], true) ? $hours : 24;
+    }
+
     public function globalLoginMethods(): array
     {
         $raw = $this->get('login_methods_global');

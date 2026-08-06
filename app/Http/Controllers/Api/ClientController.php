@@ -6,19 +6,16 @@ use App\Http\Controllers\Controller;
 use App\Models\ClientAccessToken;
 use App\Services\AuditLogger;
 use App\Models\Client;
-use App\Models\User;
 use App\Services\NotificationService;
 use App\Services\NotificationType;
 use App\Support\ContentSanitizer;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 
 class ClientController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Client::with(['projects', 'user:id,name,email']);
+        $query = Client::with(['projects', 'user:id,name,email,status']);
 
         if ($request->filled('search')) {
             $query->where(fn ($q) => $q
@@ -42,15 +39,18 @@ class ClientController extends Controller
 
         $data['notes'] = ContentSanitizer::plainText($data['notes'] ?? '');
 
-        $user = User::create([
-            'name' => $data['name'],
-            'email' => $data['email'] ?? ('client_' . Str::random(8) . '@imagery.local'),
-            'password' => Hash::make(Str::random(16)),
-            'role' => 'client',
-        ]);
-        $user->assignRole(['client', 'subscriber']);
+        $reg = app(\App\Services\ClientRegistrationService::class);
+        $result = $reg->registerWithInvite(
+            ['name' => $data['name'], 'email' => $data['email'], 'phone' => $data['phone'], 'notes' => $data['notes']],
+            null,
+            $request->user()
+        );
 
-        $client = Client::create(array_merge($data, ['user_id' => $user->id]));
+        $client = $result['client'];
+        if (!empty($data['company'])) {
+            $client->update(['company' => $data['company']]);
+        }
+
         app(\App\Services\AuditLogger::class)->log('client.created', 'Klien dibuat', $client);
 
         return response()->json($client->load('projects'), 201);
@@ -98,22 +98,23 @@ class ClientController extends Controller
         $data = $request->validate([
             'send' => 'nullable|boolean',
             'message' => 'nullable|string|max:500',
+            'expires_hours' => 'nullable|integer|in:6,12,24,48,72',
         ]);
 
         if (!in_array($purpose, ClientAccessToken::PURPOSES, true)) {
             abort(422, 'Purpose token tidak dikenal.');
         }
 
+        $reg = app(\App\Services\ClientRegistrationService::class);
+
+        // Buat user pending bila client belum punya akun (tanpa password → invite aktivasi).
         if (!$client->user) {
-            $user = User::create([
-                'name' => $client->name,
-                'email' => $client->email ?? ('client_' . Str::random(8) . '@imagery.local'),
-                'phone' => $client->phone,
-                'password' => Hash::make(Str::random(16)),
-                'role' => 'client',
-            ]);
-            $user->assignRole(['client', 'subscriber']);
-            $client->update(['user_id' => $user->id]);
+            $result = $reg->registerWithInvite(
+                ['name' => $client->name, 'email' => $client->email, 'phone' => $client->phone],
+                $data['expires_hours'] ?? null,
+                $request->user()
+            );
+            $client = $result['client'];
         } elseif (!$client->user->phone && $client->phone) {
             $client->user->update(['phone' => $client->phone]);
         }
@@ -125,7 +126,8 @@ class ClientController extends Controller
             $client->user,
             $purpose,
             is_object($creator) ? get_class($creator) : null,
-            $creator->id ?? null
+            $creator->id ?? null,
+            $purpose === 'invite' ? ($data['expires_hours'] ?? null) : null
         );
 
         if ($request->boolean('send')) {
@@ -152,6 +154,86 @@ class ClientController extends Controller
     }
 
     /**
+     * Nonaktifkan akun client (status disabled).
+     */
+    public function disable(Request $request, Client $client)
+    {
+        $client->user?->update(['status' => 'disabled']);
+        app(AuditLogger::class)->log('client.disabled', 'Akun klien dinonaktifkan: ' . $client->name, $client);
+
+        return response()->json($client->load(['projects', 'user:id,name,email,status']));
+    }
+
+    /**
+     * Aktifkan kembali akun client (status active).
+     */
+    public function activate(Request $request, Client $client)
+    {
+        $client->user?->update(['status' => 'active', 'activated_at' => now()]);
+        app(AuditLogger::class)->log('client.activated_admin', 'Akun klien diaktifkan: ' . $client->name, $client);
+
+        return response()->json($client->load(['projects', 'user:id,name,email,status']));
+    }
+
+    /**
+     * Soft delete user + client (masuk Recycle Bin), dengan alasan opsional.
+     */
+    public function softDelete(Request $request, Client $client)
+    {
+        $data = $request->validate(['reason' => 'nullable|string|max:500']);
+        $reason = $data['reason'] ?? null;
+
+        $client->user?->softDeleteBy($reason);
+        $client->softDeleteBy($reason);
+
+        app(AuditLogger::class)->log('client.soft_deleted', 'Klien dipindah ke recycle bin: ' . $client->name . ($reason ? " (alasan: $reason)" : ''), $client, null, null, $reason);
+
+        return response()->json(['ok' => true]);
+    }
+
+    /**
+     * Daftar klien ter-soft-delete (Recycle Bin).
+     */
+    public function trashed(Request $request)
+    {
+        $query = Client::with(['user:id,name,email,status'])->onlyTrashed();
+
+        if ($request->filled('search')) {
+            $query->where(fn ($q) => $q
+                ->where('name', 'like', '%' . $request->input('search') . '%')
+                ->orWhere('email', 'like', '%' . $request->input('search') . '%'));
+        }
+
+        return response()->json($query->latest()->paginate(15));
+    }
+
+    /**
+     * Pulihkan dari Recycle Bin.
+     */
+    public function restore(Request $request, Client $client)
+    {
+        $client->restore();
+        $client->user?->restore();
+
+        app(AuditLogger::class)->log('client.restored', 'Klien dipulihkan dari recycle bin: ' . $client->name, $client);
+
+        return response()->json(['ok' => true]);
+    }
+
+    /**
+     * Hapus permanen (user + client). Hanya owner/admin.
+     */
+    public function forceDelete(Request $request, Client $client)
+    {
+        $client->user?->forceDelete();
+        $client->forceDelete();
+
+        app(AuditLogger::class)->log('client.force_deleted', 'Klien dihapus permanen: ' . $client->name, $client);
+
+        return response()->json(['ok' => true]);
+    }
+
+    /**
      * Informasi kredensial & akses utk modal halaman Klien (read-only + sedikit).
      */
     public function credentials(Client $client)
@@ -166,6 +248,7 @@ class ClientController extends Controller
             'user' => $user ? [
                 'id' => $user->id,
                 'email' => $user->email,
+                'status' => $user->status,
                 'has_password' => !empty($user->password),
             ] : null,
             'tokens' => ClientAccessToken::where('client_id', $client->id)

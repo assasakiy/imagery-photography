@@ -16,10 +16,12 @@ export default function Clients() {
     const [form, setForm] = useState(emptyForm);
     const [errors, setErrors] = useState({});
     const [saving, setSaving] = useState(false);
-    const [deleting, setDeleting] = useState(null);
     const [creds, setCreds] = useState(null);
     const [credLoading, setCredLoading] = useState(false);
     const [issuing, setIssuing] = useState(null);
+    const [deleteTarget, setDeleteTarget] = useState(null);
+    const [deleteReason, setDeleteReason] = useState('');
+    const [inviteHours, setInviteHours] = useState('');
     const { show, node } = useToast();
 
     const openCreds = async (item) => {
@@ -38,13 +40,27 @@ export default function Clients() {
         if (!creds) return;
         setIssuing(purpose);
         try {
-            const { data } = await api.post(`/clients/${creds.client_id}/token/${purpose}`, { send });
+            const { data } = await api.post(`/clients/${creds.client_id}/token/${purpose}`, { send, expires_hours: inviteHours || undefined });
             show(purpose === 'invite' ? 'Undangan dibuat & dikirim.' : 'Tautan dibuat' + (send ? ' & dikirim.' : '.'));
         } catch {
             show('Gagal membuat tautan.', 'error');
         } finally {
             setIssuing(null);
         }
+    };
+
+    const toggleStatus = async (id, status) => {
+        await api.post(`/clients/${id}/${status}`);
+        show(status === 'disable' ? 'Akun dinonaktifkan.' : 'Akun diaktifkan.');
+        load(meta.current_page);
+    };
+
+    const confirmDelete = async () => {
+        await api.post(`/clients/${deleteTarget.id}/soft-delete`, { reason: deleteReason });
+        show('Klien dipindah ke Recycle Bin.');
+        setDeleteTarget(null);
+        setDeleteReason('');
+        load(meta.current_page);
     };
 
     const load = (page = 1, q = debounced) => {
@@ -96,13 +112,6 @@ export default function Clients() {
         }
     };
 
-    const handleDelete = async () => {
-        await api.delete(`/clients/${deleting.id}`);
-        show('Klien dihapus.');
-        setDeleting(null);
-        load(meta.current_page);
-    };
-
     return (
         <>
             <PageHeader
@@ -140,9 +149,9 @@ export default function Clients() {
                     <table className="table">
                         <thead>
                             <tr>
-                                <th>Nama</th>
+                                                                <th>Nama</th>
                                 <th>Kontak</th>
-                                <th>Perusahaan</th>
+                                <th>Status</th>
                                 <th>Project</th>
                                 <th>Bergabung</th>
                                 <th className="w-24">Aksi</th>
@@ -163,7 +172,11 @@ export default function Clients() {
                                         <p className="text-sm text-ink">{item.email || '-'}</p>
                                         <p className="text-xs text-ink-muted">{item.phone || '-'}</p>
                                     </td>
-                                    <td className="text-sm text-ink-muted">{item.company || '-'}</td>
+                                    <td>
+                                        <span className={`badge ${item.user?.status === 'active' ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' : item.user?.status === 'pending' ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400' : 'bg-zinc-500/15 text-ink-muted'}`}>
+                                            {item.user?.status === 'active' ? 'Aktif' : item.user?.status === 'pending' ? 'Menunggu' : item.user?.status === 'disabled' ? 'Nonaktif' : 'Tanpa akun'}
+                                        </span>
+                                    </td>
                                     <td><span className="badge">{item.projects?.length ?? 0} project</span></td>
                                     <td className="text-sm text-ink-muted">{formatDate(item.created_at)}</td>
                                     <td>
@@ -174,7 +187,7 @@ export default function Clients() {
                                             <button onClick={() => openEdit(item)} className="icon-btn" aria-label="Edit">
                                                 <Icon name="edit" size={16} />
                                             </button>
-                                            <button onClick={() => setDeleting(item)} className="icon-btn hover:!text-red-500" aria-label="Hapus">
+                                            <button onClick={() => setDeleteTarget(item)} className="icon-btn hover:!text-red-500" aria-label="Hapus">
                                                 <Icon name="trash" size={16} />
                                             </button>
                                         </div>
@@ -224,7 +237,18 @@ export default function Clients() {
                 </form>
             </Modal>
 
-            <Confirm open={!!deleting} onClose={() => setDeleting(null)} onConfirm={handleDelete} message="Project terkait klien ini tidak ikut terhapus." />
+            <Confirm
+                open={!!deleteTarget}
+                onClose={() => { setDeleteTarget(null); setDeleteReason(''); }}
+                onConfirm={confirmDelete}
+                title="Hapus Klien"
+                message={
+                    <div className="space-y-2">
+                        <p className="text-sm text-ink-muted">Klien akan dipindah ke Recycle Bin (soft delete). Data historis tetap tersimpan.</p>
+                        <input className="input" placeholder="Alasan (opsional)" value={deleteReason} onChange={(e) => setDeleteReason(e.target.value)} autoFocus />
+                    </div>
+                }
+            />
 
             <Modal open={!!creds} onClose={() => setCreds(null)} title="Kredensial & Akses Klien" wide>
                 {credLoading ? (
@@ -257,6 +281,16 @@ export default function Clients() {
                             <p className="mb-3 text-xs text-ink-muted">
                                 Undangan utk aktivasi akun baru · Recovery utk lupa password. Prioritas pengiriman WhatsApp → Email.
                             </p>
+                            <div className="mb-3 sm:max-w-[200px]">
+                                <select className="input" value={inviteHours} onChange={(e) => setInviteHours(e.target.value)}>
+                                    <option value="">Durasi undangan (pakai global)</option>
+                                    <option value="6">6 jam</option>
+                                    <option value="12">12 jam</option>
+                                    <option value="24">24 jam</option>
+                                    <option value="48">48 jam</option>
+                                    <option value="72">72 jam</option>
+                                </select>
+                            </div>
                             <div className="flex flex-wrap gap-2">
                                 <button className="btn-primary" disabled={issuing === 'invite'} onClick={() => issueToken('invite', true)}>
                                     <Icon name="send" size={16} /> {issuing === 'invite' ? 'Mengirim...' : 'Kirim Undangan'}
@@ -266,6 +300,25 @@ export default function Clients() {
                                 </button>
                                 <button className="btn-outline" disabled={issuing === 'project'} onClick={() => issueToken('project', true)}>
                                     <Icon name="link" size={16} /> {issuing === 'project' ? 'Mengirim...' : 'Kirim Link Akses'}
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className="border-t border-line pt-4">
+                            <label className="label">Status Akun</label>
+                            <div className="flex flex-wrap gap-2">
+                                {creds.user?.status !== 'active' && (
+                                    <button className="btn-outline" onClick={() => toggleStatus(creds.client_id, 'activate')}>
+                                        <Icon name="check" size={16} /> Aktifkan
+                                    </button>
+                                )}
+                                {creds.user?.status === 'active' && (
+                                    <button className="btn-outline" onClick={() => toggleStatus(creds.client_id, 'disable')}>
+                                        <Icon name="x" size={16} /> Nonaktifkan
+                                    </button>
+                                )}
+                                <button className="btn bg-red-600 text-white hover:bg-red-700" onClick={() => setDeleteTarget({ id: creds.client_id })}>
+                                    <Icon name="trash" size={16} /> Hapus
                                 </button>
                             </div>
                         </div>

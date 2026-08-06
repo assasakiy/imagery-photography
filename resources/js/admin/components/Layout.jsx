@@ -19,6 +19,7 @@ const adminNav = [
     { to: '/dashboard/faq', icon: 'message-circle', label: 'FAQ' },
     { to: '/dashboard/pages', icon: 'file', label: 'Halaman' },
     { to: '/dashboard/audit', icon: 'clock', label: 'Audit & Log' },
+    { to: '/dashboard/recycle-bin', icon: 'trash', label: 'Recycle Bin' },
 ];
 
 const ownerNav = [

@@ -7,7 +7,7 @@ use Illuminate\Support\Str;
 
 class ClientAccessToken extends Model
 {
-    protected $fillable = ['project_id', 'client_id', 'user_id', 'token', 'purpose', 'created_by_type', 'created_by_id', 'expires_at', 'used_at'];
+    protected $fillable = ['project_id', 'client_id', 'user_id', 'token', 'purpose', 'status', 'expires_hours', 'created_by_type', 'created_by_id', 'expires_at', 'used_at'];
 
     protected function casts(): array
     {
@@ -19,10 +19,12 @@ class ClientAccessToken extends Model
 
     public const PURPOSES = ['project', 'recovery', 'invite'];
 
+    public const PURPOSES_STATUS = ['pending', 'expired', 'accepted', 'cancelled'];
+
     public const PURPOSE_LIFETIME = [
         'project' => 86400,   // 24 jam
         'recovery' => 1800,   // 30 menit
-        'invite' => 604800,   // 7 hari
+        'invite' => 86400,    // 24 jam (default global; bisa dioverride expires_hours)
     ];
 
     public function project()
@@ -47,12 +49,28 @@ class ClientAccessToken extends Model
 
     public function purposeLifetime(): int
     {
+        if ($this->purpose === 'invite') {
+            $hours = $this->expires_hours ?: app(\App\Services\RuntimeSettings::class)->inviteExpiryHours();
+
+            return $hours * 3600;
+        }
+
         return self::PURPOSE_LIFETIME[$this->purpose] ?? 86400;
     }
 
     public function isValid(): bool
     {
         return $this->expires_at === null || $this->expires_at->isFuture();
+    }
+
+    public function isPending(): bool
+    {
+        return ($this->status ?? 'pending') === 'pending';
+    }
+
+    public function isExpired(): bool
+    {
+        return ($this->status ?? 'pending') === 'expired' || !$this->isValid();
     }
 
     public function getUrlAttribute(): string
@@ -65,21 +83,26 @@ class ClientAccessToken extends Model
         return 'SLI-' . Str::random(20);
     }
 
-    public static function createToken(int|Client $client, int|User|null $user, string $purpose = 'project', ?string $creatorType = null, ?int $creatorId = null, $expiresAt = null): self
+    public static function createToken(int|Client $client, int|User|null $user, string $purpose = 'project', ?string $creatorType = null, ?int $creatorId = null, ?int $expiresHours = null): self
     {
         $clientId = $client instanceof Client ? $client->id : $client;
         $userId = $user instanceof User ? $user->id : $user;
 
-        return static::create([
+        $model = static::create([
             'project_id' => null,
             'client_id' => $clientId,
             'user_id' => $userId,
             'token' => static::generateToken(),
             'purpose' => $purpose,
+            'status' => 'pending',
+            'expires_hours' => $purpose === 'invite' ? $expiresHours : null,
             'created_by_type' => $creatorType,
             'created_by_id' => $creatorId,
-            'expires_at' => $expiresAt ?? now()->addSeconds(static::PURPOSE_LIFETIME[$purpose] ?? 86400),
         ]);
+
+        $model->update(['expires_at' => now()->addSeconds($model->purposeLifetime())]);
+
+        return $model;
     }
 
     public function scopeValid($query)

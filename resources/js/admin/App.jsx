@@ -30,6 +30,7 @@ const PAGE_TITLES = {
     '/dashboard/team': 'Tim & Admin',
     '/dashboard/reviews': 'Review',
     '/dashboard/audit': 'Audit & Log',
+    '/dashboard/recycle-bin': 'Recycle Bin',
     '/dashboard/profile': 'Pengaturan Profil',
 };
 
@@ -78,6 +79,7 @@ import Pages from './pages/Pages';
 import Team from './pages/Team';
 import Reviews from './pages/Reviews';
 import AuditLog from './pages/AuditLog';
+import RecycleBin from './pages/RecycleBin';
 import ProfileSettings from './pages/ProfileSettings';
 import ClientBookings from './pages/ClientBookings';
 import ClientInvoices from './pages/ClientInvoices';
@@ -150,6 +152,7 @@ function AppRoutes() {
                 <Route path="pages" element={<Protected adminOnly><Pages /></Protected>} />
                 <Route path="team" element={<Protected ownerOnly><Team /></Protected>} />
                 <Route path="audit" element={<Protected adminOnly><AuditLog /></Protected>} />
+                <Route path="recycle-bin" element={<Protected adminOnly><RecycleBin /></Protected>} />
                 <Route path="settings" element={<Protected ownerOnly><Settings /></Protected>} />
             </Route>
             <Route path="*" element={<Navigate to="/dashboard" replace />} />

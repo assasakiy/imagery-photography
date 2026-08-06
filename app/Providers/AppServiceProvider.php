@@ -3,8 +3,11 @@
 namespace App\Providers;
 
 use App\Services\RuntimeSettings;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Str;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -30,5 +33,19 @@ class AppServiceProvider extends ServiceProvider
             'siteLogo' => $settings->siteLogo(),
             'siteFavicon' => $settings->siteFavicon(),
         ]);
+
+        RateLimiter::for('booking', function ($job) {
+            return [
+                Limit::perHour(5)->by('ip:' . request()->ip()),
+                Limit::perDay(3)->by('email:' . Str::lower(request()->input('email', 'anonymous'))),
+            ];
+        });
+
+        RateLimiter::for('forgot', function ($job) {
+            return [
+                Limit::perHour(5)->by('email:' . Str::lower(request()->input('identifier', 'anonymous'))),
+                Limit::perDay(10)->by('ip:' . request()->ip()),
+            ];
+        });
     }
 }

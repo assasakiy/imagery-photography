@@ -78,8 +78,16 @@ class ProjectController extends Controller
             $client = $this->findOrCreateClient($data);
         }
 
-        $password = Str::random(10);
-        $this->ensureClientUser($client, $password);
+        // Client baru (tanpa user) → buat akun pending + invite set-password.
+        if (!$client->user) {
+            $reg = app(\App\Services\ClientRegistrationService::class);
+            $result = $reg->registerWithInvite(
+                ['name' => $client->name, 'email' => $client->email, 'phone' => $client->phone],
+                null,
+                Auth::user()
+            );
+            $client = $result['client'];
+        }
 
         $package = null;
         $snapshot = null;

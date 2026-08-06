@@ -22,7 +22,7 @@ export const TAB_FIELDS = {
     webhook: ['webhook_urls'],
     notifications: ['notif_email_enabled', 'notif_wa_enabled'],
     security_login: ['login_attempts_max', 'login_attempts_lockout_minutes', 'login_remember_enabled', 'login_remember_days', 'login_methods_global'],
-    security_file: ['file_retention_days'],
+    security_file: ['file_retention_days', 'invite_expiry_hours'],
     maintenance: ['maintenance_enabled', 'maintenance_message'],
 };
 
@@ -54,6 +54,7 @@ export const emptyForm = {
     login_remember_days: 30,
     login_methods_global: { password: true, otp: true, google: true, token: true },
     file_retention_days: 0,
+    invite_expiry_hours: 24,
     maintenance_enabled: false,
     maintenance_message: '',
     notif_email_enabled: true,
@@ -115,6 +116,7 @@ export function normalize(data) {
         login_remember_days: data.login_remember_days ?? 30,
         login_methods_global: data.login_methods_global ?? { password: true, otp: true, google: true, token: true },
         file_retention_days: data.file_retention_days ?? 0,
+        invite_expiry_hours: data.invite_expiry_hours ?? 24,
         maintenance_enabled: !!data.maintenance_enabled,
         maintenance_message: data.maintenance_message || '',
         notif_email_enabled: data.email_enabled !== false,

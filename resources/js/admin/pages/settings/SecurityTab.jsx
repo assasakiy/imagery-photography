@@ -89,13 +89,22 @@ export default function SecurityTab({ form, meta, errors, saving, set, save, dir
                     <p className="text-xs text-ink-muted">Berapa lama file (gambar, video, dokumen) disimpan sebelum dihapus otomatis.</p>
                 </div>
                 <Field label="Lama penyimpanan" hint="0 = selamanya">
-<select className="input" value={form.file_retention_days} onChange={(e) => set('file_retention_days', e.target.value)}>
-                            <option value="0">Selamanya</option>
-                            <option value="30">30 hari</option>
-                            <option value="90">90 hari</option>
-                            <option value="180">180 hari</option>
-                            <option value="365">1 tahun</option>
-                        </select>
+                    <select className="input" value={form.file_retention_days} onChange={(e) => set('file_retention_days', e.target.value)}>
+                        <option value="0">Selamanya</option>
+                        <option value="30">30 hari</option>
+                        <option value="90">90 hari</option>
+                        <option value="180">180 hari</option>
+                        <option value="365">1 tahun</option>
+                    </select>
+                </Field>
+                <Field label="Masa berlaku undangan akun" hint="berapa jam link aktivasi valid sebelum kadaluarsa">
+                    <select className="input" value={form.invite_expiry_hours} onChange={(e) => set('invite_expiry_hours', e.target.value)}>
+                        <option value="6">6 jam</option>
+                        <option value="12">12 jam</option>
+                        <option value="24">24 jam</option>
+                        <option value="48">48 jam</option>
+                        <option value="72">72 jam</option>
+                    </select>
                 </Field>
                 <div className="mt-6 flex justify-end border-t border-line pt-5">
                     <Button icon="check" loading={saving} disabled={!dirty(TAB_FIELDS.security_file)} onClick={() => save(TAB_FIELDS.security_file)}>
