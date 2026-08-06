@@ -23,6 +23,13 @@ const LINK_STATUS_META = {
 
 const PURPOSE_LABEL = { invite: 'Undangan', recovery: 'Recovery', project: 'Akses Proyek' };
 
+function linkStatusMeta(it) {
+    if (it.used_at || it.status === 'accepted') {
+        return { label: 'Dipakai', cls: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' };
+    }
+    return LINK_STATUS_META[it.status] || { label: it.status, cls: 'bg-zinc-500/15 text-ink-muted' };
+}
+
 const METHOD_LABEL = { password: 'Password', otp: 'OTP', google: 'Google' };
 
 function formatDateTime(value) {
@@ -228,9 +235,8 @@ export default function AuditLog() {
                                         <span className="badge">{PURPOSE_LABEL[it.purpose] || it.purpose}</span>
                                     </td>
                                     <td>
-                                        <span className={`badge ${LINK_STATUS_META[it.status]?.cls || 'bg-zinc-500/15 text-ink-muted'}`}>
-                                            {LINK_STATUS_META[it.status]?.label || it.status}
-                                            {it.used_at ? ' · dipakai' : ''}
+                                        <span className={`badge ${linkStatusMeta(it).cls}`}>
+                                            {linkStatusMeta(it).label}
                                         </span>
                                     </td>
                                     <td>
