@@ -5,7 +5,7 @@ import MediaPicker from '../components/MediaPicker';
 import UserDetailModal from '../components/UserDetailModal';
 import { PageHeader, Spinner, EmptyState, Modal, Confirm, Field, useToast } from '../components/ui';
 
-const EMPTY_ADMIN = { name: '', email: '', phone: '', company: '', occupation: '' };
+const EMPTY_ADMIN = { name: '', username: '', email: '', phone: '', company: '', occupation: '', bio: '', status: 'pending', avatar: undefined };
 const EMPTY_MEMBER = { name: '', position: '', bio: '', photo_url: '', social_facebook: '', social_instagram: '', social_tiktok: '', social_whatsapp: '', order: 0 };
 
 const SOCIAL_FIELDS = [
@@ -26,7 +26,8 @@ function AdminTab() {
     const [detail, setDetail] = useState(null);
     const [credLoading, setCredLoading] = useState(false);
     const [issuing, setIssuing] = useState(null);
-    const [inviteHours, setInviteHours] = useState('');
+    const [avatarUrl, setAvatarUrl] = useState(null);
+    const [mediaOpen, setMediaOpen] = useState(false);
     const [deleting, setDeleting] = useState(null);
     const { show, node } = useToast();
 
@@ -56,7 +57,7 @@ function AdminTab() {
         if (!detail) return;
         setIssuing(purpose);
         try {
-            const { data } = await api.post(`/team/${detail.id}/token/${purpose}`, { send, expires_hours: inviteHours || undefined });
+            const { data } = await api.post(`/team/${detail.id}/token/${purpose}`, { send });
             show(purpose === 'invite' ? 'Undangan dibuat & dikirim.' : 'Tautan dibuat' + (send ? ' & dikirim.' : '.'));
             openDetail({ id: detail.id });
             return data;
@@ -70,6 +71,7 @@ function AdminTab() {
     const openCreate = () => {
         setEditing(null);
         setForm(EMPTY_ADMIN);
+        setAvatarUrl(null);
         setErrors({});
         setOpen(true);
     };
@@ -78,13 +80,24 @@ function AdminTab() {
         setEditing(item);
         setForm({
             name: item.name,
+            username: item.username || '',
             email: item.email || '',
             phone: item.phone || '',
             company: item.company || '',
             occupation: item.occupation || '',
+            bio: item.bio || '',
+            status: item.status || 'pending',
+            avatar: undefined,
         });
+        setAvatarUrl(item.avatar || null);
         setErrors({});
         setOpen(true);
+    };
+
+    const onMediaPick = (sel) => {
+        const raw = sel.source === 'url' ? sel.url.trim() : `media:${sel.mediaId}`;
+        setForm((f) => ({ ...f, avatar: raw }));
+        setAvatarUrl(sel.url);
     };
 
     const submit = async (e) => {
@@ -194,25 +207,61 @@ function AdminTab() {
                     </div>
                 }
             >
-                <form id="admin-form" onSubmit={submit} className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    <Field label="Nama" required error={errors.name?.[0]}>
-                        <input className="input" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required placeholder="Nama lengkap" />
-                    </Field>
-                    <Field label="Email" hint="wajib jika WhatsApp kosong" error={errors.email?.[0]}>
-                        <input className="input" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
-                    </Field>
-                    <Field label="Nomor Ponsel / WhatsApp" hint="wajib jika email kosong" error={errors.phone?.[0]}>
-                        <input className="input" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="08xx" />
-                    </Field>
-                    <Field label="Perusahaan" hint="opsional" error={errors.company?.[0]}>
-                        <input className="input" value={form.company} onChange={(e) => setForm({ ...form, company: e.target.value })} />
-                    </Field>
-                    <Field label="Pekerjaan" hint="opsional" error={errors.occupation?.[0]}>
-                        <input className="input" value={form.occupation} onChange={(e) => setForm({ ...form, occupation: e.target.value })} />
-                    </Field>
-                    <p className="text-xs text-ink-muted sm:col-span-2">Email atau WhatsApp (minimal satu) akan dipakai untuk login & menerima tautan aktivasi. Username dibuat otomatis dan bisa diubah di profil.</p>
+                <form id="admin-form" onSubmit={submit} className="space-y-4">
+                    <div className="flex items-center gap-4">
+                        <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-full bg-brand-500/15 ring-2 ring-line">
+                            {avatarUrl ? (
+                                <img src={avatarUrl} alt="Foto profil" className="h-full w-full object-cover" />
+                            ) : (
+                                <Icon name="user" size={24} className="text-brand-600 dark:text-brand-400" />
+                            )}
+                        </div>
+                        <div>
+                            <button type="button" className="btn-outline" onClick={() => setMediaOpen(true)}>
+                                <Icon name="edit" size={16} /> Pilih Foto
+                            </button>
+                            {avatarUrl && (
+                                <button type="button" className="ml-2 text-sm text-red-600 hover:underline" onClick={() => { setForm((f) => ({ ...f, avatar: null })); setAvatarUrl(null); }}>
+                                    Hapus
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                        <Field label="Nama" required error={errors.name?.[0]}>
+                            <input className="input" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required placeholder="Nama lengkap" />
+                        </Field>
+                        <Field label="Username" hint="identitas login" error={errors.username?.[0]}>
+                            <input className="input" value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value })} placeholder="contoh: budi_santoso" />
+                        </Field>
+                        <Field label="Email" hint="wajib jika WhatsApp kosong" error={errors.email?.[0]}>
+                            <input className="input" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+                        </Field>
+                        <Field label="Nomor Ponsel / WhatsApp" hint="wajib jika email kosong" error={errors.phone?.[0]}>
+                            <input className="input" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="08xx" />
+                        </Field>
+                        <Field label="Perusahaan" error={errors.company?.[0]}>
+                            <input className="input" value={form.company} onChange={(e) => setForm({ ...form, company: e.target.value })} />
+                        </Field>
+                        <Field label="Pekerjaan" error={errors.occupation?.[0]}>
+                            <input className="input" value={form.occupation} onChange={(e) => setForm({ ...form, occupation: e.target.value })} />
+                        </Field>
+                        <Field label="Status Akun" error={errors.status?.[0]}>
+                            <select className="input" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
+                                <option value="active">Aktif</option>
+                                <option value="pending">Menunggu Aktivasi</option>
+                                <option value="disabled">Nonaktif</option>
+                            </select>
+                        </Field>
+                        <Field label="Bio" error={errors.bio?.[0]}>
+                            <textarea className="input" rows={3} value={form.bio} onChange={(e) => setForm({ ...form, bio: e.target.value })} placeholder="Cerita singkat (opsional)" />
+                        </Field>
+                    </div>
+                    <p className="text-xs text-ink-muted">Email atau WhatsApp (minimal satu) dipakai untuk login & menerima tautan aktivasi.</p>
                 </form>
             </Modal>
+
+            <MediaPicker open={mediaOpen} onClose={() => setMediaOpen(false)} onSelect={onMediaPick} title="Pilih Foto Profil" />
 
             <UserDetailModal
                 open={!!detail}
@@ -221,8 +270,6 @@ function AdminTab() {
                 loading={credLoading}
                 onIssueToken={issueToken}
                 issuing={issuing}
-                inviteHours={inviteHours}
-                onInviteHoursChange={setInviteHours}
             />
 
             <Confirm open={!!deleting} onClose={() => setDeleting(null)} onConfirm={handleDelete} title="Hapus admin?" message="Admin ini tidak akan bisa login lagi." />

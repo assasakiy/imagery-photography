@@ -77,14 +77,28 @@ class ClientController extends Controller
     {
         $data = $request->validate([
             'name' => 'required|string|max:255',
+            'username' => ['sometimes', 'string', 'max:255', 'regex:/^[a-zA-Z0-9_]+$/', \Illuminate\Validation\Rule::unique('users', 'username')->ignore($user->id)],
             'email' => 'nullable|email|max:255|required_without:phone|unique:users,email,' . $user->id,
             'phone' => 'nullable|string|max:20|required_without:email|unique:users,phone,' . $user->id,
             'company' => 'nullable|string|max:255',
             'occupation' => 'nullable|string|max:255',
+            'bio' => 'nullable|string|max:1000',
+            'avatar' => 'nullable|string|max:1000',
+            'status' => ['sometimes', 'string', \Illuminate\Validation\Rule::in(['pending', 'active', 'disabled'])],
         ]);
 
-        $user->update(collect($data)->only('email', 'phone')->all());
-        $this->updateProfile($user, ['full_name' => $data['name'], 'company' => $data['company'] ?? null, 'occupation' => $data['occupation'] ?? null]);
+        if (isset($data['bio'])) {
+            $data['bio'] = \App\Support\ContentSanitizer::plainText($data['bio']);
+        }
+
+        $user->update(collect($data)->only('email', 'phone', 'username', 'status')->all());
+        $this->updateProfile($user, [
+            'full_name' => $data['name'],
+            'company' => $data['company'] ?? null,
+            'occupation' => $data['occupation'] ?? null,
+            'bio' => $data['bio'] ?? null,
+            'avatar' => $data['avatar'] ?? null,
+        ]);
 
         app(AuditLogger::class)->log('client.updated', 'Klien diperbarui: ' . $user->name, $user);
 

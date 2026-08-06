@@ -15,7 +15,7 @@ const STATUS_META = {
     disabled: { label: 'Nonaktif', cls: 'bg-zinc-500/15 text-ink-muted' },
 };
 
-export default function UserDetailModal({ open, onClose, data, loading, onIssueToken, issuing, inviteHours, onInviteHoursChange }) {
+export default function UserDetailModal({ open, onClose, data, loading, onIssueToken, issuing }) {
     const { show, node } = useToast();
     const navigate = useNavigate();
 
@@ -123,11 +123,6 @@ export default function UserDetailModal({ open, onClose, data, loading, onIssueT
                                             <span className={`badge ${statusMeta.cls}`}>{statusMeta.label}</span>
                                         </div>
                                         {data.username && <p className="text-sm text-ink-muted">@{data.username}</p>}
-                                        {(data.company || data.occupation) && (
-                                            <p className="mt-1 text-xs text-ink-muted">
-                                                {[data.company, data.occupation].filter(Boolean).join(' · ')}
-                                            </p>
-                                        )}
                                     </div>
                                 </div>
 
@@ -140,14 +135,20 @@ export default function UserDetailModal({ open, onClose, data, loading, onIssueT
                                         <p className="text-xs text-ink-muted">Telepon / WhatsApp</p>
                                         <p className="text-sm font-semibold text-ink">{data.phone || '-'}</p>
                                     </div>
+                                    <div className="rounded-xl bg-surface-muted p-3">
+                                        <p className="text-xs text-ink-muted">Pekerjaan</p>
+                                        <p className="truncate text-sm font-semibold text-ink">{data.occupation || '-'}</p>
+                                    </div>
+                                    <div className="rounded-xl bg-surface-muted p-3">
+                                        <p className="text-xs text-ink-muted">Perusahaan</p>
+                                        <p className="truncate text-sm font-semibold text-ink">{data.company || '-'}</p>
+                                    </div>
                                 </div>
 
-                                {data.bio && (
-                                    <div>
-                                        <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-ink-muted">Bio</p>
-                                        <p className="rounded-xl bg-surface-muted p-3 text-sm text-ink">{data.bio}</p>
-                                    </div>
-                                )}
+                                <div>
+                                    <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-ink-muted">Bio</p>
+                                    <p className="rounded-xl bg-surface-muted p-3 text-sm text-ink">{data.bio || '-'}</p>
+                                </div>
 
                                 <div>
                                     <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-ink-muted">Media Sosial</p>
@@ -178,16 +179,6 @@ export default function UserDetailModal({ open, onClose, data, loading, onIssueT
                                             : 'Akun sudah aktif — kirim tautan untuk mengatur ulang kata sandi.'}
                                         {' Prioritas pengiriman WhatsApp → Email. Salin untuk mengirim manual.'}
                                     </p>
-                                    <div className="mb-3 sm:max-w-[200px]">
-                                        <select className="input" value={inviteHours} onChange={(e) => onInviteHoursChange?.(e.target.value)}>
-                                            <option value="">Durasi undangan (pakai global)</option>
-                                            <option value="6">6 jam</option>
-                                            <option value="12">12 jam</option>
-                                            <option value="24">24 jam</option>
-                                            <option value="48">48 jam</option>
-                                            <option value="72">72 jam</option>
-                                        </select>
-                                    </div>
                                     <div className="flex flex-wrap gap-2">
                                         <button className="btn-primary" disabled={issuing === purpose} onClick={handleSend}>
                                             <Icon name="send" size={16} /> {issuing === purpose ? 'Mengirim...' : isNew ? 'Kirim Undangan' : 'Kirim Recovery'}

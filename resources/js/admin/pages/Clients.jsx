@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 import api from '../api';
 import Icon from '../components/Icon';
+import MediaPicker from '../components/MediaPicker';
 import UserDetailModal from '../components/UserDetailModal';
 import { PageHeader, Spinner, EmptyState, Modal, Confirm, Field, useToast, formatDate } from '../components/ui';
 
-const emptyForm = { name: '', email: '', phone: '', company: '', occupation: '' };
+const emptyForm = { name: '', username: '', email: '', phone: '', company: '', occupation: '', bio: '', status: 'pending', avatar: undefined };
 
 export default function Clients() {
     const [items, setItems] = useState([]);
@@ -22,7 +23,8 @@ export default function Clients() {
     const [issuing, setIssuing] = useState(null);
     const [deleteTarget, setDeleteTarget] = useState(null);
     const [deleteReason, setDeleteReason] = useState('');
-    const [inviteHours, setInviteHours] = useState('');
+    const [avatarUrl, setAvatarUrl] = useState(null);
+    const [mediaOpen, setMediaOpen] = useState(false);
     const { show, node } = useToast();
 
     const openDetail = async (item) => {
@@ -41,7 +43,7 @@ export default function Clients() {
         if (!detail) return;
         setIssuing(purpose);
         try {
-            const { data } = await api.post(`/clients/${detail.id}/token/${purpose}`, { send, expires_hours: inviteHours || undefined });
+            const { data } = await api.post(`/clients/${detail.id}/token/${purpose}`, { send });
             show(purpose === 'invite' ? 'Undangan dibuat & dikirim.' : 'Tautan dibuat' + (send ? ' & dikirim.' : '.'));
             openDetail({ id: detail.id });
             return data;
@@ -78,15 +80,33 @@ export default function Clients() {
     const openCreate = () => {
         setEditing(null);
         setForm(emptyForm);
+        setAvatarUrl(null);
         setErrors({});
         setOpen(true);
     };
 
     const openEdit = (item) => {
         setEditing(item);
-        setForm({ name: item.name, email: item.email || '', phone: item.phone || '', company: item.company || '', occupation: item.occupation || '' });
+        setForm({
+            name: item.name,
+            username: item.username || '',
+            email: item.email || '',
+            phone: item.phone || '',
+            company: item.company || '',
+            occupation: item.occupation || '',
+            bio: item.bio || '',
+            status: item.status || 'pending',
+            avatar: undefined,
+        });
+        setAvatarUrl(item.avatar || null);
         setErrors({});
         setOpen(true);
+    };
+
+    const onMediaPick = (sel) => {
+        const raw = sel.source === 'url' ? sel.url.trim() : `media:${sel.mediaId}`;
+        setForm((f) => ({ ...f, avatar: raw }));
+        setAvatarUrl(sel.url);
     };
 
     const handleSubmit = async (e) => {
@@ -221,25 +241,69 @@ export default function Clients() {
                     <button type="submit" form="client-form" className="btn-primary" disabled={saving}>{saving ? 'Menyimpan...' : 'Simpan'}</button>
                 </div>
             }>
-                <form id="client-form" onSubmit={handleSubmit} className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    <Field label="Nama" required error={errors.name?.[0]}>
-                        <input className="input" value={form.name} onChange={(e) => update('name', e.target.value)} required placeholder="Nama lengkap" />
-                    </Field>
-                    <Field label="Email" hint="wajib jika WhatsApp kosong" error={errors.email?.[0]}>
-                        <input className="input" type="email" value={form.email} onChange={(e) => update('email', e.target.value)} placeholder="email@contoh.com" />
-                    </Field>
-                    <Field label="Telepon / WhatsApp" hint="wajib jika email kosong" error={errors.phone?.[0]}>
-                        <input className="input" value={form.phone} onChange={(e) => update('phone', e.target.value)} placeholder="08xxxxxxxxxx" />
-                    </Field>
-                    <Field label="Perusahaan" hint="opsional" error={errors.company?.[0]}>
-                        <input className="input" value={form.company} onChange={(e) => update('company', e.target.value)} />
-                    </Field>
-                    <Field label="Pekerjaan" hint="opsional" error={errors.occupation?.[0]}>
-                        <input className="input" value={form.occupation} onChange={(e) => update('occupation', e.target.value)} />
-                    </Field>
-                    <p className="text-xs text-ink-muted sm:col-span-2">Email atau WhatsApp (minimal satu) akan dipakai untuk login & menerima tautan aktivasi. Username dibuat otomatis dan bisa diubah di profil.</p>
+                <form id="client-form" onSubmit={handleSubmit} className="space-y-4">
+                    {editing && (
+                        <div className="flex items-center gap-4">
+                            <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-full bg-brand-500/15 ring-2 ring-line">
+                                {avatarUrl ? (
+                                    <img src={avatarUrl} alt="Foto profil" className="h-full w-full object-cover" />
+                                ) : (
+                                    <Icon name="user" size={24} className="text-brand-600 dark:text-brand-400" />
+                                )}
+                            </div>
+                            <div>
+                                <button type="button" className="btn-outline" onClick={() => setMediaOpen(true)}>
+                                    <Icon name="edit" size={16} /> Pilih Foto
+                                </button>
+                                {avatarUrl && (
+                                    <button type="button" className="ml-2 text-sm text-red-600 hover:underline" onClick={() => { setForm((f) => ({ ...f, avatar: null })); setAvatarUrl(null); }}>
+                                        Hapus
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                    )}
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                        <Field label="Nama" required error={errors.name?.[0]}>
+                            <input className="input" value={form.name} onChange={(e) => update('name', e.target.value)} required placeholder="Nama lengkap" />
+                        </Field>
+                        {editing && (
+                            <Field label="Username" hint="identitas login" error={errors.username?.[0]}>
+                                <input className="input" value={form.username} onChange={(e) => update('username', e.target.value)} placeholder="contoh: budi_santoso" />
+                            </Field>
+                        )}
+                        <Field label="Email" hint="wajib jika WhatsApp kosong" error={errors.email?.[0]}>
+                            <input className="input" type="email" value={form.email} onChange={(e) => update('email', e.target.value)} placeholder="email@contoh.com" />
+                        </Field>
+                        <Field label="Telepon / WhatsApp" hint="wajib jika email kosong" error={errors.phone?.[0]}>
+                            <input className="input" value={form.phone} onChange={(e) => update('phone', e.target.value)} placeholder="08xxxxxxxxxx" />
+                        </Field>
+                        <Field label="Perusahaan" error={errors.company?.[0]}>
+                            <input className="input" value={form.company} onChange={(e) => update('company', e.target.value)} />
+                        </Field>
+                        <Field label="Pekerjaan" error={errors.occupation?.[0]}>
+                            <input className="input" value={form.occupation} onChange={(e) => update('occupation', e.target.value)} />
+                        </Field>
+                        {editing && (
+                            <Field label="Status Akun" error={errors.status?.[0]}>
+                                <select className="input" value={form.status} onChange={(e) => update('status', e.target.value)}>
+                                    <option value="active">Aktif</option>
+                                    <option value="pending">Menunggu Aktivasi</option>
+                                    <option value="disabled">Nonaktif</option>
+                                </select>
+                            </Field>
+                        )}
+                        {editing && (
+                            <Field label="Bio" error={errors.bio?.[0]}>
+                                <textarea className="input" rows={3} value={form.bio} onChange={(e) => update('bio', e.target.value)} placeholder="Cerita singkat klien (opsional)" />
+                            </Field>
+                        )}
+                    </div>
+                    <p className="text-xs text-ink-muted">Email atau WhatsApp (minimal satu) dipakai untuk login & menerima tautan aktivasi.</p>
                 </form>
             </Modal>
+
+            <MediaPicker open={mediaOpen} onClose={() => setMediaOpen(false)} onSelect={onMediaPick} title="Pilih Foto Profil" />
 
             <Confirm
                 open={!!deleteTarget}
@@ -261,8 +325,6 @@ export default function Clients() {
                 loading={credLoading}
                 onIssueToken={issueToken}
                 issuing={issuing}
-                inviteHours={inviteHours}
-                onInviteHoursChange={setInviteHours}
             />
 
             {node}
