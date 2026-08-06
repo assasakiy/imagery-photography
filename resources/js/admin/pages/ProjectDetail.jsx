@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import api from '../api';
 import Icon from '../components/Icon';
 import { useAuth } from '../context/AuthContext';
-import { Spinner, Field, Modal, useToast, formatRupiah, formatDate } from '../components/ui';
+import { Spinner, Field, useToast, formatRupiah, formatDate } from '../components/ui';
 import { StatusBadge, statusOptions } from './Projects';
 
 export default function ProjectDetail() {

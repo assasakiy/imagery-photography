@@ -114,11 +114,14 @@ class ClientController extends Controller
             $user = User::create([
                 'name' => $client->name,
                 'email' => $client->email ?? ('client_' . Str::random(8) . '@imagery.local'),
+                'phone' => $client->phone,
                 'password' => Hash::make(Str::random(16)),
                 'role' => 'client',
             ]);
             $user->assignRole(['client', 'subscriber']);
             $client->update(['user_id' => $user->id]);
+        } elseif (!$client->user->phone && $client->phone) {
+            $client->user->update(['phone' => $client->phone]);
         }
 
         $creator = $request->user();
