@@ -289,11 +289,12 @@ class NotificationService
 
     /**
      * Kanal pengiriman OTP untuk seorang user (fleksibel bila email & WA keduanya ada).
+     * Hanya kanal yang AKTIF (channelAvailable = configured + enabled) yang dipakai.
      */
     public function otpChannel(User $user): ?string
     {
-        $email = $this->settings->emailConfigured();
-        $wa = $this->settings->whatsappConfigured();
+        $email = $this->settings->channelAvailable('email');
+        $wa = $this->settings->channelAvailable('whatsapp');
 
         if ($email && $wa) {
             return in_array($user->notif_otp_channel, ['email', 'whatsapp'], true)
