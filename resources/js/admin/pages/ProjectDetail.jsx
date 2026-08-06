@@ -48,6 +48,8 @@ export default function ProjectDetail() {
     const [uploading, setUploading] = useState(false);
     const [paymentForm, setPaymentForm] = useState({ amount: '', method: 'manual_transfer', notes: '', proof: null });
     const [saving, setSaving] = useState(false);
+    const [reviewOpen, setReviewOpen] = useState(false);
+    const [reviewForm, setReviewForm] = useState({ rating: 5, title: '', content: '', recommend_score: 10 });
     const fileRef = useRef(null);
     const proofRef = useRef(null);
     const { show, node } = useToast();
@@ -124,8 +126,6 @@ export default function ProjectDetail() {
         load();
     };
 
-    const [reviewOpen, setReviewOpen] = useState(false);
-    const [reviewForm, setReviewForm] = useState({ rating: 5, title: '', content: '', recommend_score: 10 });
 
     const submitReview = async (e) => {
         e.preventDefault();
@@ -484,6 +484,28 @@ export default function ProjectDetail() {
                     )}
                 </div>
             )}
+
+            <Modal open={reviewOpen} onClose={() => setReviewOpen(false)} title="Kirim Review & Testimoni" footer={
+                <div className="flex justify-end gap-2">
+                    <button type="button" className="btn-outline" onClick={() => setReviewOpen(false)}>Batal</button>
+                    <button type="button" className="btn-primary" onClick={submitReview} disabled={saving}>{saving ? 'Mengirim...' : 'Kirim Review'}</button>
+                </div>
+            }>
+                <form id="review-submit-form" className="space-y-4">
+                    <Field label="Rating Keseluruhan" required>
+                        <Stars value={reviewForm.rating} onChange={(n) => setReviewForm({ ...reviewForm, rating: n })} />
+                    </Field>
+                    <Field label="Seberapa besar kemungkinan Anda merekomendasikan kami? (0-10)" required>
+                        <input type="number" min="0" max="10" className="input" value={reviewForm.recommend_score} onChange={(e) => setReviewForm({ ...reviewForm, recommend_score: e.target.value })} />
+                    </Field>
+                    <Field label="Judul Singkat" hint="opsional">
+                        <input className="input" placeholder="Luar biasa!" value={reviewForm.title} onChange={(e) => setReviewForm({ ...reviewForm, title: e.target.value })} />
+                    </Field>
+                    <Field label="Ceritakan Pengalaman Anda" required>
+                        <textarea className="input min-h-[120px]" placeholder="Bagaimana hasil foto, pelayanan fotografer, dll..." value={reviewForm.content} onChange={(e) => setReviewForm({ ...reviewForm, content: e.target.value })} required />
+                    </Field>
+                </form>
+            </Modal>
 
             {node}
         </>
