@@ -3,7 +3,7 @@ import api from '../api';
 import Icon from '../components/Icon';
 import { PageHeader, Spinner, EmptyState, Modal, Confirm, Field, useToast, formatDate } from '../components/ui';
 
-const emptyForm = { name: '', email: '', phone: '', company: '', notes: '' };
+const emptyForm = { full_name: '', username: '', email: '', phone: '', company: '', occupation: '', website: '', notes: '' };
 
 export default function Clients() {
     const [items, setItems] = useState([]);
@@ -86,7 +86,7 @@ export default function Clients() {
 
     const openEdit = (item) => {
         setEditing(item);
-        setForm({ name: item.name, email: item.email || '', phone: item.phone || '', company: item.company || '', notes: item.notes || '' });
+        setForm({ full_name: item.name, username: item.username || '', email: item.email || '', phone: item.phone || '', company: item.company || '', occupation: item.occupation || '', website: item.website || '', notes: item.notes || '' });
         setErrors({});
         setOpen(true);
     };
@@ -219,8 +219,11 @@ export default function Clients() {
                 </div>
             }>
                 <form id="client-form" onSubmit={handleSubmit} className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    <Field label="Nama" required error={errors.name?.[0]}>
-                        <input className="input" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
+                    <Field label="Nama" required error={errors.full_name?.[0]}>
+                        <input className="input" value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} required />
+                    </Field>
+                    <Field label="Username" hint="opsional, untuk login" error={errors.username?.[0]}>
+                        <input className="input" autoComplete="off" value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value })} />
                     </Field>
                     <Field label="Email" hint="opsional" error={errors.email?.[0]}>
                         <input className="input" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
@@ -230,6 +233,12 @@ export default function Clients() {
                     </Field>
                     <Field label="Perusahaan" hint="opsional" error={errors.company?.[0]}>
                         <input className="input" value={form.company} onChange={(e) => setForm({ ...form, company: e.target.value })} />
+                    </Field>
+                    <Field label="Pekerjaan" hint="opsional" error={errors.occupation?.[0]}>
+                        <input className="input" value={form.occupation} onChange={(e) => setForm({ ...form, occupation: e.target.value })} />
+                    </Field>
+                    <Field label="Website" hint="opsional" error={errors.website?.[0]}>
+                        <input className="input" value={form.website} onChange={(e) => setForm({ ...form, website: e.target.value })} />
                     </Field>
                     <Field label="Catatan" hint="opsional" error={errors.notes?.[0]}>
                         <textarea className="input min-h-[80px]" value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />

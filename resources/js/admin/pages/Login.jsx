@@ -145,7 +145,7 @@ export default function Login() {
                         <form onSubmit={handleSubmit} className="space-y-4" noValidate>
                             <div>
                                 <label htmlFor="email" className="label">
-                                    Email / No. WhatsApp <span className="text-red-500">*</span>
+                                    Email / Username / No. WhatsApp <span className="text-red-500">*</span>
                                 </label>
                                 <input
                                     id="email"
@@ -153,7 +153,7 @@ export default function Login() {
                                     required
                                     autoComplete="username"
                                     className="input"
-                                    placeholder="email@contoh.com / 08xxxxxxxxxx"
+                                    placeholder="email / username / 08xxxxxxxxxx"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                 />

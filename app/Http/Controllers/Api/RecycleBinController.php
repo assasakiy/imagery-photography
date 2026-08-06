@@ -3,12 +3,12 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\Client;
+use App\Models\User;
 use Illuminate\Http\Request;
 
 /**
  * Recycle Bin global: daftar data soft-deleted + aksi pulihkan / hapus permanen.
- * Berurutan implementasi: Client dulu, lalu Booking/Project/Gallery/Blog/Invoice.
+ * Berurutan implementasi: Client (User role client) dulu, lalu Booking/Project/Gallery/Blog/Invoice.
  */
 class RecycleBinController extends Controller
 {
@@ -27,11 +27,10 @@ class RecycleBinController extends Controller
             abort(422, 'Tipe recycle bin belum didukung.');
         }
 
-        $client = Client::withTrashed()->findOrFail($id);
-        $client->restore();
-        $client->user?->restore();
+        $user = User::role('client')->withTrashed()->findOrFail($id);
+        $user->restore();
 
-        app(\App\Services\AuditLogger::class)->log('recycle.restored', 'Dipulihkan dari recycle bin: ' . $client->name, $client);
+        app(\App\Services\AuditLogger::class)->log('recycle.restored', 'Dipulihkan dari recycle bin: ' . $user->name, $user);
 
         return response()->json(['ok' => true]);
     }
@@ -42,31 +41,31 @@ class RecycleBinController extends Controller
             abort(422, 'Tipe recycle bin tidak didukung.');
         }
 
-        $client = Client::withTrashed()->findOrFail($id);
-        $client->user?->forceDelete();
-        $client->forceDelete();
+        $user = User::role('client')->withTrashed()->findOrFail($id);
+        $user->forceDelete();
 
-        app(\App\Services\AuditLogger::class)->log('recycle.force_deleted', 'Dihapus permanen dari recycle bin: ' . $client->name, $client);
+        app(\App\Services\AuditLogger::class)->log('recycle.force_deleted', 'Dihapus permanen dari recycle bin: ' . $user->name, $user);
 
         return response()->json(['ok' => true]);
     }
 
     private function clientItems(): array
     {
-        $clients = Client::with(['user:id,name,email,status', 'deletedBy:id,name'])
+        $users = User::role('client')
+            ->with(['profile', 'deletedBy:id,name'])
             ->onlyTrashed()
             ->latest('deleted_at')
             ->get();
 
         return [
-            'data' => $clients->map(fn ($c) => [
-                'id' => $c->id,
+            'data' => $users->map(fn ($u) => [
+                'id' => $u->id,
                 'type' => 'client',
-                'name' => $c->name,
-                'email' => $c->email,
-                'deleted_by_name' => $c->deleted_by_name ?? $c->deletedBy?->name ?? '-',
-                'deleted_at' => $c->deleted_at,
-                'delete_reason' => $c->delete_reason,
+                'name' => $u->name,
+                'email' => $u->email,
+                'deleted_by_name' => $u->deleted_by_name ?? $u->deletedBy?->name ?? '-',
+                'deleted_at' => $u->deleted_at,
+                'delete_reason' => $u->delete_reason,
             ]),
         ];
     }

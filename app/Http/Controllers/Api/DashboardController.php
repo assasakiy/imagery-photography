@@ -3,11 +3,11 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\Client;
 use App\Models\ContactMessage;
 use App\Models\Payment;
 use App\Models\Portfolio;
 use App\Models\Project;
+use App\Models\User;
 
 class DashboardController extends Controller
 {
@@ -19,20 +19,20 @@ class DashboardController extends Controller
                 'total_projects' => Project::count(),
                 'active_projects' => Project::whereIn('status', ['in_progress', 'pending'])->count(),
                 'completed_projects' => Project::whereIn('status', ['completed', 'delivered'])->count(),
-                'total_clients' => Client::count(),
+                'total_clients' => User::role('client')->count(),
                 'total_revenue' => Payment::where('status', 'confirmed')->sum('amount'),
                 'pending_payments' => Payment::where('status', 'pending')->count(),
                 'portfolios' => Portfolio::count(),
                 'unread_messages' => ContactMessage::whereNull('read_at')->count(),
-                'recent_projects' => Project::with('client')->latest()->take(5)->get(),
+                'recent_projects' => Project::with('user.profile')->latest()->take(5)->get(),
                 'recent_messages' => ContactMessage::latest()->take(5)->get(),
                 'recent_payments' => Payment::with('project')->latest()->take(5)->get(),
             ]);
         }
 
-        $client = $this->userClient();
+        $user = request()->user();
 
-        if (!$client && request()->user()->isSubscriber() && !request()->user()->isClient()) {
+        if ($user->isSubscriber() && !$user->isClient()) {
             return response()->json([
                 'role' => 'subscriber',
                 'projects' => 0,
@@ -45,21 +45,16 @@ class DashboardController extends Controller
 
         return response()->json([
             'role' => 'client',
-            'projects' => $client ? Project::with('client')->where('client_id', $client->id)->count() : 0,
-            'in_progress' => $client ? Project::where('client_id', $client->id)->where('status', 'in_progress')->count() : 0,
-            'completed' => $client ? Project::where('client_id', $client->id)->whereIn('status', ['completed', 'delivered'])->count() : 0,
-            'total_spent' => $client ? Payment::whereHas('project', fn ($q) => $q->where('client_id', $client->id))->where('status', 'confirmed')->sum('amount') : 0,
-            'recent_projects' => $client ? Project::with('client')->where('client_id', $client->id)->latest()->take(5)->get() : [],
+            'projects' => $user->projects()->count(),
+            'in_progress' => $user->projects()->where('status', 'in_progress')->count(),
+            'completed' => $user->projects()->whereIn('status', ['completed', 'delivered'])->count(),
+            'total_spent' => Payment::whereHas('project', fn ($q) => $q->where('user_id', $user->id))->where('status', 'confirmed')->sum('amount'),
+            'recent_projects' => $user->projects()->with('user.profile')->latest()->take(5)->get(),
         ]);
     }
 
     private function isAdmin(): bool
     {
         return request()->user()->isStaff();
-    }
-
-    private function userClient(): ?Client
-    {
-        return request()->user()->client;
     }
 }

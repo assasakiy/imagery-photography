@@ -7,7 +7,7 @@ use Illuminate\Support\Str;
 
 class ClientAccessToken extends Model
 {
-    protected $fillable = ['project_id', 'client_id', 'user_id', 'token', 'purpose', 'status', 'expires_hours', 'created_by_type', 'created_by_id', 'expires_at', 'used_at'];
+    protected $fillable = ['project_id', 'user_id', 'token', 'purpose', 'status', 'expires_hours', 'created_by_type', 'created_by_id', 'expires_at', 'used_at'];
 
     protected function casts(): array
     {
@@ -30,11 +30,6 @@ class ClientAccessToken extends Model
     public function project()
     {
         return $this->belongsTo(Project::class);
-    }
-
-    public function client()
-    {
-        return $this->belongsTo(Client::class);
     }
 
     public function user()
@@ -83,14 +78,12 @@ class ClientAccessToken extends Model
         return 'SLI-' . Str::random(20);
     }
 
-    public static function createToken(int|Client $client, int|User|null $user, string $purpose = 'project', ?string $creatorType = null, ?int $creatorId = null, ?int $expiresHours = null): self
+    public static function createToken(int|User $user, string $purpose = 'project', ?string $creatorType = null, ?int $creatorId = null, ?int $expiresHours = null): self
     {
-        $clientId = $client instanceof Client ? $client->id : $client;
         $userId = $user instanceof User ? $user->id : $user;
 
         $model = static::create([
             'project_id' => null,
-            'client_id' => $clientId,
             'user_id' => $userId,
             'token' => static::generateToken(),
             'purpose' => $purpose,

@@ -59,7 +59,7 @@ export default function Dashboard() {
                                     <Link key={p.id} to={`/dashboard/projects/${p.id}`} className="flex items-center justify-between px-5 py-3 hover:bg-surface-muted">
                                         <div className="min-w-0">
                                             <p className="truncate text-sm font-semibold text-ink">{p.name}</p>
-                                            <p className="text-xs text-ink-muted">{p.client?.name || '—'}</p>
+                                            <p className="text-xs text-ink-muted">{p.user?.name || '—'}</p>
                                         </div>
                                         <StatusBadge status={p.status} />
                                     </Link>

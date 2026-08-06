@@ -84,7 +84,7 @@ export default function ProfileSettings() {
         api.get('/profile')
             .then(({ data }) => {
                 const u = data.user;
-                setProfile({ name: u.name, email: u.email, phone: u.phone || '', bio: u.bio || '' });
+                setProfile({ full_name: u.name, username: u.username || '', email: u.email, phone: u.phone || '', bio: u.bio || '', company: u.company || '', occupation: u.occupation || '', website: u.website || '' });
                 setSocials({
                     social_instagram: u.social_instagram || '',
                     social_facebook: u.social_facebook || '',
@@ -126,7 +126,7 @@ export default function ProfileSettings() {
     const saveProfile = async (e) => {
         e.preventDefault();
         const payload = { ...profile };
-        if (avatarValue !== undefined) payload.avatar_url = avatarValue;
+        if (avatarValue !== undefined) payload.avatar = avatarValue;
         await save(payload, 'Profil diperbarui.');
     };
 
@@ -185,7 +185,7 @@ export default function ProfileSettings() {
         if (!pendingCover) return;
         setSaving(true);
         try {
-            await api.put('/profile', { cover_url: pendingCover.value });
+            await api.put('/profile', { cover: pendingCover.value });
             setCoverUrl(pendingCover.url);
             setPendingCover(null);
             await refresh();
@@ -204,7 +204,7 @@ export default function ProfileSettings() {
     const removeCover = async () => {
         setSaving(true);
         try {
-            await api.put('/profile', { cover_url: '' });
+            await api.put('/profile', { cover: '' });
             setCoverUrl(null);
             setPendingCover(null);
             setCoverRemoveOpen(false);
@@ -225,7 +225,7 @@ export default function ProfileSettings() {
         if (!pendingAvatar) return;
         setSaving(true);
         try {
-            await api.put('/profile', { avatar_url: pendingAvatar.value });
+            await api.put('/profile', { avatar: pendingAvatar.value });
             setAvatarValue(pendingAvatar.value);
             setAvatarUrl(pendingAvatar.url);
             setPendingAvatar(null);
@@ -245,7 +245,7 @@ export default function ProfileSettings() {
     const removeAvatar = async () => {
         setSaving(true);
         try {
-            await api.put('/profile', { avatar_url: '' });
+            await api.put('/profile', { avatar: '' });
             setAvatarValue('');
             setAvatarUrl(null);
             setPendingAvatar(null);
@@ -277,7 +277,7 @@ export default function ProfileSettings() {
     };
 
     const isOwner = user?.role === 'owner';
-    const initials = (profile.name || '?').charAt(0).toUpperCase();
+    const initials = (profile.full_name || '?').charAt(0).toUpperCase();
     const emailActive = !!notifMeta.email_configured && notifMeta.email_enabled !== false;
     const waActive = !!notifMeta.whatsapp_configured && notifMeta.whatsapp_enabled !== false;
 
@@ -317,7 +317,7 @@ export default function ProfileSettings() {
                                 aria-label="Lihat foto profil"
                             >
                                 {avatarUrl ? (
-                                    <img src={avatarUrl} alt={profile.name} className="h-full w-full object-cover" />
+                                    <img src={avatarUrl} alt={profile.full_name} className="h-full w-full object-cover" />
                                 ) : (
                                     <span className="flex h-full w-full items-center justify-center text-3xl font-bold text-brand-600 dark:text-brand-400">
                                         {initials}
@@ -332,7 +332,7 @@ export default function ProfileSettings() {
 
                     <div className="mt-4">
                         <div className="flex flex-wrap items-center gap-2">
-                            <h2 className="text-xl font-bold text-ink sm:text-2xl">{profile.name || '…'}</h2>
+                            <h2 className="text-xl font-bold text-ink sm:text-2xl">{profile.full_name || '…'}</h2>
                             <span className="badge bg-brand-600/10 text-brand-600 dark:text-brand-400">{ROLE_LABEL[user?.role] || 'Pengguna'}</span>
                         </div>
                         <p className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-ink-muted">
@@ -374,9 +374,14 @@ export default function ProfileSettings() {
                             <Icon name="user" size={18} /> Informasi Profil
                         </h3>
                         <div className="space-y-4">
-                            <Field label="Nama" required error={errors.name?.[0]}>
-                                <input className="input" value={profile.name} onChange={(e) => setProfile({ ...profile, name: e.target.value })} required />
-                            </Field>
+                            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                                <Field label="Nama" required error={errors.full_name?.[0]}>
+                                    <input className="input" value={profile.full_name} onChange={(e) => setProfile({ ...profile, full_name: e.target.value })} required />
+                                </Field>
+                                <Field label="Username" hint="untuk login" error={errors.username?.[0]}>
+                                    <input className="input" autoComplete="off" value={profile.username || ''} onChange={(e) => setProfile({ ...profile, username: e.target.value })} />
+                                </Field>
+                            </div>
                             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                                 <Field label="Email" required error={errors.email?.[0]}>
                                     <input className="input" type="email" value={profile.email} onChange={(e) => setProfile({ ...profile, email: e.target.value })} required />
@@ -385,6 +390,17 @@ export default function ProfileSettings() {
                                     <input className="input" value={profile.phone} onChange={(e) => setProfile({ ...profile, phone: e.target.value })} />
                                 </Field>
                             </div>
+                            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                                <Field label="Perusahaan" hint="opsional" error={errors.company?.[0]}>
+                                    <input className="input" value={profile.company || ''} onChange={(e) => setProfile({ ...profile, company: e.target.value })} />
+                                </Field>
+                                <Field label="Pekerjaan" hint="opsional" error={errors.occupation?.[0]}>
+                                    <input className="input" value={profile.occupation || ''} onChange={(e) => setProfile({ ...profile, occupation: e.target.value })} />
+                                </Field>
+                            </div>
+                            <Field label="Website" hint="opsional" error={errors.website?.[0]}>
+                                <input className="input" value={profile.website || ''} onChange={(e) => setProfile({ ...profile, website: e.target.value })} />
+                            </Field>
                             <Field label="Bio" hint="ceritakan tentang Anda" error={errors.bio?.[0]}>
                                 <textarea
                                     className="input min-h-[100px] resize-y"
@@ -647,7 +663,7 @@ export default function ProfileSettings() {
                         {pendingAvatar ? (
                             <img src={pendingAvatar.url} alt="Pratinjau" className="h-full w-full object-cover" />
                         ) : avatarUrl ? (
-                            <img src={avatarUrl} alt={profile.name} className="h-full w-full object-cover" />
+                            <img src={avatarUrl} alt={profile.full_name} className="h-full w-full object-cover" />
                         ) : (
                             <span className="flex h-full w-full items-center justify-center text-6xl font-bold text-brand-600 dark:text-brand-400">
                                 {initials}
@@ -655,7 +671,7 @@ export default function ProfileSettings() {
                         )}
                     </div>
                     <div className="text-center">
-                        <p className="text-lg font-semibold text-ink">{profile.name || '…'}</p>
+                        <p className="text-lg font-semibold text-ink">{profile.full_name || '…'}</p>
                         <p className="text-sm text-ink-muted">{profile.email || ''}</p>
                         {profile.bio && <p className="mt-3 max-w-xs text-sm text-ink-muted">{profile.bio}</p>}
                     </div>

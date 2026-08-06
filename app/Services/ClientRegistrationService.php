@@ -2,140 +2,94 @@
 
 namespace App\Services;
 
-use App\Models\Client;
 use App\Models\ClientAccessToken;
 use App\Models\User;
-use App\Support\ContentSanitizer;
+use App\Models\UserProfile;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
 /**
- * Pusat pembuatan & pengelolaan akun client.
- * Dipakai booking, admin, API, import, dst — hindari duplikasi logika.
+ * Pusat pembuatan & pengelolaan akun (client/admin/dll) + invite aktivasi.
  */
 class ClientRegistrationService
 {
     /**
-     * Pastikan client memiliki user aktif/pending. Buat bila belum ada.
-     * Return: ['client' => Client, 'user' => User, 'invite' => ?ClientAccessToken, 'new' => bool].
+     * Pastikan user ber-role $role ada (by email/phone). Buat bila tak ada.
      */
-    public function ensureActiveClient(array $data): array
+    public function ensureUser(array $data, string $role = 'client'): User
     {
-        $client = $this->findClient($data);
+        $user = $this->findUser($data);
 
-        if ($client && $client->user) {
-            return [
-                'client' => $client,
-                'user' => $client->user,
-                'invite' => null,
-                'new' => false,
-            ];
+        if (!$user) {
+            $user = $this->createUser($data, $role);
         }
 
-        $client = $client ?: $this->createClient($data);
-        $user = $client->user ?: $this->createUser($client, $data);
-
-        return [
-            'client' => $client,
-            'user' => $user,
-            'invite' => null,
-            'new' => false,
-        ];
+        return $user;
     }
 
     /**
-     * Buat client baru beserta user pending + invite link set-password.
+     * Buat user pending + invite link set-password (kirim/salin).
      */
-    public function registerWithInvite(array $data, ?int $expiresHours = null, $actor = null): array
+    public function registerWithInvite(array $data, string $role = 'client', ?int $expiresHours = null, $actor = null): array
     {
-        $client = $this->findClient($data);
+        $user = $this->findUser($data);
 
-        if ($client && $client->user) {
-            return $this->reuseOrReissue($client, $expiresHours, $actor);
+        if (!$user) {
+            $user = $this->createUser($data, $role);
         }
 
-        $client = $client ?: $this->createClient($data);
-        $user = $client->user ?: $this->createUser($client, $data);
-        $client->unsetRelation('user');
-        $client->setRelation('user', $user);
+        $isNew = $user->wasRecentlyCreated;
+        $invite = $this->issueInvite($user, $expiresHours, $actor);
 
-        $invite = $this->issueInvite($client, $expiresHours, $actor);
-
-        return [
-            'client' => $client,
-            'user' => $user,
-            'invite' => $invite,
-            'new' => true,
-        ];
-    }
-
-    private function reuseOrReissue(Client $client, ?int $expiresHours, $actor): array
-    {
-        $user = $client->user;
-
-        // User pending dengan invite masih valid → jangan buat akun/invite baru.
-        if ($user->isPending()) {
-            $pending = $client->accessTokens()
-                ->where('purpose', 'invite')
-                ->where('status', 'pending')
-                ->valid()
-                ->first();
-
-            if ($pending) {
-                return ['client' => $client, 'user' => $user, 'invite' => $pending, 'new' => false];
-            }
-        }
-
-        // User disabled/pending tanpa invite valid → buat invite baru (reissue).
-        $invite = $this->issueInvite($client, $expiresHours, $actor);
-
-        return ['client' => $client, 'user' => $user, 'invite' => $invite, 'new' => false];
+        return ['user' => $user, 'invite' => $invite, 'new' => $isNew];
     }
 
     /**
-     * Terbitkan token invite (status pending) + kirim link set-password.
+     * Terbitkan token invite, batalkan invite pending sebelumnya, kirim link.
      */
-    public function issueInvite(Client $client, ?int $expiresHours = null, $actor = null): ClientAccessToken
+    public function issueInvite(User $user, ?int $expiresHours = null, $actor = null): ClientAccessToken
     {
         $creatorType = is_object($actor) ? get_class($actor) : null;
         $creatorId = $actor?->id ?? null;
 
-        // Invalidasikan token invite lama yang belum dipakai.
-        $client->accessTokens()
+        $user->accessTokens()
             ->where('purpose', 'invite')
             ->where('status', 'pending')
             ->update(['status' => 'cancelled']);
 
-        $client->load('user');
-        $token = ClientAccessToken::createToken($client, $client->user, 'invite', $creatorType, $creatorId, $expiresHours);
+        $token = ClientAccessToken::createToken($user, 'invite', $creatorType, $creatorId, $expiresHours);
 
-        if ($client->user) {
-            app(NotificationService::class)->send(
-                NotificationType::ACCOUNT_INVITE,
-                $client->user,
-                ['name' => $client->name, 'url' => $token->url]
-            );
-        }
-
-        app(AuditLogger::class)->log(
-            'client.invite_issued',
-            'Undangan dikirim untuk ' . $client->name,
-            $client
+        app(NotificationService::class)->send(
+            NotificationType::ACCOUNT_INVITE,
+            $user,
+            ['name' => $user->name, 'url' => $token->url]
         );
+
+        app(AuditLogger::class)->log('client.invite_issued', 'Undangan dikirim untuk ' . $user->name, $user);
 
         return $token;
     }
 
     /**
-     * Aktivasi user: set password → status active + activated_at; token invite → accepted.
+     * Aktivasi: username (opsional gunakan yang diberikan), password, full_name → status active.
      */
-    public function activate(User $user, string $password): void
+    public function activate(User $user, string $password, ?string $username = null, ?string $fullName = null): void
     {
-        $user->update([
+        $updates = [
             'password' => Hash::make($password),
             'status' => 'active',
             'activated_at' => now(),
-        ]);
+        ];
+
+        if ($username && $username !== $user->username) {
+            $updates['username'] = $username;
+        }
+
+        $user->update($updates);
+
+        if ($fullName) {
+            $user->profile()->updateOrCreate([], ['full_name' => $fullName]);
+        }
 
         ClientAccessToken::where('user_id', $user->id)
             ->where('purpose', 'invite')
@@ -145,57 +99,60 @@ class ClientRegistrationService
         app(AuditLogger::class)->log('client.activated', 'Akun diaktifkan: ' . $user->email, $user);
     }
 
-    private function findClient(array $data): ?Client
+    private function findUser(array $data): ?User
     {
-        if (!empty($data['client_id'])) {
-            return Client::find($data['client_id']);
-        }
-
         if (!empty($data['email'])) {
-            $byUser = User::where('email', $data['email'])->value('id');
-            if ($byUser) {
-                return Client::where('user_id', $byUser)->first();
-            }
-            $byClient = Client::where('email', $data['email'])->first();
-            if ($byClient) {
-                return $byClient;
-            }
+            return User::where('email', $data['email'])->first();
         }
 
         if (!empty($data['phone'])) {
-            $byPhone = Client::where('phone', $data['phone'])->first();
-            if ($byPhone) {
-                return $byPhone;
-            }
+            return User::where('phone', $data['phone'])->first();
+        }
+
+        if (!empty($data['username'])) {
+            return User::where('username', $data['username'])->first();
         }
 
         return null;
     }
 
-    private function createClient(array $data): Client
+    private function createUser(array $data, string $role): User
     {
-        return Client::create([
-            'name' => $data['name'],
-            'email' => $data['email'] ?? null,
-            'phone' => $data['phone'] ?? null,
-            'notes' => ContentSanitizer::plainText($data['notes'] ?? ''),
-        ]);
-    }
+        $username = $this->uniqueUsername($data['username'] ?? null);
+        $email = $data['email'] ?? ('client_' . Str::random(8) . '@imagery.local');
 
-    private function createUser(Client $client, array $data): User
-    {
         $user = User::create([
-            'name' => $client->name,
-            'email' => $client->email ?? ('client_' . Str::random(8) . '@imagery.local'),
-            'phone' => $client->phone,
+            'username' => $username,
+            'email' => $email,
+            'phone' => $data['phone'] ?? null,
             'password' => null,
-            'role' => 'client',
             'status' => 'pending',
         ]);
-        $user->assignRole(['client', 'subscriber']);
+        $user->assignRole(array_filter([$role, 'subscriber']));
 
-        $client->update(['user_id' => $user->id]);
+        $user->profile()->create([
+            'full_name' => $data['name'] ?? $data['full_name'] ?? null,
+            'bio' => $data['bio'] ?? null,
+            'company' => $data['company'] ?? null,
+        ]);
 
         return $user;
+    }
+
+    private function uniqueUsername(?string $preferred): string
+    {
+        $base = $preferred ? Str::lower(preg_replace('/[^a-z0-9_]/', '', $preferred)) : null;
+        if (!$base) {
+            $base = 'user' . Str::lower(Str::random(8));
+        }
+
+        $username = $base;
+        $i = 1;
+        while (User::where('username', $username)->exists()) {
+            $username = $base . $i;
+            $i++;
+        }
+
+        return $username;
     }
 }

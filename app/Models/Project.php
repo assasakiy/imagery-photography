@@ -10,7 +10,7 @@ class Project extends Model
     use SoftDeletesWithWho;
 
     protected $fillable = [
-        'client_id', 'user_id', 'name', 'type', 'package_id', 'event_date', 'description',
+        'user_id', 'name', 'type', 'package_id', 'event_date', 'description',
         'price', 'pricing_snapshot', 'status', 'start_date', 'end_date',
         'retention_days', 'archived_at', 'deleted_at',
         'deleted_by_id', 'deleted_by_name', 'delete_reason',
@@ -43,14 +43,20 @@ class Project extends Model
         return $this->retention_days ?? (int) app(\App\Services\RuntimeSettings::class)->get('file_retention_days', 0) ?: null;
     }
 
-    public function client()
-    {
-        return $this->belongsTo(Client::class);
-    }
-
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    /** Alias legacy utk kompatibilitas JSON/frontend: nama klien pemilik project. */
+    public function clientName(): string
+    {
+        return $this->user?->name ?? '';
+    }
+
+    public function client()
+    {
+        return $this->user;
     }
 
     public function files()

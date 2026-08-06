@@ -16,32 +16,37 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->seedRolesAndPermissions();
+        $this->seedSocialPlatforms();
 
         $ownerPassword = Str::random(16);
 
         $owner = User::firstOrCreate(
             ['email' => 'owner@imagery.my.id'],
             [
-                'name' => 'Lalu Sopian Hamdani',
+                'username' => 'owner',
+                'status' => 'active',
+                'activated_at' => now(),
                 'password' => Hash::make($ownerPassword),
-                'role' => 'owner',
             ]
         );
 
         if ($owner->wasRecentlyCreated) {
             $this->command->info("Owner baru dibuat: owner@imagery.my.id / {$ownerPassword}");
         }
+        $owner->profile()->updateOrCreate([], ['full_name' => 'Lalu Sopian Hamdani']);
 
         $owner->syncRoles('owner');
 
         $admin = User::firstOrCreate(
             ['email' => 'admin@imagery.my.id'],
             [
-                'name' => 'Admin Sopian Lalu Imagery',
+                'username' => 'admin',
+                'status' => 'active',
+                'activated_at' => now(),
                 'password' => Hash::make('admin123'),
-                'role' => 'admin',
             ]
         );
+        $admin->profile()->updateOrCreate([], ['full_name' => 'Admin Sopian Lalu Imagery']);
         $admin->syncRoles('admin');
 
         $defaults = [
@@ -127,6 +132,25 @@ class DatabaseSeeder extends Seeder
 
         $clientRole->syncPermissions(['view-projects', 'submit-reviews', 'read-blog', 'manage-bookmarks', 'view-history']);
         $subscriberRole->syncPermissions(['read-blog', 'manage-bookmarks', 'view-history']);
+    }
+
+    private function seedSocialPlatforms(): void
+    {
+        $platforms = [
+            ['name' => 'Facebook', 'slug' => 'facebook', 'icon' => 'facebook', 'base_url' => 'https://facebook.com/'],
+            ['name' => 'Instagram', 'slug' => 'instagram', 'icon' => 'instagram', 'base_url' => 'https://instagram.com/'],
+            ['name' => 'TikTok', 'slug' => 'tiktok', 'icon' => 'tiktok', 'base_url' => 'https://tiktok.com/'],
+            ['name' => 'YouTube', 'slug' => 'youtube', 'icon' => 'youtube', 'base_url' => 'https://youtube.com/@'],
+            ['name' => 'GitHub', 'slug' => 'github', 'icon' => 'github', 'base_url' => 'https://github.com/'],
+            ['name' => 'WhatsApp', 'slug' => 'whatsapp', 'icon' => 'whatsapp', 'base_url' => 'https://wa.me/'],
+        ];
+
+        foreach ($platforms as $i => $p) {
+            \App\Models\SocialPlatform::firstOrCreate(
+                ['slug' => $p['slug']],
+                $p + ['is_active' => true, 'sort_order' => $i + 1]
+            );
+        }
     }
 
     private function seedTeamMembers(User $owner, User $admin): void

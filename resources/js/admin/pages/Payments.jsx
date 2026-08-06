@@ -73,7 +73,7 @@ export default function Payments() {
                             {items.map((p) => (
                                 <tr key={p.id}>
                                     <td className="text-sm text-ink-muted">{formatDate(p.created_at)}</td>
-                                    <td className="text-sm font-medium text-ink">{p.project?.client?.name || '-'}</td>
+                                    <td className="text-sm font-medium text-ink">{p.project?.user?.name || '-'}</td>
                                     <td className="text-sm text-ink-muted">{p.project?.name || '-'}</td>
                                     <td className="font-semibold text-ink">{formatRupiah(p.amount)}</td>
                                     <td className="text-sm text-ink-muted">{p.method === 'gateway' ? 'Gateway' : 'Manual'}</td>

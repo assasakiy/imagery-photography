@@ -109,14 +109,16 @@ Route::middleware(['web', 'auth:sanctum', 'maintenance'])->group(function () {
         Route::apiResource('services', ServiceController::class)->except(['create', 'edit']);
         Route::apiResource('packages', PackageController::class)->except(['create', 'edit']);
         Route::apiResource('service-categories', ServiceCategoryController::class)->except(['create', 'edit']);
-        Route::apiResource('clients', ClientController::class)->except(['create', 'edit']);
-        Route::get('/clients/{client}/credentials', [ClientController::class, 'credentials']);
-        Route::post('/clients/{client}/token/{purpose}', [ClientController::class, 'issueToken'])->whereIn('purpose', ['invite', 'recovery', 'project']);
-        Route::post('/clients/{client}/disable', [ClientController::class, 'disable']);
-        Route::post('/clients/{client}/activate', [ClientController::class, 'activate']);
-        Route::post('/clients/{client}/soft-delete', [ClientController::class, 'softDelete']);
-        Route::post('/clients/{client}/restore', [ClientController::class, 'restore']);
-        Route::delete('/clients/{client}/force-delete', [ClientController::class, 'forceDelete']);
+        Route::apiResource('clients', ClientController::class)
+            ->parameters(['clients' => 'user'])
+            ->except(['create', 'edit', 'show', 'destroy']);
+        Route::get('/clients/{user}/credentials', [ClientController::class, 'credentials']);
+        Route::post('/clients/{user}/token/{purpose}', [ClientController::class, 'issueToken'])->whereIn('purpose', ['invite', 'recovery', 'project']);
+        Route::post('/clients/{user}/disable', [ClientController::class, 'disable']);
+        Route::post('/clients/{user}/activate', [ClientController::class, 'activate']);
+        Route::post('/clients/{user}/soft-delete', [ClientController::class, 'softDelete']);
+        Route::post('/clients/{user}/restore', [ClientController::class, 'restore']);
+        Route::delete('/clients/{user}/force-delete', [ClientController::class, 'forceDelete']);
         Route::get('/clients-trashed', [ClientController::class, 'trashed']);
 
         Route::get('/recycle-bin', [RecycleBinController::class, 'index']);

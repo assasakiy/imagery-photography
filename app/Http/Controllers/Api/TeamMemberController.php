@@ -28,16 +28,17 @@ class TeamMemberController extends Controller
                 continue;
             }
 
+            $socials = $user->socials()->with('platform')->get()->keyBy('platform.slug');
             TeamMember::create([
                 'user_id' => $user->id,
                 'name' => $user->name,
                 'position' => $user->isOwner() ? 'Owner & Founder' : 'Admin',
                 'bio' => $user->bio,
-                'photo_url' => $user->avatar_url,
-                'social_facebook' => $user->social_facebook,
-                'social_instagram' => $user->social_instagram,
-                'social_tiktok' => $user->social_tiktok,
-                'social_whatsapp' => $user->social_whatsapp,
+                'photo_url' => $user->avatar(),
+                'social_facebook' => $socials->get('facebook')?->url,
+                'social_instagram' => $socials->get('instagram')?->url,
+                'social_tiktok' => $socials->get('tiktok')?->url,
+                'social_whatsapp' => $socials->get('whatsapp')?->url,
                 'is_owner' => $user->isOwner(),
                 'order' => $user->isOwner() ? 1 : TeamMember::count() + 1,
             ]);

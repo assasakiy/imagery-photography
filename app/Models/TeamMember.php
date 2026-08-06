@@ -49,7 +49,7 @@ class TeamMember extends Model
 
         // Fallback: profil user (owner) bila belum diganti dengan profil formal.
         if ($this->relationLoaded('user') || $this->user) {
-            $userAvatar = $this->user?->resolveAvatarUrl();
+            $userAvatar = $this->user?->avatar();
 
             if ($userAvatar) {
                 return $userAvatar;

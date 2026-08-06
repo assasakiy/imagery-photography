@@ -13,7 +13,7 @@ class PaymentController extends Controller
     public function store(Request $request, Project $project)
     {
         $user = Auth::user();
-        if ($user->isClient() && $project->client->user_id !== $user->id) {
+        if ($user->isClient() && $project->user_id !== $user->id) {
             abort(403);
         }
 

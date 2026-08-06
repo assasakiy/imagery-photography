@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\Client;
 use App\Models\ClientAccessToken;
 use App\Models\User;
 use App\Services\AuditLogger;
@@ -118,6 +117,14 @@ class AuthController extends Controller
             return User::where('email', $value)->first();
         }
 
+        // Username.
+        if (preg_match('/^[a-zA-Z0-9_]{3,}$/', $value)) {
+            $byUsername = User::where('username', $value)->first();
+            if ($byUsername) {
+                return $byUsername;
+            }
+        }
+
         $digits = preg_replace('/\D+/', '', $value);
 
         if (strlen($digits) >= 8) {
@@ -129,14 +136,13 @@ class AuthController extends Controller
                 $variants[] = '0' . substr($digits, 2);
             }
 
-            $client = Client::whereIn('phone', $variants)->first();
-
-            if ($client && $client->user) {
-                return $client->user;
+            $byPhone = User::whereIn('phone', $variants)->first();
+            if ($byPhone) {
+                return $byPhone;
             }
         }
 
-        return User::where('email', $value)->first();
+        return null;
     }
 
     public function logout(Request $request)
@@ -230,18 +236,17 @@ class AuthController extends Controller
         ]);
 
         $identifier = trim($data['identifier']);
-        $user = \App\Models\User::where('email', $identifier)->first()
-            ?? \App\Models\User::whereHas('client', fn ($q) => $q->where('phone', $identifier))->first();
+        $user = $this->resolveUser($identifier);
 
         if (!$user) {
             return response()->json(['message' => 'Akun tidak ditemukan.'], 422);
         }
 
-        if (!$user->client) {
+        if (!$user->isClient()) {
             return response()->json(['message' => 'Akun bukan portal klien.'], 422);
         }
 
-        $token = ClientAccessToken::createToken($user->client, $user, 'recovery', null, null);
+        $token = ClientAccessToken::createToken($user, 'recovery');
 
         app(NotificationService::class)->send(
             NotificationType::PASSWORD_RESET,
@@ -290,6 +295,8 @@ class AuthController extends Controller
         $data = $request->validate([
             'token' => 'required|string',
             'password' => 'required|string|min:8|confirmed',
+            'username' => 'nullable|string|max:80|regex:/^[a-zA-Z0-9_]+$/|unique:users,username',
+            'full_name' => 'nullable|string|max:255',
         ]);
 
         $token = \App\Models\ClientAccessToken::where('token', $data['token'])->valid()->first();
@@ -298,7 +305,12 @@ class AuthController extends Controller
             return response()->json(['message' => 'Tautan aktivasi tidak valid atau sudah kadaluarsa.'], 422);
         }
 
-        app(\App\Services\ClientRegistrationService::class)->activate($token->user, $data['password']);
+        app(\App\Services\ClientRegistrationService::class)->activate(
+            $token->user,
+            $data['password'],
+            $data['username'] ?? null,
+            $data['full_name'] ?? null
+        );
 
         return response()->json(['message' => 'Akun berhasil diaktifkan. Silakan masuk.']);
     }
@@ -307,13 +319,13 @@ class AuthController extends Controller
     {
         return [
             'id' => $user->id,
+            'username' => $user->username,
             'name' => $user->name,
             'email' => $user->email,
             'role' => $user->primaryRole(),
             'roles' => $user->getRoleNames()->values(),
             'permissions' => $user->getAllPermissions()->pluck('name'),
-            'client_id' => $user->client?->id,
-            'avatar' => $user->resolveAvatarUrl(),
+            'avatar' => $user->avatar(),
             'bio' => $user->bio,
         ];
     }

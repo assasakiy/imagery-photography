@@ -5,95 +5,101 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\ClientAccessToken;
 use App\Services\AuditLogger;
-use App\Models\Client;
+use App\Models\User;
 use App\Services\NotificationService;
 use App\Services\NotificationType;
-use App\Support\ContentSanitizer;
+use App\Services\ClientRegistrationService;
 use Illuminate\Http\Request;
 
 class ClientController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Client::with(['projects', 'user:id,name,email,status']);
+        $query = User::role('client')
+            ->with('profile')
+            ->withCount('projects');
 
         if ($request->filled('search')) {
+            $s = $request->input('search');
             $query->where(fn ($q) => $q
-                ->where('name', 'like', '%' . $request->input('search') . '%')
-                ->orWhere('email', 'like', '%' . $request->input('search') . '%')
-                ->orWhere('phone', 'like', '%' . $request->input('search') . '%'));
+                ->where('email', 'like', '%' . $s . '%')
+                ->orWhere('phone', 'like', '%' . $s . '%')
+                ->orWhere('username', 'like', '%' . $s . '%')
+                ->orWhereHas('profile', fn ($p) => $p->where('full_name', 'like', '%' . $s . '%')));
         }
 
-        return response()->json($query->latest()->paginate(15));
+        $users = $query->latest()->paginate(15);
+
+        $users->getCollection()->transform(fn ($u) => $this->serialize($u));
+
+        return response()->json($users);
     }
 
     public function store(Request $request)
     {
         $data = $request->validate([
-            'name' => 'required|string|max:255',
+            'name' => 'nullable|string|max:255',
+            'full_name' => 'nullable|string|max:255',
             'email' => 'nullable|email|max:255',
             'phone' => 'nullable|string|max:20',
+            'username' => 'nullable|string|max:255|unique:users,username',
             'company' => 'nullable|string|max:255',
-            'notes' => 'nullable|string',
+            'bio' => 'nullable|string',
+            'avatar' => 'nullable|string',
+            'cover' => 'nullable|string',
+            'occupation' => 'nullable|string|max:255',
+            'website' => 'nullable|string|max:255',
         ]);
 
-        $data['notes'] = ContentSanitizer::plainText($data['notes'] ?? '');
-
-        $reg = app(\App\Services\ClientRegistrationService::class);
+        $reg = app(ClientRegistrationService::class);
         $result = $reg->registerWithInvite(
-            ['name' => $data['name'], 'email' => $data['email'], 'phone' => $data['phone'], 'notes' => $data['notes']],
+            [
+                'name' => $data['name'] ?? $data['full_name'] ?? null,
+                'email' => $data['email'] ?? null,
+                'phone' => $data['phone'] ?? null,
+                'username' => $data['username'] ?? null,
+                'company' => $data['company'] ?? null,
+                'bio' => $data['bio'] ?? null,
+            ],
+            'client',
             null,
             $request->user()
         );
 
-        $client = $result['client'];
-        if (!empty($data['company'])) {
-            $client->update(['company' => $data['company']]);
-        }
+        $user = $result['user'];
+        $this->updateProfile($user, $data);
 
-        app(\App\Services\AuditLogger::class)->log('client.created', 'Klien dibuat', $client);
+        app(AuditLogger::class)->log('client.created', 'Klien dibuat: ' . $user->name, $user);
 
-        return response()->json($client->load('projects'), 201);
+        return response()->json($this->serialize($user->loadCount('projects')), 201);
     }
 
-    public function update(Request $request, Client $client)
+    public function update(Request $request, User $user)
     {
         $data = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'nullable|email|max:255',
-            'phone' => 'nullable|string|max:20',
+            'email' => 'nullable|email|max:255|unique:users,email,' . $user->id,
+            'phone' => 'nullable|string|max:20|unique:users,phone,' . $user->id,
+            'username' => 'nullable|string|max:255|unique:users,username,' . $user->id,
+            'full_name' => 'nullable|string|max:255',
             'company' => 'nullable|string|max:255',
-            'notes' => 'nullable|string',
+            'bio' => 'nullable|string',
+            'occupation' => 'nullable|string|max:255',
+            'website' => 'nullable|string|max:255',
+            'avatar' => 'nullable|string',
+            'cover' => 'nullable|string',
+            'birth_date' => 'nullable|date',
+            'gender' => 'nullable|string|in:male,female,other',
         ]);
 
-        $data['notes'] = ContentSanitizer::plainText($data['notes'] ?? '');
+        $user->update(collect($data)->only('email', 'phone', 'username')->all());
+        $this->updateProfile($user, $data);
 
-        $client->update($data);
-        app(\App\Services\AuditLogger::class)->log('client.updated', 'Klien diperbarui', $client);
+        app(AuditLogger::class)->log('client.updated', 'Klien diperbarui: ' . $user->name, $user);
 
-        if ($client->user) {
-            $userData = ['name' => $data['name']];
-            if (!empty($data['email'])) {
-                $userData['email'] = $data['email'];
-            }
-            $client->user->update($userData);
-        }
-
-        return response()->json($client->load(['projects', 'user:id,name,email']));
+        return response()->json($this->serialize($user->loadCount('projects')));
     }
 
-    public function destroy(Client $client)
-    {
-        $client->delete();
-        app(\App\Services\AuditLogger::class)->log('client.deleted', 'Klien dihapus', $client);
-
-        return response()->json(['ok' => true]);
-    }
-
-    /**
-     * Terbitkan token akses utk client. Input $purpose: invite|recovery|project.
-     */
-    public function issueToken(Request $request, Client $client, string $purpose)
+    public function issueToken(Request $request, User $user, string $purpose)
     {
         $data = $request->validate([
             'send' => 'nullable|boolean',
@@ -105,28 +111,13 @@ class ClientController extends Controller
             abort(422, 'Purpose token tidak dikenal.');
         }
 
-        $reg = app(\App\Services\ClientRegistrationService::class);
-
-        // Buat user pending bila client belum punya akun (tanpa password → invite aktivasi).
-        if (!$client->user) {
-            $result = $reg->registerWithInvite(
-                ['name' => $client->name, 'email' => $client->email, 'phone' => $client->phone],
-                $data['expires_hours'] ?? null,
-                $request->user()
-            );
-            $client = $result['client'];
-        } elseif (!$client->user->phone && $client->phone) {
-            $client->user->update(['phone' => $client->phone]);
-        }
-
         $creator = $request->user();
 
         $token = ClientAccessToken::createToken(
-            $client,
-            $client->user,
+            $user,
             $purpose,
             is_object($creator) ? get_class($creator) : null,
-            $creator->id ?? null,
+            $creator?->id,
             $purpose === 'invite' ? ($data['expires_hours'] ?? null) : null
         );
 
@@ -136,14 +127,14 @@ class ClientController extends Controller
                 'recovery' => NotificationType::PASSWORD_RESET,
                 default => NotificationType::MAGIC_LINK,
             };
-            app(NotificationService::class)->send($type, $client->user, [
-                'name' => $client->name,
+            app(NotificationService::class)->send($type, $user, [
+                'name' => $user->name,
                 'url' => $token->url,
                 'message' => $data['message'] ?? null,
             ]);
         }
 
-        app(AuditLogger::class)->log('client.token_issued', 'Token ' . $purpose . ' dibuat utk ' . $client->name, $token);
+        app(AuditLogger::class)->log('client.token_issued', 'Token ' . $purpose . ' dibuat utk ' . $user->name, $token);
 
         return response()->json([
             'url' => $token->url,
@@ -153,108 +144,116 @@ class ClientController extends Controller
         ]);
     }
 
-    /**
-     * Nonaktifkan akun client (status disabled).
-     */
-    public function disable(Request $request, Client $client)
+    public function disable(Request $request, User $user)
     {
-        $client->user?->update(['status' => 'disabled']);
-        app(AuditLogger::class)->log('client.disabled', 'Akun klien dinonaktifkan: ' . $client->name, $client);
+        $user->update(['status' => 'disabled']);
+        app(AuditLogger::class)->log('client.disabled', 'Akun klien dinonaktifkan: ' . $user->name, $user);
 
-        return response()->json($client->load(['projects', 'user:id,name,email,status']));
+        return response()->json($this->serialize($user->loadCount('projects')));
     }
 
-    /**
-     * Aktifkan kembali akun client (status active).
-     */
-    public function activate(Request $request, Client $client)
+    public function activate(Request $request, User $user)
     {
-        $client->user?->update(['status' => 'active', 'activated_at' => now()]);
-        app(AuditLogger::class)->log('client.activated_admin', 'Akun klien diaktifkan: ' . $client->name, $client);
+        $user->update(['status' => 'active', 'activated_at' => now()]);
+        app(AuditLogger::class)->log('client.activated_admin', 'Akun klien diaktifkan: ' . $user->name, $user);
 
-        return response()->json($client->load(['projects', 'user:id,name,email,status']));
+        return response()->json($this->serialize($user->loadCount('projects')));
     }
 
-    /**
-     * Soft delete user + client (masuk Recycle Bin), dengan alasan opsional.
-     */
-    public function softDelete(Request $request, Client $client)
+    public function softDelete(Request $request, User $user)
     {
         $data = $request->validate(['reason' => 'nullable|string|max:500']);
         $reason = $data['reason'] ?? null;
 
-        $client->user?->softDeleteBy($reason);
-        $client->softDeleteBy($reason);
+        $user->softDeleteBy($reason);
 
-        app(AuditLogger::class)->log('client.soft_deleted', 'Klien dipindah ke recycle bin: ' . $client->name . ($reason ? " (alasan: $reason)" : ''), $client, null, null, $reason);
+        app(AuditLogger::class)->log('client.soft_deleted', 'Klien dipindah ke recycle bin: ' . $user->name . ($reason ? " (alasan: $reason)" : ''), $user, null, null, $reason);
 
         return response()->json(['ok' => true]);
     }
 
-    /**
-     * Daftar klien ter-soft-delete (Recycle Bin).
-     */
     public function trashed(Request $request)
     {
-        $query = Client::with(['user:id,name,email,status'])->onlyTrashed();
+        $query = User::role('client')->onlyTrashed()->with('profile');
 
         if ($request->filled('search')) {
+            $s = $request->input('search');
             $query->where(fn ($q) => $q
-                ->where('name', 'like', '%' . $request->input('search') . '%')
-                ->orWhere('email', 'like', '%' . $request->input('search') . '%'));
+                ->where('email', 'like', '%' . $s . '%')
+                ->orWhere('username', 'like', '%' . $s . '%')
+                ->orWhereHas('profile', fn ($p) => $p->where('full_name', 'like', '%' . $s . '%')));
         }
 
-        return response()->json($query->latest()->paginate(15));
+        $users = $query->latest()->paginate(15);
+        $users->getCollection()->transform(fn ($u) => $this->serialize($u));
+
+        return response()->json($users);
     }
 
-    /**
-     * Pulihkan dari Recycle Bin.
-     */
-    public function restore(Request $request, Client $client)
+    public function restore(Request $request, User $user)
     {
-        $client->restore();
-        $client->user?->restore();
-
-        app(AuditLogger::class)->log('client.restored', 'Klien dipulihkan dari recycle bin: ' . $client->name, $client);
+        $user->restore();
+        app(AuditLogger::class)->log('client.restored', 'Klien dipulihkan dari recycle bin: ' . $user->name, $user);
 
         return response()->json(['ok' => true]);
     }
 
-    /**
-     * Hapus permanen (user + client). Hanya owner/admin.
-     */
-    public function forceDelete(Request $request, Client $client)
+    public function forceDelete(Request $request, User $user)
     {
-        $client->user?->forceDelete();
-        $client->forceDelete();
-
-        app(AuditLogger::class)->log('client.force_deleted', 'Klien dihapus permanen: ' . $client->name, $client);
+        $user->forceDelete();
+        app(AuditLogger::class)->log('client.force_deleted', 'Klien dihapus permanen: ' . $user->name, $user);
 
         return response()->json(['ok' => true]);
     }
 
-    /**
-     * Informasi kredensial & akses utk modal halaman Klien (read-only + sedikit).
-     */
-    public function credentials(Client $client)
+    public function credentials(User $user)
     {
-        $user = $client->user;
-
         return response()->json([
-            'client_id' => $client->id,
-            'name' => $client->name,
-            'email' => $client->email,
-            'phone' => $client->phone,
-            'user' => $user ? [
-                'id' => $user->id,
-                'email' => $user->email,
-                'status' => $user->status,
-                'has_password' => !empty($user->password),
-            ] : null,
-            'tokens' => ClientAccessToken::where('client_id', $client->id)
+            'id' => $user->id,
+            'username' => $user->username,
+            'email' => $user->email,
+            'status' => $user->status,
+            'has_password' => !empty($user->password),
+            'tokens' => $user->accessTokens()
                 ->orderByDesc('created_at')
                 ->take(10)
-                ->get(['token', 'purpose', 'expires_at', 'used_at', 'created_at']),
+                ->get(['token', 'purpose', 'status', 'expires_at', 'used_at', 'created_at'])
+                ->map(fn ($t) => [
+                    'purpose' => $t->purpose,
+                    'status' => $t->status,
+                    'expires_at' => $t->expires_at,
+                    'url' => $t->url,
+                ]),
         ]);
+    }
+
+    private function serialize(User $user): array
+    {
+        return [
+            'id' => $user->id,
+            'username' => $user->username,
+            'name' => $user->name,
+            'email' => $user->email,
+            'phone' => $user->phone,
+            'status' => $user->status,
+            'company' => $user->profile?->company,
+            'occupation' => $user->profile?->occupation,
+            'website' => $user->profile?->website,
+            'bio' => $user->profile?->bio,
+            'avatar' => $user->avatar(),
+            'created_at' => $user->created_at,
+            'projects_count' => $user->projects_count ?? $user->projects()->count(),
+        ];
+    }
+
+    private function updateProfile(User $user, array $data): void
+    {
+        $fields = array_intersect_key($data, array_flip([
+            'full_name', 'company', 'bio', 'occupation', 'website', 'avatar', 'cover', 'birth_date', 'gender',
+        ]));
+
+        if (!empty($fields)) {
+            $user->profile()->updateOrCreate([], $fields);
+        }
     }
 }

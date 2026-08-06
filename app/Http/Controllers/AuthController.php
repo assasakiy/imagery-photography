@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Client;
 use App\Models\ClientAccessToken;
 use App\Services\AuditLogger;
 use App\Services\LoginTracker;
@@ -96,6 +95,6 @@ class AuthController extends Controller
 
         $this->afterLogin($accessToken->user, 'access_token');
 
-        return redirect('/dashboard')->with('success', 'Selamat datang, ' . $accessToken->client->name . '!');
+        return redirect('/dashboard')->with('success', 'Selamat datang, ' . ($accessToken->user?->name ?? 'user') . '!');
     }
 }

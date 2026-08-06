@@ -88,9 +88,9 @@ export default function ProjectDetail() {
                     <h1 className="text-2xl font-bold text-ink">{project.name}</h1>
                     <div className="mt-2 flex flex-wrap items-center gap-2">
                         <StatusBadge value={project.status} />
-                        {project.client && (
+                        {project.user && (
                             <span className="flex items-center gap-1.5 text-sm text-ink-muted">
-                                <Icon name="user" size={14} /> {project.client.name}
+                                <Icon name="user" size={14} /> {project.user.name}
                             </span>
                         )}
                     </div>
@@ -228,7 +228,7 @@ export default function ProjectDetail() {
             </div>
 
             {/* Client info (read-only) + link ke halaman Klien */}
-            {project.client && (
+            {project.user && (
                 <div className="card mt-6 p-5">
                     <div className="mb-4 flex items-center justify-between gap-3">
                         <div>
@@ -242,15 +242,15 @@ export default function ProjectDetail() {
                     <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                         <div className="rounded-xl bg-surface-muted p-3">
                             <p className="text-xs text-ink-muted">Nama</p>
-                            <p className="font-semibold text-ink">{project.client.name}</p>
+                            <p className="font-semibold text-ink">{project.user.name}</p>
                         </div>
                         <div className="rounded-xl bg-surface-muted p-3">
                             <p className="text-xs text-ink-muted">Email</p>
-                            <p className="truncate text-sm text-ink">{project.client.email || '-'}</p>
+                            <p className="truncate text-sm text-ink">{project.user.email || '-'}</p>
                         </div>
                         <div className="rounded-xl bg-surface-muted p-3">
                             <p className="text-xs text-ink-muted">WhatsApp</p>
-                            <p className="text-sm text-ink">{project.client.phone || '-'}</p>
+                            <p className="text-sm text-ink">{project.user.phone || '-'}</p>
                         </div>
                     </div>
                 </div>

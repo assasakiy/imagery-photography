@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\Client;
 use App\Models\ClientAccessToken;
 use App\Models\Project;
 use App\Models\ProjectFile;
@@ -25,7 +24,7 @@ class ProjectController extends Controller
         $user = $request->user();
 
         if ($user->isStaff()) {
-            $query = Project::with('client', 'payments', 'files');
+            $query = Project::with('user.profile', 'payments', 'files');
 
             if ($request->filled('status')) {
                 $query->where('status', $request->input('status'));
@@ -34,18 +33,18 @@ class ProjectController extends Controller
             return response()->json($query->latest()->paginate(15));
         }
 
-        $projects = $user->client?->projects()->with('files', 'payments', 'updates')->latest()->get() ?? [];
+        $projects = $user->projects()->with('files', 'payments', 'updates')->latest()->get() ?? [];
 
         return response()->json($projects);
     }
 
     public function show(Request $request, Project $project)
     {
-        if ($request->user()->isClient() && $project->client?->user_id !== $request->user()->id) {
+        if ($request->user()->isClient() && $project->user_id !== $request->user()->id) {
             abort(403);
         }
 
-        $project->load(['client', 'files', 'payments', 'updates.user', 'accessTokens']);
+        $project->load(['user.profile', 'files', 'payments', 'updates.user', 'accessTokens']);
 
         return response()->json($project);
     }
@@ -53,9 +52,9 @@ class ProjectController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'client_id' => 'nullable|exists:clients,id',
-            'client_name' => 'required_without:client_id|string|max:255',
-            'client_phone' => 'required_without:client_id|string|max:20',
+            'user_id' => 'nullable|exists:users,id',
+            'client_name' => 'required_without:user_id|string|max:255',
+            'client_phone' => 'nullable|string|max:20',
             'client_email' => 'nullable|email|max:255',
             'client_notes' => 'nullable|string|max:1000',
             'name' => 'required|string|max:255',
@@ -72,21 +71,15 @@ class ProjectController extends Controller
         $data['description'] = ContentSanitizer::plainText($data['description'] ?? '');
         $data['client_notes'] = ContentSanitizer::plainText($data['client_notes'] ?? '');
 
-        if (!empty($data['client_id'])) {
-            $client = Client::findOrFail($data['client_id']);
+        if (!empty($data['user_id'])) {
+            $user = User::findOrFail($data['user_id']);
         } else {
-            $client = $this->findOrCreateClient($data);
-        }
-
-        // Client baru (tanpa user) → buat akun pending + invite set-password.
-        if (!$client->user) {
             $reg = app(\App\Services\ClientRegistrationService::class);
-            $result = $reg->registerWithInvite(
-                ['name' => $client->name, 'email' => $client->email, 'phone' => $client->phone],
-                null,
-                Auth::user()
-            );
-            $client = $result['client'];
+            $user = $reg->ensureUser([
+                'name' => $data['client_name'],
+                'email' => $data['client_email'] ?? null,
+                'phone' => $data['client_phone'] ?? null,
+            ], 'client');
         }
 
         $package = null;
@@ -110,8 +103,7 @@ class ProjectController extends Controller
         }
 
         $project = Project::create([
-            'client_id' => $client->id,
-            'user_id' => $client->user_id,
+            'user_id' => $user->id,
             'name' => $data['name'],
             'type' => $data['type'] ?? null,
             'package_id' => $package?->id ?? null,
@@ -126,8 +118,7 @@ class ProjectController extends Controller
 
         $accessToken = ClientAccessToken::create([
             'project_id' => $project->id,
-            'client_id' => $client->id,
-            'user_id' => $client->user_id,
+            'user_id' => $user->id,
             'token' => ClientAccessToken::generateToken(),
             'expires_at' => now()->addYear(),
         ]);
@@ -143,19 +134,19 @@ class ProjectController extends Controller
         $notifications->webhook('project.created', ['project_id' => $project->id, 'name' => $project->name]);
         $notifications->toAdmins(
             'Project baru: ' . $project->name,
-            'Project untuk ' . $client->name . ' dengan nilai ' . ($project->price ? 'Rp ' . number_format((float) $project->price, 0, ',', '.') : 'belum ditentukan') . '.',
+            'Project untuk ' . $user->name . ' dengan nilai ' . ($project->price ? 'Rp ' . number_format((float) $project->price, 0, ',', '.') : 'belum ditentukan') . '.',
             '/dashboard/projects/' . $project->id,
             'project.created'
         );
 
-        app(AuditLogger::class)->log('project.created', 'Project dibuat: "' . $project->name . '" untuk ' . $client->name, $project);
+        app(AuditLogger::class)->log('project.created', 'Project dibuat: "' . $project->name . '" untuk ' . $user->name, $project);
 
         return response()->json([
-            'project' => $project->load('client', 'accessTokens'),
+            'project' => $project->load('user.profile', 'accessTokens'),
             'credentials' => [
                 'login_url' => url('/login'),
-                'email' => $client->user?->email,
-                'password' => $password,
+                'email' => $user->email,
+                'password' => null,
                 'access_url' => $accessToken->url,
             ],
         ], 201);
@@ -169,19 +160,16 @@ class ProjectController extends Controller
             ->valid()
             ->update(['expires_at' => now()]);
 
-        $client = $project->client;
+        $user = $project->user;
 
         $password = Str::random(10);
-        $this->ensureClientUser($client, $password);
-
-        if ($request->boolean('reset_password') && $client->user) {
-            $client->user->update(['password' => Hash::make($password)]);
+        if ($request->boolean('reset_password') && $user) {
+            $user->update(['password' => Hash::make($password)]);
         }
 
         $accessToken = ClientAccessToken::create([
             'project_id' => $project->id,
-            'client_id' => $client->id,
-            'user_id' => $client->user_id,
+            'user_id' => $user->id,
             'token' => ClientAccessToken::generateToken(),
             'expires_at' => now()->addYear(),
         ]);
@@ -197,60 +185,11 @@ class ProjectController extends Controller
             'token' => $accessToken,
             'credentials' => [
                 'login_url' => url('/login'),
-                'email' => $client->user?->email,
+                'email' => $user?->email,
                 'password' => $password,
                 'access_url' => $accessToken->url,
             ],
         ]);
-    }
-
-    private function findOrCreateClient(array $data): Client
-    {
-        $client = null;
-
-        if (!empty($data['client_email'])) {
-            $client = Client::where('email', $data['client_email'])->first();
-        }
-
-        if (!$client && !empty($data['client_phone'])) {
-            $client = Client::where('phone', $data['client_phone'])->first();
-        }
-
-        if ($client) {
-            $client->update(array_filter([
-                'name' => $data['client_name'] ?? $client->name,
-                'email' => $data['client_email'] ?? $client->email,
-                'phone' => $data['client_phone'] ?? $client->phone,
-                'notes' => $data['client_notes'] ?? $client->notes,
-            ]));
-
-            return $client;
-        }
-
-        return Client::create([
-            'name' => $data['client_name'],
-            'email' => $data['client_email'] ?? null,
-            'phone' => $data['client_phone'],
-            'notes' => $data['client_notes'] ?? null,
-        ]);
-    }
-
-    private function ensureClientUser(Client $client, string $password): void
-    {
-        if ($client->user_id) {
-            User::where('id', $client->user_id)->update(['password' => Hash::make($password)]);
-            return;
-        }
-
-        $user = User::create([
-            'name' => $client->name,
-            'email' => $client->email ?? ('client_' . Str::random(8) . '@imagery.local'),
-            'password' => Hash::make($password),
-            'role' => 'client',
-        ]);
-        $user->assignRole(['client', 'subscriber']);
-
-        $client->update(['user_id' => $user->id]);
     }
 
     public function update(Request $request, Project $project)
@@ -307,28 +246,26 @@ class ProjectController extends Controller
         $notifications = app(NotificationService::class);
         $notifications->webhook('project.updated', ['project_id' => $project->id, 'status' => $data['status']]);
 
-        if ($project->client) {
-            if ($project->client->phone) {
+        if ($project->user) {
+            if ($project->user->phone) {
                 $notifications->whatsapp(
-                    $project->client->phone,
-                    "Halo {$project->client->name}, status project *{$project->name}* Anda: *" . strtoupper(str_replace('_', ' ', $data['status'])) . '*',
+                    $project->user->phone,
+                    "Halo {$project->user->name}, status project *{$project->name}* Anda: *" . strtoupper(str_replace('_', ' ', $data['status'])) . '*',
                     null,
-                    $project->client->user,
+                    $project->user,
                     'project.updated'
                 );
             }
-            if ($project->client->user) {
-                $notifications->inApp(
-                    $project->client->user,
-                    'Status project diperbarui',
-                    "Project \"{$project->name}\" kini berstatus: " . strtoupper(str_replace('_', ' ', $data['status'])) . '.',
-                    '/dashboard/projects/' . $project->id,
-                    'project.updated'
-                );
-            }
+            $notifications->inApp(
+                $project->user,
+                'Status project diperbarui',
+                "Project \"{$project->name}\" kini berstatus: " . strtoupper(str_replace('_', ' ', $data['status'])) . '.',
+                '/dashboard/projects/' . $project->id,
+                'project.updated'
+            );
         }
 
-        return response()->json($project->load('client'));
+        return response()->json($project->load('user.profile'));
     }
 
     public function updateStatus(Request $request, Project $project)
@@ -413,7 +350,7 @@ class ProjectController extends Controller
     public function downloadFile(Request $request, ProjectFile $file)
     {
         $user = Auth::user();
-        if ($user->isClient() && $file->project->client?->user_id !== $user->id) {
+        if ($user->isClient() && $file->project->user_id !== $user->id) {
             abort(403);
         }
 

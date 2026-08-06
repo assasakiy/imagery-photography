@@ -14,7 +14,7 @@ class CustomerController extends Controller
     {
         $user = $request->user();
 
-        $projects = $this->clientProjects($user)->get();
+        $projects = $user->projects()->get();
 
         return response()->json([
             'projects' => $projects->map(fn ($p) => [
@@ -49,7 +49,7 @@ class CustomerController extends Controller
 
     public function invoices(Request $request)
     {
-        $projects = $this->clientProjects($request->user())->with('payments')->get();
+        $projects = $request->user()->projects()->with('payments')->get();
 
         return response()->json($projects->map(function ($p) {
             $paid = $p->payments->where('status', 'confirmed')->sum('amount');
@@ -69,7 +69,7 @@ class CustomerController extends Controller
     public function payments(Request $request)
     {
         $user = $request->user();
-        $projectIds = $this->clientProjects($user)->pluck('id');
+        $projectIds = $user->projects()->pluck('id');
 
         return response()->json(
             Payment::whereIn('project_id', $projectIds)->orderByDesc('created_at')->get()
@@ -79,7 +79,7 @@ class CustomerController extends Controller
     public function gallery(Request $request)
     {
         $projectId = $request->query('project_id');
-        $projects = $this->clientProjects($request->user());
+        $projects = $request->user()->projects();
 
         if ($projectId) {
             $projects = $projects->where('id', $projectId);
@@ -127,7 +127,7 @@ class CustomerController extends Controller
         $user = $request->user();
 
         if (!empty($data['project_id'])) {
-            $this->clientProjects($user)->findOrFail($data['project_id']);
+            $user->projects()->findOrFail($data['project_id']);
         }
 
         ContactMessage::create([
@@ -140,10 +140,5 @@ class CustomerController extends Controller
         ]);
 
         return response()->json(['ok' => true]);
-    }
-
-    private function clientProjects($user)
-    {
-        return $user->client?->projects() ?? \App\Models\Project::query()->whereRaw('1 = 0');
     }
 }

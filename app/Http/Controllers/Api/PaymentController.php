@@ -13,7 +13,7 @@ class PaymentController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Payment::with('project.client');
+        $query = Payment::with('project.user.profile');
 
         if ($request->filled('status')) {
             $query->where('status', $request->input('status'));
@@ -25,7 +25,7 @@ class PaymentController extends Controller
     public function store(Request $request, Project $project)
     {
         $user = $request->user();
-        if ($user->isClient() && $project->client?->user_id !== $user->id) {
+        if ($user->isClient() && $project->user_id !== $user->id) {
             abort(403);
         }
 
@@ -69,19 +69,19 @@ class PaymentController extends Controller
         $notifications = app(NotificationService::class);
         $notifications->webhook('payment.confirmed', ['payment_id' => $payment->id, 'project_id' => $payment->project_id]);
 
-        if ($client = $payment->project?->client) {
+        if ($client = $payment->project?->user) {
             if ($client->phone) {
                 $notifications->whatsapp(
                     $client->phone,
                     "Pembayaran Anda sebesar Rp " . number_format((float) $payment->amount, 0, ',', '.') . " telah dikonfirmasi. Terima kasih! 🙏",
                     null,
-                    $client->user,
+                    $client,
                     'payment.confirmed'
                 );
             }
-            if ($client->user) {
+            if ($client) {
                 $notifications->inApp(
-                    $client->user,
+                    $client,
                     'Pembayaran dikonfirmasi',
                     'Pembayaran Rp ' . number_format((float) $payment->amount, 0, ',', '.') . ' untuk project "' . $payment->project->name . '" telah dikonfirmasi.',
                     '/dashboard/projects/' . $payment->project->id,

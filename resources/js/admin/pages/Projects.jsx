@@ -22,7 +22,7 @@ export function StatusBadge({ value }) {
 }
 
 const emptyForm = {
-    client_id: '',
+    user_id: '',
     client_mode: 'existing',
     client_name: '',
     client_phone: '',
@@ -86,7 +86,7 @@ export default function Projects() {
     const openEdit = (item) => {
         setEditing(item);
         setForm({
-            client_id: item.client_id || '',
+            user_id: item.user_id || '',
             client_mode: 'existing',
             client_name: '',
             client_phone: '',
@@ -124,7 +124,7 @@ export default function Projects() {
                     payload.client_email = '';
                     payload.client_notes = '';
                 } else {
-                    payload.client_id = '';
+                    payload.user_id = '';
                 }
                 const { data } = await api.post('/projects', payload);
                 show('Project dibuat.');
@@ -191,7 +191,7 @@ export default function Projects() {
                             <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-ink-muted">
                                 {isAdmin && (
                                     <span className="flex items-center gap-1.5">
-                                        <Icon name="user" size={14} /> {item.client?.name || '-'}
+                                        <Icon name="user" size={14} /> {item.user?.name || '-'}
                                     </span>
                                 )}
                                 <span className="flex items-center gap-1.5">
@@ -261,8 +261,8 @@ export default function Projects() {
                             </div>
 
                             {form.client_mode === 'existing' ? (
-                                <Field label="Pilih Klien" required error={errors.client_id?.[0]}>
-                                    <select className="input" value={form.client_id} onChange={(e) => setForm({ ...form, client_id: e.target.value })} required>
+                                <Field label="Pilih Klien" required error={errors.user_id?.[0]}>
+                                    <select className="input" value={form.user_id} onChange={(e) => setForm({ ...form, user_id: e.target.value })} required>
                                         <option value="">Pilih klien...</option>
                                         {clients.map((c) => (
                                             <option key={c.id} value={c.id}>{c.name}</option>
@@ -288,8 +288,8 @@ export default function Projects() {
                         </>
                     )}
                     {isAdmin && editing && (
-                        <Field label="Klien" required error={errors.client_id?.[0]}>
-                            <select className="input" value={form.client_id} onChange={(e) => setForm({ ...form, client_id: e.target.value })} required>
+                        <Field label="Klien" required error={errors.user_id?.[0]}>
+                            <select className="input" value={form.user_id} onChange={(e) => setForm({ ...form, user_id: e.target.value })} required>
                                 <option value="">Pilih klien...</option>
                                 {clients.map((c) => (
                                     <option key={c.id} value={c.id}>{c.name}</option>

@@ -5,6 +5,7 @@ namespace App\Models;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
@@ -17,18 +18,10 @@ class User extends Authenticatable
     use HasApiTokens, HasFactory, HasRoles, Notifiable, SoftDeletesWithWho;
 
     protected $fillable = [
-        'name',
+        'username',
         'email',
         'phone',
         'password',
-        'role',
-        'bio',
-        'avatar_url',
-        'cover_url',
-        'social_facebook',
-        'social_instagram',
-        'social_tiktok',
-        'social_whatsapp',
         'notif_inapp',
         'notif_email',
         'notif_whatsapp',
@@ -50,6 +43,7 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
+            'phone_verified_at' => 'datetime',
             'password' => 'hashed',
             'notif_inapp' => 'boolean',
             'notif_email' => 'boolean',
@@ -60,34 +54,56 @@ class User extends Authenticatable
         ];
     }
 
-    private function resolveMediaValue(string $field): ?string
+    public function profile(): HasOne
     {
-        $value = $this->{$field};
+        return $this->hasOne(UserProfile::class);
+    }
 
-        if (!empty($value)) {
-            if (str_starts_with($value, 'media:')) {
-                $mediaId = (int) substr($value, 6);
-                $media = \Spatie\MediaLibrary\MediaCollections\Models\Media::find($mediaId);
+    public function socials(): HasMany
+    {
+        return $this->hasMany(UserSocial::class);
+    }
 
-                if ($media) {
-                    return $media->getUrl();
-                }
-            }
-
-            return $value;
+    /** Nama tampil: full_name ?? @username ?? email-prefix. */
+    public function getNameAttribute(): string
+    {
+        $full = $this->profile?->full_name;
+        if ($full) return $full;
+        if ($this->username) {
+            return '@' . $this->username;
         }
 
-        return null;
+        return $full ?? '';
     }
 
-    public function resolveAvatarUrl(): ?string
+    public function getBioAttribute(): ?string
     {
-        return $this->resolveMediaValue('avatar_url');
+        return $this->profile?->bio;
     }
 
-    public function resolveCoverUrl(): ?string
+    public function getCompanyAttribute(): ?string
     {
-        return $this->resolveMediaValue('cover_url');
+        return $this->profile?->company;
+    }
+
+    public function getOccupationAttribute(): ?string
+    {
+        return $this->profile?->occupation;
+    }
+
+    public function getWebsiteAttribute(): ?string
+    {
+        return $this->profile?->website;
+    }
+
+    public function avatar(): ?string
+    {
+        return $this->profile?->avatarUrl();
+    }
+
+    public function cover(): ?string
+    {
+        return $this->profile?->coverUrl();
     }
 
     public function isStaff(): bool
@@ -130,6 +146,11 @@ class User extends Authenticatable
         return ($this->status ?? 'pending') === 'active';
     }
 
+    public function isVerified(): bool
+    {
+        return $this->isActive() && !empty($this->activated_at);
+    }
+
     public function primaryRole(): string
     {
         if ($this->hasRole('owner')) return 'owner';
@@ -137,12 +158,7 @@ class User extends Authenticatable
         if ($this->hasRole('client')) return 'client';
         if ($this->hasRole('subscriber')) return 'subscriber';
 
-        return $this->role ?: 'user';
-    }
-
-    public function client()
-    {
-        return $this->hasOne(Client::class);
+        return 'user';
     }
 
     public function teamMember()
@@ -153,6 +169,11 @@ class User extends Authenticatable
     public function projects()
     {
         return $this->hasMany(Project::class, 'user_id');
+    }
+
+    public function accessTokens(): HasMany
+    {
+        return $this->hasMany(ClientAccessToken::class);
     }
 
     public function bookmarks(): HasMany
@@ -173,5 +194,10 @@ class User extends Authenticatable
     public function canUseLoginMethod(string $method): bool
     {
         return in_array($method, $this->allowedLoginMethods(), true);
+    }
+
+    public function updateUsername(string $username): void
+    {
+        $this->update(['username' => $username]);
     }
 }

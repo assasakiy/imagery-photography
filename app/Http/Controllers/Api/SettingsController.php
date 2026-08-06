@@ -293,7 +293,7 @@ class SettingsController extends Controller
             return response()->json(['message' => 'WhatsApp belum dikonfigurasi.'], 422);
         }
 
-        $phone = $user->phone ?? $user->client?->phone;
+        $phone = $user->phone;
 
         if (empty($phone)) {
             return response()->json(['message' => 'Nomor ponsel Anda belum diisi di profil.'], 422);
