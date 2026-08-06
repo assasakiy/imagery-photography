@@ -251,13 +251,15 @@ export default function Clients() {
                                     <Icon name="user" size={24} className="text-brand-600 dark:text-brand-400" />
                                 )}
                             </div>
-                            <div>
+                            <div className="flex flex-wrap items-center gap-2">
                                 <button type="button" className="btn-outline" onClick={() => setMediaOpen(true)}>
-                                    <Icon name="edit" size={16} /> Pilih Foto
+                                    <Icon name="edit" size={16} />
+                                    <span className="hidden sm:inline">Pilih Foto</span>
                                 </button>
                                 {avatarUrl && (
-                                    <button type="button" className="ml-2 text-sm text-red-600 hover:underline" onClick={() => { setForm((f) => ({ ...f, avatar: null })); setAvatarUrl(null); }}>
-                                        Hapus
+                                    <button type="button" className="btn-outline text-red-600 hover:!bg-red-500/10 hover:!border-red-500/40" onClick={() => { setForm((f) => ({ ...f, avatar: null })); setAvatarUrl(null); }}>
+                                        <Icon name="trash" size={16} />
+                                        <span className="hidden sm:inline">Hapus Foto</span>
                                     </button>
                                 )}
                             </div>
@@ -325,8 +327,6 @@ export default function Clients() {
                 loading={credLoading}
                 onIssueToken={issueToken}
                 issuing={issuing}
-                onEdit={() => { const d = detail; setDetail(null); openEdit(d); }}
-                onDelete={() => { setDetail(null); setDeleteTarget(detail); }}
             />
 
             {node}

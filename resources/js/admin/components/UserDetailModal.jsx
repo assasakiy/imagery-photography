@@ -15,7 +15,7 @@ const STATUS_META = {
     disabled: { label: 'Nonaktif', cls: 'bg-zinc-500/15 text-ink-muted' },
 };
 
-export default function UserDetailModal({ open, onClose, data, loading, onIssueToken, issuing, showProjects = true, onEdit, onDelete }) {
+export default function UserDetailModal({ open, onClose, data, loading, onIssueToken, issuing, showProjects = true }) {
     const { show, node } = useToast();
     const navigate = useNavigate();
 
@@ -99,23 +99,9 @@ export default function UserDetailModal({ open, onClose, data, loading, onIssueT
                 <div className="relative flex max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl border border-line bg-surface shadow-2xl">
                     <div className="flex shrink-0 items-center justify-between px-6 py-4">
                         <h2 className="text-lg font-bold text-ink">Detail User</h2>
-                        <div className="flex items-center gap-1">
-                            {onEdit && (
-                                <button onClick={onEdit} className="flex items-center gap-1 rounded-lg p-1.5 text-ink-muted hover:bg-surface-muted hover:text-brand-600" title="Edit">
-                                    <Icon name="edit" size={16} />
-                                    <span className="hidden text-xs font-medium sm:inline">Edit</span>
-                                </button>
-                            )}
-                            {onDelete && (
-                                <button onClick={onDelete} className="flex items-center gap-1 rounded-lg p-1.5 text-ink-muted hover:bg-surface-muted hover:text-red-500" title="Hapus">
-                                    <Icon name="trash" size={16} />
-                                    <span className="hidden text-xs font-medium sm:inline">Hapus</span>
-                                </button>
-                            )}
-                            <button onClick={onClose} className="rounded-lg p-1 text-ink-muted hover:bg-surface-muted" aria-label="Tutup">
-                                <Icon name="x" size={20} />
-                            </button>
-                        </div>
+                        <button onClick={onClose} className="rounded-lg p-1 text-ink-muted hover:bg-surface-muted" aria-label="Tutup">
+                            <Icon name="x" size={20} />
+                        </button>
                     </div>
 
                     <div className="min-h-0 flex-1 overflow-y-auto p-6">

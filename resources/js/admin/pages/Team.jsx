@@ -218,14 +218,18 @@ function AdminTab() {
                             )}
                         </div>
                         <div>
-                            <button type="button" className="btn-outline" onClick={() => setMediaOpen(true)}>
-                                <Icon name="edit" size={16} /> Pilih Foto
-                            </button>
-                            {avatarUrl && (
-                                <button type="button" className="ml-2 text-sm text-red-600 hover:underline" onClick={() => { setForm((f) => ({ ...f, avatar: null })); setAvatarUrl(null); }}>
-                                    Hapus
+                            <div className="flex flex-wrap items-center gap-2">
+                                <button type="button" className="btn-outline" onClick={() => setMediaOpen(true)}>
+                                    <Icon name="edit" size={16} />
+                                    <span className="hidden sm:inline">Pilih Foto</span>
                                 </button>
-                            )}
+                                {avatarUrl && (
+                                    <button type="button" className="btn-outline text-red-600 hover:!bg-red-500/10 hover:!border-red-500/40" onClick={() => { setForm((f) => ({ ...f, avatar: null })); setAvatarUrl(null); }}>
+                                        <Icon name="trash" size={16} />
+                                        <span className="hidden sm:inline">Hapus Foto</span>
+                                    </button>
+                                )}
+                            </div>
                         </div>
                     </div>
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -272,8 +276,6 @@ function AdminTab() {
                 onIssueToken={issueToken}
                 issuing={issuing}
                 showProjects={false}
-                onEdit={() => { const d = detail; setDetail(null); openEdit(d); }}
-                onDelete={() => { setDetail(null); setDeleting(detail); }}
             />
 
             <Confirm open={!!deleting} onClose={() => setDeleting(null)} onConfirm={handleDelete} title="Hapus admin?" message="Admin ini tidak akan bisa login lagi." />
