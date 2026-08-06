@@ -69,6 +69,7 @@ const emptyForm = {
     notif_wa_enabled: true,
     email_events: [],
     whatsapp_events: [],
+    inapp_events: [],
 };
 
 function applyBrandColor(hex) {
@@ -129,6 +130,7 @@ function normalize(data) {
         notif_wa_enabled: data.whatsapp_enabled !== false,
         email_events: data.email_events || [],
         whatsapp_events: data.whatsapp_events || [],
+        inapp_events: data.inapp_events || [],
     };
 }
 
@@ -151,6 +153,7 @@ export default function Settings() {
     const [openWa, setOpenWa] = useState(false);
     const [openEmailNotif, setOpenEmailNotif] = useState(false);
     const [openWaNotif, setOpenWaNotif] = useState(false);
+    const [openInAppNotif, setOpenInAppNotif] = useState(false);
     const { show, node } = useToast();
 
     useEffect(() => {
@@ -176,8 +179,18 @@ export default function Settings() {
     const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
 
     const setEvent = (key, channel, enabled) => {
-        const field = channel === 'email' ? 'email_events' : 'whatsapp_events';
+        const field = channel === 'email' ? 'email_events' : channel === 'inapp' ? 'inapp_events' : 'whatsapp_events';
         set(field, form[field].map((e) => (e.key === key ? { ...e, enabled } : e)));
+    };
+
+    const toggleEvent = async (channel, key, enabled) => {
+        setEvent(key, channel, enabled);
+        const field = channel === 'email' ? 'email_events' : channel === 'inapp' ? 'inapp_events' : 'whatsapp_events';
+        try {
+            await api.put('/settings', { [field]: form[field].map((e) => (e.key === key ? { ...e, enabled } : e)) });
+        } catch {
+            show('Gagal menyimpan pengaturan event.', 'error');
+        }
     };
 
     const waDrivers = meta.whatsapp_drivers || [];
@@ -196,10 +209,6 @@ export default function Settings() {
 
     const dirty = (keys) => keys.some((k) => JSON.stringify(form[k]) !== JSON.stringify(base[k]));
     const dirtyColor = form.brand_color !== base.brand_color;
-    const dirtyEvents = (channel) => {
-        const field = channel === 'email' ? 'email_events' : 'whatsapp_events';
-        return flagsOf(form[field]) !== flagsOf(base[field]);
-    };
 
     const save = async (keys, overrides = {}) => {
         setSaving(true);
@@ -221,17 +230,6 @@ export default function Settings() {
         } finally {
             setSaving(false);
         }
-    };
-
-    const saveNotifCard = async (channel) => {
-        const keys = channel === 'email' ? ['notif_email_enabled', 'email_events'] : ['notif_wa_enabled', 'whatsapp_events'];
-        await save(keys);
-    };
-
-    const toggleNotifChannel = async (channel, v) => {
-        const field = channel === 'email' ? 'notif_email_enabled' : 'notif_wa_enabled';
-        set(field, v);
-        await save([field], { [field]: v });
     };
 
     const toggleWaChannel = async (v) => {
@@ -289,12 +287,11 @@ export default function Settings() {
 
     const NotifCard = ({ channel }) => {
         const isEmail = channel === 'email';
-        const field = isEmail ? 'notif_email_enabled' : 'notif_wa_enabled';
-        const enabled = form[field];
         const configured = isEmail ? meta.email_configured : meta.whatsapp_configured;
         const events = isEmail ? form.email_events : form.whatsapp_events;
         const label = isEmail ? 'Email' : 'WhatsApp';
         const open = isEmail ? openEmailNotif : openWaNotif;
+        const active = events.some((e) => !!e.enabled);
 
         return (
             <div className="card w-full p-6">
@@ -310,40 +307,24 @@ export default function Settings() {
                     <button
                         type="button"
                         onClick={() => (isEmail ? setOpenEmailNotif((v) => !v) : setOpenWaNotif((v) => !v))}
-                        className={`badge shrink-0 cursor-pointer transition-colors ${statusBadge(enabled)}`}
+                        className={`badge shrink-0 cursor-pointer transition-colors ${configured ? (active ? statusBadge(true) : 'bg-zinc-500/15 text-ink-muted') : 'bg-red-500/15 text-red-600 dark:text-red-400'}`}
                     >
                         <Icon name="chevron-down" size={12} className={`transition-transform ${open ? 'rotate-180' : ''}`} />
-                        {enabled ? 'Aktif' : 'Nonaktif'}
+                        {configured ? (active ? 'Aktif' : 'Nonaktif') : 'Belum Dikonfigurasi'}
                     </button>
                 </div>
 
                 {!configured && (
                     <p className="mt-4 rounded-lg bg-amber-500/10 px-3 py-2 text-xs text-amber-600 dark:text-amber-400">
-                        Koneksi {isEmail ? 'SMTP' : 'WhatsApp'} belum dikonfigurasi di tab Integrasi. Notifikasi {isEmail ? 'email' : 'WhatsApp'} tidak bisa dikirim.
+                        Koneksi {isEmail ? 'SMTP' : 'WhatsApp'} belum dikonfigurasi di tab Integrasi. Atur dulu di tab Integrasi untuk mengaktifkan notifikasi {isEmail ? 'email' : 'WhatsApp'}.
                     </p>
-                )}
-
-                {configured && (
-                    <div className="mt-4 border-b border-line pb-4">
-                        <Toggle
-                            checked={enabled}
-                            onChange={(v) => toggleNotifChannel(channel, v)}
-                            label={`Aktifkan notifikasi ${label}`}
-                            desc={enabled
-                                ? 'Kanal aktif — daftar event di bawah ditampilkan.'
-                                : 'Kanal nonaktif — konfigurasi tetap tersimpan.'}
-                        />
-                    </div>
                 )}
 
                 {open && (
                     <>
                         <div className="divide-y divide-line border-t border-line">
                             {events.map((ev) => (
-                                <label
-                                    key={ev.key}
-                                    className={`flex items-center justify-between gap-4 py-3 ${ev.mandatory ? 'opacity-80' : ''}`}
-                                >
+                                <div key={ev.key} className={`flex items-center justify-between gap-4 py-3 ${ev.mandatory ? 'opacity-80' : ''}`}>
                                     <div>
                                         <p className="text-sm font-medium text-ink">{ev.label}</p>
                                         <p className="font-mono text-xs text-ink-muted">{ev.key}</p>
@@ -352,32 +333,68 @@ export default function Settings() {
                                         {ev.mandatory && (
                                             <span className="badge bg-brand-600/10 text-brand-600 dark:text-brand-400">Wajib</span>
                                         )}
-                                        <input
-                                            type="checkbox"
-                                            className="h-4 w-4 rounded border-line text-brand-600"
+                                        <Toggle
+                                            size="sm"
                                             checked={!!ev.enabled}
-                                            disabled={ev.mandatory}
-                                            onChange={(e) => setEvent(ev.key, channel, e.target.checked)}
+                                            disabled={ev.mandatory || !configured}
+                                            onChange={(v) => toggleEvent(channel, ev.key, v)}
                                         />
                                     </div>
-                                </label>
+                                </div>
                             ))}
                         </div>
 
                         <p className="mt-3 text-xs text-ink-muted">
-                            Event "Wajib" (OTP login & login mencurigakan) tetap dikirim untuk keamanan akun meskipun kanal dimatikan.
+                            Event "Wajib" (OTP login & login mencurigakan) tetap dikirim untuk keamanan akun. Perubahan event langsung tersimpan.
                         </p>
+                    </>
+                )}
+            </div>
+        );
+    };
 
-                        <div className="mt-6 flex justify-end border-t border-line pt-5">
-                            <Button
-                                icon="check"
-                                loading={saving}
-                                disabled={!dirtyEvents(channel)}
-                                onClick={() => saveNotifCard(channel)}
-                            >
-                                Simpan Notifikasi {label}
-                            </Button>
+    const InAppCard = () => {
+        const events = form.inapp_events;
+        const open = openInAppNotif;
+
+        return (
+            <div className="card w-full p-6">
+                <div className="flex items-center justify-between gap-4">
+                    <div>
+                        <h2 className="font-semibold text-ink">Notifikasi Aplikasi (In-App)</h2>
+                        <p className="text-xs text-ink-muted">Pemberitahuan yang muncul di dalam dashboard / aplikasi (lonceng).</p>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={() => setOpenInAppNotif((v) => !v)}
+                        className={`badge shrink-0 cursor-pointer transition-colors ${events.some((e) => !!e.enabled) ? statusBadge(true) : 'bg-zinc-500/15 text-ink-muted'}`}
+                    >
+                        <Icon name="chevron-down" size={12} className={`transition-transform ${open ? 'rotate-180' : ''}`} />
+                        {events.some((e) => !!e.enabled) ? 'Aktif' : 'Nonaktif'}
+                    </button>
+                </div>
+
+                {open && (
+                    <>
+                        <div className="divide-y divide-line border-t border-line">
+                            {events.map((ev) => (
+                                <div key={ev.key} className={`flex items-center justify-between gap-4 py-3 ${ev.mandatory ? 'opacity-80' : ''}`}>
+                                    <div>
+                                        <p className="text-sm font-medium text-ink">{ev.label}</p>
+                                        <p className="font-mono text-xs text-ink-muted">{ev.key}</p>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        {ev.mandatory && (
+                                            <span className="badge bg-brand-600/10 text-brand-600 dark:text-brand-400">Wajib</span>
+                                        )}
+                                        <Toggle size="sm" checked={!!ev.enabled} disabled={ev.mandatory} onChange={(v) => toggleEvent('inapp', ev.key, v)} />
+                                    </div>
+                                </div>
+                            ))}
                         </div>
+                        <p className="mt-3 text-xs text-ink-muted">
+                            Perubahan event langsung tersimpan.
+                        </p>
                     </>
                 )}
             </div>
@@ -769,6 +786,7 @@ export default function Settings() {
                 <div className="space-y-6">
                     <NotifCard channel="email" />
                     <NotifCard channel="whatsapp" />
+                    <InAppCard />
                 </div>
             )}
 

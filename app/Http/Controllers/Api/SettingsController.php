@@ -58,6 +58,7 @@ class SettingsController extends Controller
             'whatsapp_enabled' => $settings->channelEnabled('whatsapp'),
             'email_events' => app(NotificationService::class)->channelEvents('email'),
             'whatsapp_events' => app(NotificationService::class)->channelEvents('whatsapp'),
+            'inapp_events' => app(NotificationService::class)->channelEvents('inapp'),
         ]);
     }
 
@@ -101,6 +102,9 @@ class SettingsController extends Controller
             'whatsapp_events' => 'nullable|array',
             'whatsapp_events.*.key' => ['nullable', 'string', Rule::in(NotificationService::CHANNEL_EVENTS['whatsapp'])],
             'whatsapp_events.*.enabled' => 'nullable|boolean',
+            'inapp_events' => 'nullable|array',
+            'inapp_events.*.key' => ['nullable', 'string', Rule::in(NotificationService::CHANNEL_EVENTS['inapp'])],
+            'inapp_events.*.enabled' => 'nullable|boolean',
             'notification_events' => 'nullable|array',
             'notification_events.*.key' => ['nullable', 'string', Rule::in(array_keys(NotificationService::EVENTS))],
             'notification_events.*.enabled' => 'nullable|boolean',
@@ -118,8 +122,12 @@ class SettingsController extends Controller
                 continue;
             }
 
-            if ($key === 'email_events' || $key === 'whatsapp_events') {
-                $channel = $key === 'email_events' ? 'email' : 'whatsapp';
+            if ($key === 'email_events' || $key === 'whatsapp_events' || $key === 'inapp_events') {
+                $channel = match ($key) {
+                    'email_events' => 'email',
+                    'whatsapp_events' => 'whatsapp',
+                    default => 'inapp',
+                };
                 $this->saveChannelEvents($channel, $value ?? []);
                 continue;
             }
