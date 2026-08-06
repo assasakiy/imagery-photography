@@ -77,6 +77,9 @@ php artisan db:seed --class=WordPressContentSeeder
 composer test        # phpunit
 ```
 
+## 10b. Konvensi Halaman Bertab (folder per halaman)
+Halaman dashboard yang punya beberapa tab **WAJIB** dipisah ke folder `pages/<nama>/`: `index.jsx` (state global + tab bar + render tab aktif), file per tab (`<Tab>Tab.jsx`), dan `constants.js` (konstanta/helper bersama). `pages/<Nama>.jsx` cukup re-export `export { default } from './<nama>';`. Kontrak antar-tab: index menyusun objek `ctx` (semua state & handler) lalu render `{tab === 'x' && <XTab {...ctx} />}`; tiap tab destructure props yang dipakai dari `ctx`. Berlaku utk halaman baru & refactor bertahap halaman lama (Settings sudah, AuditLog/Services/Notifications/Media menyusul).
+
 ## 11. Catatan & Alur Git
 - **Dokumentasi: replace, bukan append**: setiap perubahan fitur dicatat di section **"Sesi Terbaru"** — GANTI isinya (jangan tambah bullet baru terus-menerus). Gotcha/bug permanen yang masih relevan dipindahkan ke **"Arsip"**. Kalau AGENTS.md mulai bengkak, ringkas/musnahkan yang lama (riwayat tetap ada di git).
 - **Git WAJIB untuk setiap fitur**: setiap penambahan/perubahan fitur yang selesai & sudah build+verifikasi sukses, agent HARUS `git add -A`, `git commit` (pesan ringkas sesuai perubahan), lalu `git push origin main`. Jangan menunggu diminta.
@@ -100,7 +103,8 @@ composer test        # phpunit
 - **Test**: skrip di `/home/opc` (`spa_test.py`, `final_test.py`, `access_test.py`); `/etc/hosts` berisi `127.0.0.1 imagery.assasakiy.my.id`; `/tmp/opencode` TIDAK writable.
 
 ## 13. Sesi Terbaru (2026-08-05)
-- **Notifikasi: Toggle per event (auto-save) + section In-App (terbaru)**: tab Notifikasi dirombak. Per kanal (Email/WA): toggle kanal "Aktifkan" dihapus — **status aktif derived dari event yang on**; daftar event pakai **Toggle** (bukan checkbox) + **auto-save** (`toggleEvent()` → `PUT /api/settings`). Jika kanal belum dikonfigurasi, badge merah "Belum Dikonfigurasi" + event tampil tapi **disabled** (tak bisa diubah, bukan hidden). Section baru **"Notifikasi Aplikasi (In-App)"** (`InAppCard`, `inapp_events` dari `NotificationService::CHANNEL_EVENTS['inapp']`) — event yang muncul di dashboard/lonceng. Backend: `SettingsController` index + update dukung `inapp_events` via `saveChannelEvents('inapp')`.
+- **Refactor: halaman Pengaturan dipecah ke folder `pages/settings/` (terbaru)**: `Settings.jsx` (923 baris) dipecah → `settings/index.jsx` (state + tab bar + render, objek `ctx` spread ke tab), `constants.js` (TABS/TAB_FIELDS/emptyForm/normalize/helpers), dan 7 tab: BrandingTab, IntegrasiTab, SocialTab, WebhookTab, NotificationsTab, SecurityTab, MaintenanceTab. `pages/Settings.jsx` re-export dari `./settings`. Konvensi ini dicatat di §10b utk halaman bertab lain (AuditLog/Services/Notifications/Media refactor bertahap).
+- **Notifikasi: badge cek AKTIF bukan configured**: `NotificationsTab/NotifCard` — `configured` = `meta.email_enabled`/`whatsapp_enabled` (aktif), bukan `_configured`. Kanal nonaktif → badge "Nonaktif" + event Toggle disabled; tanpa transport → peringatan amber "atur di tab Integrasi".
 - **Notifikasi & Integrasi: badge status jadi tombol accordion**: di tab Notifikasi & tab Integrasi, badge status (**Aktif/Nonaktif**, **Terkonfigurasi/Belum**) bisa diklik (chevron) utk buka/tutup isi.
 - **OTP: kanal cek AKTIF di seluruh lapisan**: `NotificationService::otpChannel()` → `channelAvailable()` (= configured && enabled). OTP hanya via kanal aktif; konsisten dgn login (`APP_CONFIG.otp` channelEnabled) & Metode Login (`meta.email_enabled`/`whatsapp_enabled`).
 - **Pengaturan: tab Keamanan 2 kartu + metode login difilter**: "Keamanan Login" (attempts/lockout/remember/metode login) & "Retensi File" terpisah, Simpan per kartu (`security_login`/`security_file`). Metode Login: password & token (Access Link) selalu; otp hanya jika email/WA configured; google hanya jika login sosial aktif.
