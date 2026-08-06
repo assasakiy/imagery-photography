@@ -2,8 +2,7 @@ import Button from '../../components/Button';
 import { Field } from '../../components/ui';
 import { TAB_FIELDS } from './constants';
 
-export default function WebhookTab({ ctx }) {
-    const { form, errors, saving, set, save, dirty } = ctx;
+export default function WebhookTab({ form, errors, saving, set, save, dirty }) {
 
     return (
         <div className="card w-full p-6">

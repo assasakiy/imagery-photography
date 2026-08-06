@@ -2,8 +2,7 @@ import Button from '../../components/Button';
 import { Field } from '../../components/ui';
 import { TAB_FIELDS, MASK } from './constants';
 
-export default function SocialTab({ ctx }) {
-    const { form, meta, errors, saving, set, save, dirty, setChecked } = ctx;
+export default function SocialTab({ form, meta, errors, saving, set, save, dirty, setChecked }) {
 
     return (
         <div className="card w-full p-6">
