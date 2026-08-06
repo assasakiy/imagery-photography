@@ -15,7 +15,7 @@ const STATUS_META = {
     disabled: { label: 'Nonaktif', cls: 'bg-zinc-500/15 text-ink-muted' },
 };
 
-export default function UserDetailModal({ open, onClose, data, loading, onIssueToken, issuing }) {
+export default function UserDetailModal({ open, onClose, data, loading, onIssueToken, issuing, showProjects = true }) {
     const { show, node } = useToast();
     const navigate = useNavigate();
 
@@ -189,31 +189,33 @@ export default function UserDetailModal({ open, onClose, data, loading, onIssueT
                                     </div>
                                 </div>
 
-                                <div className="border-t border-line pt-5">
-                                    <label className="label">Proyek Terkait</label>
-                                    {data.projects?.length ? (
-                                        <div className="space-y-2">
-                                            {data.projects.map((p) => (
-                                                <button
-                                                    key={p.id}
-                                                    onClick={() => openProject(p.id)}
-                                                    className="flex w-full items-center justify-between gap-2 rounded-xl bg-surface-muted px-3 py-2 text-left transition-colors hover:bg-brand-500/15"
-                                                >
-                                                    <span className="flex min-w-0 items-center gap-2 text-sm font-medium text-ink">
-                                                        <Icon name="briefcase" size={15} className="shrink-0 text-ink-muted" />
-                                                        <span className="truncate">{p.name}</span>
-                                                    </span>
-                                                    <span className="flex shrink-0 items-center gap-2">
-                                                        {p.status && <span className="badge">{p.status}</span>}
-                                                        <Icon name="chevrons" size={14} className="text-ink-muted" />
-                                                    </span>
-                                                </button>
-                                            ))}
-                                        </div>
-                                    ) : (
-                                        <p className="text-sm text-ink-muted">Tidak ada proyek terkait.</p>
-                                    )}
-                                </div>
+                                {showProjects && (
+                                    <div className="border-t border-line pt-5">
+                                        <label className="label">Proyek Terkait</label>
+                                        {data.projects?.length ? (
+                                            <div className="space-y-2">
+                                                {data.projects.map((p) => (
+                                                    <button
+                                                        key={p.id}
+                                                        onClick={() => openProject(p.id)}
+                                                        className="flex w-full items-center justify-between gap-2 rounded-xl bg-surface-muted px-3 py-2 text-left transition-colors hover:bg-brand-500/15"
+                                                    >
+                                                        <span className="flex min-w-0 items-center gap-2 text-sm font-medium text-ink">
+                                                            <Icon name="briefcase" size={15} className="shrink-0 text-ink-muted" />
+                                                            <span className="truncate">{p.name}</span>
+                                                        </span>
+                                                        <span className="flex shrink-0 items-center gap-2">
+                                                            {p.status && <span className="badge">{p.status}</span>}
+                                                            <Icon name="chevrons" size={14} className="text-ink-muted" />
+                                                        </span>
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <p className="text-sm text-ink-muted">Tidak ada proyek terkait.</p>
+                                        )}
+                                    </div>
+                                )}
                             </div>
                         ) : (
                             <EmptyState title="Tidak ada data" />

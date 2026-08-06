@@ -200,6 +200,7 @@ function AdminTab() {
                 open={open}
                 onClose={() => setOpen(false)}
                 title={editing ? 'Edit Admin' : 'Undang Admin'}
+                wide
                 footer={
                     <div className="flex justify-end gap-2">
                         <button type="button" className="btn-outline" onClick={() => setOpen(false)}>Batal</button>
@@ -270,6 +271,7 @@ function AdminTab() {
                 loading={credLoading}
                 onIssueToken={issueToken}
                 issuing={issuing}
+                showProjects={false}
             />
 
             <Confirm open={!!deleting} onClose={() => setDeleting(null)} onConfirm={handleDelete} title="Hapus admin?" message="Admin ini tidak akan bisa login lagi." />
