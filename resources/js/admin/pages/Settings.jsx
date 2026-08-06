@@ -149,6 +149,8 @@ export default function Settings() {
     const [mediaFor, setMediaFor] = useState(null);
     const [openEmail, setOpenEmail] = useState(false);
     const [openWa, setOpenWa] = useState(false);
+    const [openEmailNotif, setOpenEmailNotif] = useState(false);
+    const [openWaNotif, setOpenWaNotif] = useState(false);
     const { show, node } = useToast();
 
     useEffect(() => {
@@ -292,10 +294,11 @@ export default function Settings() {
         const configured = isEmail ? meta.email_configured : meta.whatsapp_configured;
         const events = isEmail ? form.email_events : form.whatsapp_events;
         const label = isEmail ? 'Email' : 'WhatsApp';
+        const open = isEmail ? openEmailNotif : openWaNotif;
 
         return (
             <div className="card w-full p-6">
-                <div className="mb-4 flex items-center justify-between gap-4">
+                <div className="flex items-center justify-between gap-4">
                     <div>
                         <h2 className="font-semibold text-ink">Notifikasi {label}</h2>
                         <p className="text-xs text-ink-muted">
@@ -304,25 +307,36 @@ export default function Settings() {
                                 : 'Kirim pemberitahuan ke klien via WhatsApp.'}
                         </p>
                     </div>
-                    <span className={`badge shrink-0 ${statusBadge(enabled)}`}>{enabled ? 'Aktif' : 'Nonaktif'}</span>
+                    <button
+                        type="button"
+                        onClick={() => (isEmail ? setOpenEmailNotif((v) => !v) : setOpenWaNotif((v) => !v))}
+                        className={`badge shrink-0 cursor-pointer transition-colors ${statusBadge(enabled)}`}
+                    >
+                        <Icon name="chevron-down" size={12} className={`transition-transform ${open ? 'rotate-180' : ''}`} />
+                        {enabled ? 'Aktif' : 'Nonaktif'}
+                    </button>
                 </div>
 
                 {!configured && (
-                    <p className="mb-4 rounded-lg bg-amber-500/10 px-3 py-2 text-xs text-amber-600 dark:text-amber-400">
+                    <p className="mt-4 rounded-lg bg-amber-500/10 px-3 py-2 text-xs text-amber-600 dark:text-amber-400">
                         Koneksi {isEmail ? 'SMTP' : 'WhatsApp'} belum dikonfigurasi di tab Integrasi. Notifikasi {isEmail ? 'email' : 'WhatsApp'} tidak bisa dikirim.
                     </p>
                 )}
 
-                <div className="border-b border-line pb-5">
-                    <Toggle
-                        checked={enabled}
-                        onChange={(v) => toggleNotifChannel(channel, v)}
-                        label={`Aktifkan notifikasi ${label}`}
-                        desc={enabled ? 'Kanal aktif — daftar event di bawah ditampilkan.' : 'Kanal nonaktif — daftar event disembunyikan.'}
-                    />
-                </div>
+                {configured && (
+                    <div className="mt-4 border-b border-line pb-4">
+                        <Toggle
+                            checked={enabled}
+                            onChange={(v) => toggleNotifChannel(channel, v)}
+                            label={`Aktifkan notifikasi ${label}`}
+                            desc={enabled
+                                ? 'Kanal aktif — daftar event di bawah ditampilkan.'
+                                : 'Kanal nonaktif — konfigurasi tetap tersimpan.'}
+                        />
+                    </div>
+                )}
 
-                {enabled && (
+                {open && (
                     <>
                         <div className="divide-y divide-line border-t border-line">
                             {events.map((ev) => (
