@@ -32,9 +32,13 @@ export default function ForgotPassword() {
             <div className="w-full max-w-md">
                 <div className="card p-8">
                     <div className="mb-6 text-center">
-                        <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-600 text-white shadow-lg shadow-brand-600/30">
-                            <Icon name="lock" size={28} />
-                        </div>
+                        {APP.logo ? (
+                            <img src={APP.logo} alt={APP.siteName || 'Sopian Lalu Imagery'} className="mx-auto mb-4 h-16 w-16 rounded-2xl object-cover shadow-lg ring-1 ring-line" />
+                        ) : (
+                            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-600 text-white shadow-lg shadow-brand-600/30">
+                                <Icon name="lock" size={28} />
+                            </div>
+                        )}
                         <h1 className="text-xl font-bold text-ink">Lupa Kata Sandi</h1>
                         <p className="mt-1 text-sm text-ink-muted">Masukkan email atau nomor WhatsApp Anda.</p>
                     </div>
