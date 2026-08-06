@@ -3,8 +3,7 @@ import api from '../api';
 import Icon from '../components/Icon';
 import { PageHeader, Spinner, EmptyState, Modal, Confirm, Field, useToast, formatDate } from '../components/ui';
 
-const emptyForm = { name: '', email: '', phone: '', company: '', notes: '', allowed_methods: null };
-const LOGIN_OPTIONS = ['password', 'otp', 'google', 'token'];
+const emptyForm = { name: '', email: '', phone: '', company: '', notes: '' };
 
 export default function Clients() {
     const [items, setItems] = useState([]);
@@ -71,14 +70,7 @@ export default function Clients() {
 
     const openEdit = (item) => {
         setEditing(item);
-        setForm({
-            name: item.name,
-            email: item.email || '',
-            phone: item.phone || '',
-            company: item.company || '',
-            notes: item.notes || '',
-            allowed_methods: item.user?.allowed_methods?.length ? item.user.allowed_methods : null,
-        });
+        setForm({ name: item.name, email: item.email || '', phone: item.phone || '', company: item.company || '', notes: item.notes || '' });
         setErrors({});
         setOpen(true);
     };
@@ -229,35 +221,6 @@ export default function Clients() {
                     <Field label="Catatan" hint="opsional" error={errors.notes?.[0]}>
                         <textarea className="input min-h-[80px]" value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
                     </Field>
-                    {editing && (
-                        <div className="sm:col-span-2 rounded-xl border border-line bg-surface-muted/40 p-4">
-                            <label className="label">Override Metode Login</label>
-                            <p className="mb-3 text-xs text-ink-muted">
-                                Kosongkan untuk memakai pengaturan global. Centang metode yang diizinkan utk akun ini.
-                            </p>
-                            <div className="flex flex-wrap gap-3">
-                                {LOGIN_OPTIONS.map((m) => {
-                                    const enabled = form.allowed_methods?.includes(m);
-                                    return (
-                                        <label key={m} className="flex cursor-pointer items-center gap-2 text-sm text-ink">
-                                            <input
-                                                type="checkbox"
-                                                checked={!!enabled}
-                                                onChange={(e) => {
-                                                    const next = form.allowed_methods ? [...form.allowed_methods] : [];
-                                                    if (e.target.checked) next.push(m);
-                                                    else next.splice(next.indexOf(m), 1);
-                                                    setForm({ ...form, allowed_methods: next.length ? next : null });
-                                                }}
-                                                className="h-4 w-4 rounded border-line text-brand-600"
-                                            />
-                                            <span className="capitalize">{m}</span>
-                                        </label>
-                                    );
-                                })}
-                            </div>
-                        </div>
-                    )}
                 </form>
             </Modal>
 

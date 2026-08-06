@@ -34,6 +34,11 @@
             siteName: @json($siteName),
             googleRedirect: @json(url('/auth/google/redirect')),
             rememberEnabled: @json($shellSettings->loginRememberEnabled()),
+            otp: {
+                enabled: @json($shellSettings->loginMethodEnabled('otp')),
+                whatsapp: @json($shellSettings->whatsappConfigured()),
+                email: @json($shellSettings->emailConfigured()),
+            },
         };
     </script>
     <div id="app"></div>

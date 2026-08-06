@@ -33,8 +33,6 @@ class User extends Authenticatable
         'notif_whatsapp',
         'notif_events',
         'notif_otp_channel',
-        'login_method',
-        'allowed_methods',
     ];
 
     protected $hidden = [
@@ -51,7 +49,6 @@ class User extends Authenticatable
             'notif_email' => 'boolean',
             'notif_whatsapp' => 'boolean',
             'notif_events' => 'array',
-            'allowed_methods' => 'array',
         ];
     }
 
@@ -147,12 +144,6 @@ class User extends Authenticatable
 
     public function allowedLoginMethods(): array
     {
-        $methods = ['password', 'otp', 'google', 'token'];
-
-        if (!empty($this->allowed_methods)) {
-            return array_values(array_intersect($methods, $this->allowed_methods));
-        }
-
         return app(\App\Services\RuntimeSettings::class)->globalLoginMethods();
     }
 

@@ -274,6 +274,26 @@ class RuntimeSettings
         return is_array($decoded) ? $decoded : ['password', 'otp', 'google', 'token'];
     }
 
+    public function loginMethodEnabled(string $method): bool
+    {
+        return in_array($method, $this->globalLoginMethods(), true);
+    }
+
+    public function otpChannelsAvailable(): array
+    {
+        $channels = [];
+
+        if ($this->whatsappConfigured()) {
+            $channels[] = 'whatsapp';
+        }
+
+        if ($this->emailConfigured()) {
+            $channels[] = 'email';
+        }
+
+        return $channels;
+    }
+
     public function loginRememberDays(): int
     {
         return max(1, (int) $this->get('login_remember_days', '30'));

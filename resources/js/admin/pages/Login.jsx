@@ -26,6 +26,11 @@ export default function Login() {
     const [loading, setLoading] = useState(false);
     const notice = location.state?.notice;
 
+    const otpCfg = APP.otp || { enabled: false, whatsapp: false, email: false };
+    const otpAvailable = otpCfg.enabled && (otpCfg.whatsapp || otpCfg.email);
+    const otpLabel = otpCfg.whatsapp && otpCfg.email ? 'Email / No. WhatsApp' : otpCfg.whatsapp ? 'No. WhatsApp' : 'Email';
+    const otpPlaceholder = otpCfg.whatsapp && otpCfg.email ? 'email@contoh.com / 08xxxxxxxxxx' : otpCfg.whatsapp ? '08xxxxxxxxxx' : 'email@contoh.com';
+
     const sendOtp = async (e) => {
         e.preventDefault();
         setErrors({});
@@ -214,14 +219,14 @@ export default function Login() {
                             {!otpSent && (
                                 <div>
                                     <label htmlFor="otpPhone" className="label">
-                                        Email / No. WhatsApp <span className="text-red-500">*</span>
+                                        {otpLabel} <span className="text-red-500">*</span>
                                     </label>
                                     <input
                                         id="otpPhone"
                                         type="text"
                                         required
                                         className="input"
-                                        placeholder="email@contoh.com / 08xxxxxxxxxx"
+                                        placeholder={otpPlaceholder}
                                         value={otpPhone}
                                         onChange={(e) => setOtpPhone(e.target.value)}
                                     />
@@ -250,15 +255,17 @@ export default function Login() {
                         </form>
                     )}
 
-                    <div className="mt-4 flex items-center justify-between text-sm">
-                        <button
-                            type="button"
-                            onClick={() => { setMode(mode === 'password' ? 'otp' : 'password'); setErrors({}); }}
-                            className="font-medium text-brand-600 hover:underline dark:text-brand-400"
-                        >
-                            {mode === 'password' ? 'Masuk dengan OTP' : '← Masuk dengan kata sandi'}
-                        </button>
-                    </div>
+                    {otpAvailable && (
+                        <div className="mt-4 flex items-center justify-between text-sm">
+                            <button
+                                type="button"
+                                onClick={() => { setMode(mode === 'password' ? 'otp' : 'password'); setErrors({}); }}
+                                className="font-medium text-brand-600 hover:underline dark:text-brand-400"
+                            >
+                                {mode === 'password' ? 'Masuk dengan OTP' : '← Masuk dengan kata sandi'}
+                            </button>
+                        </div>
+                    )}
 
                     <p className="mt-6 text-center text-xs text-ink-muted">
                         <a href="/" className="font-medium text-brand-600 hover:underline dark:text-brand-400">

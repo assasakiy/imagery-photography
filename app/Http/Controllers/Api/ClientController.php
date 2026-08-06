@@ -18,7 +18,7 @@ class ClientController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Client::with(['projects', 'user:id,name,email,login_method,allowed_methods']);
+        $query = Client::with(['projects', 'user:id,name,email']);
 
         if ($request->filled('search')) {
             $query->where(fn ($q) => $q
@@ -64,8 +64,6 @@ class ClientController extends Controller
             'phone' => 'nullable|string|max:20',
             'company' => 'nullable|string|max:255',
             'notes' => 'nullable|string',
-            'allowed_methods' => 'nullable|array',
-            'allowed_methods.*' => 'nullable|in:password,otp,google,token',
         ]);
 
         $data['notes'] = ContentSanitizer::plainText($data['notes'] ?? '');
@@ -78,14 +76,10 @@ class ClientController extends Controller
             if (!empty($data['email'])) {
                 $userData['email'] = $data['email'];
             }
-            if (array_key_exists('allowed_methods', $data)) {
-                $userData['allowed_methods'] = $data['allowed_methods'] ?: null;
-                $userData['login_method'] = $data['allowed_methods'] ? 'custom' : null;
-            }
             $client->user->update($userData);
         }
 
-        return response()->json($client->load(['projects', 'user:id,name,email,login_method,allowed_methods']));
+        return response()->json($client->load(['projects', 'user:id,name,email']));
     }
 
     public function destroy(Client $client)
@@ -173,8 +167,6 @@ class ClientController extends Controller
                 'id' => $user->id,
                 'email' => $user->email,
                 'has_password' => !empty($user->password),
-                'allowed_methods' => $user->allowed_methods,
-                'login_method' => $user->login_method,
             ] : null,
             'tokens' => ClientAccessToken::where('client_id', $client->id)
                 ->orderByDesc('created_at')
