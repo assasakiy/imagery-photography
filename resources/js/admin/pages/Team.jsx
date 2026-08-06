@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import api from '../api';
 import Icon from '../components/Icon';
 import MediaPicker from '../components/MediaPicker';
+import UserDetailModal from '../components/UserDetailModal';
 import { PageHeader, Spinner, EmptyState, Modal, Confirm, Field, useToast } from '../components/ui';
 
 const EMPTY_ADMIN = { name: '', email: '', phone: '', company: '', occupation: '' };
@@ -55,9 +56,10 @@ function AdminTab() {
         if (!credentials) return;
         setIssuing(purpose);
         try {
-            await api.post(`/team/${credentials.id}/token/${purpose}`, { send, expires_hours: inviteHours || undefined });
+            const { data } = await api.post(`/team/${credentials.id}/token/${purpose}`, { send, expires_hours: inviteHours || undefined });
             show(purpose === 'invite' ? 'Undangan dibuat & dikirim.' : 'Tautan dibuat' + (send ? ' & dikirim.' : '.'));
             openCreds({ id: credentials.id });
+            return data;
         } catch {
             show('Gagal membuat tautan.', 'error');
         } finally {
@@ -99,7 +101,7 @@ function AdminTab() {
                 load();
             } else {
                 const { data } = await api.post('/team', form);
-                setCredentials({ ...data.credentials, invite_url: data.invite?.url });
+                setCredentials(data.credentials);
                 setOpen(false);
                 setForm(EMPTY_ADMIN);
                 load();
@@ -117,15 +119,6 @@ function AdminTab() {
         show('Admin dihapus.');
         setDeleting(null);
         load();
-    };
-
-    const copy = async (text) => {
-        try {
-            await navigator.clipboard.writeText(text);
-            show('Disalin.');
-        } catch {
-            show('Gagal menyalin.', 'error');
-        }
     };
 
     if (loading) return <Spinner />;
@@ -221,97 +214,16 @@ function AdminTab() {
                 </form>
             </Modal>
 
-            <Modal
+            <UserDetailModal
                 open={!!credentials}
                 onClose={() => setCredentials(null)}
-                title="Kredensial Admin"
-                footer={
-                    credentials && (
-                        <div className="flex flex-col gap-2">
-                            <button className="btn-primary w-full" onClick={() => setCredentials(null)}>Selesai</button>
-                        </div>
-                    )
-                }
-            >
-                {credLoading ? (
-                    <Spinner />
-                ) : credentials ? (
-                    <div className="space-y-4">
-                        <p className="text-sm text-ink-muted">
-                            Akun <strong className="text-ink">{credentials.name}</strong> ({credentials.status === 'active' ? 'aktif' : credentials.status === 'pending' ? 'menunggu aktivasi' : 'nonaktif'}). Salin kredensial berikut untuk dikirim ke admin.
-                        </p>
-                        <div className="space-y-2 rounded-xl bg-surface-muted p-4 text-sm">
-                            <div className="flex items-center justify-between gap-2">
-                                <span className="text-ink-muted">Login:</span>
-                                <button className="flex items-center gap-1 font-semibold text-ink hover:text-brand-600" onClick={() => copy('/login')}>
-                                    /login <Icon name="link" size={14} />
-                                </button>
-                            </div>
-                            {credentials.username && (
-                                <div className="flex items-center justify-between gap-2">
-                                    <span className="text-ink-muted">Username:</span>
-                                    <button className="flex items-center gap-1 font-semibold text-ink hover:text-brand-600" onClick={() => copy(credentials.username)}>
-                                        {credentials.username} <Icon name="copy" size={14} />
-                                    </button>
-                                </div>
-                            )}
-                            <div className="flex items-center justify-between gap-2">
-                                <span className="text-ink-muted">Email:</span>
-                                <button className="flex items-center gap-1 font-semibold text-ink hover:text-brand-600" onClick={() => copy(credentials.email || credentials.phone)}>
-                                    {credentials.email || credentials.phone} <Icon name="copy" size={14} />
-                                </button>
-                            </div>
-                            {credentials.invite_url && (
-                                <div className="flex items-center justify-between gap-2">
-                                    <span className="text-ink-muted">Link aktivasi:</span>
-                                    <button className="flex items-center gap-1 font-semibold text-ink hover:text-brand-600" onClick={() => copy(credentials.invite_url)}>
-                                        <span className="truncate max-w-[220px]">buka & set kata sandi</span> <Icon name="link" size={14} />
-                                    </button>
-                                </div>
-                            )}
-                        </div>
-
-                        <div>
-                            <label className="label">Kirim Tautan</label>
-                            <div className="mb-3 sm:max-w-[200px]">
-                                <select className="input" value={inviteHours} onChange={(e) => setInviteHours(e.target.value)}>
-                                    <option value="">Durasi undangan (pakai global)</option>
-                                    <option value="6">6 jam</option>
-                                    <option value="12">12 jam</option>
-                                    <option value="24">24 jam</option>
-                                    <option value="48">48 jam</option>
-                                    <option value="72">72 jam</option>
-                                </select>
-                            </div>
-                            <div className="flex flex-wrap gap-2">
-                                <button className="btn-primary" disabled={issuing === 'invite'} onClick={() => issueToken('invite', true)}>
-                                    <Icon name="send" size={16} /> {issuing === 'invite' ? 'Mengirim...' : 'Kirim Undangan'}
-                                </button>
-                                <button className="btn-outline" disabled={issuing === 'recovery'} onClick={() => issueToken('recovery', true)}>
-                                    <Icon name="refresh" size={16} /> {issuing === 'recovery' ? 'Mengirim...' : 'Kirim Recovery'}
-                                </button>
-                            </div>
-                        </div>
-
-                        {credentials.tokens?.length > 0 && (
-                            <div>
-                                <label className="label">Tautan Terbaru</label>
-                                <div className="space-y-2">
-                                    {credentials.tokens.map((t, i) => (
-                                        <div key={t.token || i} className="flex items-center gap-2 rounded-lg bg-surface-muted px-3 py-2 text-xs">
-                                            <span className="badge">{t.purpose}</span>
-                                            <code className="flex-1 truncate text-ink">{t.token}</code>
-                                            <span className="text-ink-muted">{t.used_at ? 'dipakai' : t.created_at}</span>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                ) : (
-                    <EmptyState title="Tidak ada data" />
-                )}
-            </Modal>
+                data={credentials}
+                loading={credLoading}
+                onIssueToken={issueToken}
+                issuing={issuing}
+                inviteHours={inviteHours}
+                onInviteHoursChange={setInviteHours}
+            />
 
             <Confirm open={!!deleting} onClose={() => setDeleting(null)} onConfirm={handleDelete} title="Hapus admin?" message="Admin ini tidak akan bisa login lagi." />
             {node}

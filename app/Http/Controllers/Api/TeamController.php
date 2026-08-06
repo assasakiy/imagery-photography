@@ -170,17 +170,41 @@ class TeamController extends Controller
             'phone' => $user->phone,
             'status' => $user->status,
             'has_password' => !empty($user->password),
+            'avatar' => $user->avatar(),
+            'bio' => $user->bio,
+            'company' => $user->company,
+            'occupation' => $user->occupation,
+            'website' => $user->website,
+            'social_facebook' => $this->socialUrl($user, 'facebook'),
+            'social_instagram' => $this->socialUrl($user, 'instagram'),
+            'social_tiktok' => $this->socialUrl($user, 'tiktok'),
+            'social_whatsapp' => $this->socialUrl($user, 'whatsapp'),
+            'projects' => $user->projects()
+                ->get(['id', 'name', 'status', 'event_date'])
+                ->map(fn ($p) => [
+                    'id' => $p->id,
+                    'name' => $p->name,
+                    'status' => $p->status,
+                    'event_date' => $p->event_date,
+                ])->values(),
             'tokens' => $user->accessTokens()
                 ->orderByDesc('created_at')
-                ->take(10)
+                ->take(20)
                 ->get(['token', 'purpose', 'status', 'expires_at', 'used_at', 'created_at'])
                 ->map(fn ($t) => [
                     'purpose' => $t->purpose,
                     'status' => $t->status,
                     'expires_at' => $t->expires_at,
+                    'used_at' => $t->used_at,
+                    'created_at' => $t->created_at,
                     'url' => $t->url,
                 ]),
         ];
+    }
+
+    private function socialUrl(User $user, string $slug): ?string
+    {
+        return $user->socials()->whereHas('platform', fn ($q) => $q->where('slug', $slug))->value('url');
     }
 
     private function serialize(User $user): array

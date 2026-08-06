@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import api from '../api';
 import Icon from '../components/Icon';
-import { PageHeader, Spinner, EmptyState, Modal, Confirm, Field, useToast, formatDate } from '../components/ui';
+import UserDetailModal from '../components/UserDetailModal';
+import { PageHeader, Spinner, EmptyState, Modal, Confirm, Field, useToast } from '../components/ui';
 
 const emptyForm = { name: '', email: '', phone: '', company: '', occupation: '' };
 
@@ -43,18 +44,12 @@ export default function Clients() {
             const { data } = await api.post(`/clients/${creds.id}/token/${purpose}`, { send, expires_hours: inviteHours || undefined });
             show(purpose === 'invite' ? 'Undangan dibuat & dikirim.' : 'Tautan dibuat' + (send ? ' & dikirim.' : '.'));
             openCreds({ id: creds.id });
+            return data;
         } catch {
             show('Gagal membuat tautan.', 'error');
         } finally {
             setIssuing(null);
         }
-    };
-
-    const toggleStatus = async (id, status) => {
-        await api.post(`/clients/${id}/${status}`);
-        show(status === 'disable' ? 'Akun dinonaktifkan.' : 'Akun diaktifkan.');
-        openCreds({ id });
-        load(meta.current_page);
     };
 
     const confirmDelete = async () => {
@@ -259,102 +254,16 @@ export default function Clients() {
                 }
             />
 
-            <Modal open={!!creds} onClose={() => setCreds(null)} title="Kredensial & Akses Klien" wide>
-                {credLoading ? (
-                    <Spinner />
-                ) : creds ? (
-                    <div className="space-y-5">
-                        <div className="grid grid-cols-2 gap-3">
-                            <div className="rounded-xl bg-surface-muted p-3">
-                                <p className="text-xs text-ink-muted">Nama</p>
-                                <p className="font-semibold text-ink">{creds.name}</p>
-                            </div>
-                            <div className="rounded-xl bg-surface-muted p-3">
-                                <p className="text-xs text-ink-muted">Username</p>
-                                <p className="truncate text-sm text-ink">@{creds.username}</p>
-                            </div>
-                            <div className="rounded-xl bg-surface-muted p-3">
-                                <p className="text-xs text-ink-muted">Email</p>
-                                <p className="truncate text-sm text-ink">{creds.email || '-'}</p>
-                            </div>
-                            <div className="rounded-xl bg-surface-muted p-3">
-                                <p className="text-xs text-ink-muted">WhatsApp</p>
-                                <p className="text-sm text-ink">{creds.phone || '-'}</p>
-                            </div>
-                            <div className="rounded-xl bg-surface-muted p-3">
-                                <p className="text-xs text-ink-muted">Akun</p>
-                                <p className="text-sm text-ink">
-                                    {creds.has_password ? 'Kata sandi aktif' : 'Belum ada kata sandi'}
-                                </p>
-                            </div>
-                        </div>
-
-                        <div>
-                            <label className="label">Kirim Tautan</label>
-                            <p className="mb-3 text-xs text-ink-muted">
-                                Undangan utk aktivasi akun baru · Recovery utk lupa password. Prioritas pengiriman WhatsApp → Email.
-                            </p>
-                            <div className="mb-3 sm:max-w-[200px]">
-                                <select className="input" value={inviteHours} onChange={(e) => setInviteHours(e.target.value)}>
-                                    <option value="">Durasi undangan (pakai global)</option>
-                                    <option value="6">6 jam</option>
-                                    <option value="12">12 jam</option>
-                                    <option value="24">24 jam</option>
-                                    <option value="48">48 jam</option>
-                                    <option value="72">72 jam</option>
-                                </select>
-                            </div>
-                            <div className="flex flex-wrap gap-2">
-                                <button className="btn-primary" disabled={issuing === 'invite'} onClick={() => issueToken('invite', true)}>
-                                    <Icon name="send" size={16} /> {issuing === 'invite' ? 'Mengirim...' : 'Kirim Undangan'}
-                                </button>
-                                <button className="btn-outline" disabled={issuing === 'recovery'} onClick={() => issueToken('recovery', true)}>
-                                    <Icon name="refresh" size={16} /> {issuing === 'recovery' ? 'Mengirim...' : 'Kirim Recovery'}
-                                </button>
-                                <button className="btn-outline" disabled={issuing === 'project'} onClick={() => issueToken('project', true)}>
-                                    <Icon name="link" size={16} /> {issuing === 'project' ? 'Mengirim...' : 'Kirim Link Akses'}
-                                </button>
-                            </div>
-                        </div>
-
-                        <div className="border-t border-line pt-4">
-                            <label className="label">Status Akun</label>
-                            <div className="flex flex-wrap gap-2">
-                                {creds.status !== 'active' && (
-                                    <button className="btn-outline" onClick={() => toggleStatus(creds.id, 'activate')}>
-                                        <Icon name="check" size={16} /> Aktifkan
-                                    </button>
-                                )}
-                                {creds.status === 'active' && (
-                                    <button className="btn-outline" onClick={() => toggleStatus(creds.id, 'disable')}>
-                                        <Icon name="x" size={16} /> Nonaktifkan
-                                    </button>
-                                )}
-                                <button className="btn bg-red-600 text-white hover:bg-red-700" onClick={() => setDeleteTarget({ id: creds.id })}>
-                                    <Icon name="trash" size={16} /> Hapus
-                                </button>
-                            </div>
-                        </div>
-
-                        {creds.tokens?.length > 0 && (
-                            <div>
-                                <label className="label">Tautan Terbaru</label>
-                                <div className="space-y-2">
-                                    {creds.tokens.map((t, i) => (
-                                        <div key={t.token || i} className="flex items-center gap-2 rounded-lg bg-surface-muted px-3 py-2 text-xs">
-                                            <span className="badge">{t.purpose}</span>
-                                            <code className="flex-1 truncate text-ink">{t.token}</code>
-                                            <span className="text-ink-muted">{t.used_at ? 'dipakai' : formatDate(t.created_at)}</span>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                ) : (
-                    <EmptyState title="Tidak ada data" />
-                )}
-            </Modal>
+            <UserDetailModal
+                open={!!creds}
+                onClose={() => setCreds(null)}
+                data={creds}
+                loading={credLoading}
+                onIssueToken={issueToken}
+                issuing={issuing}
+                inviteHours={inviteHours}
+                onInviteHoursChange={setInviteHours}
+            />
 
             {node}
         </>
