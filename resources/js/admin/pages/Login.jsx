@@ -1,25 +1,62 @@
 import { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
+import api, { ensureCsrf } from '../api';
 import Icon from '../components/Icon';
 import Button from '../components/Button';
 import { useAuth } from '../context/AuthContext';
-import { ensureCsrf } from '../api';
 import { useTheme } from '../context/ThemeContext';
 
 const APP = window.APP_CONFIG || {};
+const api_otp = (url, body) => api.post(url, body);
 
 export default function Login() {
-    const { login } = useAuth();
+    const { login, refresh } = useAuth();
     const { theme, toggle } = useTheme();
     const navigate = useNavigate();
     const location = useLocation();
+    const [mode, setMode] = useState('password');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [remember, setRemember] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
+    const [otpPhone, setOtpPhone] = useState('');
+    const [otpCode, setOtpCode] = useState('');
+    const [otpSent, setOtpSent] = useState(false);
+    const [otpLoading, setOtpLoading] = useState(false);
     const [errors, setErrors] = useState({});
     const [loading, setLoading] = useState(false);
     const notice = location.state?.notice;
+
+    const sendOtp = async (e) => {
+        e.preventDefault();
+        setErrors({});
+        setOtpLoading(true);
+        try {
+            await ensureCsrf();
+            await api_otp('/send-otp', { phone: otpPhone });
+            setOtpSent(true);
+        } catch (err) {
+            setErrors({ form: err?.response?.data?.message || 'Gagal mengirim OTP.' });
+        } finally {
+            setOtpLoading(false);
+        }
+    };
+
+    const verifyOtp = async (e) => {
+        e.preventDefault();
+        setOtpLoading(true);
+        setErrors({});
+        try {
+            await ensureCsrf();
+            await api_otp('/verify-otp', { phone: otpPhone, otp: otpCode });
+            await refresh();
+            navigate('/dashboard');
+        } catch (err) {
+            setErrors({ form: err?.response?.data?.message || 'Kode OTP salah.' });
+        } finally {
+            setOtpLoading(false);
+        }
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -100,77 +137,129 @@ export default function Login() {
                         </div>
                     )}
 
-                    <form onSubmit={handleSubmit} className="space-y-4" noValidate>
-                        <div>
-                            <label htmlFor="email" className="label">
-                                Email <span className="text-red-500">*</span>
-                            </label>
-                            <input
-                                id="email"
-                                type="email"
-                                required
-                                className="input"
-                                placeholder="admin@imagery.my.id"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                            />
-                            {errors.email && <p className="mt-1 text-xs text-red-500">{errors.email[0]}</p>}
-                        </div>
-
-                        <div>
-                            <label htmlFor="password" className="label">
-                                Kata Sandi <span className="text-red-500">*</span>
-                            </label>
-                            <div className="relative">
-                                <input
-                                    id="password"
-                                    type={showPassword ? 'text' : 'password'}
-                                    required
-                                    className="input pr-12"
-                                    placeholder="••••••••"
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                />
-                                <button
-                                    type="button"
-                                    onClick={() => setShowPassword((s) => !s)}
-                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-muted hover:text-ink"
-                                    aria-label={showPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'}
-                                >
-                                    <Icon name={showPassword ? 'eye-off' : 'eye'} size={20} />
-                                </button>
-                            </div>
-                            {errors.password && <p className="mt-1 text-xs text-red-500">{errors.password[0]}</p>}
-                        </div>
-
-                        {APP.rememberEnabled && (
-                            <div className="flex items-center justify-between">
-                                <label className="flex cursor-pointer items-center gap-2 text-sm text-ink-muted">
-                                    <input
-                                        type="checkbox"
-                                        checked={remember}
-                                        onChange={(e) => setRemember(e.target.checked)}
-                                        className="h-4 w-4 rounded border-line text-brand-600 focus:ring-brand-500"
-                                    />
-                                    Jangan lupakan saya
+                    {mode === 'password' ? (
+                        <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+                            <div>
+                                <label htmlFor="email" className="label">
+                                    Email / No. WhatsApp <span className="text-red-500">*</span>
                                 </label>
-                                <Link to="/forgot" className="text-sm font-medium text-brand-600 hover:underline dark:text-brand-400">
-                                    Lupa Password?
-                                </Link>
+                                <input
+                                    id="email"
+                                    type="text"
+                                    required
+                                    autoComplete="username"
+                                    className="input"
+                                    placeholder="email@contoh.com / 08xxxxxxxxxx"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                />
+                                {errors.email && <p className="mt-1 text-xs text-red-500">{errors.email[0]}</p>}
                             </div>
-                        )}
-                        {!APP.rememberEnabled && (
-                            <div className="flex justify-end">
-                                <Link to="/forgot" className="text-sm font-medium text-brand-600 hover:underline dark:text-brand-400">
-                                    Lupa Password?
-                                </Link>
-                            </div>
-                        )}
 
-                        <Button type="submit" icon="send" loading={loading} disabled={loading} className="w-full">
-                            Masuk
-                        </Button>
-                    </form>
+                            <div>
+                                <label htmlFor="password" className="label">
+                                    Kata Sandi <span className="text-red-500">*</span>
+                                </label>
+                                <div className="relative">
+                                    <input
+                                        id="password"
+                                        type={showPassword ? 'text' : 'password'}
+                                        required
+                                        className="input pr-12"
+                                        placeholder="••••••••"
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword((s) => !s)}
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-muted hover:text-ink"
+                                        aria-label={showPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'}
+                                    >
+                                        <Icon name={showPassword ? 'eye-off' : 'eye'} size={20} />
+                                    </button>
+                                </div>
+                                {errors.password && <p className="mt-1 text-xs text-red-500">{errors.password[0]}</p>}
+                            </div>
+
+                            {APP.rememberEnabled && (
+                                <div className="flex items-center justify-between">
+                                    <label className="flex cursor-pointer items-center gap-2 text-sm text-ink-muted">
+                                        <input
+                                            type="checkbox"
+                                            checked={remember}
+                                            onChange={(e) => setRemember(e.target.checked)}
+                                            className="h-4 w-4 rounded border-line text-brand-600 focus:ring-brand-500"
+                                        />
+                                        Jangan lupakan saya
+                                    </label>
+                                    <Link to="/forgot" className="text-sm font-medium text-brand-600 hover:underline dark:text-brand-400">
+                                        Lupa Password?
+                                    </Link>
+                                </div>
+                            )}
+                            {!APP.rememberEnabled && (
+                                <div className="flex justify-end">
+                                    <Link to="/forgot" className="text-sm font-medium text-brand-600 hover:underline dark:text-brand-400">
+                                        Lupa Password?
+                                    </Link>
+                                </div>
+                            )}
+
+                            <Button type="submit" icon="send" loading={loading} disabled={loading} className="w-full">
+                                Masuk
+                            </Button>
+                        </form>
+                    ) : (
+                        <form onSubmit={otpSent ? verifyOtp : sendOtp} className="space-y-4" noValidate>
+                            {!otpSent && (
+                                <div>
+                                    <label htmlFor="otpPhone" className="label">
+                                        No. WhatsApp <span className="text-red-500">*</span>
+                                    </label>
+                                    <input
+                                        id="otpPhone"
+                                        type="text"
+                                        required
+                                        className="input"
+                                        placeholder="08xxxxxxxxxx"
+                                        value={otpPhone}
+                                        onChange={(e) => setOtpPhone(e.target.value)}
+                                    />
+                                </div>
+                            )}
+                            {otpSent && (
+                                <div>
+                                    <label htmlFor="otpCode" className="label">
+                                        Kode OTP <span className="text-red-500">*</span>
+                                    </label>
+                                    <input
+                                        id="otpCode"
+                                        type="text"
+                                        inputMode="numeric"
+                                        required
+                                        className="input"
+                                        placeholder="6 digit"
+                                        value={otpCode}
+                                        onChange={(e) => setOtpCode(e.target.value)}
+                                    />
+                                </div>
+                            )}
+                            <Button type="submit" icon={otpSent ? 'check' : 'send'} loading={otpLoading} disabled={otpLoading} className="w-full">
+                                {otpSent ? 'Verifikasi & Masuk' : 'Kirim OTP'}
+                            </Button>
+                        </form>
+                    )}
+
+                    <div className="mt-4 flex items-center justify-between text-sm">
+                        <button
+                            type="button"
+                            onClick={() => { setMode(mode === 'password' ? 'otp' : 'password'); setErrors({}); }}
+                            className="font-medium text-brand-600 hover:underline dark:text-brand-400"
+                        >
+                            {mode === 'password' ? 'Masuk dengan OTP' : '← Masuk dengan kata sandi'}
+                        </button>
+                    </div>
 
                     <p className="mt-6 text-center text-xs text-ink-muted">
                         <a href="/" className="font-medium text-brand-600 hover:underline dark:text-brand-400">
