@@ -99,13 +99,6 @@ export default function ProjectDetail() {
     const activeIdx = STEPS.findIndex((s) => s.key === activeKey);
     const isCurrentStep = activeKey === project.status;
 
-    const invMeta =
-        project.invoice?.status === 'paid' ? { label: 'Lunas', cls: 'bg-emerald-500/15 text-emerald-600' }
-        : project.invoice?.status === 'awaiting_dp' ? { label: 'Menunggu DP', cls: 'bg-red-500/15 text-red-600' }
-        : project.invoice?.status === 'partial' ? { label: 'DP/Cicilan', cls: 'bg-amber-500/15 text-amber-600' }
-        : project.invoice?.status ? { label: 'Belum Bayar', cls: 'bg-zinc-500/15 text-zinc-600' }
-        : null;
-
     const mediaTypes = [...new Set((project.pricing_snapshot?.items || []).map((i) => i.media).filter(Boolean))];
     const hasPhoto = mediaTypes.length === 0 || mediaTypes.includes('photo');
     const hasVideo = mediaTypes.length === 0 || mediaTypes.includes('video');
@@ -270,6 +263,29 @@ export default function ProjectDetail() {
     };
 
     const previewHref = `/dashboard/preview/${project.order_no || project.id}`;
+    const previewLink = project.accessTokens?.[0]?.url || (window.location.origin + previewHref);
+
+    const copyPreviewLink = async () => {
+        try {
+            await navigator.clipboard.writeText(previewLink);
+            show('Link pratinjau disalin.', 'success');
+        } catch {
+            show('Gagal menyalin link.', 'error');
+        }
+    };
+
+    const togglePreviewRelease = async () => {
+        setSaving(true);
+        try {
+            await api.patch(`/projects/${id}/preview-release`, { preview_released: !project.preview_released });
+            show(project.preview_released ? 'Link pratinjau disembunyikan.' : 'Link pratinjau dibagikan ke klien.', 'success');
+            load();
+        } catch (err) {
+            show(err.response?.data?.message || 'Gagal mengubah status link.', 'error');
+        } finally {
+            setSaving(false);
+        }
+    };
 
     return (
         <>
@@ -641,56 +657,45 @@ export default function ProjectDetail() {
                         <PanelHeader
                             icon="eye"
                             iconCls="bg-orange-500/15 text-orange-600 dark:text-orange-400"
-                            title="Preview Tersedia"
-                            subtitle="Hasil akhir sudah bisa dilihat. Unduhan HD dibuka setelah tagihan lunas."
+                            title="Preview & Invoice"
+                            subtitle="File final sudah diunggah. Link pratinjau dan invoice dibuat otomatis — tinjau dulu sebelum membagikannya ke klien."
                         />
                         <div className="p-5">
+                            {isAdmin && (
+                                <div className="flex items-center gap-2 rounded-xl border border-line bg-surface-muted/30 p-3">
+                                    <span className="min-w-0 flex-1 truncate font-mono text-xs text-ink">{previewLink}</span>
+                                    <button type="button" className="btn-outline shrink-0 !px-2 !py-1 text-xs" onClick={copyPreviewLink}><Icon name="copy" size={14} /> Salin</button>
+                                    <a className="btn-outline shrink-0 !px-2 !py-1 text-xs" href={previewLink} target="_blank" rel="noreferrer"><Icon name="globe" size={14} /> Buka</a>
+                                </div>
+                            )}
+                            {isAdmin && (
+                                <button type="button" onClick={togglePreviewRelease} disabled={saving} className="mt-4 flex w-full items-center justify-between gap-4 rounded-xl border border-line p-4 text-left hover:bg-surface-muted/30">
+                                    <div>
+                                        <p className="text-sm font-semibold text-ink">Tampilkan & kirim link ke klien</p>
+                                        <p className="mt-0.5 text-xs text-ink-muted">Klien akan menerima link ini via email/WhatsApp begitu diaktifkan</p>
+                                    </div>
+                                    <span className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors ${project.preview_released ? 'bg-emerald-500' : 'bg-zinc-300 dark:bg-zinc-700'}`}>
+                                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${project.preview_released ? 'translate-x-6' : 'translate-x-1'}`} />
+                                    </span>
+                                </button>
+                            )}
                             {project.invoice ? (
-                                <div className="mb-4 grid gap-4 rounded-xl border border-line bg-surface p-4 sm:grid-cols-2 lg:grid-cols-4">
+                                <div className="mt-4 flex items-center justify-between gap-3 rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-4">
                                     <div>
-                                        <p className="text-xs text-ink-muted">No. Invoice</p>
-                                        <p className="font-mono text-sm font-bold text-ink">{project.invoice.number}</p>
+                                        <p className="font-mono text-[10px] font-semibold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">Invoice Terkirim · {project.invoice.number}</p>
+                                        <p className="mt-1 text-xl font-bold text-ink">{formatRupiah(project.invoice.base_amount)}</p>
                                     </div>
-                                    <div>
-                                        <p className="text-xs text-ink-muted">DP / Tanda Jadi</p>
-                                        <p className="font-semibold text-ink">{formatRupiah(project.invoice.dp_amount)}</p>
-                                    </div>
-                                    <div>
-                                        <p className="text-xs text-ink-muted">Sisa Tagihan</p>
-                                        <p className={`font-semibold ${isPaid ? 'text-emerald-600' : 'text-red-600'}`}>{formatRupiah(remaining)}</p>
-                                    </div>
-                                    <div>
-                                        <p className="text-xs text-ink-muted">Status</p>
-                                        {invMeta && <span className={`badge mt-1 ${invMeta.cls}`}>{invMeta.label}</span>}
+                                    <div className="text-right text-xs text-emerald-700 dark:text-emerald-400">
+                                        <p>Jatuh tempo</p>
+                                        <p className="mt-0.5 font-semibold">{formatDate(project.invoice.due_at)}</p>
                                     </div>
                                 </div>
                             ) : (
-                                <div className="mb-4 rounded-xl border border-line bg-surface-muted/30 p-4 text-sm text-ink-muted">Invoice sedang disiapkan.</div>
+                                <div className="mt-4 rounded-xl border border-line bg-surface-muted/30 p-4 text-sm text-ink-muted">Invoice sedang disiapkan.</div>
                             )}
-
-                            {project.payments?.length > 0 && (
-                                <div className="mb-4">
-                                    <h4 className="mb-3 text-sm font-semibold text-ink">Riwayat Pembayaran</h4>
-                                    <div className="overflow-x-auto rounded-xl border border-line">
-                                        <table className="table mb-0">
-                                            <thead><tr><th>Tanggal</th><th>Jumlah</th><th>Status</th></tr></thead>
-                                            <tbody>
-                                                {project.payments.map((p) => (
-                                                    <tr key={p.id}>
-                                                        <td className="text-sm text-ink-muted">{formatDate(p.created_at)}</td>
-                                                        <td className="font-semibold text-ink">{formatRupiah(p.amount)}</td>
-                                                        <td>
-                                                            <span className={`badge ${p.status === 'confirmed' ? 'bg-emerald-500/15 text-emerald-600' : p.status === 'pending' ? 'bg-amber-500/15 text-amber-600' : 'bg-red-500/15 text-red-600'}`}>
-                                                                {p.status === 'confirmed' ? 'Terkonfirmasi' : p.status === 'pending' ? 'Menunggu' : 'Ditolak'}
-                                                            </span>
-                                                        </td>
-                                                    </tr>
-                                                ))}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            )}
+                            <p className="mt-4 text-xs text-ink-muted">
+                                Status berpindah ke <b>Selesai</b> otomatis setelah klien membuka pratinjau <i>dan</i> pembayaran invoice lunas.
+                            </p>
                         </div>
                         <PanelFooter>
                             <Link to={previewHref} className="btn-outline"><Icon name="eye" size={16} /> Lihat Preview Media</Link>

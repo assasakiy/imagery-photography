@@ -476,6 +476,27 @@ class ProjectController extends Controller
         return response()->json($project->files()->latest()->get());
     }
 
+    /** Admin menampilkan/menyembunyikan link pratinjau utk klien. */
+    public function setPreviewRelease(Request $request, Project $project)
+    {
+        $data = $request->validate([
+            'preview_released' => 'required|boolean',
+        ]);
+
+        $released = (bool) $data['preview_released'];
+        $project->update(['preview_released' => $released]);
+
+        if ($released) {
+            $project->addSystemUpdate('Link pratinjau dibagikan ke klien.');
+            app(AuditLogger::class)->log('project.preview_released', 'Link pratinjau dibagikan utk "' . $project->name . '"', $project);
+        } else {
+            $project->addSystemUpdate('Link pratinjau disembunyikan dari klien.');
+            app(AuditLogger::class)->log('project.preview_unreleased', 'Link pratinjau disembunyikan utk "' . $project->name . '"', $project);
+        }
+
+        return response()->json($project);
+    }
+
     public function archive(Request $request, Project $project)
     {
         $project->update(['archived_at' => now(), 'status' => 'archived']);
