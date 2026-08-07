@@ -18,6 +18,8 @@ class Booking extends Model
         'phone',
         'package_label',
         'event_date',
+        'event_start',
+        'event_end',
         'location',
         'notes',
         'price',
@@ -29,6 +31,8 @@ class Booking extends Model
     {
         return [
             'event_date' => 'date',
+            'event_start' => 'datetime',
+            'event_end' => 'datetime',
             'price' => 'decimal:2',
         ];
     }

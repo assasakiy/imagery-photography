@@ -6,6 +6,7 @@ import { PageHeader, Spinner, EmptyState, formatDate, formatRupiah } from '../co
 
 const STATUS_META = {
     unpaid: { label: 'Belum Bayar', cls: 'bg-red-500/15 text-red-600 dark:text-red-400' },
+    awaiting_dp: { label: 'Menunggu DP', cls: 'bg-red-500/15 text-red-600 dark:text-red-400' },
     partial: { label: 'Cicilan/DP', cls: 'bg-amber-500/15 text-amber-600 dark:text-amber-400' },
     paid: { label: 'Lunas', cls: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' },
 };
@@ -44,6 +45,7 @@ export default function Invoices() {
             <div className="mb-4 flex flex-wrap items-center gap-2">
                 <select className="input w-auto" value={status} onChange={(e) => setStatus(e.target.value)}>
                     <option value="">Semua Status</option>
+                    <option value="awaiting_dp">Menunggu DP</option>
                     <option value="unpaid">Belum Bayar</option>
                     <option value="partial">Cicilan/DP</option>
                     <option value="paid">Lunas</option>

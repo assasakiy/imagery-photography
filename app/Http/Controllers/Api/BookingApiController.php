@@ -48,6 +48,8 @@ class BookingApiController extends Controller
             'package_id' => 'nullable|exists:packages,id',
             'package_label' => 'nullable|string|max:255',
             'event_date' => 'nullable|date',
+            'event_start' => 'nullable|date',
+            'event_end' => 'nullable|date|after:event_start',
             'location' => 'nullable|string|max:255',
             'notes' => 'nullable|string|max:2000',
             'price' => 'nullable|numeric|min:0',
@@ -89,6 +91,8 @@ class BookingApiController extends Controller
         $data = $request->validate([
             'name' => 'nullable|string|max:255',
             'event_date' => 'nullable|date',
+            'event_start' => 'nullable|date',
+            'event_end' => 'nullable|date|after:event_start',
             'description' => 'nullable|string',
             'price' => 'nullable|numeric|min:0',
         ]);
@@ -111,6 +115,8 @@ class BookingApiController extends Controller
             'name' => $data['name'] ?? $booking->package_label ?: ($booking->name . ' ' . ($booking->event_date?->year ?? '')),
             'package_id' => $package?->id ?? null,
             'event_date' => $data['event_date'] ?? $booking->event_date,
+            'event_start' => $data['event_start'] ?? $booking->event_start,
+            'event_end' => $data['event_end'] ?? $booking->event_end,
             'description' => ContentSanitizer::plainText($data['description'] ?? ($booking->notes ?? '')) ?: null,
             'price' => $data['price'] ?? $booking->price ?? ($package ? $package->computedPrice() : null),
             'pricing_snapshot' => $snapshot,

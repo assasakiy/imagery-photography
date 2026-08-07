@@ -76,6 +76,18 @@
                             @error('event_date') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
                         </div>
 
+                        <div>
+                            <label for="event_start" class="label">Waktu Mulai Acara</label>
+                            <input type="datetime-local" id="event_start" name="event_start" value="{{ old('event_start') }}" class="input">
+                            @error('event_start') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
+                        </div>
+
+                        <div>
+                            <label for="event_end" class="label">Waktu Selesai Acara</label>
+                            <input type="datetime-local" id="event_end" name="event_end" value="{{ old('event_end') }}" class="input">
+                            @error('event_end') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
+                        </div>
+
                         <div class="sm:col-span-2">
                             <label for="package_id" class="label">Paket <span class="text-red-500">*</span></label>
                             <select id="package_id" name="package_id" class="input" required onchange="document.getElementById('custom_services').style.display = this.value === 'custom' ? 'block' : 'none'">

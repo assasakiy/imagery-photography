@@ -150,7 +150,7 @@ export function StatusBadge({ status }) {
         scheduled: ['bg-amber-500/15 text-amber-600 dark:text-amber-400', 'Dijadwalkan'],
         shooting: ['bg-sky-500/15 text-sky-600 dark:text-sky-400', 'Pemotretan'],
         editing: ['bg-indigo-500/15 text-indigo-600 dark:text-indigo-400', 'Editing'],
-        awaiting_confirmation: ['bg-orange-500/15 text-orange-600 dark:text-orange-400', 'Menunggu Konfirmasi'],
+        awaiting_payment: ['bg-orange-500/15 text-orange-600 dark:text-orange-400', 'Menunggu Pembayaran'],
         completed: ['bg-emerald-500/15 text-emerald-600 dark:text-emerald-400', 'Selesai'],
         archived: ['bg-zinc-500/15 text-zinc-600 dark:text-zinc-400', 'Diarsipkan'],
         confirmed: ['bg-emerald-500/15 text-emerald-600 dark:text-emerald-400', 'Dikonfirmasi'],

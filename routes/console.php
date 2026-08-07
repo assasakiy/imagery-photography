@@ -9,3 +9,4 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 Schedule::command('auth:process-invites')->dailyAt('03:00');
+Schedule::command('projects:process-status')->everyFiveMinutes();

@@ -92,8 +92,8 @@ export default function ClientBookings() {
                             </div>
                             <div className="mt-3 grid grid-cols-2 gap-4 text-sm sm:grid-cols-4">
                                 <div>
-                                    <p className="text-xs text-ink-muted">Tanggal Acara</p>
-                                    <p className="font-medium text-ink">{b.event_date ? formatDate(b.event_date) : '-'}</p>
+<p className="text-xs text-ink-muted">Jadwal Acara</p>
+                <p className="font-medium text-ink">{b.event_start ? formatDate(b.event_start) : (b.event_date ? formatDate(b.event_date) : '-')}</p>
                                 </div>
                                 <div>
                                     <p className="text-xs text-ink-muted">Lokasi</p>
@@ -154,8 +154,14 @@ export default function ClientBookings() {
                         </Field>
                     )}
 
-                    <Field label="Tanggal Acara (Perkiraan)">
+                    <Field label="Tanggal Acara">
                         <input type="date" className="input" value={form.event_date || ''} onChange={(e) => setForm({ ...form, event_date: e.target.value })} />
+                    </Field>
+                    <Field label="Waktu Mulai Acara">
+                        <input type="datetime-local" className="input" value={form.event_start || ''} onChange={(e) => setForm({ ...form, event_start: e.target.value })} />
+                    </Field>
+                    <Field label="Waktu Selesai Acara">
+                        <input type="datetime-local" className="input" value={form.event_end || ''} onChange={(e) => setForm({ ...form, event_end: e.target.value })} />
                     </Field>
                     <Field label="Lokasi Acara">
                         <input className="input" value={form.location || ''} onChange={(e) => setForm({ ...form, location: e.target.value })} placeholder="Kota / Nama Gedung" />

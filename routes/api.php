@@ -98,6 +98,7 @@ Route::middleware(['web', 'auth:sanctum', 'maintenance'])->group(function () {
         Route::post('/projects', [ProjectController::class, 'store']);
         Route::put('/projects/{project}', [ProjectController::class, 'update']);
         Route::patch('/projects/{project}/status', [ProjectController::class, 'updateStatus']);
+        Route::post('/projects/{project}/advance', [ProjectController::class, 'advance']);
         Route::post('/projects/{project}/files', [ProjectController::class, 'uploadFile']);
         Route::delete('/files/{file}', [ProjectController::class, 'deleteFile']);
         Route::post('/projects/{project}/regenerate-credentials', [ProjectController::class, 'regenerateCredentials']);

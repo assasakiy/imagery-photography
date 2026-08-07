@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Invoice extends Model
 {
-    public const STATUSES = ['unpaid', 'partial', 'paid'];
+    public const STATUSES = ['awaiting_dp', 'unpaid', 'partial', 'paid'];
 
     protected $fillable = [
         'number',
@@ -14,6 +14,7 @@ class Invoice extends Model
         'issued_at',
         'due_at',
         'base_amount',
+        'dp_amount',
         'paid_amount',
         'status',
     ];
@@ -24,6 +25,7 @@ class Invoice extends Model
             'issued_at' => 'date',
             'due_at' => 'date',
             'base_amount' => 'decimal:2',
+            'dp_amount' => 'decimal:2',
             'paid_amount' => 'decimal:2',
         ];
     }
@@ -55,10 +57,25 @@ class Invoice extends Model
         return max(0, round($this->base_amount - $this->paid_amount, 2));
     }
 
+    public function isDpRequired(): bool
+    {
+        return (float) $this->dp_amount > 0;
+    }
+
+    public function isDpPaid(): bool
+    {
+        return !$this->isDpRequired() || (float) $this->paid_amount >= (float) $this->dp_amount;
+    }
+
     public function refreshStatus(): void
     {
         $remaining = $this->remaining();
-        $this->status = $remaining <= 0 ? 'paid' : ($this->paid_amount > 0 ? 'partial' : 'unpaid');
+        $this->status = match (true) {
+            $remaining <= 0 => 'paid',
+            $this->isDpRequired() && !$this->isDpPaid() => 'awaiting_dp',
+            $this->paid_amount > 0 => 'partial',
+            default => 'unpaid',
+        };
         $this->save();
     }
 }

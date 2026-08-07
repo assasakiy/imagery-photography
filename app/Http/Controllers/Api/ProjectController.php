@@ -60,11 +60,12 @@ class ProjectController extends Controller
             'name' => 'required|string|max:255',
             'package_id' => 'nullable|exists:packages,id',
             'event_date' => 'nullable|date',
+            'event_start' => 'nullable|date',
+            'event_end' => 'nullable|date|after:event_start',
             'description' => 'nullable|string',
             'price' => 'nullable|numeric|min:0',
+            'dp_amount' => 'nullable|numeric|min:0',
             'status' => 'nullable|in:' . implode(',', \App\Models\Project::STATUSES),
-            'start_date' => 'nullable|date',
-            'end_date' => 'nullable|date|after_or_equal:start_date',
         ]);
 
         $data['description'] = ContentSanitizer::plainText($data['description'] ?? '');
@@ -105,13 +106,13 @@ class ProjectController extends Controller
             'user_id' => $user->id,
             'name' => $data['name'],
             'package_id' => $package?->id ?? null,
-            'event_date' => $data['event_date'] ?? null,
+            'event_date' => $data['event_date'] ?? ($data['event_start'] ? \Illuminate\Support\Carbon::parse($data['event_start'])->toDateString() : null),
+            'event_start' => $data['event_start'] ?? null,
+            'event_end' => $data['event_end'] ?? null,
             'description' => $data['description'] ?? null,
             'price' => $data['price'] ?? ($package ? $package->computedPrice() : null),
             'pricing_snapshot' => $snapshot,
             'status' => $data['status'] ?? 'scheduled',
-            'start_date' => $data['start_date'] ?? null,
-            'end_date' => $data['end_date'] ?? null,
         ]);
 
         $accessToken = ClientAccessToken::create([
@@ -129,7 +130,14 @@ class ProjectController extends Controller
             'kind' => 'system',
         ]);
 
-        $this->createInvoice($project);
+        // Invoice dibuat saat ini HANYA jika admin menentukan DP di muka.
+        // Jika tanpa DP, invoice ditunda sampai tahap "Menunggu Pembayaran".
+        if ((float) ($data['dp_amount'] ?? 0) > 0) {
+            $this->createInvoice($project);
+            $project->invoice->update(['dp_amount' => (float) $data['dp_amount']]);
+            $project->invoice->refreshStatus();
+            $project->addSystemUpdate('Invoice ' . $project->invoice->number . ' dibuat dengan DP Rp ' . number_format((float) $data['dp_amount'], 0, ',', '.') . '.');
+        }
 
         $notifications = app(NotificationService::class);
         $notifications->webhook('project.created', ['project_id' => $project->id, 'name' => $project->name]);
@@ -199,11 +207,12 @@ class ProjectController extends Controller
             'name' => 'required|string|max:255',
             'package_id' => 'nullable|exists:packages,id',
             'event_date' => 'nullable|date',
+            'event_start' => 'nullable|date',
+            'event_end' => 'nullable|date|after:event_start',
             'description' => 'nullable|string',
             'price' => 'nullable|numeric|min:0',
+            'dp_amount' => 'nullable|numeric|min:0',
             'status' => 'nullable|in:' . implode(',', \App\Models\Project::STATUSES),
-            'start_date' => 'nullable|date',
-            'end_date' => 'nullable|date|after_or_equal:start_date',
         ]);
 
         $data['description'] = ContentSanitizer::plainText($data['description'] ?? '');
@@ -236,6 +245,17 @@ class ProjectController extends Controller
         $this->ensureStatusTimeline($project, $newStatus);
 
         $project->update($data);
+
+        // DP terupdate: sinkronkan ke invoice.
+        if (array_key_exists('dp_amount', $data) && $project->invoice) {
+            $project->invoice->update(['dp_amount' => (float) $data['dp_amount']]);
+            $project->invoice->refreshStatus();
+        }
+
+        // Saat melaju ke "Menunggu Pembayaran", pastikan invoice tersedia.
+        if ($newStatus === 'awaiting_payment' && !$project->invoice) {
+            $this->createInvoice($project);
+        }
 
         app(AuditLogger::class)->log('project.updated', 'Project diperbarui: "' . $project->name . '"', $project);
 
@@ -291,6 +311,44 @@ class ProjectController extends Controller
         return response()->json($project);
     }
 
+    /** Majukan alur satu langkah (stepper). Forward-only, tak bisa mundur. */
+    public function advance(Request $request, Project $project)
+    {
+        $next = $project->nextStep();
+        $target = $request->input('status', $next);
+
+        if ($target !== $next) {
+            abort(422, 'Proyek hanya dapat melaju ke tahap: ' . ($next ? \App\Models\Project::STATUS_LABELS[$next] : '-') . '.');
+        }
+
+        if ($target === 'completed' && !$project->isPaid()) {
+            abort(422, 'Proyek belum lunas. Selesaikan pembayaran untuk menutup alur.');
+        }
+
+        $project->advanceStep($target);
+
+        if ($target === 'awaiting_payment' && !$project->invoice) {
+            $this->createInvoice($project);
+        }
+
+        app(AuditLogger::class)->log('project.advanced', 'Alur project "' . $project->name . '" melaju ke ' . $target, $project);
+
+        $notifications = app(NotificationService::class);
+        $notifications->webhook('project.advanced', ['project_id' => $project->id, 'status' => $target]);
+
+        if ($project->user) {
+            $notifications->inApp(
+                $project->user,
+                'Alur pesanan diperbarui',
+                "Pesanan \"{$project->name}\" kini di tahap: " . $project->statusLabel() . '.',
+                '/dashboard/projects/' . $project->id,
+                'project.advanced'
+            );
+        }
+
+        return response()->json($project->load('user.profile', 'invoice'));
+    }
+
     public function uploadFile(Request $request, Project $project)
     {
         $request->validate([
@@ -315,7 +373,7 @@ class ProjectController extends Controller
             'size' => $file->getSize(),
             'type' => $file->getMimeType(),
             'category' => $this->inferCategory($file),
-            'gallery_status' => $request->gallery_status ?? 'preparing',
+            'gallery_status' => $request->gallery_status ?? 'preview_ready',
             'expires_at' => $expiresAt,
         ]);
 
@@ -395,8 +453,8 @@ class ProjectController extends Controller
         $project->files()->update(['gallery_status' => $request->gallery_status]);
 
         if ($request->gallery_status === 'preview_ready' && $project->status === 'editing') {
-            $project->update(['status' => 'awaiting_confirmation']);
-            $project->addSystemUpdate('Preview tersedia — menunggu konfirmasi klien.');
+            $project->update(['status' => 'awaiting_payment']);
+            $project->addSystemUpdate('Preview tersedia — menunggu pembayaran.');
             app(AuditLogger::class)->log('project.preview_ready', 'Preview tersedia utk project "' . $project->name . '"', $project);
         } elseif ($request->gallery_status === 'released') {
             $project->addSystemUpdate('Galeri dirilis penuh untuk klien.');

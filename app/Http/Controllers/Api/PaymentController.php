@@ -89,6 +89,12 @@ class PaymentController extends Controller
             }
             $totalPaid = $project->totalPaid();
             $project->addSystemUpdate('Pembayaran Rp ' . number_format((float) $payment->amount, 0, ',', '.') . ' dikonfirmasi. Total dibayar: Rp ' . number_format((float) $totalPaid, 0, ',', '.') . '.');
+
+            // Lunas -> tutup alur jadi "Selesai".
+            if ($project->status === 'awaiting_payment' && $project->isPaid()) {
+                $project->advanceStep('completed');
+                $project->addSystemUpdate('Tagihan lunas. Pesanan selesai.');
+            }
         }
 
         $notifications = app(NotificationService::class);

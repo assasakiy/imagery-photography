@@ -9,7 +9,7 @@ export const statusOptions = [
     { value: 'scheduled', label: 'Dijadwalkan', color: 'bg-amber-500/15 text-amber-600 dark:text-amber-400' },
     { value: 'shooting', label: 'Pemotretan', color: 'bg-sky-500/15 text-sky-600 dark:text-sky-400' },
     { value: 'editing', label: 'Editing', color: 'bg-indigo-500/15 text-indigo-600 dark:text-indigo-400' },
-    { value: 'awaiting_confirmation', label: 'Menunggu Konfirmasi', color: 'bg-orange-500/15 text-orange-600 dark:text-orange-400' },
+    { value: 'awaiting_payment', label: 'Menunggu Pembayaran', color: 'bg-orange-500/15 text-orange-600 dark:text-orange-400' },
     { value: 'completed', label: 'Selesai', color: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' },
     { value: 'archived', label: 'Diarsipkan', color: 'bg-zinc-500/15 text-zinc-600 dark:text-zinc-400' },
 ];
@@ -34,8 +34,11 @@ const emptyForm = {
     package_id: '',
     service_ids: [],
     event_date: '',
+    event_start: '',
+    event_end: '',
     description: '',
     price: '',
+    dp_amount: '',
     status: 'scheduled',
 };
 
@@ -97,11 +100,12 @@ export default function Projects() {
             name: item.name,
             package_id: item.package_id || '',
             event_date: item.event_date?.split('T')[0] || '',
+            event_start: item.event_start ? item.event_start.replace('Z', '').slice(0, 16) : '',
+            event_end: item.event_end ? item.event_end.replace('Z', '').slice(0, 16) : '',
             description: item.description || '',
             price: item.price || '',
+            dp_amount: item.invoice?.dp_amount || '',
             status: item.status,
-            start_date: item.start_date?.split('T')[0] || '',
-            end_date: item.end_date?.split('T')[0] || '',
         });
         setErrors({});
         setOpen(true);
@@ -201,7 +205,7 @@ export default function Projects() {
                                 )}
                                 <span className="flex items-center gap-1.5">
                                     <Icon name="calendar" size={14} />
-                                    {item.start_date ? formatDate(item.start_date) : 'Segera'}
+                                    {item.event_start ? formatDate(item.event_start) : (item.event_date ? formatDate(item.event_date) : 'Segera')}
                                 </span>
                                 {item.price !== null && item.price !== undefined && (
                                 <span className="font-semibold text-ink">{formatRupiah(item.price)}</span>
@@ -334,9 +338,17 @@ export default function Projects() {
                                     <option value="custom">Layanan Satuan</option>
                                 </select>
                             </Field>
-                            <Field label="Tanggal Acara" hint="opsional" error={errors.event_date?.[0]}>
-                                <input className="input" type="date" value={form.event_date} onChange={(e) => setForm({ ...form, event_date: e.target.value })} />
-                            </Field>
+                            <div className="sm:col-span-2 grid grid-cols-1 gap-4 sm:grid-cols-3">
+                                <Field label="Tanggal Acara" hint="opsional" error={errors.event_date?.[0]}>
+                                    <input className="input" type="date" value={form.event_date} onChange={(e) => setForm({ ...form, event_date: e.target.value, event_start: e.target.value + (form.event_start ? 'T' + form.event_start.split('T')[1] : ''), event_end: e.target.value + (form.event_end ? 'T' + form.event_end.split('T')[1] : '') })} />
+                                </Field>
+                                <Field label="Waktu Mulai Acara" hint="opsional" error={errors.event_start?.[0]}>
+                                    <input className="input" type="datetime-local" value={form.event_start} onChange={(e) => setForm({ ...form, event_start: e.target.value })} />
+                                </Field>
+                                <Field label="Waktu Selesai Acara" hint="opsional" error={errors.event_end?.[0]}>
+                                    <input className="input" type="datetime-local" value={form.event_end} onChange={(e) => setForm({ ...form, event_end: e.target.value })} />
+                                </Field>
+                            </div>
                             {form.package_id === 'custom' && (
                                 <div className="sm:col-span-2">
                                     <Field label="Pilih Layanan Satuan (bisa lebih dari satu)">
@@ -396,9 +408,17 @@ export default function Projects() {
                         </>
                     )}
                     {!(isAdmin && packages.length > 0) && (
-                        <Field label="Tanggal Acara" hint="opsional" error={errors.event_date?.[0]}>
-                            <input className="input" type="date" value={form.event_date} onChange={(e) => setForm({ ...form, event_date: e.target.value })} />
-                        </Field>
+                        <>
+                            <Field label="Tanggal Acara" hint="opsional" error={errors.event_date?.[0]}>
+                                <input className="input" type="date" value={form.event_date} onChange={(e) => setForm({ ...form, event_date: e.target.value })} />
+                            </Field>
+                            <Field label="Waktu Mulai Acara" hint="opsional" error={errors.event_start?.[0]}>
+                                <input className="input" type="datetime-local" value={form.event_start} onChange={(e) => setForm({ ...form, event_start: e.target.value })} />
+                            </Field>
+                            <Field label="Waktu Selesai Acara" hint="opsional" error={errors.event_end?.[0]}>
+                                <input className="input" type="datetime-local" value={form.event_end} onChange={(e) => setForm({ ...form, event_end: e.target.value })} />
+                            </Field>
+                        </>
                     )}
                     <div className="sm:col-span-2">
                         <Field label="Deskripsi" hint="opsional" error={errors.description?.[0]}>
@@ -415,12 +435,11 @@ export default function Projects() {
                             ))}
                         </select>
                     </Field>
-                    <Field label="Tanggal Mulai" hint="opsional">
-                        <input className="input" type="date" value={form.start_date} onChange={(e) => setForm({ ...form, start_date: e.target.value })} />
-                    </Field>
-                    <Field label="Tanggal Selesai" hint="opsional">
-                        <input className="input" type="date" value={form.end_date} onChange={(e) => setForm({ ...form, end_date: e.target.value })} />
-                    </Field>
+                    {isAdmin && (
+                        <Field label="DP / Uang Muka (Rp)" hint="opsional. Kosongkan jika deal pembayaran di belakang." error={errors.dp_amount?.[0]}>
+                            <input className="input" type="number" min="0" value={form.dp_amount} onChange={(e) => setForm({ ...form, dp_amount: e.target.value })} placeholder="mis. 500000" />
+                        </Field>
+                    )}
                 </form>
             </Modal>
 

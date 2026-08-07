@@ -4,7 +4,7 @@ import api from '../api';
 import Icon from '../components/Icon';
 import { useAuth } from '../context/AuthContext';
 import { Spinner, Field, useToast, formatRupiah, formatDate, Modal, EmptyState } from '../components/ui';
-import { StatusBadge, statusOptions } from './Projects';
+import { StatusBadge } from './Projects';
 
 const TABS = [
     { key: 'ringkasan', label: 'Ringkasan', icon: 'dashboard' },
@@ -14,6 +14,14 @@ const TABS = [
     { key: 'download', label: 'Download', icon: 'download' },
     { key: 'pesan', label: 'Pesan', icon: 'message-circle' },
     { key: 'review', label: 'Review', icon: 'star' },
+];
+
+const STEPS = [
+    { key: 'scheduled', label: 'Dijadwalkan', icon: 'calendar' },
+    { key: 'shooting', label: 'Pemotretan', icon: 'camera' },
+    { key: 'editing', label: 'Editing', icon: 'edit' },
+    { key: 'awaiting_payment', label: 'Menunggu Pembayaran', icon: 'credit-card' },
+    { key: 'completed', label: 'Selesai', icon: 'check' },
 ];
 
 function Stars({ value, onChange }) {
@@ -47,6 +55,7 @@ export default function ProjectDetail() {
     const [updateText, setUpdateText] = useState('');
     const [uploading, setUploading] = useState(false);
     const [paymentForm, setPaymentForm] = useState({ amount: '', method: 'manual_transfer', notes: '', proof: null });
+    const [progressForm, setProgressForm] = useState({ total: '', done: '' });
     const [saving, setSaving] = useState(false);
     const [reviewOpen, setReviewOpen] = useState(false);
     const [reviewForm, setReviewForm] = useState({ rating: 5, title: '', content: '', recommend_score: 10 });
@@ -67,12 +76,22 @@ export default function ProjectDetail() {
     const remaining = (Number(project.price) || 0) - totalPaid;
     const isPaid = remaining <= 0;
 
+    const currentIdx = STEPS.findIndex((s) => s.key === project.status);
+    const nextStep = currentIdx >= 0 && currentIdx < STEPS.length - 1 ? STEPS[currentIdx + 1] : null;
+
     const setTab = (key) => setSearchParams({ tab: key });
 
-    const changeStatus = async (status) => {
-        await api.patch(`/projects/${id}/status`, { status });
-        show('Status diperbarui.');
-        load();
+    const advance = async () => {
+        setSaving(true);
+        try {
+            await api.post(`/projects/${id}/advance`);
+            show('Alur pesanan dilanjutkan.');
+            load();
+        } catch (err) {
+            show(err.response?.data?.message || 'Gagal melanjutkan alur.', 'error');
+        } finally {
+            setSaving(false);
+        }
     };
 
     const addUpdate = async (e) => {
@@ -84,14 +103,23 @@ export default function ProjectDetail() {
         load();
     };
 
-    const uploadFile = async (e, defaultStatus = 'preparing') => {
+    const submitProgress = async (e) => {
+        e.preventDefault();
+        if (!progressForm.done) return;
+        const total = progressForm.total || '?';
+        await api.post(`/projects/${id}/updates`, { message: `Proses editing: ${progressForm.done}${progressForm.total ? `/${progressForm.total}` : ''} dikerjakan.` });
+        setProgressForm({ total: '', done: '' });
+        show('Progres editing diperbarui.');
+        load();
+    };
+
+    const uploadFile = async (e) => {
         const file = e.target.files[0];
         if (!file) return;
         setUploading(true);
         try {
             const data = new FormData();
             data.append('file', file);
-            data.append('gallery_status', defaultStatus);
             await api.post(`/projects/${id}/files`, data);
             show('File diupload.');
             load();
@@ -104,12 +132,6 @@ export default function ProjectDetail() {
         if (!confirm('Hapus file ini?')) return;
         await api.delete(`/files/${file.id}`);
         show('File dihapus.');
-        load();
-    };
-
-    const changeGalleryStatus = async (status) => {
-        await api.patch(`/projects/${id}/gallery-status`, { gallery_status: status });
-        show('Status galeri diperbarui.');
         load();
     };
 
@@ -134,7 +156,7 @@ export default function ProjectDetail() {
             await api.post('/reviews', {
                 project_id: project.id,
                 name: project.user?.name || 'Klien',
-                service: project.type || 'Layanan',
+                service: project.package?.name || 'Layanan',
                 ...reviewForm,
             });
             show('Review berhasil dikirim.');
@@ -165,13 +187,47 @@ export default function ProjectDetail() {
                         )}
                     </div>
                 </div>
-                {isAdmin && (
-                    <div className="flex gap-2">
-                        <select className="input !py-2 !pl-3 !pr-8 text-sm" value={project.status} onChange={(e) => changeStatus(e.target.value)}>
-                            {statusOptions.map((s) => (
-                                <option key={s.value} value={s.value}>{s.label}</option>
-                            ))}
-                        </select>
+            </div>
+
+            {/* STEERER ALUR */}
+            <div className="card mb-6 p-5">
+                <div className="flex items-center">
+                    {STEPS.map((s, i) => {
+                        const isDone = i < currentIdx;
+                        const isActive = i === currentIdx;
+                        const isLocked = i > currentIdx;
+                        return (
+                            <div key={s.key} className={`flex items-center ${isDone ? 'text-emerald-600 dark:text-emerald-400' : isActive ? 'text-brand-600 dark:text-brand-400' : 'text-ink-muted'}`}>
+                                <div className="flex flex-col items-center gap-1.5">
+                                    <div className={`flex h-10 w-10 items-center justify-center rounded-full border-2 transition-colors ${
+                                        isDone ? 'border-emerald-500 bg-emerald-500/10' : isActive ? 'border-brand-600 bg-brand-600 text-white shadow-lg shadow-brand-600/30' : isLocked ? 'border-line bg-surface text-ink-muted/60' : 'border-line bg-surface-muted'
+                                    }`}>
+                                        <Icon name={isDone ? 'check' : s.icon} size={18} />
+                                    </div>
+                                    <span className={`hidden sm:block text-xs font-semibold text-center leading-tight ${isActive ? 'text-ink' : ''}`}>{s.label}</span>
+                                </div>
+                                {i < STEPS.length - 1 && (
+                                    <div className={`mx-2 sm:mx-3 h-0.5 w-8 sm:w-16 lg:w-24 mb-6 ${i < currentIdx ? 'bg-emerald-500' : 'bg-line'}`} />
+                                )}
+                            </div>
+                        );
+                    })}
+                </div>
+
+                {isAdmin && currentIdx >= 0 && currentIdx < STEPS.length - 1 && (
+                    <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-line pt-4">
+                        <p className="text-sm text-ink-muted">
+                            {nextStep.key === 'shooting' && project.event_start
+                                ? <>Otomatis pindah ke <strong>Pemotretan</strong> saat waktu mulai acara + 10 menit.</>
+                                : nextStep.key === 'editing' && project.event_end
+                                    ? <>Otomatis pindah ke <strong>Editing</strong> saat waktu selesai acara + 10 menit.</>
+                                    : <>Lanjutkan pesanan ke tahap berikutnya.</>}
+                        </p>
+                        <button className="btn-primary" onClick={advance} disabled={saving || (nextStep.key === 'completed' && !isPaid)}>
+                            {nextStep.key === 'completed' && !isPaid
+                                ? 'Menunggu Pelunasan'
+                                : saving ? 'Memproses...' : `Lanjut ke ${nextStep.label}`}
+                        </button>
                     </div>
                 )}
             </div>
@@ -247,27 +303,50 @@ export default function ProjectDetail() {
 
             {/* TAB: TIMELINE */}
             {activeTab === 'timeline' && (
-                <div className="card p-5">
-                    {isAdmin && (
-                        <form onSubmit={addUpdate} className="mb-6 flex gap-2 border-b border-line pb-6">
-                            <input className="input" placeholder="Tulis catatan atau log manual..." value={updateText} onChange={(e) => setUpdateText(e.target.value)} />
-                            <button className="btn-primary shrink-0" disabled={!updateText.trim()}><Icon name="send" size={16} /></button>
+                <div className="space-y-4">
+                    {isAdmin && project.status === 'editing' && (
+                        <form onSubmit={submitProgress} className="card p-5">
+                            <h3 className="mb-1 font-semibold text-ink">Progres Editing</h3>
+                            <p className="mb-4 text-sm text-ink-muted">Perbarui jumlah pekerjaan agar klien bisa melihat perkembangan.</p>
+                            <div className="flex flex-wrap items-end gap-3">
+                                <Field label="Total Foto/Video">
+                                    <input className="input" type="number" min="0" value={progressForm.total} onChange={(e) => setProgressForm({ ...progressForm, total: e.target.value })} placeholder="mis. 300" />
+                                </Field>
+                                <Field label="Sudah Dikerjakan" required>
+                                    <input className="input" type="number" min="0" value={progressForm.done} onChange={(e) => setProgressForm({ ...progressForm, done: e.target.value })} placeholder="mis. 120" required />
+                                </Field>
+                                <button className="btn-primary" disabled={!progressForm.done}>Simpan Progres</button>
+                            </div>
                         </form>
                     )}
-                    <div className="relative border-l border-line pl-5 space-y-6">
-                        {project.updates?.length ? (
-                            project.updates.map((u) => (
-                                <div key={u.id} className="relative">
-                                    <span className={`absolute -left-[25px] top-1.5 h-3 w-3 rounded-full ring-4 ring-surface ${u.kind === 'system' ? 'bg-brand-500' : 'bg-zinc-400 dark:bg-zinc-500'}`} />
-                                    <p className={`text-sm font-medium ${u.kind === 'system' ? 'text-ink' : 'text-ink-muted'}`}>{u.message}</p>
-                                    <p className="mt-1 text-xs text-ink-muted">
-                                        {u.kind === 'system' ? 'Sistem' : u.user?.name || 'Admin'} · {formatDate(u.created_at)}
-                                    </p>
-                                </div>
-                            ))
-                        ) : (
-                            <p className="text-sm text-ink-muted">Belum ada timeline.</p>
+                    <form onSubmit={addUpdate} className="card p-5">
+                        {isAdmin && (
+                            <>
+                                <h3 className="mb-1 font-semibold text-ink">Catatan / Log Manual</h3>
+                                <p className="mb-4 text-sm text-ink-muted">Tulis detail progress atau keterangan untuk klien.</p>
+                            </>
                         )}
+                        <div className="flex gap-2">
+                            <input className="input" placeholder={isAdmin ? 'Tulis catatan atau log manual...' : ''} value={updateText} onChange={(e) => setUpdateText(e.target.value)} disabled={!isAdmin} readOnly={!isAdmin} />
+                            <button className="btn-primary shrink-0" disabled={!updateText.trim() || !isAdmin}><Icon name="send" size={16} /></button>
+                        </div>
+                    </form>
+                    <div className="card p-5">
+                        <div className="relative border-l border-line pl-5 space-y-6">
+                            {project.updates?.length ? (
+                                project.updates.map((u) => (
+                                    <div key={u.id} className="relative">
+                                        <span className={`absolute -left-[25px] top-1.5 h-3 w-3 rounded-full ring-4 ring-surface ${u.kind === 'system' ? 'bg-brand-500' : 'bg-zinc-400 dark:bg-zinc-500'}`} />
+                                        <p className={`text-sm font-medium ${u.kind === 'system' ? 'text-ink' : 'text-ink-muted'}`}>{u.message}</p>
+                                        <p className="mt-1 text-xs text-ink-muted">
+                                            {u.kind === 'system' ? 'Sistem' : u.user?.name || 'Admin'} · {formatDate(u.created_at)}
+                                        </p>
+                                    </div>
+                                ))
+                            ) : (
+                                <p className="text-sm text-ink-muted">Belum ada timeline.</p>
+                            )}
+                        </div>
                     </div>
                 </div>
             )}
@@ -279,15 +358,24 @@ export default function ProjectDetail() {
                         <div className="card p-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                             <div><p className="text-xs text-ink-muted">No. Invoice</p><p className="font-mono font-bold text-ink">{project.invoice.number}</p></div>
                             <div><p className="text-xs text-ink-muted">Status</p>
-                                <span className={`badge mt-1 ${project.invoice.status === 'paid' ? 'bg-emerald-500/15 text-emerald-600' : project.invoice.status === 'partial' ? 'bg-amber-500/15 text-amber-600' : 'bg-red-500/15 text-red-600'}`}>
-                                    {project.invoice.status === 'paid' ? 'Lunas' : project.invoice.status === 'partial' ? 'Cicilan/DP' : 'Belum Bayar'}
+                                <span className={`badge mt-1 ${
+                                    project.invoice.status === 'paid' ? 'bg-emerald-500/15 text-emerald-600'
+                                    : project.invoice.status === 'awaiting_dp' ? 'bg-red-500/15 text-red-600'
+                                    : project.invoice.status === 'partial' ? 'bg-amber-500/15 text-amber-600'
+                                    : 'bg-zinc-500/15 text-zinc-600'
+                                }`}>
+                                    {project.invoice.status === 'paid' ? 'Lunas'
+                                    : project.invoice.status === 'awaiting_dp' ? 'Menunggu DP'
+                                    : project.invoice.status === 'partial' ? 'DP Terbayar / Cicilan'
+                                    : 'Belum Bayar'}
                                 </span>
                             </div>
+                            <div><p className="text-xs text-ink-muted">DP / Uang Muka</p><p className="font-bold text-ink">{formatRupiah(project.invoice.dp_amount)}</p></div>
                             <div><p className="text-xs text-ink-muted">Total Tagihan</p><p className="font-bold text-ink">{formatRupiah(project.invoice.base_amount)}</p></div>
                             <div><p className="text-xs text-ink-muted">Sisa Pembayaran</p><p className={`font-bold ${isPaid ? 'text-emerald-600' : 'text-red-600'}`}>{formatRupiah(Math.max(0, project.invoice.base_amount - project.invoice.paid_amount))}</p></div>
                         </div>
                     ) : (
-                        <EmptyState title="Belum ada invoice" message="Invoice dibuat otomatis saat pesanan dibuat." />
+                        <EmptyState title="Belum ada invoice" message="Invoice dibuat saat proses lanjut ke tahap Menunggu Pembayaran (atau saat DP ditentukan)." />
                     )}
 
                     <div className="card p-5">
@@ -373,16 +461,12 @@ export default function ProjectDetail() {
                         <div className="mb-6 flex flex-wrap items-center justify-between gap-4 border-b border-line pb-6">
                             <div>
                                 <h3 className="font-semibold text-ink">Kelola Galeri</h3>
-                                <p className="text-sm text-ink-muted">Set status ke Preview Ready agar klien bisa melihat, atau Released untuk download HD.</p>
+                                <p className="text-sm text-ink-muted">Preview langsung tampil untuk klien. Klik Lanjut ke Menunggu Pembayaran setelah proses editing selesai.</p>
                             </div>
-                            <div className="flex gap-2">
-                                <button className="btn-outline" onClick={() => changeGalleryStatus('preview_ready')}>Set Preview Ready</button>
-                                <button className="btn-primary" onClick={() => changeGalleryStatus('released')}>Rilis (Download HD)</button>
-                                <button className="btn-outline" onClick={() => fileRef.current?.click()}>
-                                    <Icon name="upload" size={16} /> Upload
-                                </button>
-                                <input ref={fileRef} type="file" className="hidden" onChange={(e) => uploadFile(e, activeTab === 'download' ? 'released' : 'preparing')} />
-                            </div>
+                            <button className="btn-outline" onClick={() => fileRef.current?.click()}>
+                                <Icon name="upload" size={16} /> Upload
+                            </button>
+                            <input ref={fileRef} type="file" className="hidden" onChange={(e) => uploadFile(e)} />
                         </div>
                     )}
 
@@ -392,9 +476,9 @@ export default function ProjectDetail() {
                         </div>
                     )}
 
-                    {project.files?.filter(f => activeTab === 'download' ? f.gallery_status === 'released' : (f.gallery_status === 'preview_ready' || f.gallery_status === 'preparing')).length ? (
+                    {project.files?.length ? (
                         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-                            {project.files.filter(f => activeTab === 'download' ? f.gallery_status === 'released' : (f.gallery_status === 'preview_ready' || f.gallery_status === 'preparing')).map((f) => (
+                            {project.files.map((f) => (
                                 <div key={f.id} className="group relative aspect-square overflow-hidden rounded-xl border border-line bg-surface-muted">
                                     {f.category === 'photo' || f.type.startsWith('image/') ? (
                                         <img src={f.url} alt={f.original_name} className="h-full w-full object-cover" />
@@ -421,7 +505,7 @@ export default function ProjectDetail() {
                             ))}
                         </div>
                     ) : (
-                        <EmptyState icon="image" title={`Belum ada ${activeTab}`} message={`Tidak ada file dengan status ${activeTab}.`} />
+                        <EmptyState icon="image" title={`Belum ada ${activeTab}`} message="Belum ada file diupload." />
                     )}
                 </div>
             )}

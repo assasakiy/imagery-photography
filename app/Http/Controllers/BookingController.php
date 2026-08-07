@@ -49,6 +49,8 @@ class BookingController extends Controller
             'service_ids' => 'nullable|array',
             'service_ids.*' => 'exists:services,id',
             'event_date' => 'nullable|date',
+            'event_start' => 'nullable|date',
+            'event_end' => 'nullable|date|after:event_start',
             'location' => 'nullable|string|max:255',
             'message' => 'nullable|string',
         ]);
@@ -87,14 +89,16 @@ class BookingController extends Controller
             $price = $package->computedPrice();
         }
 
-        $booking = Booking::create([
+$booking = Booking::create([
             'user_id' => $user->id,
-            'package_id' => $packageId,
+            'package_id' => $package->id,
             'name' => $data['name'],
             'email' => $data['email'] ?? null,
             'phone' => $data['phone'] ?? null,
-            'package_label' => $packageLabel,
-            'event_date' => $data['event_date'] ?? null,
+            'package_label' => $package->name,
+            'event_date' => $data['event_date'] ?? ($data['event_start'] ? \Illuminate\Support\Carbon::parse($data['event_start'])->toDateString() : null),
+            'event_start' => $data['event_start'] ?? null,
+            'event_end' => $data['event_end'] ?? null,
             'location' => $data['location'] ?? null,
             'notes' => $data['notes'] ?? null,
             'price' => $price,

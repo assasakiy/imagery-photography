@@ -32,6 +32,7 @@ class InvoiceController extends Controller
             'project' => $inv->project?->name,
             'client' => $inv->project?->user?->name,
             'price' => $inv->base_amount,
+            'dp_amount' => $inv->dp_amount,
             'paid' => $inv->paid_amount,
             'remaining' => $inv->remaining(),
             'status' => $inv->status,
