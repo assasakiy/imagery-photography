@@ -149,7 +149,15 @@ Halaman dashboard yang punya beberapa tab **WAJIB** dipisah ke folder `pages/<na
 - **File rekam (bukti mulai & selesai sesi) kini HANYA di panel Pemotretan**: grid `galleryFiles` (filter `!media_id`, = file rekam/detail) dihapus dari panel Dijadwalkan & Editing, tetap tampil di panel Pemotretan saja.
 - **Upload foto/video final via POPUP modal** (ProjectDetail editing): tombol "Unggah Foto & Video" buka `Modal` (header+footer standar) — body berisi pilih foto (banyak) & video (pasangan) + bar progress; tombol **Unggah di FOOTER** (bersama Batal) menggabungkan foto+video sekaligus. `submitUpload` → batch foto (`uploadPhotosBatch`) lalu video (`uploadVideoPair`), auto-tutup setelah sukses.
 - **Form admin di panel yg SUDAH LEWAT = info saja (bukan form)**: `pastScheduled/pastShooting/pastEditing` (banding `currentIdx` vs idx panel di STEP_ORDER). Dijadwalkan & Pemotretan: box "Unggah bukti..." HANYA tampil bila `!pastX && bukti belum ada` (`proofStartUploaded = recordFiles[0]`, `proofEndUploaded = recordFiles[1]`); kalau sudah upload tampil kartu info "Bukti ... Diunggah {date}". Editing: form Simpan Progres, input tambah riwayat, tombol Unggah — semua disembunyikan saat `pastEditing`.
-- **Jumlah aset tampil di panel Editing**: `photoAssetCount`/`videoAssetCount` (dari `files` ber `media_id`) → "X foto · Y video diupload — kelola di halaman Preview".
+- **Halaman Media = aset WEBSITE saja, di luar project**: `MediaController@index` difilter `where('model_type','!=',Project::class)` — aset final project (`media_id`) tidak tampil di pustaka media.
+- **Revamp panel proyek (Selesai/Pemotretan/Dijadwalkan/Editing)**:
+  - Panel Selesai: checklist "Preview telah dilihat klien" **DIBUANG** (hanya "Pembayaran lunas"); tombol **"Unduh File Asli (Tanpa Watermark)"** bukan lagi download ZIP — `Link` ke `previewHref` (halaman Preview).
+  - Dijadwalkan: menampilkan **foto bukti mulai sesi** (thumbnail dalam kartu) + tombol hapus (Confirm popup) bila `!pastScheduled`; footer "Konfirmasi" hanya saat `!pastScheduled`.
+  - Pemotretan: grid bukti & card ikon **dihapus**; bukti mulai & selesai ditampilkan sebagai **kartu hijau berisi thumbnail foto** (ikon diganti foto); hapus hanya bila `isAdmin && !pastShooting`; tombol footer = **"Konfirmasi"**, hidden bila `pastShooting`.
+  - Editing: tombol footer = **"Konfirmasi"** (bukan "Unggah file & lanjutkan ke Preview"), hidden bila `pastEditing`; form tersembunyi bila sudah lewat (sebelumnya).
+  - Tombol **"Kirim Pesan"** dipindah ke **header card bawah-kiri** (baris tersendiri) — bukan lagi per-panel. Tombol "Lihat Preview Media" → **"Lihat Preview"**.
+  - **Konfirmasi-popup**: semua aksi hapus di proyek & Preview gunakan komponen `Confirm` (`deleteConfirm` di ProjectDetail; `removing`/`bulkOpen` di PreviewDetail), bukan `window.confirm`.
+  - **Jumlah aset tampil di panel Editing**: `photoAssetCount`/`videoAssetCount` (dari `files` ber `media_id`) → baris "X foto · Y video diupload — kelola di halaman Preview".
 - **Halaman Media = aset WEBSITE saja, di luar project**: `MediaController@index` difilter `where('model_type','!=',Project::class)` — aset final project (`media_id`) tidak tampil di pustaka media.
 
 ### Sesi 2026-08-06 (ringkas, riwayat lengkap di git)

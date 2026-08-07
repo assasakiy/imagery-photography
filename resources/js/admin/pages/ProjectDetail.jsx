@@ -69,6 +69,7 @@ export default function ProjectDetail() {
     const [fieldNote, setFieldNote] = useState('');
     const [endProof, setEndProof] = useState(false);
     const [saving, setSaving] = useState(false);
+    const [deleteConfirm, setDeleteConfirm] = useState(null);
     const [reviewOpen, setReviewOpen] = useState(false);
     const [reviewForm, setReviewForm] = useState({ rating: 5, title: '', content: '', recommend_score: 10 });
     const fileRef = useRef(null);
@@ -124,7 +125,6 @@ export default function ProjectDetail() {
     // Grid di halaman proyek hanya menampilkan file REKAM/detail (bukti mulai/selesai sesi — legacy tanpa media_id).
     // Aset final (milik klien, upload via Spatie) tampil di halaman PREVIEW saja.
     const recordFiles = (project.files || []).filter((f) => !f.media_id);
-    const galleryFiles = recordFiles;
     const recordStart = recordFiles[0];
     const recordEnd = recordFiles[1];
     const assets = (project.files || []).filter((f) => f.media_id);
@@ -290,11 +290,17 @@ export default function ProjectDetail() {
         }
     };
 
-    const deleteFile = async (file) => {
-        if (!confirm('Hapus file ini?')) return;
-        await api.delete(`/files/${file.id}`);
-        show('File dihapus.');
-        load();
+    const handleDeleteConfirm = async () => {
+        if (!deleteConfirm) return;
+        try {
+            await api.delete(`/files/${deleteConfirm.id}`);
+            show('File dihapus.', 'success');
+            setDeleteConfirm(null);
+            load();
+        } catch (err) {
+            show(err.response?.data?.message || 'Gagal menghapus file.', 'error');
+            setDeleteConfirm(null);
+        }
     };
 
     const submitReview = async (e) => {
@@ -323,7 +329,6 @@ export default function ProjectDetail() {
 
     const previewHref = `/dashboard/preview/${project.order_no || project.id}`;
     const previewLink = project.accessTokens?.[0]?.url || (window.location.origin + previewHref);
-    const previewSeen = (project.accessTokens || []).some((t) => !!t.used_at);
     const paidAt = [...(project.payments || [])].filter((p) => p.status === 'confirmed').slice(-1)[0]?.created_at || project.completed_at || null;
 
     const copyPreviewLink = async () => {
@@ -372,6 +377,9 @@ export default function ProjectDetail() {
                         <p className="text-xs font-semibold uppercase tracking-wider text-ink-muted">Sisa Tagihan</p>
                         <p className={`mt-1 text-lg font-bold ${remaining > 0 ? 'text-amber-600 dark:text-amber-400' : 'text-ink'}`}>{formatRupiah(remaining)}</p>
                     </div>
+                </div>
+                <div className="flex items-center border-t border-line px-5 py-3">
+                    <button className="btn-outline" onClick={openChat}><Icon name="message-circle" size={16} /> Kirim Pesan Pesanan Ini</button>
                 </div>
             </div>
 
@@ -488,20 +496,23 @@ export default function ProjectDetail() {
                             )}
 
                             {isAdmin && proofStartUploaded && (
-                                <div className="mt-6 flex items-center gap-3 rounded-xl border border-line bg-surface-muted/30 p-4">
-                                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-emerald-500/15 text-emerald-600">
-                                        <Icon name="check" size={18} />
-                                    </span>
+                                <div className="mt-6 flex items-center gap-3 rounded-xl border border-line bg-surface-muted/30 p-3">
+                                    <div className="h-20 w-20 shrink-0 overflow-hidden rounded-lg bg-surface-strong">
+                                        <img src={recordStart.url} alt="Bukti mulai sesi" className="h-full w-full object-cover" />
+                                    </div>
                                     <div className="min-w-0">
                                         <p className="font-semibold text-ink">Bukti mulai sesi</p>
                                         <p className="font-mono text-xs text-ink-muted">Diunggah {formatDate(recordStart.created_at)}</p>
                                     </div>
+                                    {!pastScheduled && (
+                                        <button className="ml-auto rounded-lg bg-red-500/10 p-2 text-red-600 transition-colors hover:bg-red-500" onClick={() => setDeleteConfirm(recordStart)} title="Hapus bukti">
+                                            <Icon name="trash" size={16} />
+                                        </button>
+                                    )}
                                 </div>
                             )}
-
-                            <button className="btn-outline mt-6" onClick={openChat}><Icon name="message-circle" size={16} /> Kirim Pesan Pesanan Ini</button>
                         </div>
-                        {isAdmin && (
+                        {isAdmin && !pastScheduled && (
                             <PanelFooter>
                                 <button className="btn-primary" onClick={advance} disabled={formLocked || saving}>
                                     Konfirmasi
@@ -522,14 +533,19 @@ export default function ProjectDetail() {
                         />
                         <div className="p-5">
                             {proofStartUploaded && (
-                                <div className="flex items-center gap-3 rounded-xl border border-line bg-surface-muted/30 p-4">
-                                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-emerald-500/15 text-emerald-600">
-                                        <Icon name="check" size={18} />
-                                    </span>
+                                <div className="flex items-center gap-3 rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-3">
+                                    <div className="h-20 w-20 shrink-0 overflow-hidden rounded-lg bg-surface-strong">
+                                        <img src={recordStart.url} alt="" className="h-full w-full object-cover" />
+                                    </div>
                                     <div className="min-w-0">
                                         <p className="font-semibold text-ink">Bukti mulai sesi</p>
                                         <p className="font-mono text-xs text-ink-muted">Diunggah {formatDate(recordStart.created_at)}</p>
                                     </div>
+                                    {isAdmin && !pastShooting && (
+                                        <button className="ml-auto rounded-lg bg-red-500/10 p-2 text-red-600 transition-colors hover:bg-red-500" onClick={() => setDeleteConfirm(recordStart)} title="Hapus bukti">
+                                            <Icon name="trash" size={16} />
+                                        </button>
+                                    )}
                                 </div>
                             )}
 
@@ -554,41 +570,26 @@ export default function ProjectDetail() {
                             )}
 
                             {proofEndUploaded && (
-                                <div className="mt-5 flex items-center gap-3 rounded-xl border border-line bg-surface-muted/30 p-4">
-                                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-emerald-500/15 text-emerald-600">
-                                        <Icon name="check" size={18} />
-                                    </span>
+                                <div className="mt-5 flex items-center gap-3 rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-3">
+                                    <div className="h-20 w-20 shrink-0 overflow-hidden rounded-lg bg-surface-strong">
+                                        <img src={recordEnd.url} alt="" className="h-full w-full object-cover" />
+                                    </div>
                                     <div className="min-w-0">
                                         <p className="font-semibold text-ink">Bukti selesai sesi</p>
                                         <p className="font-mono text-xs text-ink-muted">Diunggah {formatDate(recordEnd.created_at)}</p>
                                     </div>
+                                    {isAdmin && !pastShooting && (
+                                        <button className="ml-auto rounded-lg bg-red-500/10 p-2 text-red-600 transition-colors hover:bg-red-500" onClick={() => setDeleteConfirm(recordEnd)} title="Hapus bukti">
+                                            <Icon name="trash" size={16} />
+                                        </button>
+                                    )}
                                 </div>
                             )}
-
-                            {galleryFiles.length > 0 && (
-                                <div className="mt-5 grid grid-cols-3 gap-3 sm:grid-cols-4 lg:grid-cols-6">
-                                    {galleryFiles.map((f) => (
-                                        <div key={f.id} className="group relative aspect-square overflow-hidden rounded-xl bg-surface-muted">
-                                            {f.category === 'video' || f.type?.startsWith('video') ? (
-                                                <video src={f.url} className="h-full w-full object-cover" muted playsInline />
-                                            ) : (
-                                                <img src={f.url} className="h-full w-full object-cover" alt="" />
-                                            )}
-                                            {isAdmin && (
-                                                <button className="absolute right-1 top-1 rounded bg-red-500 p-1.5 text-white opacity-0 transition-opacity group-hover:opacity-100" onClick={() => deleteFile(f)} aria-label="Hapus">
-                                                    <Icon name="trash" size={14} />
-                                                </button>
-                                            )}
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-                            <button className="btn-outline mt-6" onClick={openChat}><Icon name="message-circle" size={16} /> Kirim Pesan Pesanan Ini</button>
                         </div>
-                        {isAdmin && (
+                        {isAdmin && !pastShooting && (
                             <PanelFooter>
                                 <button className="btn-primary" onClick={confirmShootingDone} disabled={formLocked || saving || (!endProof && !proofEndUploaded)}>
-                                    Konfirmasi selesai & lanjut ke Editing
+                                    Konfirmasi
                                 </button>
                             </PanelFooter>
                         )}
@@ -695,16 +696,15 @@ export default function ProjectDetail() {
                                     </div>
                                 </>
                             )}
-                            <button className="btn-outline mt-5" onClick={openChat}><Icon name="message-circle" size={16} /> Kirim Pesan Pesanan Ini</button>
                         </div>
-                        {isAdmin && (
+                        {isAdmin && !pastEditing && (
                             <PanelFooter>
                                 <button className="btn-primary" onClick={advance} disabled={formLocked || saving || !editAllDone}>
-                                    Unggah file & lanjutkan ke Preview <Icon name="arrow-right" size={16} />
+                                    Konfirmasi
                                 </button>
                             </PanelFooter>
                         )}
-                        {isAdmin && !editAllDone && (
+                        {isAdmin && !editAllDone && !pastEditing && (
                             <div className="border-t border-line bg-surface-muted/50 px-5 py-3">
                                 <p className="text-xs text-ink-muted">
                                     {editGrandTotal > 0
@@ -752,7 +752,7 @@ export default function ProjectDetail() {
                             </p>
                         </div>
                         <PanelFooter>
-                            <Link to={previewHref} className="btn-outline"><Icon name="eye" size={16} /> Lihat Preview Media</Link>
+                            <Link to={previewHref} className="btn-outline"><Icon name="eye" size={16} /> Lihat Preview</Link>
                             {!isAdmin && (
                                 <Link to="/dashboard/client-invoices" className="btn-primary"><Icon name="credit-card" size={16} /> Bayar di Halaman Tagihan</Link>
                             )}
@@ -776,15 +776,6 @@ export default function ProjectDetail() {
                         />
                         <div className="space-y-3 p-5">
                             <div className="flex items-center gap-3 rounded-xl border border-line p-4">
-                                <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-white ${previewSeen ? 'bg-emerald-500' : 'bg-zinc-300 dark:bg-zinc-700'}`}>
-                                    <Icon name="check" size={14} />
-                                </span>
-                                <p className="flex-1 text-sm font-medium text-ink">Preview telah dilihat klien</p>
-                                <span className={`badge ${previewSeen ? 'bg-emerald-500/15 text-emerald-600' : 'bg-zinc-500/15 text-zinc-500 dark:text-zinc-400'}`}>
-                                    {previewSeen ? 'TERPENUHI' : 'BELUM'}
-                                </span>
-                            </div>
-                            <div className="flex items-center gap-3 rounded-xl border border-line p-4">
                                 <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-white ${isPaid ? 'bg-emerald-500' : 'bg-zinc-300 dark:bg-zinc-700'}`}>
                                     <Icon name="check" size={14} />
                                 </span>
@@ -807,9 +798,9 @@ export default function ProjectDetail() {
                             )}
                         </div>
                         <PanelFooter>
-                            <a href={`/api/projects/${project.id}/download-zip`} className={isAdmin ? 'btn-outline' : 'btn-primary'}>
+                            <Link to={previewHref} className={isAdmin ? 'btn-outline' : 'btn-primary'}>
                                 <Icon name="download" size={16} /> Unduh File Asli (Tanpa Watermark)
-                            </a>
+                            </Link>
                             {isAdmin && (
                                 <button className="btn-outline" onClick={archive} disabled={saving}>
                                     <Icon name="folder-open" size={16} /> Arsipkan Proyek
@@ -859,6 +850,9 @@ export default function ProjectDetail() {
                     </div>
                 </div>
             </div>
+
+            {/* DELETE CONFIRM */}
+            <Confirm open={!!deleteConfirm} onClose={() => setDeleteConfirm(null)} onConfirm={handleDeleteConfirm} title="Hapus file?" message={`File "${deleteConfirm?.original_name || ''}" akan dihapus dari server.`} />
 
             {/* REVIEW MODAL */}
             <Modal open={reviewOpen} onClose={() => setReviewOpen(false)} title="Kirim Review & Testimoni" footer={

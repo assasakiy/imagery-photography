@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import api from '../api';
 import Icon from '../components/Icon';
 import { useAuth } from '../context/AuthContext';
-import { Spinner, EmptyState, Modal, useToast } from '../components/ui';
+import { Spinner, EmptyState, Modal, Confirm, useToast } from '../components/ui';
 
 function formatBytes(bytes) {
     if (bytes === null || bytes === undefined) return '-';
@@ -22,6 +22,8 @@ export default function PreviewDetail() {
     const [selecting, setSelecting] = useState(false);
     const [selected, setSelected] = useState(new Set());
     const [viewing, setViewing] = useState(null);
+    const [removing, setRemoving] = useState(null);
+    const [bulkOpen, setBulkOpen] = useState(false);
     const { show, node } = useToast();
 
     const load = () => {
@@ -92,26 +94,33 @@ export default function PreviewDetail() {
         show(`${selected.size} file HD diunduh.`, 'success');
     };
 
-    const removeFile = async (file) => {
-        if (!confirm('Hapus file aset ini?')) return;
+    const removeFile = (file) => {
+        setRemoving(file);
+    };
+
+    const handleRemoveFile = async () => {
+        if (!removing) return;
         try {
-            await api.delete(`/files/${file.id}`);
+            await api.delete(`/files/${removing.id}`);
             show('File dihapus.', 'success');
+            setRemoving(null);
             load();
         } catch (err) {
             show(err.response?.data?.message || 'Gagal menghapus file.', 'error');
+            setRemoving(null);
         }
     };
 
-    const bulkDelete = async () => {
-        if (!confirm(`Hapus ${selected.size} file aset?`)) return;
+    const handleBulkDelete = async () => {
         try {
             await api.delete('/files/bulk', { data: { ids: [...selected] } });
             show('File dihapus.', 'success');
+            setBulkOpen(false);
             cancelSelect();
             load();
         } catch (err) {
             show(err.response?.data?.message || 'Gagal menghapus file.', 'error');
+            setBulkOpen(false);
         }
     };
 
@@ -173,7 +182,7 @@ export default function PreviewDetail() {
                             <button
                                 className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-semibold text-red-600 transition-colors hover:bg-red-500/10 disabled:opacity-40"
                                 disabled={selected.size === 0}
-                                onClick={bulkDelete}
+                                onClick={() => setBulkOpen(true)}
                                 title={`Hapus ${selected.size} file`}
                             >
                                 <Icon name="trash" size={16} /> Hapus ({selected.size})
@@ -253,7 +262,7 @@ export default function PreviewDetail() {
                                                     <Icon name="download" size={16} />
                                                 </button>
                                             )}
-                                            <button onClick={() => removeFile(f)} className="rounded-lg bg-white p-2 text-red-600" title="Hapus">
+                                            <button onClick={() => setRemoving(f)} className="rounded-lg bg-white p-2 text-red-600" title="Hapus">
                                                 <Icon name="trash" size={16} />
                                             </button>
                                         </div>
@@ -280,6 +289,9 @@ export default function PreviewDetail() {
                     )}
                 </div>
             </Modal>
+
+            <Confirm open={!!removing} onClose={() => setRemoving(null)} onConfirm={handleRemoveFile} title="Hapus file?" message={`File "${removing?.name || ''}" akan dihapus dari server.`} />
+            <Confirm open={bulkOpen} onClose={() => setBulkOpen(false)} onConfirm={handleBulkDelete} title="Hapus file terpilih?" message={`${selected.size} file aset akan dihapus dari server.`} />
             {node}
         </>
     );
