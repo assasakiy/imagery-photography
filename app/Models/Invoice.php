@@ -35,8 +35,15 @@ class Invoice extends Model
 
     public static function nextNumber(): string
     {
+        $siteName = app(\App\Services\RuntimeSettings::class)->siteName();
+        $words = preg_split("/\s+/", strtoupper(trim($siteName)));
+        $abbr = count($words) >= 2
+            ? implode('', array_map(fn($w) => mb_substr($w, 0, 1), array_slice($words, 0, 3)))
+            : mb_substr($words[0] ?? 'SYS', 0, 3);
+        $abbr = $abbr ?: 'SYS';
+
         $dateStr = now()->format('ymd');
-        $prefix = "INV-DAY-{$dateStr}-";
+        $prefix = "INV-{$abbr}-{$dateStr}-";
         $last = static::where('number', 'like', $prefix . '%')->orderByDesc('id')->value('number');
         $seq = $last ? ((int) substr($last, -4)) + 1 : 1;
 

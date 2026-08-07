@@ -69,8 +69,15 @@ class Booking extends Model
 
     public static function nextNumber(): string
     {
+        $siteName = app(\App\Services\RuntimeSettings::class)->siteName();
+        $words = preg_split("/\s+/", strtoupper(trim($siteName)));
+        $abbr = count($words) >= 2
+            ? implode('', array_map(fn($w) => mb_substr($w, 0, 1), array_slice($words, 0, 3)))
+            : mb_substr($words[0] ?? 'SYS', 0, 3);
+        $abbr = $abbr ?: 'SYS';
+
         $dateStr = now()->format('ymd');
-        $prefix = "BK-DAY-{$dateStr}-";
+        $prefix = "BK-{$abbr}-{$dateStr}-";
         $last = static::where('booking_no', 'like', $prefix . '%')->orderByDesc('id')->value('booking_no');
         $seq = $last ? ((int) substr($last, -4)) + 1 : 1;
 
