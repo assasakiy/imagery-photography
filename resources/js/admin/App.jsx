@@ -139,8 +139,8 @@ function AppRoutes() {
                 <Route path="invoices" element={<Protected adminOnly><Invoices /></Protected>} />
                 <Route path="client-bookings" element={<Protected notStaffCase><ClientBookings /></Protected>} />
                 <Route path="client-invoices" element={<Protected notStaffCase><ClientInvoices /></Protected>} />
-                <Route path="preview" element={<Protected notStaffCase><Preview /></Protected>} />
-                <Route path="preview/:id" element={<Protected notStaffCase><PreviewDetail /></Protected>} />
+                <Route path="preview" element={<Preview />} />
+                <Route path="preview/:id" element={<PreviewDetail />} />
                 <Route path="client-messages" element={<Protected notStaffCase><ClientMessages /></Protected>} />
                 <Route path="bookmarks" element={<Protected notStaffCase><Bookmarks /></Protected>} />
                 <Route path="history" element={<Protected notStaffCase><History /></Protected>} />

@@ -119,8 +119,9 @@ export default function ProjectDetail() {
     const editGrandTotal = (hasPhoto ? photoTotal : 0) + (hasVideo ? videoTotal : 0);
 
     const progressUpdates = (project.updates || []).filter((u) => u.message.startsWith('Proses editing'));
-    // Hanya foto + video preview yg tampil di kartu (video original = satu kartu via asset_key).
-    const galleryFiles = (project.files || []).filter((f) => f.category !== 'video' || f.variant === 'preview');
+    // Grid di halaman proyek hanya menampilkan file REKAM/detail (bukti mulai/selesai sesi — legacy tanpa media_id).
+    // Aset final (milik klien, upload via Spatie) tampil di halaman PREVIEW saja.
+    const galleryFiles = (project.files || []).filter((f) => !f.media_id);
     const fmtLog = (v) => {
         if (!v) return '-';
         const d = new Date(v);
@@ -314,19 +315,6 @@ export default function ProjectDetail() {
             show('Link pratinjau disalin.', 'success');
         } catch {
             show('Gagal menyalin link.', 'error');
-        }
-    };
-
-    const togglePreviewRelease = async () => {
-        setSaving(true);
-        try {
-            await api.patch(`/projects/${id}/preview-release`, { preview_released: !project.preview_released });
-            show(project.preview_released ? 'Link pratinjau disembunyikan.' : 'Link pratinjau dibagikan ke klien.', 'success');
-            load();
-        } catch (err) {
-            show(err.response?.data?.message || 'Gagal mengubah status link.', 'error');
-        } finally {
-            setSaving(false);
         }
     };
 
@@ -665,6 +653,7 @@ export default function ProjectDetail() {
                                     </div>
                                     <div className="mt-5 border-t border-line pt-5">
                                         <p className="mb-2 text-sm font-semibold text-ink">Unggah file final</p>
+                                        <p className="mb-3 text-xs text-ink-muted">File final = aset klien, tampil di halaman <Link to={previewHref} className="text-brand-600 underline">Preview</Link> (bukan di halaman ini).</p>
                                         {hasPhoto && (
                                             <>
                                                 <button type="button" className="btn-outline flex w-full flex-col items-center justify-center gap-1 border-dashed py-6 text-center hover:bg-surface-muted/50" onClick={() => photoRef.current?.click()} disabled={formLocked || uploading}>
@@ -758,17 +747,6 @@ export default function ProjectDetail() {
                                     <button type="button" className="btn-outline shrink-0 !px-2 !py-1 text-xs" onClick={copyPreviewLink}><Icon name="copy" size={14} /> Salin</button>
                                     <a className="btn-outline shrink-0 !px-2 !py-1 text-xs" href={previewLink} target="_blank" rel="noreferrer"><Icon name="globe" size={14} /> Buka</a>
                                 </div>
-                            )}
-                            {isAdmin && (
-                                <button type="button" onClick={togglePreviewRelease} disabled={formLocked || saving} className="mt-4 flex w-full items-center justify-between gap-4 rounded-xl border border-line p-4 text-left hover:bg-surface-muted/30">
-                                    <div>
-                                        <p className="text-sm font-semibold text-ink">Tampilkan & kirim link ke klien</p>
-                                        <p className="mt-0.5 text-xs text-ink-muted">Klien akan menerima link ini via email/WhatsApp begitu diaktifkan</p>
-                                    </div>
-                                    <span className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors ${project.preview_released ? 'bg-emerald-500' : 'bg-zinc-300 dark:bg-zinc-700'}`}>
-                                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${project.preview_released ? 'translate-x-6' : 'translate-x-1'}`} />
-                                    </span>
-                                </button>
                             )}
                             {project.invoice ? (
                                 <div className="mt-4 flex items-center justify-between gap-3 rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-4">

@@ -13,6 +13,7 @@ const adminNav = [
     { to: '/dashboard/services', icon: 'briefcase', label: 'Layanan' },
     { to: '/dashboard/clients', icon: 'users', label: 'Klien' },
     { to: '/dashboard/projects', icon: 'folder-open', label: 'Proyek' },
+    { to: '/dashboard/preview', icon: 'image', label: 'Preview' },
     { to: '/dashboard/invoices', icon: 'file-text', label: 'Tagihan' },
     { to: '/dashboard/payments', icon: 'credit-card', label: 'Pembayaran' },
     { to: '/dashboard/messages', icon: 'message-circle', label: 'Pesan' },

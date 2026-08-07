@@ -107,7 +107,6 @@ Route::middleware(['web', 'auth:sanctum', 'maintenance'])->group(function () {
         Route::patch('/projects/{project}/archive', [ProjectController::class, 'archive']);
         Route::patch('/projects/{project}/restore', [ProjectController::class, 'restore']);
         Route::patch('/projects/{project}/gallery-status', [ProjectController::class, 'setGalleryStatus']);
-        Route::patch('/projects/{project}/preview-release', [ProjectController::class, 'setPreviewRelease']);
 
         Route::get('/bookings', [BookingApiController::class, 'index']);
         Route::get('/bookings/{booking}', [BookingApiController::class, 'show']);

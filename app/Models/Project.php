@@ -32,7 +32,7 @@ class Project extends Model implements HasMedia
     protected $fillable = [
         'user_id', 'name', 'order_no', 'package_id', 'event_date', 'event_start', 'event_end', 'description',
         'location', 'price', 'pricing_snapshot', 'status', 'shooting_at', 'editing_at', 'awaiting_payment_at', 'completed_at',
-        'client_notes', 'preview_released',
+        'client_notes',
         'photo_total', 'photo_done', 'video_total', 'video_done',
     ];
 
@@ -50,7 +50,6 @@ class Project extends Model implements HasMedia
             'completed_at' => 'datetime',
             'archived_at' => 'datetime',
             'deleted_at' => 'datetime',
-            'preview_released' => 'boolean',
         ];
     }
 

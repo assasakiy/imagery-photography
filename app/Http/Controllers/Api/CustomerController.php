@@ -185,7 +185,7 @@ class CustomerController extends Controller
 
         $projects = $projectsQuery->with(['files.media', 'payments', 'invoice', 'accessTokens'])->latest()->get();
 
-        return response()->json($projects->filter(fn ($p) => $p->files->filter(fn ($f) => $f->category !== 'video' || $f->variant === 'preview')->count() > 0)->map(function ($p) {
+        return response()->json($projects->filter(fn ($p) => $p->files->filter(fn ($f) => $f->media_id && ($f->category !== 'video' || $f->variant === 'preview'))->count() > 0)->map(function ($p) {
             return [
                 'id' => $p->id,
                 'order_no' => $p->order_no,
@@ -195,7 +195,7 @@ class CustomerController extends Controller
                 'is_paid' => $p->isPaid(),
                 'access_url' => $p->accessTokens()->valid()->latest('id')->first()?->url,
                 'files' => $p->files
-                    ->filter(fn ($f) => $f->category !== 'video' || $f->variant === 'preview')
+                    ->filter(fn ($f) => $f->media_id && ($f->category !== 'video' || $f->variant === 'preview'))
                     ->map(function ($f) {
                         $available = $f->isPreviewAvailable();
 
