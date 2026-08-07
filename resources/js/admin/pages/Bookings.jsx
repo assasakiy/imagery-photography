@@ -144,7 +144,7 @@ export default function Bookings() {
         <>
             <PageHeader title="Booking" subtitle="Kelola permintaan pemesanan dari klien." />
 
-            <div className="mb-5 flex items-center gap-3">
+            <div className="mb-4 flex items-center gap-3 border-b border-line pb-4">
                 <div className="flex flex-nowrap items-center gap-2 overflow-x-auto">
                     {STATUS_TABS.map((t) => (
                         <button
