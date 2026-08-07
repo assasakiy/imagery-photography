@@ -431,13 +431,17 @@ export default function Projects() {
                             <textarea className="input min-h-[80px]" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
                         </Field>
                     </div>
-                    <Field label="Harga (Rp)" hint="opsional" error={errors.price?.[0]}>
-                        <input className="input" type="number" min="0" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} />
-                    </Field>
-                    {isAdmin && (
-                        <Field label="DP / Uang Muka (Rp)" hint="opsional. Kosongkan jika deal pembayaran di belakang." error={errors.dp_amount?.[0]}>
-                            <input className="input" type="number" min="0" value={form.dp_amount} onChange={(e) => setForm({ ...form, dp_amount: e.target.value })} placeholder="mis. 500000" />
+                    <div className="sm:col-span-2">
+                        <Field label="Harga (Rp)" hint="opsional" error={errors.price?.[0]}>
+                            <input className="input" type="number" min="0" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} />
                         </Field>
+                    </div>
+                    {isAdmin && (
+                        <div className="sm:col-span-2">
+                            <Field label="DP / Uang Muka (Rp)" hint="opsional. Kosongkan jika deal pembayaran di belakang." error={errors.dp_amount?.[0]}>
+                                <input className="input" type="number" min="0" value={form.dp_amount} onChange={(e) => setForm({ ...form, dp_amount: e.target.value })} placeholder="mis. 500000" />
+                            </Field>
+                        </div>
                     )}
                 </form>
             </Modal>

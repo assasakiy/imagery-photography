@@ -419,12 +419,16 @@ export default function Bookings() {
                         </Field>
                     </div>
 
-                    <Field label="Harga (Rp)" error={errors.price?.[0]}>
-                        <input className="input" type="number" min="0" value={acceptForm.price} onChange={(e) => setAcceptForm({ ...acceptForm, price: e.target.value })} />
-                    </Field>
-                    <Field label="DP / Uang Muka (Rp)" hint="opsional. Kosongkan jika deal pembayaran di belakang." error={errors.dp_amount?.[0]}>
-                        <input className="input" type="number" min="0" value={acceptForm.dp_amount} onChange={(e) => setAcceptForm({ ...acceptForm, dp_amount: e.target.value })} placeholder="mis. 500000" />
-                    </Field>
+                    <div className="sm:col-span-2">
+                        <Field label="Harga (Rp)" error={errors.price?.[0]}>
+                            <input className="input" type="number" min="0" value={acceptForm.price} onChange={(e) => setAcceptForm({ ...acceptForm, price: e.target.value })} />
+                        </Field>
+                    </div>
+                    <div className="sm:col-span-2">
+                        <Field label="DP / Uang Muka (Rp)" hint="opsional. Kosongkan jika deal pembayaran di belakang." error={errors.dp_amount?.[0]}>
+                            <input className="input" type="number" min="0" value={acceptForm.dp_amount} onChange={(e) => setAcceptForm({ ...acceptForm, dp_amount: e.target.value })} placeholder="mis. 500000" />
+                        </Field>
+                    </div>
                 </form>
                 <p className="mt-3 text-xs text-ink-muted">Aksi ini akan membuat Proyek (dan Invoice bila DP diisi). Booking akan masuk ke histori.</p>
             </Modal>
