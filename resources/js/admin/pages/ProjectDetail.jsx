@@ -61,6 +61,7 @@ export default function ProjectDetail() {
     const [step, setStep] = useState(null);
     const [uploading, setUploading] = useState(false);
     const [progressForm, setProgressForm] = useState({ total: '', done: '' });
+    const [fieldNote, setFieldNote] = useState('');
     const [saving, setSaving] = useState(false);
     const [reviewOpen, setReviewOpen] = useState(false);
     const [reviewForm, setReviewForm] = useState({ rating: 5, title: '', content: '', recommend_score: 10 });
@@ -104,6 +105,18 @@ export default function ProjectDetail() {
         }
     }
     const progressPct = totalCount > 0 ? Math.min(100, Math.round((doneCount / totalCount) * 100)) : 0;
+
+    const advanceFromShooting = async () => {
+        if (fieldNote.trim()) {
+            try {
+                await api.post(`/projects/${id}/updates`, { message: `Catatan dari lapangan: ${fieldNote}` });
+            } catch (e) {
+                // Abaikan gagal log
+            }
+        }
+        setFieldNote('');
+        advance();
+    };
 
     const advance = async () => {
         setSaving(true);
@@ -379,21 +392,31 @@ export default function ProjectDetail() {
                         <PanelHeader
                             icon="camera"
                             iconCls="bg-sky-500/15 text-sky-600 dark:text-sky-400"
-                            title="Pemotretan Sedang Berlangsung"
-                            subtitle="Tim sedang / segera tiba di lokasi acara."
+                            title="Bukti Pemotretan"
+                            subtitle="Waktu acara sudah tercapai. Unggah 1–2 foto sebagai bukti sesi berlangsung, lalu tandai selesai setelah acara rampung."
                         />
                         <div className="p-5">
                             {isAdmin && isCurrentStep && (
-                                <div className="mb-4">
-                                    <p className="mb-2 text-sm font-semibold text-ink">Upload Bukti Pemotretan</p>
-                                    <button className="btn-outline" onClick={() => fileRef.current?.click()} disabled={uploading}>
-                                        <Icon name="upload" size={16} /> {uploading ? 'Mengupload...' : 'Upload Gambar'}
-                                    </button>
-                                    <input ref={fileRef} type="file" className="hidden" onChange={uploadFile} />
+                                <div className="space-y-4">
+                                    <div className="border-b border-line pb-4">
+                                        <p className="mb-2 text-sm font-semibold text-ink">Unggah bukti (1–2 foto)</p>
+                                        <button className="btn-outline flex w-full flex-col items-center justify-center gap-1 border-dashed py-6 text-center hover:bg-surface-muted/50" onClick={() => fileRef.current?.click()} disabled={uploading}>
+                                            <Icon name="camera" size={24} className="mb-1 text-ink-muted" />
+                                            <span className="font-semibold text-ink">{uploading ? 'Mengupload...' : 'Seret foto ke sini atau klik untuk unggah'}</span>
+                                            <span className="text-xs text-ink-muted">JPG/PNG, maks. 2 foto</span>
+                                        </button>
+                                        <input ref={fileRef} type="file" className="hidden" onChange={uploadFile} />
+                                    </div>
+                                    <div>
+                                        <Field label="Catatan dari lapangan" hint="opsional">
+                                            <textarea className="input" placeholder="Contoh: cuaca cerah, sesi selesai lebih cepat dari jadwal..." rows="2" value={fieldNote} onChange={(e) => setFieldNote(e.target.value)} />
+                                        </Field>
+                                    </div>
                                 </div>
                             )}
+
                             {project.files?.length > 0 && (
-                                <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 lg:grid-cols-6">
+                                <div className="mt-4 grid grid-cols-3 gap-3 sm:grid-cols-4 lg:grid-cols-6">
                                     {project.files.map((f) => (
                                         <div key={f.id} className="group relative aspect-square overflow-hidden rounded-xl bg-surface-muted">
                                             <img src={f.url} className="h-full w-full object-cover" alt="" />
@@ -406,12 +429,12 @@ export default function ProjectDetail() {
                                     ))}
                                 </div>
                             )}
-                            <button className="btn-outline mt-4" onClick={openChat}><Icon name="message-circle" size={16} /> Kirim Pesan Pesanan Ini</button>
+                            <button className="btn-outline mt-6" onClick={openChat}><Icon name="message-circle" size={16} /> Kirim Pesan Pesanan Ini</button>
                         </div>
                         {isAdmin && isCurrentStep && (
                             <PanelFooter>
-                                <button className="btn-primary" onClick={advance} disabled={saving}>
-                                    Tandai Pemotretan Selesai <Icon name="arrow-right" size={16} />
+                                <button className="btn-primary" onClick={advanceFromShooting} disabled={saving}>
+                                    Tandai pemotretan selesai
                                 </button>
                             </PanelFooter>
                         )}
@@ -602,26 +625,6 @@ export default function ProjectDetail() {
                                 <button className="btn-primary" onClick={restore} disabled={saving}><Icon name="refresh" size={16} /> Pulihkan Pesanan</button>
                             </PanelFooter>
                         )}
-                    </div>
-                )}
-
-                {/* TIMELINE LOG */}
-                {isAdmin && (
-                    <div className="card p-5">
-                        <h3 className="mb-4 flex items-center gap-2 font-semibold text-ink"><Icon name="clock" size={16} /> Catatan Riwayat</h3>
-                        <div className="relative ml-2 space-y-5 border-l-2 border-line/50 pl-5">
-                            {project.updates?.length ? (
-                                project.updates.map((u) => (
-                                    <div key={u.id} className="relative">
-                                        <span className={`absolute -left-[27px] top-1.5 h-2.5 w-2.5 rounded-full ring-4 ring-surface ${u.kind === 'system' ? 'bg-brand-500' : 'bg-zinc-400 dark:bg-zinc-600'}`} />
-                                        <p className={`text-sm ${u.kind === 'system' ? 'text-ink' : 'text-ink-muted'}`}>{u.message}</p>
-                                        <p className="mt-0.5 text-xs text-ink-muted/80">{u.kind === 'system' ? 'Sistem' : u.user?.name || 'Admin'} · {formatDate(u.created_at)}</p>
-                                    </div>
-                                ))
-                            ) : (
-                                <p className="text-sm text-ink-muted">Belum ada riwayat tercatat.</p>
-                            )}
-                        </div>
                     </div>
                 )}
             </div>
