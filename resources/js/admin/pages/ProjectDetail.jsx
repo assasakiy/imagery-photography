@@ -123,7 +123,18 @@ export default function ProjectDetail() {
     const progressUpdates = (project.updates || []).filter((u) => u.message.startsWith('Proses editing'));
     // Grid di halaman proyek hanya menampilkan file REKAM/detail (bukti mulai/selesai sesi — legacy tanpa media_id).
     // Aset final (milik klien, upload via Spatie) tampil di halaman PREVIEW saja.
-    const galleryFiles = (project.files || []).filter((f) => !f.media_id);
+    const recordFiles = (project.files || []).filter((f) => !f.media_id);
+    const galleryFiles = recordFiles;
+    const recordStart = recordFiles[0];
+    const recordEnd = recordFiles[1];
+    const assets = (project.files || []).filter((f) => f.media_id);
+    const photoAssetCount = assets.filter((f) => f.category === 'photo').length;
+    const videoAssetCount = assets.filter((f) => f.category === 'video' && f.variant === 'preview').length;
+    const pastScheduled = currentIdx > 0;
+    const pastShooting = currentIdx > 1;
+    const pastEditing = currentIdx > 2;
+    const proofStartUploaded = !!recordStart;
+    const proofEndUploaded = !!recordEnd;
     const fmtLog = (v) => {
         if (!v) return '-';
         const d = new Date(v);
@@ -464,7 +475,7 @@ export default function ProjectDetail() {
                                 </div>
                             )}
 
-                            {isAdmin && (
+                            {isAdmin && !pastScheduled && !proofStartUploaded && (
                                 <div className="mt-6 border-t border-line pt-4">
                                     <p className="mb-2 text-sm font-semibold text-ink">Unggah bukti mulai sesi</p>
                                     <button className="btn-outline flex w-full flex-col items-center justify-center gap-1 border-dashed py-6 text-center hover:bg-surface-muted/50" onClick={() => fileRef.current?.click()} disabled={formLocked || uploading}>
@@ -473,6 +484,18 @@ export default function ProjectDetail() {
                                         <span className="text-xs text-ink-muted">Foto ini menjadi penanda waktu sesi resmi dimulai</span>
                                     </button>
                                     <input ref={fileRef} type="file" className="hidden" onChange={uploadFile} disabled={formLocked} />
+                                </div>
+                            )}
+
+                            {isAdmin && proofStartUploaded && (
+                                <div className="mt-6 flex items-center gap-3 rounded-xl border border-line bg-surface-muted/30 p-4">
+                                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-emerald-500/15 text-emerald-600">
+                                        <Icon name="check" size={18} />
+                                    </span>
+                                    <div className="min-w-0">
+                                        <p className="font-semibold text-ink">Bukti mulai sesi</p>
+                                        <p className="font-mono text-xs text-ink-muted">Diunggah {formatDate(recordStart.created_at)}</p>
+                                    </div>
                                 </div>
                             )}
 
@@ -498,19 +521,19 @@ export default function ProjectDetail() {
                             subtitle={isAdmin ? "Bukti mulai sudah tercatat. Unggah bukti selesai lalu konfirmasi untuk memindahkan proyek ke tahap Editing." : "Sesi pemotretan sedang berlangsung — bukti mulai sesi sudah tercatat."}
                         />
                         <div className="p-5">
-                            {project.files?.length > 0 && (
+                            {proofStartUploaded && (
                                 <div className="flex items-center gap-3 rounded-xl border border-line bg-surface-muted/30 p-4">
                                     <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-emerald-500/15 text-emerald-600">
                                         <Icon name="check" size={18} />
                                     </span>
                                     <div className="min-w-0">
                                         <p className="font-semibold text-ink">Bukti mulai sesi</p>
-                                        <p className="font-mono text-xs text-ink-muted">Diunggah {formatDate(project.files[0].created_at)}</p>
+                                        <p className="font-mono text-xs text-ink-muted">Diunggah {formatDate(recordStart.created_at)}</p>
                                     </div>
                                 </div>
                             )}
 
-                            {isAdmin && (
+                            {isAdmin && !pastShooting && !proofEndUploaded && (
                                 <div className="mt-5">
                                     <div className="border-t border-line pt-5">
                                         <p className="mb-2 text-sm font-semibold text-ink">Unggah bukti selesai sesi</p>
@@ -526,6 +549,18 @@ export default function ProjectDetail() {
                                         <Field label="Catatan dari lapangan" hint="opsional">
                                             <textarea className="input" placeholder="Contoh: cuaca cerah, sesi selesai lebih cepat dari jadwal..." rows="2" value={fieldNote} onChange={(e) => setFieldNote(e.target.value)} disabled={formLocked} />
                                         </Field>
+                                    </div>
+                                </div>
+                            )}
+
+                            {proofEndUploaded && (
+                                <div className="mt-5 flex items-center gap-3 rounded-xl border border-line bg-surface-muted/30 p-4">
+                                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-emerald-500/15 text-emerald-600">
+                                        <Icon name="check" size={18} />
+                                    </span>
+                                    <div className="min-w-0">
+                                        <p className="font-semibold text-ink">Bukti selesai sesi</p>
+                                        <p className="font-mono text-xs text-ink-muted">Diunggah {formatDate(recordEnd.created_at)}</p>
                                     </div>
                                 </div>
                             )}
@@ -552,7 +587,7 @@ export default function ProjectDetail() {
                         </div>
                         {isAdmin && (
                             <PanelFooter>
-                                <button className="btn-primary" onClick={confirmShootingDone} disabled={formLocked || saving || !endProof}>
+                                <button className="btn-primary" onClick={confirmShootingDone} disabled={formLocked || saving || (!endProof && !proofEndUploaded)}>
                                     Konfirmasi selesai & lanjut ke Editing
                                 </button>
                             </PanelFooter>
@@ -593,7 +628,15 @@ export default function ProjectDetail() {
                                 </div>
                             )}
                             {isAdmin && (
+                                <div className="mt-4 flex flex-wrap items-center gap-2 rounded-xl border border-line bg-surface-muted/30 px-4 py-3 text-sm">
+                                    <Icon name="images" size={16} className="text-ink-muted" />
+                                    <span className="font-medium text-ink">{photoAssetCount} foto · {videoAssetCount} video diupload</span>
+                                    <span className="text-xs text-ink-muted">— kelola di halaman <Link to={previewHref} className="text-brand-600 underline">Preview</Link></span>
+                                </div>
+                            )}
+                            {isAdmin && (
                                 <>
+                                    {!pastEditing && (
                                     <form onSubmit={saveEditProgress} className="mt-5 grid grid-cols-2 gap-4 border-t border-line pt-5">
                                         {hasPhoto && (
                                             <>
@@ -619,6 +662,7 @@ export default function ProjectDetail() {
                                             <button className="btn-primary" disabled={formLocked || saving}>{saving ? 'Menyimpan...' : 'Simpan Progres'}</button>
                                         </div>
                                     </form>
+                                    )}
                                     <div className="mt-5 border-t border-line pt-5">
                                         <p className="mb-3 text-sm font-semibold text-ink">Riwayat pembaruan</p>
                                         <div className="space-y-3">
@@ -633,17 +677,21 @@ export default function ProjectDetail() {
                                                 <p className="text-sm text-ink-muted">Belum ada pembaruan tercatat.</p>
                                             )}
                                         </div>
+                                        {!pastEditing && (
                                         <div className="mt-3 flex gap-2">
                                             <input className="input" placeholder="Tulis pembaruan progres..." value={editNote} onChange={(e) => setEditNote(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addEditNote(); } }} disabled={formLocked} />
                                             <button className="btn-outline shrink-0" onClick={addEditNote} disabled={formLocked || !editNote.trim()}>Tambah</button>
                                         </div>
+                                        )}
                                     </div>
                                     <div className="mt-5 border-t border-line pt-5">
                                         <p className="mb-2 text-sm font-semibold text-ink">Unggah file final</p>
                                         <p className="mb-3 text-xs text-ink-muted">File final = aset klien, tampil di halaman <Link to={previewHref} className="text-brand-600 underline">Preview</Link>. Buka popup untuk unggah foto/video.</p>
-                                        <button type="button" className="btn-primary w-full" onClick={() => setUploadOpen(true)} disabled={formLocked}>
-                                            <Icon name="upload" size={16} /> Unggah Foto & Video
-                                        </button>
+                                        {!pastEditing && (
+                                            <button type="button" className="btn-primary w-full" onClick={() => setUploadOpen(true)} disabled={formLocked}>
+                                                <Icon name="upload" size={16} /> Unggah Foto & Video
+                                            </button>
+                                        )}
                                     </div>
                                 </>
                             )}

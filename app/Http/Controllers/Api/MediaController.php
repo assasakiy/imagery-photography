@@ -13,7 +13,7 @@ class MediaController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Media::query();
+        $query = Media::query()->where('model_type', '!=', \App\Models\Project::class);
 
         // Visibilitas: milik sendiri ATAU ditandai publik.
         $query->where(fn ($w) => $w
