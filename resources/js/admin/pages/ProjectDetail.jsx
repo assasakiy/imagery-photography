@@ -842,6 +842,7 @@ export default function ProjectDetail() {
                 )}
 
                 {/* TIMELINE LOG */}
+                {project.status === 'archived' && (
                 <div className="card p-4 sm:p-5">
                     <h3 className="mb-4 flex items-center gap-2 font-semibold text-ink"><Icon name="clock" size={16} /> Catatan Riwayat</h3>
                     <div className="relative ml-1 space-y-5 border-l-2 border-line/50 pl-4 sm:ml-2 sm:pl-5">
@@ -858,6 +859,7 @@ export default function ProjectDetail() {
                         )}
                     </div>
                 </div>
+                )}
             </div>
 
             {/* DELETE CONFIRM */}
