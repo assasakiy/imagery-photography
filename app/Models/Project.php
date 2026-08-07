@@ -27,6 +27,7 @@ class Project extends Model
         'user_id', 'name', 'order_no', 'package_id', 'event_date', 'event_start', 'event_end', 'description',
         'price', 'pricing_snapshot', 'status', 'shooting_at', 'editing_at', 'awaiting_payment_at', 'completed_at',
         'client_notes', 'gallery_preview_released', 'gallery_released',
+        'photo_total', 'photo_done', 'video_total', 'video_done',
     ];
 
     protected function casts(): array

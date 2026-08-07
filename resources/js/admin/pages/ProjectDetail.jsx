@@ -61,7 +61,8 @@ export default function ProjectDetail() {
     const [step, setStep] = useState(null);
     const [updateText, setUpdateText] = useState('');
     const [uploading, setUploading] = useState(false);
-    const [progressForm, setProgressForm] = useState({ total: '', done: '' });
+    const [editForm, setEditForm] = useState({ photo_total: '', photo_done: '', video_total: '', video_done: '' });
+    const [editNote, setEditNote] = useState('');
     const [fieldNote, setFieldNote] = useState('');
     const [endProof, setEndProof] = useState(false);
     const [saving, setSaving] = useState(false);
@@ -75,6 +76,16 @@ export default function ProjectDetail() {
     };
 
     useEffect(load, [id]);
+
+    useEffect(() => {
+        if (!project) return;
+        setEditForm({
+            photo_total: project.photo_total || '',
+            photo_done: project.photo_done || '',
+            video_total: project.video_total || '',
+            video_done: project.video_done || '',
+        });
+    }, [project?.id]);
 
     if (loading) return <Spinner />;
     if (!project) return <EmptyState title="Pesanan tidak ditemukan" />;
@@ -95,18 +106,25 @@ export default function ProjectDetail() {
         : project.invoice?.status ? { label: 'Belum Bayar', cls: 'bg-zinc-500/15 text-zinc-600' }
         : null;
 
+    const mediaTypes = [...new Set((project.pricing_snapshot?.items || []).map((i) => i.media).filter(Boolean))];
+    const hasPhoto = mediaTypes.length === 0 || mediaTypes.includes('photo');
+    const hasVideo = mediaTypes.length === 0 || mediaTypes.includes('video');
+    const photoDone = Number(project.photo_done) || 0;
+    const photoTotal = Number(project.photo_total) || 0;
+    const videoDone = Number(project.video_done) || 0;
+    const videoTotal = Number(project.video_total) || 0;
+    const photoPct = photoTotal > 0 ? Math.min(100, Math.round((photoDone / photoTotal) * 100)) : 0;
+    const videoPct = videoTotal > 0 ? Math.min(100, Math.round((videoDone / videoTotal) * 100)) : 0;
+    const editAllDone = (!hasPhoto || (photoTotal > 0 && photoDone >= photoTotal)) && (!hasVideo || (videoTotal > 0 && videoDone >= videoTotal));
+    const editDoneTotal = (hasPhoto ? photoDone : 0) + (hasVideo ? videoDone : 0);
+    const editGrandTotal = (hasPhoto ? photoTotal : 0) + (hasVideo ? videoTotal : 0);
+
     const progressUpdates = (project.updates || []).filter((u) => u.message.startsWith('Proses editing'));
-    const lastProgress = progressUpdates[0];
-    let doneCount = 0;
-    let totalCount = 0;
-    if (lastProgress) {
-        const m = lastProgress.message.match(/(\d+)\s*\/\s*(\d+)/);
-        if (m) {
-            doneCount = Number(m[1]);
-            totalCount = Number(m[2]);
-        }
-    }
-    const progressPct = totalCount > 0 ? Math.min(100, Math.round((doneCount / totalCount) * 100)) : 0;
+    const fmtLog = (v) => {
+        if (!v) return '-';
+        const d = new Date(v);
+        return `${d.getDate()} ${d.toLocaleString('id-ID', { month: 'short' })}, ${d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}`;
+    };
 
     const confirmShootingDone = async () => {
         if (fieldNote.trim()) {
@@ -177,12 +195,31 @@ export default function ProjectDetail() {
         load();
     };
 
-    const submitProgress = async (e) => {
+    const saveEditProgress = async (e) => {
         e.preventDefault();
-        if (!progressForm.done) return;
-        await api.post(`/projects/${id}/updates`, { message: `Proses editing: ${progressForm.done}${progressForm.total ? `/${progressForm.total}` : ''} selesai dikerjakan.` });
-        setProgressForm({ total: '', done: '' });
-        show('Progres diperbarui.');
+        setSaving(true);
+        try {
+            await api.put(`/projects/${id}`, {
+                name: project.name,
+                photo_total: Number(editForm.photo_total) || 0,
+                photo_done: Number(editForm.photo_done) || 0,
+                video_total: Number(editForm.video_total) || 0,
+                video_done: Number(editForm.video_done) || 0,
+            });
+            show('Progres editing tersimpan.', 'success');
+            load();
+        } catch (err) {
+            show(err.response?.data?.message || 'Gagal menyimpan progres.', 'error');
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const addEditNote = async () => {
+        if (!editNote.trim()) return;
+        await api.post(`/projects/${id}/updates`, { message: `Proses editing: ${editNote.trim()}` });
+        setEditNote('');
+        show('Pembaruan ditambahkan.');
         load();
     };
 
@@ -476,55 +513,124 @@ export default function ProjectDetail() {
                         <PanelHeader
                             icon="edit"
                             iconCls="bg-indigo-500/15 text-indigo-600 dark:text-indigo-400"
-                            title="Proses Editing"
-                            subtitle="Tim sedang mengedit file media pesanan Anda."
+                            title="Progres Editing"
+                            subtitle="Perbarui jumlah media dan progres yang sudah diedit secara berkala. Klien dapat melihat ringkasan progres ini."
                         />
                         <div className="p-5">
-                            <div className="mb-4 rounded-xl bg-surface-muted p-4">
-                                <div className="flex items-center justify-between">
-                                    <p className="text-sm font-semibold text-ink">Progres Editing</p>
-                                    {totalCount > 0 && <p className="text-sm font-bold text-brand-600 dark:text-brand-400">{progressPct}%</p>}
+                            {hasPhoto && (
+                                <div className="mb-4">
+                                    <div className="mb-1 flex items-center justify-between">
+                                        <span className="text-sm font-medium text-ink">Foto diedit</span>
+                                        <span className="font-mono text-sm font-semibold text-ink">{photoDone} / {photoTotal}</span>
+                                    </div>
+                                    <div className="h-2 w-full overflow-hidden rounded-full bg-surface-strong">
+                                        <div className="h-full rounded-full bg-indigo-500 transition-all" style={{ width: `${photoPct}%` }} />
+                                    </div>
                                 </div>
-                                <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-surface-strong">
-                                    <div className="h-full rounded-full bg-brand-600 transition-all" style={{ width: `${progressPct}%` }} />
+                            )}
+                            {hasVideo && (
+                                <div className="mb-4">
+                                    <div className="mb-1 flex items-center justify-between">
+                                        <span className="text-sm font-medium text-ink">Video diedit</span>
+                                        <span className="font-mono text-sm font-semibold text-ink">{videoDone} / {videoTotal}</span>
+                                    </div>
+                                    <div className="h-2 w-full overflow-hidden rounded-full bg-surface-strong">
+                                        <div className="h-full rounded-full bg-indigo-500 transition-all" style={{ width: `${videoPct}%` }} />
+                                    </div>
                                 </div>
-                                {lastProgress ? (
-                                    <p className="mt-2 text-sm text-ink-muted">{lastProgress.message}</p>
-                                ) : (
-                                    <p className="mt-2 text-sm text-ink-muted">Belum ada progres tercatat.</p>
-                                )}
-                            </div>
+                            )}
                             {isAdmin && isCurrentStep && (
                                 <>
-                                    <form onSubmit={submitProgress} className="mb-4 border-t border-line pt-4">
-                                        <p className="mb-2 text-sm font-semibold text-ink">Update Progres Baru</p>
-                                        <div className="flex flex-wrap items-end gap-3">
-                                            <Field label="Total Item">
-                                                <input className="input" type="number" min="0" value={progressForm.total} onChange={(e) => setProgressForm({ ...progressForm, total: e.target.value })} placeholder="mis. 300" />
-                                            </Field>
-                                            <Field label="Selesai" required>
-                                                <input className="input" type="number" min="0" value={progressForm.done} onChange={(e) => setProgressForm({ ...progressForm, done: e.target.value })} required placeholder="mis. 150" />
-                                            </Field>
-                                            <button className="btn-primary">Update Progres</button>
+                                    <form onSubmit={saveEditProgress} className="mt-5 grid grid-cols-2 gap-4 border-t border-line pt-5">
+                                        {hasPhoto && (
+                                            <>
+                                                <Field label="Total foto">
+                                                    <input className="input" type="number" min="0" value={editForm.photo_total} onChange={(e) => setEditForm({ ...editForm, photo_total: e.target.value })} placeholder="mis. 480" />
+                                                </Field>
+                                                <Field label="Foto sudah diedit">
+                                                    <input className="input" type="number" min="0" value={editForm.photo_done} onChange={(e) => setEditForm({ ...editForm, photo_done: e.target.value })} placeholder="mis. 210" />
+                                                </Field>
+                                            </>
+                                        )}
+                                        {hasVideo && (
+                                            <>
+                                                <Field label="Total video">
+                                                    <input className="input" type="number" min="0" value={editForm.video_total} onChange={(e) => setEditForm({ ...editForm, video_total: e.target.value })} placeholder="mis. 3" />
+                                                </Field>
+                                                <Field label="Video sudah diedit">
+                                                    <input className="input" type="number" min="0" value={editForm.video_done} onChange={(e) => setEditForm({ ...editForm, video_done: e.target.value })} placeholder="mis. 1" />
+                                                </Field>
+                                            </>
+                                        )}
+                                        <div className="col-span-2">
+                                            <button className="btn-primary" disabled={saving}>{saving ? 'Menyimpan...' : 'Simpan Progres'}</button>
                                         </div>
                                     </form>
-                                    <div className="border-t border-line pt-4">
-                                        <p className="mb-2 text-sm text-ink-muted">Upload hasil akhir untuk ditampilkan di preview.</p>
-                                        <button className="btn-outline" onClick={() => fileRef.current?.click()} disabled={uploading}>
-                                            <Icon name="upload" size={16} /> {uploading ? 'Mengupload...' : 'Upload ke Preview'}
+                                    <div className="mt-5 border-t border-line pt-5">
+                                        <p className="mb-3 text-sm font-semibold text-ink">Riwayat pembaruan</p>
+                                        <div className="space-y-3">
+                                            {progressUpdates.length ? (
+                                                progressUpdates.map((u) => (
+                                                    <div key={u.id} className="flex items-baseline gap-3">
+                                                        <span className="shrink-0 font-mono text-xs text-ink-muted">{fmtLog(u.created_at)}</span>
+                                                        <span className="text-sm text-ink-muted">{u.message.replace(/^Proses editing:\s*/, '')}</span>
+                                                    </div>
+                                                ))
+                                            ) : (
+                                                <p className="text-sm text-ink-muted">Belum ada pembaruan tercatat.</p>
+                                            )}
+                                        </div>
+                                        <div className="mt-3 flex gap-2">
+                                            <input className="input" placeholder="Tulis pembaruan progres..." value={editNote} onChange={(e) => setEditNote(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addEditNote(); } }} />
+                                            <button className="btn-outline shrink-0" onClick={addEditNote} disabled={!editNote.trim()}>Tambah</button>
+                                        </div>
+                                    </div>
+                                    <div className="mt-5 border-t border-line pt-5">
+                                        <p className="mb-2 text-sm font-semibold text-ink">Unggah file final</p>
+                                        <button type="button" className="btn-outline flex w-full flex-col items-center justify-center gap-1 border-dashed py-6 text-center hover:bg-surface-muted/50" onClick={() => fileRef.current?.click()} disabled={uploading}>
+                                            <Icon name="upload" size={22} className="mb-1 text-ink-muted" />
+                                            <span className="font-semibold text-ink">{uploading ? 'Mengupload...' : 'Unggah seluruh foto & video hasil edit'}</span>
+                                            <span className="text-xs text-ink-muted">Sistem akan membuat link preview otomatis setelah unggah selesai</span>
                                         </button>
                                         <input ref={fileRef} type="file" className="hidden" onChange={uploadFile} />
                                     </div>
                                 </>
                             )}
-                            <button className="btn-outline mt-4" onClick={openChat}><Icon name="message-circle" size={16} /> Chat Pesanan</button>
+                            {project.files?.length > 0 && (
+                                <div className="mt-5 grid grid-cols-3 gap-3 sm:grid-cols-4 lg:grid-cols-6">
+                                    {project.files.map((f) => (
+                                        <div key={f.id} className="group relative aspect-square overflow-hidden rounded-xl bg-surface-muted">
+                                            {f.mime?.startsWith('video') ? (
+                                                <video src={f.url} className="h-full w-full object-cover" />
+                                            ) : (
+                                                <img src={f.url} className="h-full w-full object-cover" alt="" />
+                                            )}
+                                            {isAdmin && isCurrentStep && (
+                                                <button className="absolute right-1 top-1 rounded bg-red-500 p-1.5 text-white opacity-0 transition-opacity group-hover:opacity-100" onClick={() => deleteFile(f)} aria-label="Hapus">
+                                                    <Icon name="trash" size={14} />
+                                                </button>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                            <button className="btn-outline mt-5" onClick={openChat}><Icon name="message-circle" size={16} /> Kirim Pesan Pesanan Ini</button>
                         </div>
                         {isAdmin && isCurrentStep && (
                             <PanelFooter>
-                                <button className="btn-primary" onClick={advance} disabled={saving}>
-                                    Lanjut ke Preview Tersedia <Icon name="arrow-right" size={16} />
+                                <button className="btn-primary" onClick={advance} disabled={saving || !editAllDone}>
+                                    Unggah file & lanjutkan ke Preview <Icon name="arrow-right" size={16} />
                                 </button>
                             </PanelFooter>
+                        )}
+                        {isAdmin && isCurrentStep && !editAllDone && (
+                            <div className="border-t border-line bg-surface-muted/50 px-5 py-3">
+                                <p className="text-xs text-ink-muted">
+                                    {editGrandTotal > 0
+                                        ? `Aktif setelah seluruh media ditandai selesai diedit (saat ini ${editDoneTotal}/${editGrandTotal}).`
+                                        : 'Aktif setelah kamu mengisi total media dan menandainya selesai diedit.'}
+                                </p>
+                            </div>
                         )}
                     </div>
                 )}

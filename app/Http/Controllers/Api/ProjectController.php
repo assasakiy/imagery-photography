@@ -98,6 +98,7 @@ class ProjectController extends Controller
                     'package_id' => $package->id,
                     'items' => $package->services->map(fn ($s) => [
                         'service' => $s->name,
+                        'media' => $s->media,
                         'price' => (float) $s->price,
                         'qty' => (int) $s->pivot->qty,
                         'line_total' => (float) $s->price * (int) $s->pivot->qty,
@@ -218,6 +219,10 @@ class ProjectController extends Controller
             'description' => 'nullable|string',
             'price' => 'nullable|numeric|min:0',
             'dp_amount' => 'nullable|numeric|min:0',
+            'photo_total' => 'nullable|integer|min:0',
+            'photo_done' => 'nullable|integer|min:0',
+            'video_total' => 'nullable|integer|min:0',
+            'video_done' => 'nullable|integer|min:0',
             'status' => 'nullable|in:' . implode(',', \App\Models\Project::STATUSES),
         ]);
 
@@ -233,6 +238,7 @@ class ProjectController extends Controller
                         'package_id' => $package->id,
                         'items' => $package->services->map(fn ($s) => [
                             'service' => $s->name,
+                            'media' => $s->media,
                             'price' => (float) $s->price,
                             'qty' => (int) $s->pivot->qty,
                             'line_total' => (float) $s->price * (int) $s->pivot->qty,

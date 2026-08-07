@@ -191,6 +191,7 @@ class BookingApiController extends Controller
             'package_id' => $package->id,
             'items' => $package->services->map(fn ($s) => [
                 'service' => $s->event,
+                'media' => $s->media,
                 'price' => (float) $s->price,
                 'qty' => (int) $s->pivot->qty,
                 'line_total' => (float) $s->price * (int) $s->pivot->qty,
