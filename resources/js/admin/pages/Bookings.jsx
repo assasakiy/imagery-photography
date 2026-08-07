@@ -7,6 +7,7 @@ const STATUS_META = {
     pending: { label: 'Menunggu', cls: 'bg-amber-500/15 text-amber-600 dark:text-amber-400' },
     confirmed: { label: 'Dikonfirmasi', cls: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' },
     rejected: { label: 'Ditolak', cls: 'bg-red-500/15 text-red-600 dark:text-red-400' },
+    cancelled: { label: 'Dibatalkan', cls: 'bg-red-500/15 text-red-600 dark:text-red-400' },
     expired: { label: 'Kedaluwarsa', cls: 'bg-zinc-500/15 text-ink-muted' },
     converted: { label: 'Jadi Proyek', cls: 'bg-brand-500/15 text-brand-600 dark:text-brand-400' },
 };
@@ -15,8 +16,9 @@ const STATUS_TABS = [
     { key: 'pending', label: 'Menunggu', icon: 'clock' },
     { key: 'confirmed', label: 'Dikonfirmasi', icon: 'check' },
     { key: 'rejected', label: 'Ditolak', icon: 'x' },
+    { key: 'cancelled', label: 'Dibatalkan', icon: 'x' },
     { key: 'expired', label: 'Kadaluarsa', icon: 'alert-triangle' },
-    { key: 'converted', label: 'Histori Proyek', icon: 'briefcase' },
+    { key: 'converted', label: 'Histori Pesanan', icon: 'briefcase' },
 ];
 
 export default function Bookings() {

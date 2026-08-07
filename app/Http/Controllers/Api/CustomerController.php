@@ -125,7 +125,7 @@ class CustomerController extends Controller
             abort(422, 'Hanya booking yang menunggu atau dikonfirmasi yang bisa dibatalkan.');
         }
 
-        $booking->update(['status' => 'rejected']);
+        $booking->update(['status' => 'cancelled']);
         
         app(\App\Services\AuditLogger::class)->log('booking.cancelled_by_client', 'Booking ' . $booking->booking_no . ' dibatalkan oleh klien.', $booking);
         

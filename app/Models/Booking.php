@@ -7,7 +7,7 @@ use Illuminate\Support\Str;
 
 class Booking extends Model
 {
-    public const STATUSES = ['pending', 'confirmed', 'rejected', 'expired', 'converted'];
+    public const STATUSES = ['pending', 'confirmed', 'rejected', 'cancelled', 'expired', 'converted'];
 
     protected $fillable = [
         'booking_no',
