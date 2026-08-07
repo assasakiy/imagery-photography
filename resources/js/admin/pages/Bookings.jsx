@@ -292,23 +292,44 @@ export default function Bookings() {
                                 <div className="flex h-12 w-12 items-center justify-center rounded-full bg-brand-500/15 text-brand-600">
                                     <Icon name="user" size={20} />
                                 </div>
-                                <div>
-                                    <h3 className="font-bold text-ink">{detail.name}</h3>
-                                    <p className="text-sm text-ink-muted">{detail.phone} {detail.phone && detail.email ? '·' : ''} {detail.email}</p>
+                                <div className="min-w-0">
+                                    <h3 className="font-bold text-ink truncate">{detail.name}</h3>
+                                    <p className="truncate text-sm text-ink-muted">{detail.phone} {detail.phone && detail.email ? '·' : ''} {detail.email}</p>
                                 </div>
-                                <div className="ml-auto">
+                                <div className="ml-auto shrink-0">
                                     <span className={`badge ${STATUS_META[detail.status]?.cls}`}>{STATUS_META[detail.status]?.label}</span>
                                 </div>
                             </div>
+
                             <div className="grid grid-cols-2 gap-4">
-                                <div><p className="text-xs text-ink-muted">No. Booking</p><p className="font-mono text-sm font-semibold">{detail.booking_no}</p></div>
-                                <div><p className="text-xs text-ink-muted">Paket</p><p className="text-sm font-semibold">{detail.package_label || '-'}</p></div>
-                                <div><p className="text-xs text-ink-muted">Jadwal Acara</p><p className="text-sm font-semibold">{detail.event_date ? formatDate(detail.event_date) : '-'}</p></div>
-                                <div><p className="text-xs text-ink-muted">Lokasi</p><p className="text-sm font-semibold">{detail.location || '-'}</p></div>
-                                <div><p className="text-xs text-ink-muted">Harga Disepakati</p><p className="text-sm font-semibold">{detail.price ? `Rp ${Number(detail.price).toLocaleString('id-ID')}` : '-'}</p></div>
+                                <div><p className="text-xs text-ink-muted">No. Booking</p><p className="font-mono text-sm font-semibold text-ink">{detail.booking_no}</p></div>
+                                <div><p className="text-xs text-ink-muted">Paket</p><p className="text-sm font-semibold text-ink">{detail.package_label || '-'}</p></div>
+                                <div><p className="text-xs text-ink-muted">Tanggal Acara</p><p className="text-sm font-semibold text-ink">{detail.event_date ? formatDate(detail.event_date) : '-'}</p></div>
+                                <div><p className="text-xs text-ink-muted">Waktu Acara</p>
+                                    <p className="text-sm font-semibold text-ink">
+                                        {detail.event_start ? detail.event_start.slice(11, 16) : '-'}
+                                        {detail.event_end ? ` - ${detail.event_end.slice(11, 16)}` : ''}
+                                        {!detail.event_start && !detail.event_end ? '-' : ''}
+                                    </p>
+                                </div>
+                                <div><p className="text-xs text-ink-muted">Lokasi</p><p className="text-sm font-semibold text-ink">{detail.location || '-'}</p></div>
+                                <div><p className="text-xs text-ink-muted">Harga</p><p className="text-sm font-semibold text-ink">{detail.price ? `Rp ${Number(detail.price).toLocaleString('id-ID')}` : '-'}</p></div>
+                                <div><p className="text-xs text-ink-muted">Dibuat</p><p className="text-sm font-semibold text-ink">{formatDate(detail.created_at)}</p></div>
+                                <div><p className="text-xs text-ink-muted">Klien</p>
+                                    <p className="text-sm font-semibold text-ink">
+                                        {detail.user?.username ? `@${detail.user.username}` : (detail.user?.profile?.full_name || '-')}
+                                    </p>
+                                </div>
                             </div>
+
                             {detail.notes && (
-                                <div><p className="text-xs text-ink-muted mb-1">Catatan</p><div className="rounded-xl bg-surface-muted p-3 text-sm">{detail.notes}</div></div>
+                                <div><p className="text-xs text-ink-muted mb-1">Catatan</p><div className="rounded-xl bg-surface-muted p-3 text-sm text-ink">{detail.notes}</div></div>
+                            )}
+
+                            {(detail.status === 'rejected' || detail.status === 'cancelled') && (
+                                <div className="rounded-xl border border-red-500/20 bg-red-500/5 p-3 text-sm text-red-600 dark:text-red-400">
+                                    Booking ini {detail.status === 'rejected' ? 'ditolak oleh admin' : 'dibatalkan oleh klien'}.
+                                </div>
                             )}
                         </div>
                     )
