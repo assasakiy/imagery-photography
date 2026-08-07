@@ -237,8 +237,7 @@ export default function Bookings() {
                         <button className="btn-outline text-red-600 hover:bg-red-50 hover:text-red-700 hover:border-red-200" onClick={() => setRejectOpen(true)}>Tolak</button>
                         <div className="flex gap-2">
                             <button className="btn-outline" onClick={startEdit}>Ubah</button>
-                            <button className="btn-primary !bg-indigo-600 hover:!bg-indigo-700 shadow-indigo-600/25" onClick={handleConfirm} disabled={saving}>{saving ? '...' : 'Konfirmasi Saja'}</button>
-                            <button className="btn-primary" onClick={startAccept}>Konfirmasi & Buat Proyek</button>
+                            <button className="btn-primary" onClick={handleConfirm} disabled={saving}>{saving ? '...' : 'Konfirmasi'}</button>
                         </div>
                     </div>
                 ) : detail?.status === 'confirmed' ? (
