@@ -8,7 +8,7 @@ const STATUS_META = {
     confirmed: { label: 'Dikonfirmasi', cls: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' },
     rejected: { label: 'Ditolak / Batal', cls: 'bg-red-500/15 text-red-600 dark:text-red-400' },
     expired: { label: 'Kedaluwarsa', cls: 'bg-zinc-500/15 text-ink-muted' },
-    converted: { label: 'Jadi Proyek', cls: 'bg-brand-500/15 text-brand-600 dark:text-brand-400' },
+    converted: { label: 'Jadi Pesanan', cls: 'bg-brand-500/15 text-brand-600 dark:text-brand-400' },
 };
 
 export default function ClientBookings() {
@@ -131,7 +131,7 @@ export default function ClientBookings() {
                 </form>
             </Modal>
 
-            <Confirm open={!!canceling} onClose={() => setCanceling(null)} onConfirm={handleCancel} title="Batalkan Booking?" message="Booking ini akan dibatalkan dan tidak akan dilanjutkan ke proyek." confirmText="Batalkan" />
+            <Confirm open={!!canceling} onClose={() => setCanceling(null)} onConfirm={handleCancel} title="Batalkan Booking?" message="Booking ini akan dibatalkan dan tidak akan dilanjutkan ke pesanan." confirmText="Batalkan" />
             {node}
         </>
     );

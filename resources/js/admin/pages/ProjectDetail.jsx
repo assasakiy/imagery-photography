@@ -287,7 +287,7 @@ export default function ProjectDetail() {
                             <div><p className="text-xs text-ink-muted">Sisa Pembayaran</p><p className={`font-bold ${isPaid ? 'text-emerald-600' : 'text-red-600'}`}>{formatRupiah(Math.max(0, project.invoice.base_amount - project.invoice.paid_amount))}</p></div>
                         </div>
                     ) : (
-                        <EmptyState title="Belum ada invoice" message="Invoice dibuat otomatis saat proyek dibuat." />
+                        <EmptyState title="Belum ada invoice" message="Invoice dibuat otomatis saat pesanan dibuat." />
                     )}
 
                     <div className="card p-5">
@@ -473,14 +473,14 @@ export default function ProjectDetail() {
                         ) : !isAdmin ? (
                             <div className="rounded-xl bg-brand-500/5 border border-brand-500/20 p-6 text-center">
                                 <p className="text-brand-600 dark:text-brand-400 font-bold mb-2">★★★★★ Berikan Testimoni</p>
-                                <p className="text-sm text-brand-600/80 dark:text-brand-400/80 mb-6 max-w-md mx-auto">Proyek telah selesai. Bagikan pengalaman Anda bekerja bersama kami.</p>
+                                <p className="text-sm text-brand-600/80 dark:text-brand-400/80 mb-6 max-w-md mx-auto">Pesanan telah selesai. Bagikan pengalaman Anda bekerja bersama kami.</p>
                                 <button className="btn-primary" onClick={() => setReviewOpen(true)}>Tulis Review</button>
                             </div>
                         ) : (
                             <p className="text-sm text-ink-muted">Klien belum memberikan review.</p>
                         )
                     ) : (
-                        <p className="text-sm text-ink-muted">Review dapat diberikan setelah proyek berstatus Selesai dan Lunas.</p>
+                        <p className="text-sm text-ink-muted">Review dapat diberikan setelah pesanan berstatus Selesai dan Lunas.</p>
                     )}
                 </div>
             )}

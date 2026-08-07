@@ -99,7 +99,7 @@ export default function Dashboard() {
     }
 
     const cards = [
-        { label: 'Total Proyek', value: stats.projects, icon: 'folder-open', color: 'bg-brand-500/15 text-brand-600 dark:text-brand-400' },
+        { label: 'Total Pesanan', value: stats.projects, icon: 'folder-open', color: 'bg-brand-500/15 text-brand-600 dark:text-brand-400' },
         { label: 'Sedang Berjalan', value: stats.in_progress, icon: 'zap', color: 'bg-amber-500/15 text-amber-600 dark:text-amber-400' },
         { label: 'Selesai', value: stats.completed, icon: 'check', color: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' },
         { label: 'Total Dibayar', value: formatRupiah(stats.total_spent), icon: 'wallet', color: 'bg-sky-500/15 text-sky-600 dark:text-sky-400' },
@@ -136,7 +136,7 @@ export default function Dashboard() {
                             </Link>
                         ))
                     ) : (
-                        <EmptyState title="Belum ada proyek" />
+                        <EmptyState title="Belum ada pesanan" />
                     )}
                 </div>
             </div>
