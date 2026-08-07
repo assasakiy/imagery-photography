@@ -12,11 +12,11 @@ const STATUS_META = {
 };
 
 const STATUS_TABS = [
-    { key: 'pending', label: 'Menunggu' },
-    { key: 'confirmed', label: 'Dikonfirmasi' },
-    { key: 'rejected', label: 'Ditolak' },
-    { key: 'expired', label: 'Kadaluarsa' },
-    { key: 'converted', label: 'Histori Proyek' },
+    { key: 'pending', label: 'Menunggu', icon: 'clock' },
+    { key: 'confirmed', label: 'Dikonfirmasi', icon: 'check' },
+    { key: 'rejected', label: 'Ditolak', icon: 'x' },
+    { key: 'expired', label: 'Kadaluarsa', icon: 'alert-triangle' },
+    { key: 'converted', label: 'Histori Proyek', icon: 'briefcase' },
 ];
 
 export default function Bookings() {
@@ -150,11 +150,11 @@ export default function Bookings() {
                         <button
                             key={t.key}
                             onClick={() => setStatus(t.key)}
-                            className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
+                            className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
                                 status === t.key ? 'bg-brand-600 text-white' : 'bg-surface-muted text-ink-muted hover:text-ink'
                             }`}
                         >
-                            {t.label}
+                            <Icon name={t.icon} size={16} /> <span className="hidden sm:inline">{t.label}</span>
                         </button>
                     ))}
                 </div>
