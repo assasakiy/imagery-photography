@@ -25,25 +25,31 @@ export default function PreviewDetail() {
             </Link>
 
             <div className="card mb-6 p-5">
-                <span className="rounded-lg bg-brand-500/15 px-2 py-0.5 font-mono text-xs font-bold text-brand-600 dark:text-brand-400">PSN-{project.order_no}</span>
-                <h1 className="mt-2 text-2xl font-bold text-ink">{project.name}</h1>
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                        <span className="rounded-lg bg-brand-500/15 px-2 py-0.5 font-mono text-xs font-bold text-brand-600 dark:text-brand-400">PSN-{project.order_no}</span>
+                        <h1 className="mt-2 text-2xl font-bold text-ink">{project.name}</h1>
+                    </div>
+                    {project.is_paid && (
+                        <a href={`/api/projects/${project.id}/download-zip`} className="btn-primary">
+                            <Icon name="download" size={16} /> Unduh Semua (ZIP)
+                        </a>
+                    )}
+                </div>
                 {!project.is_paid && (
                     <div className="mt-4 rounded-xl border border-amber-500/20 bg-amber-500/10 p-4 text-sm text-amber-700 dark:text-amber-400">
-                        <strong>Informasi:</strong> Anda belum dapat mengunduh file HD. Silakan selesaikan pelunasan (Invoice) di menu Pesanan terlebih dahulu.
+                        <strong>Informasi:</strong> Anda dapat melihat preview di bawah ini. Unduh file HD tersedia setelah Anda menyelesaikan pelunasan (Invoice).
                     </div>
                 )}
             </div>
 
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-                {project.files.map((f) => (
+                {project.files.filter((f) => f.url).map((f) => (
                     <div key={f.id} className="group relative aspect-square overflow-hidden rounded-xl border border-line bg-surface-muted">
-                        {f.category === 'photo' || f.type.startsWith('image/') ? (
+                        {f.category === 'photo' || f.type?.startsWith('image/') ? (
                             <img src={f.url} alt={f.name} className="h-full w-full object-cover" />
                         ) : (
-                            <div className="flex h-full w-full flex-col items-center justify-center p-4 text-ink-muted">
-                                <Icon name={f.category === 'video' || f.type.startsWith('video/') ? 'video' : 'file'} size={32} />
-                                <p className="mt-2 w-full truncate text-center text-xs">{f.name}</p>
-                            </div>
+                            <video src={f.url} className="h-full w-full object-cover" muted playsInline loop />
                         )}
                         <div className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 backdrop-blur-sm transition-opacity group-hover:opacity-100">
                             {project.is_paid ? (
@@ -51,7 +57,7 @@ export default function PreviewDetail() {
                                     <Icon name="download" size={16} />
                                 </a>
                             ) : (
-                                <span className="text-white text-xs px-2 text-center">Menunggu Pelunasan</span>
+                                <span className="px-2 text-center text-xs text-white">Menunggu Pelunasan</span>
                             )}
                         </div>
                     </div>

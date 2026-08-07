@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use ZipStream\ZipStream;
 
 class ProjectController extends Controller
 {
@@ -27,7 +28,7 @@ class ProjectController extends Controller
             // Pemutakhiran status otomatis saat daftar pesanan dibuka (tanpa cron).
             \App\Models\Project::processDueTransitions();
 
-            $query = Project::with('user.profile', 'payments', 'files');
+            $query = Project::with('user.profile', 'payments', 'files.media');
 
             if ($request->filled('status')) {
                 $query->where('status', $request->input('status'));
@@ -36,7 +37,7 @@ class ProjectController extends Controller
             return response()->json($query->latest()->paginate(15));
         }
 
-        $projects = $user->projects()->with('files', 'payments', 'updates')->latest()->get() ?? [];
+        $projects = $user->projects()->with('files.media', 'payments', 'updates')->latest()->get() ?? [];
 
         return response()->json($projects);
     }
@@ -50,7 +51,10 @@ class ProjectController extends Controller
         // Pemutakhiran status otomatis saat detail dibuka (tanpa cron).
         \App\Models\Project::processDueTransitions($project);
 
-        $project->load(['user.profile', 'files', 'payments', 'updates.user', 'accessTokens', 'invoice', 'booking', 'reviews']);
+        // Bersihkan preview yg sudah lewat masa (berjalan sebagai user web = pemilik file).
+        \App\Models\ProjectFile::pruneExpired($project->id);
+
+        $project->load(['user.profile', 'files.media', 'payments', 'updates.user', 'accessTokens', 'invoice', 'booking', 'reviews']);
 
         return response()->json($project);
     }
@@ -368,6 +372,12 @@ class ProjectController extends Controller
 
     public function uploadFile(Request $request, Project $project)
     {
+        // Mode baru: multi-foto hasil edit (Spatie, original privat + preview watermark).
+        if ($request->hasFile('files')) {
+            return $this->uploadFiles($request, $project);
+        }
+
+        // Legacy: bukti mulai/selesai sesi (satu foto, path-based).
         $request->validate([
             'file' => 'required|file|max:512000',
             'gallery_status' => 'nullable|in:preparing,preview_ready,released',
@@ -402,13 +412,167 @@ class ProjectController extends Controller
             'kind' => 'manual',
         ]);
 
-        return response()->json($project->files()->latest()->get(), 201);
+        return response()->json($project->files()->with('media')->latest()->get(), 201);
+    }
+
+    /**
+     * Upload multi-foto final. Tiap foto -> 1 media Spatie (original di disk privat 'local')
+     * + conversion 'preview' ber-watermark di disk 'public' + rekaman ProjectFile bisnis.
+     */
+    private function uploadFiles(Request $request, Project $project)
+    {
+        $request->validate([
+            'files' => 'required|array|min:1',
+            'files.*' => 'required|file|mimes:jpeg,jpg,png,webp|max:512000',
+        ]);
+
+        $created = collect();
+
+        foreach ($request->file('files') as $file) {
+            $originalName = $file->getClientOriginalName();
+            $size = $file->getSize();
+            $mime = $file->getMimeType();
+
+            $media = $project
+                ->addMedia($file)
+                ->usingFileName($file->hashName())
+                ->withCustomProperties([
+                    'original_name' => $originalName,
+                    'type' => 'photo',
+                    'variant' => 'original',
+                ])
+                ->toMediaCollection('files', 'local');
+
+            $media->uploaded_by = Auth::id();
+            $media->is_public = false;
+            $media->save();
+
+            $created->push(ProjectFile::create([
+                'project_id' => $project->id,
+                'media_id' => $media->id,
+                'asset_key' => (string) Str::uuid(),
+                'variant' => 'original',
+                'filename' => $media->file_name,
+                'original_name' => $originalName,
+                'path' => null,
+                'size' => $size,
+                'type' => $mime,
+                'category' => 'photo',
+                'gallery_status' => 'preview_ready',
+                'preview_expires_at' => now()->addDays(30),
+            ]));
+        }
+
+        ProjectUpdate::create([
+            'project_id' => $project->id,
+            'user_id' => Auth::id(),
+            'message' => $created->count() . ' foto final telah diupload.',
+            'type' => 'update',
+            'kind' => 'manual',
+        ]);
+
+        return response()->json($project->files()->with('media')->latest()->get(), 201);
+    }
+
+    /**
+     * Upload satu video = pasangan dua media Spatie dgn asset_key sama:
+     * preview (sudah ber-watermark dari editor, disk 'public') + original (disk privat 'local').
+     */
+    public function uploadVideo(Request $request, Project $project)
+    {
+        $data = $request->validate([
+            'preview' => 'required|file|mimes:mp4,webm,mov|max:1024000',
+            'original' => 'required|file|mimes:mp4,webm,mov|max:2048000',
+        ]);
+
+        $assetKey = (string) Str::uuid();
+
+        $previewFile = $request->file('preview');
+        $originalFile = $request->file('original');
+
+        $previewName = $previewFile->getClientOriginalName();
+        $previewSize = $previewFile->getSize();
+        $previewMime = $previewFile->getMimeType();
+        $originalName = $originalFile->getClientOriginalName();
+        $originalSize = $originalFile->getSize();
+        $originalMime = $originalFile->getMimeType();
+
+        $previewMedia = $project
+            ->addMedia($previewFile)
+            ->usingFileName(Str::random(40) . '.' . $previewFile->extension())
+            ->withCustomProperties(['type' => 'video', 'variant' => 'preview', 'asset_key' => $assetKey])
+            ->toMediaCollection('files', 'public');
+        $previewMedia->uploaded_by = Auth::id();
+        $previewMedia->is_public = true;
+        $previewMedia->save();
+
+        $originalMedia = $project
+            ->addMedia($originalFile)
+            ->usingFileName(Str::random(40) . '.' . $originalFile->extension())
+            ->withCustomProperties(['type' => 'video', 'variant' => 'original', 'asset_key' => $assetKey])
+            ->toMediaCollection('files', 'local');
+        $originalMedia->uploaded_by = Auth::id();
+        $originalMedia->is_public = false;
+        $originalMedia->save();
+
+        ProjectFile::create([
+            'project_id' => $project->id,
+            'media_id' => $previewMedia->id,
+            'asset_key' => $assetKey,
+            'variant' => 'preview',
+            'filename' => $previewMedia->file_name,
+            'original_name' => $previewName,
+            'path' => null,
+            'size' => $previewSize,
+            'type' => $previewMime,
+            'category' => 'video',
+            'gallery_status' => 'preview_ready',
+            'preview_expires_at' => now()->addDays(30),
+        ]);
+
+        ProjectFile::create([
+            'project_id' => $project->id,
+            'media_id' => $originalMedia->id,
+            'asset_key' => $assetKey,
+            'variant' => 'original',
+            'filename' => $originalMedia->file_name,
+            'original_name' => $originalName,
+            'path' => null,
+            'size' => $originalSize,
+            'type' => $originalMime,
+            'category' => 'video',
+            'gallery_status' => 'preview_ready',
+        ]);
+
+        ProjectUpdate::create([
+            'project_id' => $project->id,
+            'user_id' => Auth::id(),
+            'message' => 'Video "' . $previewName . '" diupload (preview + original).',
+            'type' => 'update',
+            'kind' => 'manual',
+        ]);
+
+        return response()->json($project->files()->with('media')->latest()->get(), 201);
     }
 
     public function deleteFile(ProjectFile $file)
     {
-        Storage::disk('public')->delete($file->path);
-        $file->delete();
+        if ($file->category === 'video' && $file->asset_key) {
+            $group = $file->project->files()->where('asset_key', $file->asset_key)->get();
+            foreach ($group as $pf) {
+                if ($pf->media) {
+                    $pf->media->delete();
+                }
+                $pf->delete();
+            }
+        } else {
+            if ($file->media) {
+                $file->media->delete();
+            } else {
+                Storage::disk('public')->delete($file->path);
+            }
+            $file->delete();
+        }
 
         app(AuditLogger::class)->log('project.file_deleted', 'File dihapus: "' . $file->original_name . '"', $file);
 
@@ -445,6 +609,9 @@ class ProjectController extends Controller
             abort(403, 'Galeri ini sudah diarsipkan.');
         }
 
+        // Download HD selalu merujuk ke file original (video: pasangan via asset_key).
+        $file = $file->originalFile();
+
         // Download penuh hanya utk staff ATAU klien yg sudah lunas (galeri released).
         if ($user->isClient()) {
             $paid = $file->project->isPaid();
@@ -459,7 +626,41 @@ class ProjectController extends Controller
         app(AuditLogger::class)->log('project.file_downloaded', 'File diunduh: "' . $file->original_name . '" (project ' . $file->project->name . ')', $file);
         app(\App\Services\HistoryService::class)->downloaded($user, ProjectFile::class, $file->id, ['name' => $file->original_name]);
 
+        if ($file->media) {
+            return Storage::disk($file->media->disk)->download($file->media->getPathRelativeToRoot(), $file->original_name ?: $file->filename);
+        }
+
         return Storage::disk('public')->download($file->path, $file->original_name);
+    }
+
+    /** Unduh semua file original (HD) sebagai ZIP. Klien wajib lunas; original privat di-stream server-side. */
+    public function downloadZip(Request $request, Project $project)
+    {
+        $user = Auth::user();
+
+        if ($user->isClient() && $project->user_id !== $user->id) {
+            abort(403);
+        }
+
+        if ($user->isClient() && !$project->isPaid()) {
+            abort(403, 'Pelunasan belum selesai. Anda dapat melihat preview, bukan mengunduh file HD.');
+        }
+
+        $files = $project->files()
+            ->with('media')
+            ->where('variant', 'original')
+            ->get()
+            ->filter(fn (ProjectFile $f) => $f->media && $f->media->getPath() && is_file($f->media->getPath()));
+
+        app(AuditLogger::class)->log('project.zip_downloaded', 'ZIP diunduh: "' . $project->name . '" (' . $files->count() . ' file)', $project);
+
+        $zip = new ZipStream(outputName: 'PSN-' . $project->order_no . '-files.zip');
+
+        foreach ($files as $f) {
+            $zip->addFileFromPath($f->original_name ?: $f->filename, $f->media->getPath());
+        }
+
+        $zip->finish();
     }
 
     /** Admin menandai status gallery & memicu timeline system. */

@@ -4,10 +4,16 @@ namespace App\Models;
 
 use App\Support\SoftDeletesWithWho;
 use Illuminate\Database\Eloquent\Model;
+use Spatie\Image\Enums\AlignPosition;
+use Spatie\Image\Enums\Fit;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
-class Project extends Model
+class Project extends Model implements HasMedia
 {
     use SoftDeletesWithWho;
+    use InteractsWithMedia;
 
     public const STATUSES = ['scheduled', 'shooting', 'editing', 'awaiting_payment', 'completed', 'archived'];
 
@@ -129,6 +135,31 @@ class Project extends Model
     public function files()
     {
         return $this->hasMany(ProjectFile::class);
+    }
+
+    /** Collection Spatie utk file proyek. Original = disk privat 'local', conversion preview = 'public'. */
+    public function registerMediaCollections(): void
+    {
+        $this->addMediaCollection('files')
+            ->useDisk('local')
+            ->storeConversionsOnDisk('public');
+    }
+
+    /**
+     * Hanya foto yang dapat konversi 'preview' (fit + watermark).
+     * Video TIDAK dikonversi — preview video adalah file ber-watermark dari editor,
+     * disimpan apa adanya di disk 'public'.
+     */
+    public function registerMediaConversions(?Media $media = null): void
+    {
+        if ($media && str_starts_with($media->mime_type ?? '', 'video/')) {
+            return;
+        }
+
+        $this->addMediaConversion('preview')
+            ->fit(Fit::Max, 1920, 1920)
+            ->watermark(public_path('watermark.png'), AlignPosition::Center)
+            ->nonQueued();
     }
 
     public function payments()

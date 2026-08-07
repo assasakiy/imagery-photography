@@ -183,9 +183,9 @@ class CustomerController extends Controller
             });
         }
 
-        $projects = $projectsQuery->with(['files', 'payments', 'invoice'])->latest()->get();
+        $projects = $projectsQuery->with(['files.media', 'payments', 'invoice'])->latest()->get();
 
-        return response()->json($projects->filter(fn($p) => $p->files->count() > 0)->map(function ($p) {
+        return response()->json($projects->filter(fn ($p) => $p->files->filter(fn ($f) => $f->category !== 'video' || $f->variant === 'preview')->count() > 0)->map(function ($p) {
             return [
                 'id' => $p->id,
                 'order_no' => $p->order_no,
@@ -193,18 +193,22 @@ class CustomerController extends Controller
                 'event_date' => $p->event_date,
                 'status' => $p->status,
                 'is_paid' => $p->isPaid(),
-                'files' => $p->files->map(function ($f) {
-                    return [
-                        'id' => $f->id,
-                        'name' => $f->original_name,
-                        'url' => $f->url,
-                        'type' => $f->type,
-                        'category' => $f->category,
-                        'size' => $f->size,
-                        'expires_at' => $f->expires_at,
-                        'available' => !$f->expires_at || $f->expires_at->isFuture(),
-                    ];
-                })->values(),
+                'files' => $p->files
+                    ->filter(fn ($f) => $f->category !== 'video' || $f->variant === 'preview')
+                    ->map(function ($f) {
+                        $available = $f->isPreviewAvailable();
+
+                        return [
+                            'id' => $f->id,
+                            'name' => $f->original_name,
+                            'url' => $available ? $f->url : null,
+                            'type' => $f->type,
+                            'category' => $f->category,
+                            'size' => $f->size,
+                            'expires_at' => $f->expires_at,
+                            'available' => $available,
+                        ];
+                    })->values(),
             ];
         })->values());
     }

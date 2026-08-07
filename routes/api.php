@@ -68,6 +68,7 @@ Route::middleware(['web', 'auth:sanctum', 'maintenance'])->group(function () {
         Route::get('/projects/{project}', [ProjectController::class, 'show']);
         Route::post('/projects/{project}/updates', [ProjectController::class, 'addUpdate']);
         Route::get('/files/{file}/download', [ProjectController::class, 'downloadFile'])->name('api.file.download');
+        Route::get('/projects/{project}/download-zip', [ProjectController::class, 'downloadZip'])->name('api.project.download-zip');
         Route::post('/projects/{project}/payments', [PaymentController::class, 'store']);
     });
 
@@ -100,6 +101,7 @@ Route::middleware(['web', 'auth:sanctum', 'maintenance'])->group(function () {
         Route::patch('/projects/{project}/status', [ProjectController::class, 'updateStatus']);
         Route::post('/projects/{project}/advance', [ProjectController::class, 'advance']);
         Route::post('/projects/{project}/files', [ProjectController::class, 'uploadFile']);
+        Route::post('/projects/{project}/videos', [ProjectController::class, 'uploadVideo']);
         Route::delete('/files/{file}', [ProjectController::class, 'deleteFile']);
         Route::post('/projects/{project}/regenerate-credentials', [ProjectController::class, 'regenerateCredentials']);
         Route::patch('/projects/{project}/archive', [ProjectController::class, 'archive']);

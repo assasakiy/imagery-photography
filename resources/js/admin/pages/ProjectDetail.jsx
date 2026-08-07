@@ -60,6 +60,8 @@ export default function ProjectDetail() {
     const [loading, setLoading] = useState(true);
     const [step, setStep] = useState(null);
     const [uploading, setUploading] = useState(false);
+    const [uploadProgress, setUploadProgress] = useState(0);
+    const [videoForm, setVideoForm] = useState({ preview: null, original: null });
     const [editForm, setEditForm] = useState({ photo_total: '', photo_done: '', video_total: '', video_done: '' });
     const [editNote, setEditNote] = useState('');
     const [fieldNote, setFieldNote] = useState('');
@@ -68,6 +70,9 @@ export default function ProjectDetail() {
     const [reviewOpen, setReviewOpen] = useState(false);
     const [reviewForm, setReviewForm] = useState({ rating: 5, title: '', content: '', recommend_score: 10 });
     const fileRef = useRef(null);
+    const photoRef = useRef(null);
+    const videoPreviewRef = useRef(null);
+    const videoOriginalRef = useRef(null);
     const { show, node } = useToast();
 
     const load = () => {
@@ -114,6 +119,8 @@ export default function ProjectDetail() {
     const editGrandTotal = (hasPhoto ? photoTotal : 0) + (hasVideo ? videoTotal : 0);
 
     const progressUpdates = (project.updates || []).filter((u) => u.message.startsWith('Proses editing'));
+    // Hanya foto + video preview yg tampil di kartu (video original = satu kartu via asset_key).
+    const galleryFiles = (project.files || []).filter((f) => f.category !== 'video' || f.variant === 'preview');
     const fmtLog = (v) => {
         if (!v) return '-';
         const d = new Date(v);
@@ -218,6 +225,48 @@ export default function ProjectDetail() {
             await api.post(`/projects/${id}/files`, data);
             show('File diupload.');
             load();
+        } finally {
+            setUploading(false);
+        }
+    };
+
+    const uploadPhotos = async (e) => {
+        const files = Array.from(e.target.files || []);
+        if (!files.length) return;
+        setUploading(true);
+        setUploadProgress(0);
+        try {
+            const data = new FormData();
+            files.forEach((f) => data.append('files[]', f));
+            await api.post(`/projects/${id}/files`, data, {
+                onUploadProgress: (ev) => {
+                    if (ev.total) setUploadProgress(Math.round((ev.loaded / ev.total) * 100));
+                },
+            });
+            show(`${files.length} foto diupload.`, 'success');
+            load();
+        } catch (err) {
+            show(err.response?.data?.message || 'Gagal mengupload foto.', 'error');
+        } finally {
+            setUploading(false);
+            setUploadProgress(0);
+            e.target.value = '';
+        }
+    };
+
+    const uploadVideo = async () => {
+        if (!videoForm.preview || !videoForm.original) return;
+        setUploading(true);
+        try {
+            const data = new FormData();
+            data.append('preview', videoForm.preview);
+            data.append('original', videoForm.original);
+            await api.post(`/projects/${id}/videos`, data);
+            show('Video diupload (preview + original).', 'success');
+            setVideoForm({ preview: null, original: null });
+            load();
+        } catch (err) {
+            show(err.response?.data?.message || 'Gagal mengupload video.', 'error');
         } finally {
             setUploading(false);
         }
@@ -433,11 +482,15 @@ export default function ProjectDetail() {
                                 </div>
                             )}
                             
-                            {project.files?.length > 0 && (
+                            {galleryFiles.length > 0 && (
                                 <div className="mt-4 grid grid-cols-3 gap-3 sm:grid-cols-4 lg:grid-cols-6">
-                                    {project.files.map((f) => (
+                                    {galleryFiles.map((f) => (
                                         <div key={f.id} className="group relative aspect-square overflow-hidden rounded-xl bg-surface-muted">
-                                            <img src={f.url} className="h-full w-full object-cover" alt="" />
+                                            {f.category === 'video' || f.type?.startsWith('video') ? (
+                                                <video src={f.url} className="h-full w-full object-cover" muted playsInline />
+                                            ) : (
+                                                <img src={f.url} className="h-full w-full object-cover" alt="" />
+                                            )}
                                             {isAdmin && (
                                                 <button className="absolute right-1 top-1 rounded bg-red-500 p-1.5 text-white opacity-0 transition-opacity group-hover:opacity-100" onClick={() => deleteFile(f)} aria-label="Hapus">
                                                     <Icon name="trash" size={14} />
@@ -502,11 +555,15 @@ export default function ProjectDetail() {
                                 </div>
                             )}
 
-                            {project.files?.length > 0 && (
+                            {galleryFiles.length > 0 && (
                                 <div className="mt-5 grid grid-cols-3 gap-3 sm:grid-cols-4 lg:grid-cols-6">
-                                    {project.files.map((f) => (
+                                    {galleryFiles.map((f) => (
                                         <div key={f.id} className="group relative aspect-square overflow-hidden rounded-xl bg-surface-muted">
-                                            <img src={f.url} className="h-full w-full object-cover" alt="" />
+                                            {f.category === 'video' || f.type?.startsWith('video') ? (
+                                                <video src={f.url} className="h-full w-full object-cover" muted playsInline />
+                                            ) : (
+                                                <img src={f.url} className="h-full w-full object-cover" alt="" />
+                                            )}
                                             {isAdmin && (
                                                 <button className="absolute right-1 top-1 rounded bg-red-500 p-1.5 text-white opacity-0 transition-opacity group-hover:opacity-100" onClick={() => deleteFile(f)} aria-label="Hapus">
                                                     <Icon name="trash" size={14} />
@@ -608,21 +665,50 @@ export default function ProjectDetail() {
                                     </div>
                                     <div className="mt-5 border-t border-line pt-5">
                                         <p className="mb-2 text-sm font-semibold text-ink">Unggah file final</p>
-                                        <button type="button" className="btn-outline flex w-full flex-col items-center justify-center gap-1 border-dashed py-6 text-center hover:bg-surface-muted/50" onClick={() => fileRef.current?.click()} disabled={formLocked || uploading}>
-                                            <Icon name="upload" size={22} className="mb-1 text-ink-muted" />
-                                            <span className="font-semibold text-ink">{uploading ? 'Mengupload...' : 'Unggah seluruh foto & video hasil edit'}</span>
-                                            <span className="text-xs text-ink-muted">Sistem akan membuat link preview otomatis setelah unggah selesai</span>
-                                        </button>
-                                        <input ref={fileRef} type="file" className="hidden" onChange={uploadFile} disabled={formLocked} />
+                                        {hasPhoto && (
+                                            <>
+                                                <button type="button" className="btn-outline flex w-full flex-col items-center justify-center gap-1 border-dashed py-6 text-center hover:bg-surface-muted/50" onClick={() => photoRef.current?.click()} disabled={formLocked || uploading}>
+                                                    <Icon name="upload" size={22} className="mb-1 text-ink-muted" />
+                                                    <span className="font-semibold text-ink">{uploading ? 'Mengupload...' : 'Unggah seluruh foto hasil edit (bisa banyak)'}</span>
+                                                    <span className="text-xs text-ink-muted">Foto asli tersimpan privat · preview ber-watermark dibuat otomatis</span>
+                                                </button>
+                                                <input ref={photoRef} type="file" accept="image/*" multiple className="hidden" onChange={uploadPhotos} disabled={formLocked} />
+                                                {uploading && (
+                                                    <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-surface-strong">
+                                                        <div className="h-full rounded-full bg-brand-500 transition-all" style={{ width: `${uploadProgress}%` }} />
+                                                    </div>
+                                                )}
+                                            </>
+                                        )}
+                                        {hasVideo && (
+                                            <>
+                                                <p className="mb-2 mt-4 text-sm font-semibold text-ink">Tambah video (1 pasang: preview + original)</p>
+                                                <div className="grid gap-3 sm:grid-cols-2">
+                                                    <button type="button" className="btn-outline flex w-full flex-col items-center justify-center gap-1 border-dashed py-4 text-center hover:bg-surface-muted/50" onClick={() => videoPreviewRef.current?.click()} disabled={formLocked || uploading}>
+                                                        <Icon name="video" size={20} className="mb-1 text-ink-muted" />
+                                                        <span className="w-full truncate px-2 text-xs font-semibold text-ink">{videoForm.preview ? videoForm.preview.name : 'File Preview (sudah ber-watermark)'}</span>
+                                                    </button>
+                                                    <input ref={videoPreviewRef} type="file" accept="video/*" className="hidden" onChange={(e) => setVideoForm({ ...videoForm, preview: e.target.files[0] })} disabled={formLocked} />
+                                                    <button type="button" className="btn-outline flex w-full flex-col items-center justify-center gap-1 border-dashed py-4 text-center hover:bg-surface-muted/50" onClick={() => videoOriginalRef.current?.click()} disabled={formLocked || uploading}>
+                                                        <Icon name="video" size={20} className="mb-1 text-ink-muted" />
+                                                        <span className="w-full truncate px-2 text-xs font-semibold text-ink">{videoForm.original ? videoForm.original.name : 'File Original / HD (privat)'}</span>
+                                                    </button>
+                                                    <input ref={videoOriginalRef} type="file" accept="video/*" className="hidden" onChange={(e) => setVideoForm({ ...videoForm, original: e.target.files[0] })} disabled={formLocked} />
+                                                </div>
+                                                <button type="button" className="btn-primary mt-3" onClick={uploadVideo} disabled={formLocked || uploading || !videoForm.preview || !videoForm.original}>
+                                                    <Icon name="upload" size={16} /> Simpan Video
+                                                </button>
+                                            </>
+                                        )}
                                     </div>
                                 </>
                             )}
-                            {project.files?.length > 0 && (
+                            {galleryFiles.length > 0 && (
                                 <div className="mt-5 grid grid-cols-3 gap-3 sm:grid-cols-4 lg:grid-cols-6">
-                                    {project.files.map((f) => (
+                                    {galleryFiles.map((f) => (
                                         <div key={f.id} className="group relative aspect-square overflow-hidden rounded-xl bg-surface-muted">
-                                            {f.mime?.startsWith('video') ? (
-                                                <video src={f.url} className="h-full w-full object-cover" />
+                                            {f.category === 'video' || f.type?.startsWith('video') ? (
+                                                <video src={f.url} className="h-full w-full object-cover" muted playsInline />
                                             ) : (
                                                 <img src={f.url} className="h-full w-full object-cover" alt="" />
                                             )}
@@ -758,9 +844,9 @@ export default function ProjectDetail() {
                             )}
                         </div>
                         <PanelFooter>
-                            <Link to={previewHref} className={isAdmin ? 'btn-outline' : 'btn-primary'}>
+                            <a href={`/api/projects/${project.id}/download-zip`} className={isAdmin ? 'btn-outline' : 'btn-primary'}>
                                 <Icon name="download" size={16} /> Unduh File Asli (Tanpa Watermark)
-                            </Link>
+                            </a>
                             {isAdmin && (
                                 <button className="btn-outline" onClick={archive} disabled={saving}>
                                     <Icon name="folder-open" size={16} /> Arsipkan Proyek
