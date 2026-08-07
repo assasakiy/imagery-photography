@@ -532,6 +532,13 @@ export default function ProjectDetail() {
                             subtitle={isAdmin ? "Bukti mulai sudah tercatat. Unggah bukti selesai lalu konfirmasi untuk memindahkan proyek ke tahap Editing." : "Sesi pemotretan sedang berlangsung — bukti mulai sesi sudah tercatat."}
                         />
                         <div className="p-5">
+                            {!proofStartUploaded && !proofEndUploaded && (
+                                <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-line bg-surface-muted/30 p-8 text-center">
+                                    <Icon name="camera" size={24} className="text-ink-muted" />
+                                    <p className="text-sm font-medium text-ink">Belum ada bukti tersedia</p>
+                                    <p className="text-xs text-ink-muted">Bukti mulai/selesai sesi akan tampil di sini setelah diunggah.</p>
+                                </div>
+                            )}
                             {proofStartUploaded && (
                                 <div className="flex items-center gap-3 rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-3">
                                     <div className="h-20 w-20 shrink-0 overflow-hidden rounded-lg bg-surface-strong">
@@ -733,7 +740,7 @@ export default function ProjectDetail() {
                                     <a className="btn-outline shrink-0 !px-2 !py-1 text-xs" href={previewLink} target="_blank" rel="noreferrer"><Icon name="globe" size={14} /> Buka</a>
                                 </div>
                             )}
-                            {project.invoice ? (
+                            {isAdmin && project.invoice ? (
                                 <div className="mt-4 flex items-center justify-between gap-3 rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-4">
                                     <div>
                                         <p className="font-mono text-[10px] font-semibold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">Invoice Terkirim · {project.invoice.number}</p>
@@ -745,10 +752,12 @@ export default function ProjectDetail() {
                                     </div>
                                 </div>
                             ) : (
-                                <div className="mt-4 rounded-xl border border-line bg-surface-muted/30 p-4 text-sm text-ink-muted">Invoice sedang disiapkan.</div>
+                                !isAdmin && (
+                                    <div className="mt-4 rounded-xl border border-line bg-surface-muted/30 p-4 text-sm text-ink-muted">Tagihan dan rincian pembayaran terlihat di <Link to="/dashboard/client-invoices" className="text-brand-600 underline">Halaman Tagihan</Link>.</div>
+                                )
                             )}
                             <p className="mt-4 text-xs text-ink-muted">
-                                Status berpindah ke <b>Selesai</b> otomatis setelah klien membuka pratinjau <i>dan</i> pembayaran invoice lunas.
+                                Status berpindah ke <b>Selesai</b> otomatis setelah pembayaran invoice lunas.
                             </p>
                         </div>
                         <PanelFooter>

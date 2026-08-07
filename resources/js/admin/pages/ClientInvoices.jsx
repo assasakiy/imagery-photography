@@ -103,7 +103,7 @@ export default function ClientInvoices() {
                                     </td>
                                     <td>
                                         <button className="btn-primary text-xs py-1.5 px-3" onClick={() => openDetail(it)}>
-                                            <Icon name="eye" size={14} /> Lihat Tagihan
+                                            <Icon name={it.remaining > 0 ? 'credit-card' : 'eye'} size={14} /> {it.remaining > 0 ? 'Bayar Tagihan' : 'Lihat Tagihan'}
                                         </button>
                                     </td>
                                 </tr>
