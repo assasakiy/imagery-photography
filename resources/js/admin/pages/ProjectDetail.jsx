@@ -314,9 +314,7 @@ export default function ProjectDetail() {
                         />
                         <div className="p-5">
                             <div className="grid grid-cols-2 gap-4">
-                                {project.booking && (
-                                    <div><p className="text-xs text-ink-muted">No. Booking</p><p className="font-mono text-sm font-semibold text-ink">{project.booking.booking_no}</p></div>
-                                )}
+                                <div><p className="text-xs text-ink-muted">No. Pesanan</p><p className="font-mono text-sm font-semibold text-ink">{project.order_no ? `PSN-${project.order_no}` : '-'}</p></div>
                                 <div><p className="text-xs text-ink-muted">Paket</p><p className="text-sm font-semibold text-ink">{project.package ? project.package.name : (project.pricing_snapshot?.package || 'Layanan Satuan / Kustom')}</p></div>
                                 <div><p className="text-xs text-ink-muted">Tanggal Acara</p><p className="text-sm font-semibold text-ink">{project.event_start ? formatDate(project.event_start) : (project.event_date ? formatDate(project.event_date) : '-')}</p></div>
                                 <div><p className="text-xs text-ink-muted">Waktu Acara</p>
