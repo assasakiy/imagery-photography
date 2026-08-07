@@ -366,7 +366,7 @@ export default function ProjectDetail() {
                         {isAdmin && isCurrentStep && (
                             <PanelFooter>
                                 <button className="btn-primary" onClick={advance} disabled={saving}>
-                                    Konfirmasi mulai & pindah ke Pemotretan
+                                    Konfirmasi
                                 </button>
                             </PanelFooter>
                         )}
