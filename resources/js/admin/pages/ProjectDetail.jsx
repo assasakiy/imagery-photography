@@ -324,7 +324,7 @@ export default function ProjectDetail() {
             {/* FILMSTRIP STEPPER */}
             <div className="card mb-6 overflow-hidden">
                 <div className="bg-zinc-900 px-4 py-4 sm:px-6 dark:bg-zinc-950">
-                    <div className="flex flex-wrap items-start justify-start gap-x-2 gap-y-4 px-1 pb-1 sm:flex-nowrap sm:gap-2 sm:overflow-x-auto sm:px-0">
+                    <div className="flex items-start justify-between gap-1 px-1 pb-1 sm:gap-2">
                         {STEPS.map((s, i) => {
                             const isDone = i < currentIdx;
                             const isCurrent = i === currentIdx;
@@ -335,7 +335,7 @@ export default function ProjectDetail() {
                                         type="button"
                                         onClick={() => setStep(s.key)}
                                         title={s.label}
-                                        className="group flex shrink-0 flex-col items-center gap-1.5 px-0.5 sm:gap-2"
+                                        className="group flex min-w-0 flex-1 flex-col items-center gap-1.5 px-0.5 sm:gap-2"
                                     >
                                         <span className="relative flex h-8 w-8 items-center justify-center sm:h-10 sm:w-10">
                                             {isSelected && <span className="absolute -inset-1 rounded-full border-2 border-white/70" />}
@@ -348,7 +348,7 @@ export default function ProjectDetail() {
                                                 <Icon name={isDone && !isCurrent && !isSelected ? 'check' : s.icon} size={14} />
                                             </span>
                                         </span>
-                                        <span className={`whitespace-nowrap text-[10px] font-semibold leading-tight sm:text-[11px] ${
+                                        <span className={`text-center text-[9px] font-semibold leading-tight sm:text-[11px] ${
                                             isSelected ? 'text-white'
                                             : isDone || isCurrent ? 'text-white/90'
                                             : 'text-zinc-500'
@@ -357,7 +357,7 @@ export default function ProjectDetail() {
                                         </span>
                                     </button>
                                     {i < STEPS.length - 1 && (
-                                        <div className={`mt-3.5 hidden h-0.5 w-6 shrink-0 rounded-full sm:mt-5 sm:block sm:w-10 lg:w-14 ${i < currentIdx ? 'bg-emerald-500' : 'bg-zinc-700'}`} />
+                                        <div className={`mt-3.5 h-0.5 max-w-12 flex-1 rounded-full sm:mt-5 sm:max-w-16 ${i < currentIdx ? 'bg-emerald-500' : 'bg-zinc-700'}`} />
                                     )}
                                 </Fragment>
                             );
