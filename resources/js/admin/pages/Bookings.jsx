@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import api from '../api';
 import Icon from '../components/Icon';
 import { PageHeader, Spinner, EmptyState, Modal, Field, useToast, formatDate, formatRupiah } from '../components/ui';
-import { statusOptions } from './Projects';
 
 const STATUS_META = {
     pending: { label: 'Menunggu', cls: 'bg-amber-500/15 text-amber-600 dark:text-amber-400' },
@@ -423,18 +422,9 @@ export default function Bookings() {
                     <Field label="Harga (Rp)" error={errors.price?.[0]}>
                         <input className="input" type="number" min="0" value={acceptForm.price} onChange={(e) => setAcceptForm({ ...acceptForm, price: e.target.value })} />
                     </Field>
-                    <Field label="Status" error={errors.status?.[0]}>
-                        <select className="input" value={acceptForm.status} onChange={(e) => setAcceptForm({ ...acceptForm, status: e.target.value })}>
-                            {statusOptions.map((s) => (
-                                <option key={s.value} value={s.value}>{s.label}</option>
-                            ))}
-                        </select>
+                    <Field label="DP / Uang Muka (Rp)" hint="opsional. Kosongkan jika deal pembayaran di belakang." error={errors.dp_amount?.[0]}>
+                        <input className="input" type="number" min="0" value={acceptForm.dp_amount} onChange={(e) => setAcceptForm({ ...acceptForm, dp_amount: e.target.value })} placeholder="mis. 500000" />
                     </Field>
-                    <div className="sm:col-span-2">
-                        <Field label="DP / Uang Muka (Rp)" hint="opsional. Kosongkan jika deal pembayaran di belakang." error={errors.dp_amount?.[0]}>
-                            <input className="input" type="number" min="0" value={acceptForm.dp_amount} onChange={(e) => setAcceptForm({ ...acceptForm, dp_amount: e.target.value })} placeholder="mis. 500000" />
-                        </Field>
-                    </div>
                 </form>
                 <p className="mt-3 text-xs text-ink-muted">Aksi ini akan membuat Proyek (dan Invoice bila DP diisi). Booking akan masuk ke histori.</p>
             </Modal>

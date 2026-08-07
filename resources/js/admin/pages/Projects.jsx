@@ -434,19 +434,10 @@ export default function Projects() {
                     <Field label="Harga (Rp)" hint="opsional" error={errors.price?.[0]}>
                         <input className="input" type="number" min="0" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} />
                     </Field>
-                    <Field label="Status" required error={errors.status?.[0]}>
-                        <select className="input" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
-                            {statusOptions.map((s) => (
-                                <option key={s.value} value={s.value}>{s.label}</option>
-                            ))}
-                        </select>
-                    </Field>
                     {isAdmin && (
-                        <div className="sm:col-span-2">
-                            <Field label="DP / Uang Muka (Rp)" hint="opsional. Kosongkan jika deal pembayaran di belakang." error={errors.dp_amount?.[0]}>
-                                <input className="input" type="number" min="0" value={form.dp_amount} onChange={(e) => setForm({ ...form, dp_amount: e.target.value })} placeholder="mis. 500000" />
-                            </Field>
-                        </div>
+                        <Field label="DP / Uang Muka (Rp)" hint="opsional. Kosongkan jika deal pembayaran di belakang." error={errors.dp_amount?.[0]}>
+                            <input className="input" type="number" min="0" value={form.dp_amount} onChange={(e) => setForm({ ...form, dp_amount: e.target.value })} placeholder="mis. 500000" />
+                        </Field>
                     )}
                 </form>
             </Modal>
