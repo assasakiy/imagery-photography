@@ -24,17 +24,15 @@ export default function Media() {
     const [editing, setEditing] = useState(null);
     const [sheet, setSheet] = useState(null);
     const [typeFilter, setTypeFilter] = useState('');
-    const [q, setQ] = useState('');
-    const [debounced, setDebounced] = useState('');
     const [selecting, setSelecting] = useState(false);
     const [selected, setSelected] = useState(new Set());
     const [bulkConfirm, setBulkConfirm] = useState(false);
     const fileRef = useRef(null);
     const { show, node } = useToast();
 
-    const load = (page = 1, search = debounced) => {
+    const load = (page = 1) => {
         setLoading(true);
-        api.get('/media', { params: { page, per_page: 24, type: typeFilter || undefined, q: search || undefined } })
+        api.get('/media', { params: { page, per_page: 24, type: typeFilter || undefined } })
             .then(({ data }) => {
                 setItems(data.data);
                 setMeta(data);
@@ -43,14 +41,9 @@ export default function Media() {
     };
 
     useEffect(() => {
-        const t = setTimeout(() => setDebounced(q), 400);
-        return () => clearTimeout(t);
-    }, [q]);
-
-    useEffect(() => {
         setSelected(new Set());
-        load(1, debounced);
-    }, [typeFilter, debounced]);
+        load(1);
+    }, [typeFilter]);
 
     const toggleSelect = (id) => {
         setSelected((prev) => {
@@ -142,57 +135,49 @@ export default function Media() {
                 }
             />
 
-            <div className="mb-5 flex flex-col gap-3 lg:flex-row lg:items-center">
-                <div className="flex gap-1 overflow-x-auto rounded-2xl border border-line bg-surface p-1">
-                    {TABS.map((tab) => (
+            <div className="mb-5 flex flex-wrap items-center gap-2">
+                {TABS.map((tab) => (
+                    <button
+                        key={tab.key}
+                        onClick={() => setTypeFilter(tab.key)}
+                        className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
+                            typeFilter === tab.key ? 'bg-brand-600 text-white' : 'bg-surface-muted text-ink-muted hover:text-ink'
+                        }`}
+                    >
+                        <Icon name={tab.icon} size={16} /> <span className="hidden sm:inline">{tab.label}</span>
+                    </button>
+                ))}
+                {selecting ? (
+                    <div className="ml-auto flex flex-wrap items-center gap-2">
                         <button
-                            key={tab.key}
-                            onClick={() => setTypeFilter(tab.key)}
-                            className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-xl px-3 py-1.5 text-sm font-semibold transition-colors ${
-                                typeFilter === tab.key ? 'bg-brand-600 text-white shadow' : 'text-ink-muted hover:bg-surface-muted hover:text-ink'
-                            }`}
+                            className="inline-flex items-center gap-1.5 text-sm font-medium text-brand-600 hover:underline dark:text-brand-400"
+                            onClick={toggleSelectAll}
+                            title={items.length && items.every((i) => selected.has(i.id)) ? 'Batal pilih semua' : 'Pilih semua'}
                         >
-                            <Icon name={tab.icon} size={16} /> <span className="hidden sm:inline">{tab.label}</span>
+                            <Icon name={items.length && items.every((i) => selected.has(i.id)) ? 'check-square' : 'square'} size={16} />
+                            <span className="hidden sm:inline">{items.length && items.every((i) => selected.has(i.id)) ? 'Batal pilih semua' : 'Pilih semua'}</span>
                         </button>
-                    ))}
-                </div>
-                <div className="flex flex-1 flex-wrap items-center gap-2">
-                    <div className="relative max-w-sm flex-1">
-                        <Icon name="search" size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" />
-                        <input className="input pl-9" placeholder="Cari nama file..." value={q} onChange={(e) => setQ(e.target.value)} />
+                        <button
+                            className="inline-flex items-center rounded-lg p-1.5 text-red-600 transition-colors hover:bg-red-500/10 disabled:opacity-40"
+                            disabled={selected.size === 0}
+                            onClick={() => setBulkConfirm(true)}
+                            title={`Hapus ${selected.size} file`}
+                        >
+                            <Icon name="trash" size={18} /> <span className="text-sm font-semibold">({selected.size})</span>
+                        </button>
+                        <button className="rounded-lg p-1.5 text-ink-muted transition-colors hover:bg-surface-muted hover:text-ink" onClick={cancelSelect} title="Batal">
+                            <Icon name="x" size={18} />
+                        </button>
                     </div>
-                    {selecting ? (
-                        <div className="flex flex-wrap items-center gap-2">
-                            <button
-                                className="inline-flex items-center gap-1.5 text-sm font-medium text-brand-600 hover:underline dark:text-brand-400"
-                                onClick={toggleSelectAll}
-                                title={items.length && items.every((i) => selected.has(i.id)) ? 'Batal pilih semua' : 'Pilih semua'}
-                            >
-                                <Icon name={items.length && items.every((i) => selected.has(i.id)) ? 'check-square' : 'square'} size={16} />
-                                <span className="hidden sm:inline">{items.length && items.every((i) => selected.has(i.id)) ? 'Batal pilih semua' : 'Pilih semua'}</span>
-                            </button>
-                            <button
-                                className="inline-flex items-center rounded-lg p-1.5 text-red-600 transition-colors hover:bg-red-500/10 disabled:opacity-40"
-                                disabled={selected.size === 0}
-                                onClick={() => setBulkConfirm(true)}
-                                title={`Hapus ${selected.size} file`}
-                            >
-                                <Icon name="trash" size={18} /> <span className="text-sm font-semibold">({selected.size})</span>
-                            </button>
-                            <button className="rounded-lg p-1.5 text-ink-muted transition-colors hover:bg-surface-muted hover:text-ink" onClick={cancelSelect} title="Batal">
-                                <Icon name="x" size={18} />
-                            </button>
-                        </div>
-                    ) : (
-                        <button
-                            className="inline-flex items-center gap-1.5 rounded-lg p-1.5 text-sm font-medium text-brand-600 transition-colors hover:bg-brand-500/10 dark:text-brand-400"
-                            onClick={() => setSelecting(true)}
-                            title="Pilih"
-                        >
-                            <Icon name="check-square" size={18} /> <span className="hidden sm:inline">Pilih</span>
-                        </button>
-                    )}
-                </div>
+                ) : (
+                    <button
+                        className="ml-auto inline-flex items-center gap-1.5 rounded-lg p-1.5 text-sm font-medium text-brand-600 transition-colors hover:bg-brand-500/10 dark:text-brand-400"
+                        onClick={() => setSelecting(true)}
+                        title="Pilih"
+                    >
+                        <Icon name="check-square" size={18} /> <span className="hidden sm:inline">Pilih</span>
+                    </button>
+                )}
             </div>
 
             <Modal open={uploadOpen} onClose={() => setUploadOpen(false)} title="Upload Media">

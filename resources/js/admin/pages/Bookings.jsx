@@ -144,23 +144,24 @@ export default function Bookings() {
         <>
             <PageHeader title="Booking" subtitle="Kelola permintaan pemesanan dari klien." />
 
-            <div className="mb-5 flex gap-1 overflow-x-auto rounded-2xl border border-line bg-surface p-1">
-                {STATUS_TABS.map((t) => (
-                    <button
-                        key={t.key}
-                        onClick={() => setStatus(t.key)}
-                        className={`whitespace-nowrap rounded-xl px-4 py-2 text-sm font-semibold transition-colors ${
-                            status === t.key ? 'bg-brand-600 text-white shadow' : 'text-ink-muted hover:bg-surface-muted hover:text-ink'
-                        }`}
-                    >
-                        {t.label}
-                    </button>
-                ))}
-            </div>
-
-            <div className="mb-4 relative max-w-sm">
-                <Icon name="search" size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" />
-                <input className="input pl-9" placeholder="Cari nama, email, nomor..." value={q} onChange={(e) => setQ(e.target.value)} />
+            <div className="mb-5 flex flex-col gap-3 lg:flex-row lg:items-center">
+                <div className="flex flex-wrap items-center gap-2">
+                    {STATUS_TABS.map((t) => (
+                        <button
+                            key={t.key}
+                            onClick={() => setStatus(t.key)}
+                            className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
+                                status === t.key ? 'bg-brand-600 text-white' : 'bg-surface-muted text-ink-muted hover:text-ink'
+                            }`}
+                        >
+                            {t.label}
+                        </button>
+                    ))}
+                </div>
+                <div className="relative max-w-sm lg:ml-auto lg:w-full lg:max-w-sm">
+                    <Icon name="search" size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" />
+                    <input className="input pl-9" placeholder="Cari nama, email, nomor..." value={q} onChange={(e) => setQ(e.target.value)} />
+                </div>
             </div>
 
             {loading ? (
