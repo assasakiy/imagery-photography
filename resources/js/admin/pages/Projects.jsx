@@ -306,9 +306,11 @@ export default function Projects() {
                             </select>
                         </Field>
                     )}
-                    <Field label="Nama Project" required error={errors.name?.[0]}>
-                        <input className="input" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
-                    </Field>
+                    <div className="sm:col-span-2">
+                        <Field label="Nama Project" required error={errors.name?.[0]}>
+                            <input className="input" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
+                        </Field>
+                    </div>
                     {isAdmin && packages.length > 0 && (
                         <>
                             <Field label="Paket" hint="pilih paket untuk mengisi harga otomatis">
@@ -338,17 +340,15 @@ export default function Projects() {
                                     <option value="custom">Layanan Satuan</option>
                                 </select>
                             </Field>
-                            <div className="sm:col-span-2 grid grid-cols-1 gap-4 sm:grid-cols-3">
-                                <Field label="Tanggal Acara" hint="opsional" error={errors.event_date?.[0]}>
-                                    <input className="input" type="date" value={form.event_date} onChange={(e) => setForm({ ...form, event_date: e.target.value, event_start: e.target.value + (form.event_start ? 'T' + form.event_start.split('T')[1] : ''), event_end: e.target.value + (form.event_end ? 'T' + form.event_end.split('T')[1] : '') })} />
-                                </Field>
-                                <Field label="Waktu Mulai Acara" hint="opsional" error={errors.event_start?.[0]}>
-                                    <input className="input" type="datetime-local" value={form.event_start} onChange={(e) => setForm({ ...form, event_start: e.target.value })} />
-                                </Field>
-                                <Field label="Waktu Selesai Acara" hint="opsional" error={errors.event_end?.[0]}>
-                                    <input className="input" type="datetime-local" value={form.event_end} onChange={(e) => setForm({ ...form, event_end: e.target.value })} />
-                                </Field>
-                            </div>
+                            <Field label="Tanggal Acara" hint="opsional" error={errors.event_date?.[0]}>
+                                <input className="input" type="date" value={form.event_date} onChange={(e) => setForm({ ...form, event_date: e.target.value, event_start: e.target.value + (form.event_start ? 'T' + form.event_start.split('T')[1] : ''), event_end: e.target.value + (form.event_end ? 'T' + form.event_end.split('T')[1] : '') })} />
+                            </Field>
+                            <Field label="Waktu Mulai Acara" hint="opsional" error={errors.event_start?.[0]}>
+                                <input className="input" type="datetime-local" value={form.event_start} onChange={(e) => setForm({ ...form, event_start: e.target.value })} />
+                            </Field>
+                            <Field label="Waktu Selesai Acara" hint="opsional" error={errors.event_end?.[0]}>
+                                <input className="input" type="datetime-local" value={form.event_end} onChange={(e) => setForm({ ...form, event_end: e.target.value })} />
+                            </Field>
                             {form.package_id === 'custom' && (
                                 <div className="sm:col-span-2">
                                     <Field label="Pilih Layanan Satuan (bisa lebih dari satu)">
@@ -436,9 +436,11 @@ export default function Projects() {
                         </select>
                     </Field>
                     {isAdmin && (
-                        <Field label="DP / Uang Muka (Rp)" hint="opsional. Kosongkan jika deal pembayaran di belakang." error={errors.dp_amount?.[0]}>
-                            <input className="input" type="number" min="0" value={form.dp_amount} onChange={(e) => setForm({ ...form, dp_amount: e.target.value })} placeholder="mis. 500000" />
-                        </Field>
+                        <div className="sm:col-span-2">
+                            <Field label="DP / Uang Muka (Rp)" hint="opsional. Kosongkan jika deal pembayaran di belakang." error={errors.dp_amount?.[0]}>
+                                <input className="input" type="number" min="0" value={form.dp_amount} onChange={(e) => setForm({ ...form, dp_amount: e.target.value })} placeholder="mis. 500000" />
+                            </Field>
+                        </div>
                     )}
                 </form>
             </Modal>
