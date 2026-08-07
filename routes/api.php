@@ -73,6 +73,8 @@ Route::middleware(['web', 'auth:sanctum', 'maintenance'])->group(function () {
 
     Route::get('/customer/dashboard', [CustomerController::class, 'dashboard']);
     Route::get('/customer/bookings', [CustomerController::class, 'bookings']);
+    Route::post('/customer/bookings', [CustomerController::class, 'storeBooking']);
+    Route::post('/customer/bookings/{booking}/cancel', [CustomerController::class, 'cancelBooking']);
     Route::get('/customer/invoices', [CustomerController::class, 'invoices']);
     Route::get('/customer/payments', [CustomerController::class, 'payments']);
     Route::get('/customer/gallery', [CustomerController::class, 'gallery']);

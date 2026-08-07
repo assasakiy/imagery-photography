@@ -48,6 +48,64 @@ class CustomerController extends Controller
         );
     }
 
+    public function storeBooking(Request $request)
+    {
+        $user = $request->user();
+
+        $data = $request->validate([
+            'package_id' => 'nullable|exists:packages,id',
+            'package_label' => 'nullable|string|max:255',
+            'event_date' => 'nullable|date',
+            'location' => 'nullable|string|max:255',
+            'notes' => 'nullable|string|max:2000',
+        ]);
+
+        $data['notes'] = \App\Support\ContentSanitizer::plainText($data['notes'] ?? '');
+        $data['location'] = \App\Support\ContentSanitizer::plainText($data['location'] ?? '');
+        
+        $package = null;
+        if (!empty($data['package_id'])) {
+            $package = \App\Models\Package::find($data['package_id']);
+        }
+
+        $booking = Booking::create([
+            'user_id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'phone' => $user->phone,
+            'package_id' => $package?->id,
+            'package_label' => $package?->name ?? $data['package_label'],
+            'event_date' => $data['event_date'] ?? null,
+            'location' => $data['location'] ?? null,
+            'notes' => $data['notes'] ?? null,
+            'price' => $package ? $package->computedPrice() : null,
+            'status' => 'pending',
+        ]);
+
+        app(\App\Services\NotificationService::class)->toAdmins('Booking Baru (Member)', 'Booking dari ' . $user->name, '/dashboard/bookings');
+
+        return response()->json($booking);
+    }
+
+    public function cancelBooking(Request $request, Booking $booking)
+    {
+        $user = $request->user();
+
+        if ($booking->user_id !== $user->id) {
+            abort(403);
+        }
+
+        if (!in_array($booking->status, ['pending', 'confirmed'])) {
+            abort(422, 'Hanya booking yang menunggu atau dikonfirmasi yang bisa dibatalkan.');
+        }
+
+        $booking->update(['status' => 'rejected']);
+        
+        app(\App\Services\AuditLogger::class)->log('booking.cancelled_by_client', 'Booking ' . $booking->booking_no . ' dibatalkan oleh klien.', $booking);
+        
+        return response()->json(['ok' => true]);
+    }
+
     public function invoices(Request $request)
     {
         $projectIds = $request->user()->projects()->pluck('id');
