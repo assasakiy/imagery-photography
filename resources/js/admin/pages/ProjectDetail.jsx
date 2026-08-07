@@ -763,7 +763,7 @@ export default function ProjectDetail() {
                         <PanelFooter>
                             <Link to={previewHref} className="btn-outline"><Icon name="eye" size={16} /> Lihat Preview</Link>
                             {!isAdmin && (
-                                <Link to="/dashboard/client-invoices" className="btn-primary"><Icon name="credit-card" size={16} /> Bayar di Halaman Tagihan</Link>
+                                <Link to="/dashboard/client-invoices" className="btn-primary"><Icon name="credit-card" size={16} /> Bayar Tagihan</Link>
                             )}
                             {isAdmin && (
                                 <button className="btn-primary" onClick={advance} disabled={formLocked || saving || !isPaid}>
@@ -808,7 +808,7 @@ export default function ProjectDetail() {
                         </div>
                         <PanelFooter>
                             <Link to={previewHref} className={isAdmin ? 'btn-outline' : 'btn-primary'}>
-                                <Icon name="download" size={16} /> Unduh File Asli (Tanpa Watermark)
+                                <Icon name="download" size={16} /> Unduh File
                             </Link>
                             {isAdmin && (
                                 <button className="btn-outline" onClick={archive} disabled={saving}>
