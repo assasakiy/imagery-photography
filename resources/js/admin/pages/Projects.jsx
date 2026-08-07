@@ -306,11 +306,9 @@ export default function Projects() {
                             </select>
                         </Field>
                     )}
-                    <div className="sm:col-span-2">
-                        <Field label="Nama Project" required error={errors.name?.[0]}>
-                            <input className="input" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
-                        </Field>
-                    </div>
+                    <Field label="Nama Project" required error={errors.name?.[0]}>
+                        <input className="input" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
+                    </Field>
                     {isAdmin && packages.length > 0 && (
                         <>
                             <Field label="Paket" hint="pilih paket untuk mengisi harga otomatis">
