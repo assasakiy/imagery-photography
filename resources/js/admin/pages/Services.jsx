@@ -381,7 +381,7 @@ export default function Services() {
                 )
             )}
 
-            <Modal open={svcOpen} onClose={() => setSvcOpen(false)} title={svcEditing ? 'Edit Layanan Satuan' : 'Tambah Layanan Satuan'} footer={
+            <Modal open={svcOpen} onClose={() => setSvcOpen(false)} title={svcEditing ? 'Edit Layanan Satuan' : 'Tambah Layanan Satuan'} wide footer={
                 <div className="flex justify-end gap-2">
                     <button type="button" className="btn-outline" onClick={() => setSvcOpen(false)}>Batal</button>
                     <button type="submit" form="service-form" className="btn-primary" disabled={svcSaving}>{svcSaving ? 'Menyimpan...' : 'Simpan'}</button>
