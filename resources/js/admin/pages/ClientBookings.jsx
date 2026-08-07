@@ -123,7 +123,7 @@ export default function ClientBookings() {
                         <select className="input" value={form.package_id || ''} onChange={(e) => setForm({ ...form, package_id: e.target.value })} required>
                             <option value="">-- Pilih Paket --</option>
                             {packages.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-                            <option value="custom">Kustom / Pilih Sendiri</option>
+                            <option value="custom">Layanan Satuan</option>
                         </select>
                     </Field>
                     

@@ -83,7 +83,7 @@
                                 @foreach ($packages as $pkg)
                                     <option value="{{ $pkg['id'] }}" {{ old('package_id') == $pkg['id'] ? 'selected' : '' }}>{{ $pkg['name'] }}{{ $pkg['price'] ? ' — Rp ' . number_format($pkg['price'], 0, ',', '.') : '' }}</option>
                                 @endforeach
-                                <option value="custom" {{ old('package_id') == 'custom' ? 'selected' : '' }}>Kustom / Pilih Sendiri</option>
+                                <option value="custom" {{ old('package_id') == 'custom' ? 'selected' : '' }}>Layanan Satuan</option>
                             </select>
                             @error('package_id') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
                         </div>
