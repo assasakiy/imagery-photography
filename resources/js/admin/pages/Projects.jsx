@@ -280,9 +280,11 @@ export default function Projects() {
                                 </Field>
                             ) : (
                                 <>
-                                    <Field label="Nama Klien" required error={errors.client_name?.[0]}>
-                                        <input className="input" value={form.client_name} onChange={(e) => setForm({ ...form, client_name: e.target.value })} required />
-                                    </Field>
+                                    <div className="sm:col-span-2">
+                                        <Field label="Nama Klien" required error={errors.client_name?.[0]}>
+                                            <input className="input" value={form.client_name} onChange={(e) => setForm({ ...form, client_name: e.target.value })} required />
+                                        </Field>
+                                    </div>
                                     <Field label="No. WhatsApp" required error={errors.client_phone?.[0]}>
                                         <input className="input" placeholder="08xxxxxxxxxx" value={form.client_phone} onChange={(e) => setForm({ ...form, client_phone: e.target.value })} required />
                                     </Field>
