@@ -24,6 +24,9 @@ class ProjectController extends Controller
         $user = $request->user();
 
         if ($user->isStaff()) {
+            // Pemutakhiran status otomatis saat daftar pesanan dibuka (tanpa cron).
+            \App\Models\Project::processDueTransitions();
+
             $query = Project::with('user.profile', 'payments', 'files');
 
             if ($request->filled('status')) {
@@ -43,6 +46,9 @@ class ProjectController extends Controller
         if ($request->user()->isClient() && $project->user_id !== $request->user()->id) {
             abort(403);
         }
+
+        // Pemutakhiran status otomatis saat detail dibuka (tanpa cron).
+        \App\Models\Project::processDueTransitions($project);
 
         $project->load(['user.profile', 'files', 'payments', 'updates.user', 'accessTokens', 'invoice', 'booking', 'reviews']);
 

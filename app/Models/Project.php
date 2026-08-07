@@ -212,4 +212,36 @@ class Project extends Model
             'kind' => 'system',
         ]);
     }
+
+    /**
+     * Jalankan transisi otomatis (lazy on-access ATAU via command).
+     * Kalau $only diisi, cek satu proyek saja (hemat query saat show).
+     */
+    public static function processDueTransitions(?self $only = null): void
+    {
+        $grace = static::graceMinutes();
+        $now = now()->subMinutes($grace);
+
+        $scheduled = $only && $only->status === 'scheduled'
+            ? collect([$only])
+            : static::where('status', 'scheduled')->whereNotNull('event_start')->where('event_start', '<=', $now)->get();
+        $scheduled->each(fn (self $p) => $p->event_start && $p->event_start <= $now ? $p->advanceStep('shooting') : null);
+
+        $shooting = $only && $only->status === 'shooting'
+            ? collect([$only])
+            : static::where('status', 'shooting')->whereNotNull('event_end')->where('event_end', '<=', $now)->get();
+        $shooting->each(fn (self $p) => $p->event_end && $p->event_end <= $now ? $p->advanceStep('editing') : null);
+
+        if ($only) {
+            if ($only->status === 'awaiting_payment' && $only->isPaid()) {
+                $only->advanceStep('completed');
+            }
+
+            return;
+        }
+
+        static::where('status', 'awaiting_payment')->get()
+            ->filter(fn (self $p) => $p->isPaid())
+            ->each(fn (self $p) => $p->advanceStep('completed'));
+    }
 }
