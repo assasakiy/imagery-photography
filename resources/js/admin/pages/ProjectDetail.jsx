@@ -309,32 +309,70 @@ export default function ProjectDetail() {
                         <PanelHeader
                             icon="calendar"
                             iconCls="bg-amber-500/15 text-amber-600 dark:text-amber-400"
-                            title="Pesanan Terjadwal"
-                            subtitle="Jadwal acara sudah disusun. Pemotretan berjalan otomatis saat jadwal tiba."
+                            title="Detail Proyek"
+                            subtitle="Data ini diisi saat proyek dibuat. Status berpindah ke Pemotretan setelah fotografer mengunggah bukti mulai sesi."
                         />
                         <div className="p-5">
                             <div className="grid gap-4 rounded-xl bg-surface-muted p-4 sm:grid-cols-2">
                                 <div>
-                                    <p className="text-xs font-semibold uppercase tracking-wider text-ink-muted">Waktu Mulai Acara</p>
-                                    <p className="mt-1 font-semibold text-ink">{project.event_start ? `${formatDate(project.event_start)} · ${project.event_start.slice(11, 16)}` : '-'}</p>
+                                    <p className="text-xs font-semibold uppercase tracking-wider text-ink-muted">Tanggal Acara</p>
+                                    <p className="mt-1 font-semibold text-ink">{project.event_start ? formatDate(project.event_start) : (project.event_date ? formatDate(project.event_date) : '-')}</p>
                                 </div>
                                 <div>
-                                    <p className="text-xs font-semibold uppercase tracking-wider text-ink-muted">Waktu Selesai Acara</p>
-                                    <p className="mt-1 font-semibold text-ink">{project.event_end ? `${formatDate(project.event_end)} · ${project.event_end.slice(11, 16)}` : '-'}</p>
+                                    <p className="text-xs font-semibold uppercase tracking-wider text-ink-muted">Waktu Mulai</p>
+                                    <p className="mt-1 font-semibold text-ink">{project.event_start ? project.event_start.slice(11, 16) : '-'}</p>
                                 </div>
                                 {project.description && (
                                     <div className="sm:col-span-2">
-                                        <p className="text-xs font-semibold uppercase tracking-wider text-ink-muted">Detail / Lokasi Acara</p>
+                                        <p className="text-xs font-semibold uppercase tracking-wider text-ink-muted">Lokasi & Catatan</p>
                                         <p className="mt-1 text-sm text-ink">{project.description}</p>
                                     </div>
                                 )}
                             </div>
-                            <button className="btn-outline mt-4" onClick={openChat}><Icon name="message-circle" size={16} /> Kirim Pesan Pesanan Ini</button>
+
+                            {project.event_start && new Date(project.event_start) < new Date() && (
+                                <div className="mt-4 flex items-start gap-3 rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-amber-700 dark:text-amber-400">
+                                    <Icon name="calendar" size={20} className="shrink-0 text-amber-600" />
+                                    <div className="text-sm">
+                                        <p className="font-bold">Acara sudah lewat jadwal mulainya.</p>
+                                        <p className="opacity-90">Ingatkan fotografer untuk mengunggah bukti mulai sesi.</p>
+                                    </div>
+                                </div>
+                            )}
+
+                            {isAdmin && isCurrentStep && (
+                                <div className="mt-6 border-t border-line pt-4">
+                                    <p className="mb-2 text-sm font-semibold text-ink">Unggah bukti mulai sesi</p>
+                                    <button className="btn-outline flex w-full flex-col items-center justify-center gap-1 border-dashed py-6 text-center hover:bg-surface-muted/50" onClick={() => fileRef.current?.click()} disabled={uploading}>
+                                        <Icon name="camera" size={24} className="mb-1 text-ink-muted" />
+                                        <span className="font-semibold text-ink">{uploading ? 'Mengupload...' : 'Seret foto ke sini atau klik untuk unggah'}</span>
+                                        <span className="text-xs text-ink-muted">Foto ini menjadi penanda waktu sesi resmi dimulai</span>
+                                    </button>
+                                    <input ref={fileRef} type="file" className="hidden" onChange={uploadFile} />
+                                </div>
+                            )}
+                            
+                            {project.files?.length > 0 && (
+                                <div className="mt-4 grid grid-cols-3 gap-3 sm:grid-cols-4 lg:grid-cols-6">
+                                    {project.files.map((f) => (
+                                        <div key={f.id} className="group relative aspect-square overflow-hidden rounded-xl bg-surface-muted">
+                                            <img src={f.url} className="h-full w-full object-cover" alt="" />
+                                            {isAdmin && (
+                                                <button className="absolute right-1 top-1 rounded bg-red-500 p-1.5 text-white opacity-0 transition-opacity group-hover:opacity-100" onClick={() => deleteFile(f)} aria-label="Hapus">
+                                                    <Icon name="trash" size={14} />
+                                                </button>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+
+                            <button className="btn-outline mt-6" onClick={openChat}><Icon name="message-circle" size={16} /> Kirim Pesan Pesanan Ini</button>
                         </div>
                         {isAdmin && isCurrentStep && (
                             <PanelFooter>
                                 <button className="btn-primary" onClick={advance} disabled={saving}>
-                                    <Icon name="camera" size={16} /> Mulai Pemotretan <Icon name="arrow-right" size={16} />
+                                    Konfirmasi mulai & pindah ke Pemotretan
                                 </button>
                             </PanelFooter>
                         )}
