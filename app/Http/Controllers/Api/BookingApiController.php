@@ -90,11 +90,14 @@ class BookingApiController extends Controller
 
         $data = $request->validate([
             'name' => 'nullable|string|max:255',
+            'package_id' => 'nullable|integer',
             'event_date' => 'nullable|date',
             'event_start' => 'nullable|date',
             'event_end' => 'nullable|date|after:event_start',
             'description' => 'nullable|string',
             'price' => 'nullable|numeric|min:0',
+            'dp_amount' => 'nullable|numeric|min:0',
+            'status' => 'nullable|in:' . implode(',', \App\Models\Project::STATUSES),
         ]);
 
         $user = $booking->user;
@@ -107,7 +110,9 @@ class BookingApiController extends Controller
             $booking->update(['user_id' => $user->id]);
         }
 
-        $package = $booking->package_id ? \App\Models\Package::with('services')->find($booking->package_id) : null;
+        // Paket: prioritas pilihan form, fallback paket dari booking.
+        $pkgId = !empty($data['package_id']) ? (int) $data['package_id'] : $booking->package_id;
+        $package = $pkgId ? \App\Models\Package::with('services')->find($pkgId) : null;
         $snapshot = $package ? $this->snapshot($package) : null;
 
         $project = Project::create([
@@ -120,11 +125,25 @@ class BookingApiController extends Controller
             'description' => ContentSanitizer::plainText($data['description'] ?? ($booking->notes ?? '')) ?: null,
             'price' => $data['price'] ?? $booking->price ?? ($package ? $package->computedPrice() : null),
             'pricing_snapshot' => $snapshot,
-            'status' => 'scheduled',
+            'status' => $data['status'] ?? 'scheduled',
         ]);
 
         // Hubungkan booking → project (histori tetap).
         $booking->update(['status' => 'converted', 'project_id' => $project->id]);
+
+        // Invoice dibuat bila DP di muka ditentukan (selainnya ditunda ke tahap Menunggu Pembayaran).
+        if ((float) ($data['dp_amount'] ?? 0) > 0) {
+            $invoice = \App\Models\Invoice::create([
+                'project_id' => $project->id,
+                'number' => \App\Models\Invoice::nextNumber(),
+                'issued_at' => now()->toDateString(),
+                'due_at' => now()->addDays(7)->toDateString(),
+                'base_amount' => $project->price ?? 0,
+                'dp_amount' => (float) $data['dp_amount'],
+                'status' => 'awaiting_dp',
+            ]);
+            $project->addSystemUpdate('Invoice ' . $invoice->number . ' dibuat dengan DP Rp ' . number_format((float) $data['dp_amount'], 0, ',', '.') . '.');
+        }
 
         $project->addSystemUpdate('Booking ' . $booking->booking_no . ' diterima — project dibuat.');
 

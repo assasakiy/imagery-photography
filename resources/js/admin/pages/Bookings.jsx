@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import api from '../api';
 import Icon from '../components/Icon';
-import { PageHeader, Spinner, EmptyState, Modal, Field, useToast, formatDate } from '../components/ui';
+import { PageHeader, Spinner, EmptyState, Modal, Field, useToast, formatDate, formatRupiah } from '../components/ui';
+import { statusOptions } from './Projects';
 
 const STATUS_META = {
     pending: { label: 'Menunggu', cls: 'bg-amber-500/15 text-amber-600 dark:text-amber-400' },
@@ -38,7 +39,14 @@ export default function Bookings() {
     const [rejectReason, setRejectReason] = useState('');
 
     const [acceptOpen, setAcceptOpen] = useState(false);
-    const [acceptForm, setAcceptForm] = useState({});
+    const [acceptForm, setAcceptForm] = useState({ service_ids: [] });
+    const [packages, setPackages] = useState([]);
+    const [services, setServices] = useState([]);
+
+    useEffect(() => {
+        api.get('/packages', { params: { active_only: 1 } }).then(({ data }) => setPackages(data));
+        api.get('/services').then(({ data }) => setServices(data));
+    }, []);
 
     const { show, node } = useToast();
 
@@ -122,8 +130,13 @@ export default function Bookings() {
         e.preventDefault();
         setSaving(true);
         setErrors({});
+        const payload = { ...acceptForm };
+        if ((payload.package_id === 'custom') || !payload.package_id) {
+            payload.package_id = null;
+        }
+        delete payload.service_ids;
         try {
-            const { data } = await api.post(`/bookings/${detail.id}/accept`, acceptForm);
+            const { data } = await api.post(`/bookings/${detail.id}/accept`, payload);
             show('Booking diterima & proyek dibuat.');
             setAcceptOpen(false);
             setDetail(null);
@@ -150,9 +163,15 @@ export default function Bookings() {
     const startAccept = () => {
         setAcceptForm({
             name: detail.package_label || detail.name,
+            package_id: detail.package_id || '',
             event_date: detail.event_date ? detail.event_date.split('T')[0] : '',
+            event_start: detail.event_start ? detail.event_start.replace('Z', '').slice(0, 16) : '',
+            event_end: detail.event_end ? detail.event_end.replace('Z', '').slice(0, 16) : '',
             description: detail.notes || '',
             price: detail.price || '',
+            status: 'scheduled',
+            dp_amount: '',
+            service_ids: [],
         });
         setAcceptOpen(true);
     };
@@ -302,29 +321,116 @@ export default function Bookings() {
                 </Field>
             </Modal>
 
-            <Modal open={acceptOpen} onClose={() => setAcceptOpen(false)} title="Terima Booking -> Buat Proyek" footer={
+            <Modal open={acceptOpen} onClose={() => setAcceptOpen(false)} title="Terima Booking -> Buat Proyek" wide footer={
                 <div className="flex justify-end gap-2">
                     <button className="btn-outline" onClick={() => setAcceptOpen(false)}>Batal</button>
                     <button className="btn-primary" onClick={handleAccept} disabled={saving}>{saving ? 'Membuat...' : 'Buat Proyek'}</button>
                 </div>
             }>
-                <form id="accept-form" className="space-y-4">
-                    <Field label="Nama Proyek" required error={errors.name?.[0]}>
-                        <input className="input" value={acceptForm.name} onChange={(e) => setAcceptForm({ ...acceptForm, name: e.target.value })} />
-                    </Field>
-                    <div className="grid grid-cols-2 gap-4">
-                        <Field label="Tanggal Acara" error={errors.event_date?.[0]}>
-                            <input type="date" className="input" value={acceptForm.event_date} onChange={(e) => setAcceptForm({ ...acceptForm, event_date: e.target.value })} />
-                        </Field>
-                        <Field label="Harga Final (Rp)" error={errors.price?.[0]}>
-                            <input type="number" className="input" value={acceptForm.price} onChange={(e) => setAcceptForm({ ...acceptForm, price: e.target.value })} />
+                <form id="accept-form" className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <div className="sm:col-span-2">
+                        <Field label="Nama Project" required error={errors.name?.[0]}>
+                            <input className="input" value={acceptForm.name} onChange={(e) => setAcceptForm({ ...acceptForm, name: e.target.value })} required />
                         </Field>
                     </div>
-                    <Field label="Deskripsi / Catatan Proyek" error={errors.description?.[0]}>
-                        <textarea className="input" rows="3" value={acceptForm.description} onChange={(e) => setAcceptForm({ ...acceptForm, description: e.target.value })} />
+
+                    <Field label="Paket" hint="pilih paket untuk mengisi harga otomatis">
+                        <select
+                            className="input"
+                            value={acceptForm.package_id || ''}
+                            onChange={(e) => {
+                                const pid = e.target.value;
+                                if (pid === 'custom') {
+                                    setAcceptForm({ ...acceptForm, package_id: pid });
+                                    return;
+                                }
+                                const pkg = packages.find((p) => String(p.id) === pid);
+                                setAcceptForm({
+                                    ...acceptForm,
+                                    package_id: pid,
+                                    name: acceptForm.name || (pkg ? pkg.name : ''),
+                                    price: pkg ? pkg.price : acceptForm.price,
+                                    service_ids: [],
+                                });
+                            }}
+                        >
+                            <option value="">Tanpa paket (harga manual)</option>
+                            {packages.map((p) => (
+                                <option key={p.id} value={p.id}>{p.name} — {formatRupiah(p.price)}</option>
+                            ))}
+                            <option value="custom">Layanan Satuan</option>
+                        </select>
                     </Field>
+                    <Field label="Tanggal Acara" hint="opsional" error={errors.event_date?.[0]}>
+                        <input className="input" type="date" value={acceptForm.event_date} onChange={(e) => setAcceptForm({ ...acceptForm, event_date: e.target.value })} />
+                    </Field>
+                    <Field label="Waktu Mulai Acara" hint="opsional" error={errors.event_start?.[0]}>
+                        <input className="input" type="datetime-local" value={acceptForm.event_start} onChange={(e) => setAcceptForm({ ...acceptForm, event_start: e.target.value })} />
+                    </Field>
+                    <Field label="Waktu Selesai Acara" hint="opsional" error={errors.event_end?.[0]}>
+                        <input className="input" type="datetime-local" value={acceptForm.event_end} onChange={(e) => setAcceptForm({ ...acceptForm, event_end: e.target.value })} />
+                    </Field>
+
+                    {acceptForm.package_id === 'custom' && (
+                        <div className="sm:col-span-2">
+                            <Field label="Pilih Layanan Satuan (bisa lebih dari satu)">
+                                <div className="max-h-48 overflow-y-auto rounded-xl border border-line bg-surface p-2">
+                                    {services.map(s => (
+                                        <label key={s.id} className="flex cursor-pointer items-center gap-3 rounded-lg p-2 hover:bg-surface-muted transition-colors">
+                                            <input
+                                                type="checkbox"
+                                                className="h-4 w-4 rounded border-line text-brand-600"
+                                                checked={(acceptForm.service_ids || []).includes(s.id)}
+                                                onChange={(e) => {
+                                                    const ids = new Set(acceptForm.service_ids || []);
+                                                    if (e.target.checked) ids.add(s.id);
+                                                    else ids.delete(s.id);
+                                                    const idArray = Array.from(ids);
+                                                    const selectedServices = services.filter(svc => idArray.includes(svc.id));
+                                                    const sumPrice = selectedServices.reduce((acc, svc) => acc + Number(svc.price), 0);
+                                                    const customName = 'Kustom: ' + selectedServices.map(svc => `${svc.event} (${svc.media})`).join(' + ');
+                                                    setAcceptForm({
+                                                        ...acceptForm,
+                                                        service_ids: idArray,
+                                                        name: idArray.length ? customName : '',
+                                                        price: idArray.length ? sumPrice : '',
+                                                    });
+                                                }}
+                                            />
+                                            <div className="flex flex-1 justify-between text-sm">
+                                                <span className="font-medium text-ink">{s.event} <span className="text-xs text-ink-muted capitalize">({s.media})</span></span>
+                                                <span className="font-semibold text-brand-600 dark:text-brand-400">{formatRupiah(s.price)}</span>
+                                            </div>
+                                        </label>
+                                    ))}
+                                </div>
+                            </Field>
+                        </div>
+                    )}
+
+                    <div className="sm:col-span-2">
+                        <Field label="Deskripsi / Catatan Proyek" error={errors.description?.[0]}>
+                            <textarea className="input min-h-[80px]" value={acceptForm.description} onChange={(e) => setAcceptForm({ ...acceptForm, description: e.target.value })} />
+                        </Field>
+                    </div>
+
+                    <Field label="Harga (Rp)" error={errors.price?.[0]}>
+                        <input className="input" type="number" min="0" value={acceptForm.price} onChange={(e) => setAcceptForm({ ...acceptForm, price: e.target.value })} />
+                    </Field>
+                    <Field label="Status" error={errors.status?.[0]}>
+                        <select className="input" value={acceptForm.status} onChange={(e) => setAcceptForm({ ...acceptForm, status: e.target.value })}>
+                            {statusOptions.map((s) => (
+                                <option key={s.value} value={s.value}>{s.label}</option>
+                            ))}
+                        </select>
+                    </Field>
+                    <div className="sm:col-span-2">
+                        <Field label="DP / Uang Muka (Rp)" hint="opsional. Kosongkan jika deal pembayaran di belakang." error={errors.dp_amount?.[0]}>
+                            <input className="input" type="number" min="0" value={acceptForm.dp_amount} onChange={(e) => setAcceptForm({ ...acceptForm, dp_amount: e.target.value })} placeholder="mis. 500000" />
+                        </Field>
+                    </div>
                 </form>
-                <p className="mt-3 text-xs text-ink-muted">Aksi ini akan membuat Proyek dan Invoice baru. Booking akan masuk ke histori.</p>
+                <p className="mt-3 text-xs text-ink-muted">Aksi ini akan membuat Proyek (dan Invoice bila DP diisi). Booking akan masuk ke histori.</p>
             </Modal>
             {node}
         </>
