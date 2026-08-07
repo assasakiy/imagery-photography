@@ -420,7 +420,7 @@ export default function Bookings() {
                     </div>
 
                     <div className="sm:col-span-2">
-                        <Field label="Harga (Rp)" error={errors.price?.[0]}>
+                        <Field label="Harga (Rp)" hint="opsional. Otomatis terisi dari paket, bisa diubah manual." error={errors.price?.[0]}>
                             <input className="input" type="number" min="0" value={acceptForm.price} onChange={(e) => setAcceptForm({ ...acceptForm, price: e.target.value })} />
                         </Field>
                     </div>

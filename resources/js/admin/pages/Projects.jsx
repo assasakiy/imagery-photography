@@ -432,7 +432,7 @@ export default function Projects() {
                         </Field>
                     </div>
                     <div className="sm:col-span-2">
-                        <Field label="Harga (Rp)" hint="opsional" error={errors.price?.[0]}>
+                        <Field label="Harga (Rp)" hint="opsional. Otomatis terisi dari paket, bisa diubah manual." error={errors.price?.[0]}>
                             <input className="input" type="number" min="0" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} />
                         </Field>
                     </div>
