@@ -144,13 +144,13 @@ export default function Bookings() {
         <>
             <PageHeader title="Booking" subtitle="Kelola permintaan pemesanan dari klien." />
 
-            <div className="mb-5 flex flex-col gap-3 lg:flex-row lg:items-center">
-                <div className="flex flex-wrap items-center gap-2">
+            <div className="mb-5 flex items-center gap-3">
+                <div className="flex flex-nowrap items-center gap-2 overflow-x-auto">
                     {STATUS_TABS.map((t) => (
                         <button
                             key={t.key}
                             onClick={() => setStatus(t.key)}
-                            className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
+                            className={`inline-flex flex-shrink-0 items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
                                 status === t.key ? 'bg-brand-600 text-white' : 'bg-surface-muted text-ink-muted hover:text-ink'
                             }`}
                         >
@@ -158,9 +158,9 @@ export default function Bookings() {
                         </button>
                     ))}
                 </div>
-                <div className="relative max-w-sm lg:ml-auto lg:w-full lg:max-w-sm">
+                <div className="relative min-w-0 flex-1">
                     <Icon name="search" size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" />
-                    <input className="input pl-9" placeholder="Cari nama, email, nomor..." value={q} onChange={(e) => setQ(e.target.value)} />
+                    <input className="input w-full pl-9" placeholder="Cari nama, email, nomor..." value={q} onChange={(e) => setQ(e.target.value)} />
                 </div>
             </div>
 
