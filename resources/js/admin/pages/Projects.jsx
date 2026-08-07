@@ -33,12 +33,11 @@ const emptyForm = {
     name: '',
     type: '',
     package_id: '',
+    service_ids: [],
     event_date: '',
     description: '',
     price: '',
-    status: 'pending',
-    start_date: '',
-    end_date: '',
+    status: 'scheduled',
 };
 
 export default function Projects() {
@@ -49,6 +48,7 @@ export default function Projects() {
     const [status, setStatus] = useState('');
     const [clients, setClients] = useState([]);
     const [packages, setPackages] = useState([]);
+    const [services, setServices] = useState([]);
     const [loading, setLoading] = useState(true);
     const [open, setOpen] = useState(false);
     const [editing, setEditing] = useState(null);
@@ -75,6 +75,7 @@ export default function Projects() {
     useEffect(() => {
         if (isAdmin) api.get('/clients', { params: { per_page: 100 } }).then(({ data }) => setClients(data.data));
         if (isAdmin) api.get('/packages', { params: { active_only: 1 } }).then(({ data }) => setPackages(data));
+        if (isAdmin) api.get('/services').then(({ data }) => setServices(data));
     }, [isAdmin]);
 
     const openCreate = () => {
@@ -113,13 +114,17 @@ export default function Projects() {
         setSaving(true);
         setErrors({});
         try {
+            const payload = { ...form };
+            if (payload.package_id === 'custom') {
+                payload.package_id = '';
+                delete payload.service_ids; // Backend tak butuh ini untuk manual price
+            }
             if (editing) {
-                await api.put(`/projects/${editing.id}`, form);
+                await api.put(`/projects/${editing.id}`, payload);
                 show('Project diperbarui.');
                 load(meta.current_page);
                 setOpen(false);
             } else {
-                const payload = { ...form };
                 if (payload.client_mode === 'existing') {
                     payload.client_name = '';
                     payload.client_phone = '';
@@ -313,6 +318,10 @@ export default function Projects() {
                                     value={form.package_id}
                                     onChange={(e) => {
                                         const pid = e.target.value;
+                                        if (pid === 'custom') {
+                                            setForm({ ...form, package_id: pid });
+                                            return;
+                                        }
                                         const pkg = packages.find((p) => String(p.id) === pid);
                                         setForm({
                                             ...form,
@@ -320,6 +329,7 @@ export default function Projects() {
                                             name: form.name || (pkg ? pkg.name : ''),
                                             type: form.type || (pkg ? pkg.type : ''),
                                             price: pkg ? pkg.price : form.price,
+                                            service_ids: [],
                                         });
                                     }}
                                 >
@@ -327,9 +337,45 @@ export default function Projects() {
                                     {packages.map((p) => (
                                         <option key={p.id} value={p.id}>{p.name} — {formatRupiah(p.price)}</option>
                                     ))}
+                                    <option value="custom">Layanan Satuan</option>
                                 </select>
                             </Field>
-                            {(() => {
+                            {form.package_id === 'custom' && (
+                                <Field label="Pilih Layanan Satuan (bisa lebih dari satu)">
+                                    <div className="max-h-48 overflow-y-auto rounded-xl border border-line bg-surface p-2">
+                                        {services.map(s => (
+                                            <label key={s.id} className="flex cursor-pointer items-center gap-3 rounded-lg p-2 hover:bg-surface-muted transition-colors">
+                                                <input 
+                                                    type="checkbox" 
+                                                    className="h-4 w-4 rounded border-line text-brand-600"
+                                                    checked={(form.service_ids || []).includes(s.id)}
+                                                    onChange={(e) => {
+                                                        const ids = new Set(form.service_ids || []);
+                                                        if (e.target.checked) ids.add(s.id);
+                                                        else ids.delete(s.id);
+                                                        const idArray = Array.from(ids);
+                                                        const selectedServices = services.filter(svc => idArray.includes(svc.id));
+                                                        const sumPrice = selectedServices.reduce((acc, svc) => acc + Number(svc.price), 0);
+                                                        const customName = 'Kustom: ' + selectedServices.map(svc => `${svc.event} (${svc.media})`).join(' + ');
+                                                        
+                                                        setForm({ 
+                                                            ...form, 
+                                                            service_ids: idArray,
+                                                            name: idArray.length ? customName : '',
+                                                            price: idArray.length ? sumPrice : ''
+                                                        });
+                                                    }}
+                                                />
+                                                <div className="flex flex-1 justify-between text-sm">
+                                                    <span className="font-medium text-ink">{s.event} <span className="text-xs text-ink-muted capitalize">({s.media})</span></span>
+                                                    <span className="font-semibold text-brand-600 dark:text-brand-400">{formatRupiah(s.price)}</span>
+                                                </div>
+                                            </label>
+                                        ))}
+                                    </div>
+                                </Field>
+                            )}
+                            {form.package_id !== 'custom' && (() => {
                                 const pkg = packages.find((p) => String(p.id) === form.package_id);
                                 if (!pkg) return null;
                                 return (
