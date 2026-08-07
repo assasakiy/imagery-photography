@@ -233,47 +233,46 @@ export default function ProjectDetail() {
         }
     };
 
-    const submitPhotos = async () => {
+    const uploadPhotosBatch = async () => {
         if (!photoQueue.length) return;
-        setUploading(true);
-        setUploadProgress(0);
-        try {
-            const data = new FormData();
-            photoQueue.forEach((f) => data.append('files[]', f));
-            await api.post(`/projects/${id}/files`, data, {
-                onUploadProgress: (ev) => {
-                    if (ev.total) setUploadProgress(Math.round((ev.loaded / ev.total) * 100));
-                },
-            });
-            show(`${photoQueue.length} foto diupload.`, 'success');
-            setPhotoQueue([]);
-            load();
-        } catch (err) {
-            show(err.response?.data?.message || 'Gagal mengupload foto.', 'error');
-        } finally {
-            setUploading(false);
-            setUploadProgress(0);
-        }
+        const data = new FormData();
+        photoQueue.forEach((f) => data.append('files[]', f));
+        await api.post(`/projects/${id}/files`, data, {
+            onUploadProgress: (ev) => {
+                if (ev.total) setUploadProgress(Math.round((ev.loaded / ev.total) * 100));
+            },
+        });
     };
 
-    const uploadVideo = async () => {
+    const uploadVideoPair = async () => {
         if (!videoForm.preview || !videoForm.original) return;
+        const data = new FormData();
+        data.append('preview', videoForm.preview);
+        data.append('original', videoForm.original);
+        await api.post(`/projects/${id}/videos`, data, {
+            onUploadProgress: (ev) => {
+                if (ev.total) setUploadProgress(Math.round((ev.loaded / ev.total) * 100));
+            },
+        });
+    };
+
+    const submitUpload = async () => {
+        const hasPhotos = photoQueue.length > 0;
+        const hasVideo = videoForm.preview && videoForm.original;
+        if ((!hasPhotos && !hasVideo) || uploading) return;
+
         setUploading(true);
         setUploadProgress(0);
         try {
-            const data = new FormData();
-            data.append('preview', videoForm.preview);
-            data.append('original', videoForm.original);
-            await api.post(`/projects/${id}/videos`, data, {
-                onUploadProgress: (ev) => {
-                    if (ev.total) setUploadProgress(Math.round((ev.loaded / ev.total) * 100));
-                },
-            });
-            show('Video diupload (preview + original).', 'success');
+            if (hasPhotos) await uploadPhotosBatch();
+            if (hasVideo) await uploadVideoPair();
+            setPhotoQueue([]);
             setVideoForm({ preview: null, original: null });
+            setUploadOpen(false);
+            show('File final diupload. Tampil di halaman Preview.', 'success');
             load();
         } catch (err) {
-            show(err.response?.data?.message || 'Gagal mengupload video.', 'error');
+            show(err.response?.data?.message || 'Gagal mengupload.', 'error');
         } finally {
             setUploading(false);
             setUploadProgress(0);
@@ -836,22 +835,30 @@ export default function ProjectDetail() {
                 </form>
             </Modal>
             {/* UPLOAD FILE MODAL */}
-            <Modal open={uploadOpen} onClose={() => setUploadOpen(false)} title="Unggah File Final" wide>
+            <Modal
+                open={uploadOpen}
+                onClose={() => setUploadOpen(false)}
+                title="Unggah File Final"
+                wide
+                footer={
+                    <div className="flex justify-end gap-2">
+                        <button type="button" className="btn-outline" onClick={() => setUploadOpen(false)} disabled={uploading}>Batal</button>
+                        <button type="button" className="btn-primary" onClick={submitUpload} disabled={uploading || (!photoQueue.length && !(videoForm.preview && videoForm.original))}>
+                            {uploading ? 'Mengunggah…' : 'Unggah'} <Icon name="upload" size={16} />
+                        </button>
+                    </div>
+                }
+            >
                 <div className="space-y-5">
                     {hasPhoto && (
                         <div>
                             <p className="text-sm font-semibold text-ink">Foto (bisa banyak)</p>
                             <p className="mt-0.5 text-xs text-ink-muted">Foto original tersimpan privat · preview ber-watermark dibuat otomatis.</p>
-                            <div className="mt-3 flex items-center gap-3">
-                                <button type="button" className="btn-outline flex-1 flex-col items-center justify-center gap-1 border-dashed py-5 text-center hover:bg-surface-muted/50" onClick={() => photoRef.current?.click()} disabled={uploading}>
-                                    <Icon name="upload" size={20} className="mb-1 text-ink-muted" />
-                                    <span className="font-semibold text-ink">{photoQueue.length ? `${photoQueue.length} foto dipilih` : 'Pilih foto hasil edit'}</span>
-                                </button>
-                                <button type="button" className="btn-primary shrink-0" onClick={submitPhotos} disabled={uploading || !photoQueue.length}>
-                                    <Icon name="upload" size={16} /> Unggah
-                                </button>
-                                <input ref={photoRef} type="file" accept="image/*" multiple className="hidden" onChange={(e) => { setPhotoQueue(Array.from(e.target.files || [])); e.target.value = ''; }} disabled={uploading} />
-                            </div>
+                            <button type="button" className="mt-3 btn-outline flex w-full flex-col items-center justify-center gap-1 border-dashed py-5 text-center hover:bg-surface-muted/50" onClick={() => photoRef.current?.click()} disabled={uploading}>
+                                <Icon name="upload" size={20} className="mb-1 text-ink-muted" />
+                                <span className="font-semibold text-ink">{photoQueue.length ? `${photoQueue.length} foto dipilih` : 'Pilih foto hasil edit'}</span>
+                            </button>
+                            <input ref={photoRef} type="file" accept="image/*" multiple className="hidden" onChange={(e) => { setPhotoQueue(Array.from(e.target.files || [])); e.target.value = ''; }} disabled={uploading} />
                             {photoQueue.length > 0 && (
                                 <p className="mt-2 break-words text-xs text-ink-muted">{photoQueue.map((f) => f.name).join(', ')}</p>
                             )}
@@ -873,9 +880,6 @@ export default function ProjectDetail() {
                                 </button>
                                 <input ref={videoOriginalRef} type="file" accept="video/*" className="hidden" onChange={(e) => setVideoForm({ ...videoForm, original: e.target.files[0] })} disabled={uploading} />
                             </div>
-                            <button type="button" className="btn-primary mt-3" onClick={uploadVideo} disabled={uploading || !videoForm.preview || !videoForm.original}>
-                                <Icon name="upload" size={16} /> Simpan Video
-                            </button>
                         </div>
                     )}
                     {uploading && (
