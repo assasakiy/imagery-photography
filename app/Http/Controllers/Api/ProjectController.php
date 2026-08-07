@@ -69,6 +69,7 @@ class ProjectController extends Controller
             'event_start' => 'nullable|date',
             'event_end' => 'nullable|date|after:event_start',
             'description' => 'nullable|string',
+            'location' => 'nullable|string|max:255',
             'price' => 'nullable|numeric|min:0',
             'dp_amount' => 'nullable|numeric|min:0',
             'status' => 'nullable|in:' . implode(',', \App\Models\Project::STATUSES),
@@ -76,6 +77,7 @@ class ProjectController extends Controller
 
         $data['description'] = ContentSanitizer::plainText($data['description'] ?? '');
         $data['client_notes'] = ContentSanitizer::plainText($data['client_notes'] ?? '');
+        $data['location'] = ContentSanitizer::plainText($data['location'] ?? '');
 
         if (!empty($data['user_id'])) {
             $user = User::findOrFail($data['user_id']);
@@ -117,6 +119,7 @@ class ProjectController extends Controller
             'event_start' => $data['event_start'] ?? null,
             'event_end' => $data['event_end'] ?? null,
             'description' => $data['description'] ?? null,
+            'location' => $data['location'] ?? null,
             'price' => $data['price'] ?? ($package ? $package->computedPrice() : null),
             'pricing_snapshot' => $snapshot,
             'status' => $data['status'] ?? 'scheduled',
@@ -217,6 +220,7 @@ class ProjectController extends Controller
             'event_start' => 'nullable|date',
             'event_end' => 'nullable|date|after:event_start',
             'description' => 'nullable|string',
+            'location' => 'nullable|string|max:255',
             'price' => 'nullable|numeric|min:0',
             'dp_amount' => 'nullable|numeric|min:0',
             'photo_total' => 'nullable|integer|min:0',
@@ -227,6 +231,7 @@ class ProjectController extends Controller
         ]);
 
         $data['description'] = ContentSanitizer::plainText($data['description'] ?? '');
+        $data['location'] = ContentSanitizer::plainText($data['location'] ?? '');
 
         if (array_key_exists('package_id', $data)) {
             $project->package_id = $data['package_id'] ?: null;

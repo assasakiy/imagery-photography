@@ -25,7 +25,7 @@ class Project extends Model
 
     protected $fillable = [
         'user_id', 'name', 'order_no', 'package_id', 'event_date', 'event_start', 'event_end', 'description',
-        'price', 'pricing_snapshot', 'status', 'shooting_at', 'editing_at', 'awaiting_payment_at', 'completed_at',
+        'location', 'price', 'pricing_snapshot', 'status', 'shooting_at', 'editing_at', 'awaiting_payment_at', 'completed_at',
         'client_notes', 'preview_released',
         'photo_total', 'photo_done', 'video_total', 'video_done',
     ];

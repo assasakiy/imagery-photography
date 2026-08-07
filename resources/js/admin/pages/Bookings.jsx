@@ -173,6 +173,7 @@ export default function Bookings() {
             start_time: detail.event_start ? detail.event_start.slice(11, 16) : '',
             end_time: detail.event_end ? detail.event_end.slice(11, 16) : '',
             description: detail.notes || '',
+            location: detail.location || '',
             price: detail.price || '',
             status: 'scheduled',
             dp_amount: '',
@@ -433,6 +434,12 @@ export default function Bookings() {
                             </Field>
                         </div>
                     )}
+
+                    <div className="sm:col-span-2">
+                        <Field label="Lokasi" hint="opsional. Tempat acara dilaksanakan.">
+                            <input className="input" value={acceptForm.location} onChange={(e) => setAcceptForm({ ...acceptForm, location: e.target.value })} placeholder="mis. Ballroom Hotel, Lombok" />
+                        </Field>
+                    </div>
 
                     <div className="sm:col-span-2">
                         <Field label="Deskripsi / Catatan Proyek" error={errors.description?.[0]}>

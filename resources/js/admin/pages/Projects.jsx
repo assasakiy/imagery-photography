@@ -37,6 +37,7 @@ const emptyForm = {
     start_time: '',
     end_time: '',
     description: '',
+    location: '',
     price: '',
     dp_amount: '',
     status: 'scheduled',
@@ -103,6 +104,7 @@ export default function Projects() {
             start_time: item.event_start ? item.event_start.slice(11, 16) : '',
             end_time: item.event_end ? item.event_end.slice(11, 16) : '',
             description: item.description || '',
+            location: item.location || '',
             price: item.price || '',
             dp_amount: item.invoice?.dp_amount || '',
             status: item.status,
@@ -426,6 +428,11 @@ export default function Projects() {
                             </Field>
                         </>
                     )}
+                    <div className="sm:col-span-2">
+                        <Field label="Lokasi" hint="opsional. Tempat acara dilaksanakan.">
+                            <input className="input" value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} placeholder="mis. Ballroom Hotel, Lombok" />
+                        </Field>
+                    </div>
                     <div className="sm:col-span-2">
                         <Field label="Deskripsi" hint="opsional" error={errors.description?.[0]}>
                             <textarea className="input min-h-[80px]" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />

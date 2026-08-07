@@ -397,13 +397,17 @@ export default function ProjectDetail() {
                                         {!project.event_start && !project.event_end ? '-' : ''}
                                     </p>
                                 </div>
-                                <div><p className="text-xs text-ink-muted">Lokasi / Catatan</p><p className="text-sm font-semibold text-ink">{project.description || '-'}</p></div>
+                                <div><p className="text-xs text-ink-muted">Lokasi</p><p className="text-sm font-semibold text-ink">{project.location || '-'}</p></div>
                                 <div><p className="text-xs text-ink-muted">Harga</p><p className="text-sm font-semibold text-ink">{project.price ? formatRupiah(project.price) : '-'}</p></div>
                                 <div><p className="text-xs text-ink-muted">Dibuat</p><p className="text-sm font-semibold text-ink">{formatDate(project.created_at)}</p></div>
                                 <div><p className="text-xs text-ink-muted">Klien</p>
                                     <p className="text-sm font-semibold text-ink">
                                         {project.user?.username ? `@${project.user.username}` : (project.user?.name || '-')}
                                     </p>
+                                </div>
+                                <div className="col-span-2">
+                                    <p className="text-xs text-ink-muted">Catatan</p>
+                                    <p className="mt-0.5 whitespace-pre-line text-sm font-semibold text-ink">{project.description || '-'}</p>
                                 </div>
                             </div>
 
