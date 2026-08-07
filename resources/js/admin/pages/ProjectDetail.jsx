@@ -62,6 +62,8 @@ export default function ProjectDetail() {
     const [updateText, setUpdateText] = useState('');
     const [uploading, setUploading] = useState(false);
     const [progressForm, setProgressForm] = useState({ total: '', done: '' });
+    const [fieldNote, setFieldNote] = useState('');
+    const [endProof, setEndProof] = useState(false);
     const [saving, setSaving] = useState(false);
     const [reviewOpen, setReviewOpen] = useState(false);
     const [reviewForm, setReviewForm] = useState({ rating: 5, title: '', content: '', recommend_score: 10 });
@@ -105,6 +107,23 @@ export default function ProjectDetail() {
         }
     }
     const progressPct = totalCount > 0 ? Math.min(100, Math.round((doneCount / totalCount) * 100)) : 0;
+
+    const confirmShootingDone = async () => {
+        if (fieldNote.trim()) {
+            try {
+                await api.post(`/projects/${id}/updates`, { message: `Catatan dari lapangan: ${fieldNote}` });
+            } catch (e) {
+                // Abaikan gagal log
+            }
+        }
+        setFieldNote('');
+        advance();
+    };
+
+    const uploadEndProof = async (e) => {
+        await uploadFile(e);
+        setEndProof(true);
+    };
 
     const advance = async () => {
         setSaving(true);
@@ -376,7 +395,7 @@ export default function ProjectDetail() {
                         {isAdmin && isCurrentStep && (
                             <PanelFooter>
                                 <button className="btn-primary" onClick={advance} disabled={saving}>
-                                    Konfirmasi mulai & pindah ke Pemotretan
+                                    Konfirmasi
                                 </button>
                             </PanelFooter>
                         )}
@@ -389,21 +408,44 @@ export default function ProjectDetail() {
                         <PanelHeader
                             icon="camera"
                             iconCls="bg-sky-500/15 text-sky-600 dark:text-sky-400"
-                            title="Pemotretan Sedang Berlangsung"
-                            subtitle="Tim sedang / segera tiba di lokasi acara."
+                            title="Sesi Berlangsung"
+                            subtitle="Bukti mulai sudah tercatat. Unggah bukti selesai lalu konfirmasi untuk memindahkan proyek ke tahap Editing."
                         />
                         <div className="p-5">
-                            {isAdmin && isCurrentStep && (
-                                <div className="mb-4">
-                                    <p className="mb-2 text-sm font-semibold text-ink">Upload Bukti Pemotretan</p>
-                                    <button className="btn-outline" onClick={() => fileRef.current?.click()} disabled={uploading}>
-                                        <Icon name="upload" size={16} /> {uploading ? 'Mengupload...' : 'Upload Gambar'}
-                                    </button>
-                                    <input ref={fileRef} type="file" className="hidden" onChange={uploadFile} />
+                            {project.files?.length > 0 && (
+                                <div className="flex items-center gap-3 rounded-xl border border-line bg-surface-muted/30 p-4">
+                                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-emerald-500/15 text-emerald-600">
+                                        <Icon name="check" size={18} />
+                                    </span>
+                                    <div className="min-w-0">
+                                        <p className="font-semibold text-ink">Bukti mulai sesi</p>
+                                        <p className="font-mono text-xs text-ink-muted">Diunggah {formatDate(project.files[0].created_at)}</p>
+                                    </div>
                                 </div>
                             )}
+
+                            {isAdmin && isCurrentStep && (
+                                <div className="mt-5">
+                                    <div className="border-t border-line pt-5">
+                                        <p className="mb-2 text-sm font-semibold text-ink">Unggah bukti selesai sesi</p>
+                                        <button className="btn-outline flex w-full flex-col items-center justify-center gap-1 border-dashed py-6 text-center hover:bg-surface-muted/50" onClick={() => fileRef.current?.click()} disabled={uploading}>
+                                            <Icon name="camera" size={24} className="mb-1 text-ink-muted" />
+                                            <span className="font-semibold text-ink">{uploading ? 'Mengupload...' : 'Seret 1 foto ke sini atau klik untuk unggah'}</span>
+                                            <span className="text-xs text-ink-muted">Foto ini menjadi penanda waktu sesi resmi selesai</span>
+                                        </button>
+                                        <input ref={fileRef} type="file" className="hidden" onChange={uploadEndProof} />
+                                    </div>
+
+                                    <div className="mt-4">
+                                        <Field label="Catatan dari lapangan" hint="opsional">
+                                            <textarea className="input" placeholder="Contoh: cuaca cerah, sesi selesai lebih cepat dari jadwal..." rows="2" value={fieldNote} onChange={(e) => setFieldNote(e.target.value)} />
+                                        </Field>
+                                    </div>
+                                </div>
+                            )}
+
                             {project.files?.length > 0 && (
-                                <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 lg:grid-cols-6">
+                                <div className="mt-5 grid grid-cols-3 gap-3 sm:grid-cols-4 lg:grid-cols-6">
                                     {project.files.map((f) => (
                                         <div key={f.id} className="group relative aspect-square overflow-hidden rounded-xl bg-surface-muted">
                                             <img src={f.url} className="h-full w-full object-cover" alt="" />
@@ -416,12 +458,12 @@ export default function ProjectDetail() {
                                     ))}
                                 </div>
                             )}
-                            <button className="btn-outline mt-4" onClick={openChat}><Icon name="message-circle" size={16} /> Kirim Pesan Pesanan Ini</button>
+                            <button className="btn-outline mt-6" onClick={openChat}><Icon name="message-circle" size={16} /> Kirim Pesan Pesanan Ini</button>
                         </div>
                         {isAdmin && isCurrentStep && (
                             <PanelFooter>
-                                <button className="btn-primary" onClick={advance} disabled={saving}>
-                                    Tandai Pemotretan Selesai <Icon name="arrow-right" size={16} />
+                                <button className="btn-primary" onClick={confirmShootingDone} disabled={saving || !endProof}>
+                                    Konfirmasi selesai & lanjut ke Editing
                                 </button>
                             </PanelFooter>
                         )}
