@@ -34,8 +34,8 @@ const emptyForm = {
     package_id: '',
     service_ids: [],
     event_date: '',
-    event_start: '',
-    event_end: '',
+    start_time: '',
+    end_time: '',
     description: '',
     price: '',
     dp_amount: '',
@@ -100,8 +100,8 @@ export default function Projects() {
             name: item.name,
             package_id: item.package_id || '',
             event_date: item.event_date?.split('T')[0] || '',
-            event_start: item.event_start ? item.event_start.replace('Z', '').slice(0, 16) : '',
-            event_end: item.event_end ? item.event_end.replace('Z', '').slice(0, 16) : '',
+            start_time: item.event_start ? item.event_start.slice(11, 16) : '',
+            end_time: item.event_end ? item.event_end.slice(11, 16) : '',
             description: item.description || '',
             price: item.price || '',
             dp_amount: item.invoice?.dp_amount || '',
@@ -121,6 +121,12 @@ export default function Projects() {
                 payload.package_id = '';
                 delete payload.service_ids; // Backend tak butuh ini untuk manual price
             }
+            if (payload.event_date) {
+                if (payload.start_time) payload.event_start = `${payload.event_date}T${payload.start_time}`;
+                if (payload.end_time) payload.event_end = `${payload.event_date}T${payload.end_time}`;
+            }
+            delete payload.start_time;
+            delete payload.end_time;
             if (editing) {
                 await api.put(`/projects/${editing.id}`, payload);
                 show('Project diperbarui.');
@@ -341,13 +347,13 @@ export default function Projects() {
                                 </select>
                             </Field>
                             <Field label="Tanggal Acara" hint="opsional" error={errors.event_date?.[0]}>
-                                <input className="input" type="date" value={form.event_date} onChange={(e) => setForm({ ...form, event_date: e.target.value, event_start: e.target.value + (form.event_start ? 'T' + form.event_start.split('T')[1] : ''), event_end: e.target.value + (form.event_end ? 'T' + form.event_end.split('T')[1] : '') })} />
+                                <input className="input" type="date" value={form.event_date} onChange={(e) => setForm({ ...form, event_date: e.target.value })} />
                             </Field>
                             <Field label="Waktu Mulai Acara" hint="opsional" error={errors.event_start?.[0]}>
-                                <input className="input" type="datetime-local" value={form.event_start} onChange={(e) => setForm({ ...form, event_start: e.target.value })} />
+                                <input className="input" type="time" value={form.start_time} onChange={(e) => setForm({ ...form, start_time: e.target.value })} />
                             </Field>
                             <Field label="Waktu Selesai Acara" hint="opsional" error={errors.event_end?.[0]}>
-                                <input className="input" type="datetime-local" value={form.event_end} onChange={(e) => setForm({ ...form, event_end: e.target.value })} />
+                                <input className="input" type="time" value={form.end_time} onChange={(e) => setForm({ ...form, end_time: e.target.value })} />
                             </Field>
                             {form.package_id === 'custom' && (
                                 <div className="sm:col-span-2">
@@ -413,10 +419,10 @@ export default function Projects() {
                                 <input className="input" type="date" value={form.event_date} onChange={(e) => setForm({ ...form, event_date: e.target.value })} />
                             </Field>
                             <Field label="Waktu Mulai Acara" hint="opsional" error={errors.event_start?.[0]}>
-                                <input className="input" type="datetime-local" value={form.event_start} onChange={(e) => setForm({ ...form, event_start: e.target.value })} />
+                                <input className="input" type="time" value={form.start_time} onChange={(e) => setForm({ ...form, start_time: e.target.value })} />
                             </Field>
                             <Field label="Waktu Selesai Acara" hint="opsional" error={errors.event_end?.[0]}>
-                                <input className="input" type="datetime-local" value={form.event_end} onChange={(e) => setForm({ ...form, event_end: e.target.value })} />
+                                <input className="input" type="time" value={form.end_time} onChange={(e) => setForm({ ...form, end_time: e.target.value })} />
                             </Field>
                         </>
                     )}

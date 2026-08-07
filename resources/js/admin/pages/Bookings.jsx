@@ -131,6 +131,12 @@ export default function Bookings() {
         setSaving(true);
         setErrors({});
         const payload = { ...acceptForm };
+        if (payload.event_date) {
+            if (payload.start_time) payload.event_start = `${payload.event_date}T${payload.start_time}`;
+            if (payload.end_time) payload.event_end = `${payload.event_date}T${payload.end_time}`;
+        }
+        delete payload.start_time;
+        delete payload.end_time;
         if ((payload.package_id === 'custom') || !payload.package_id) {
             payload.package_id = null;
         }
@@ -165,8 +171,8 @@ export default function Bookings() {
             name: detail.package_label || detail.name,
             package_id: detail.package_id || '',
             event_date: detail.event_date ? detail.event_date.split('T')[0] : '',
-            event_start: detail.event_start ? detail.event_start.replace('Z', '').slice(0, 16) : '',
-            event_end: detail.event_end ? detail.event_end.replace('Z', '').slice(0, 16) : '',
+            start_time: detail.event_start ? detail.event_start.slice(11, 16) : '',
+            end_time: detail.event_end ? detail.event_end.slice(11, 16) : '',
             description: detail.notes || '',
             price: detail.price || '',
             status: 'scheduled',
@@ -365,10 +371,10 @@ export default function Bookings() {
                         <input className="input" type="date" value={acceptForm.event_date} onChange={(e) => setAcceptForm({ ...acceptForm, event_date: e.target.value })} />
                     </Field>
                     <Field label="Waktu Mulai Acara" hint="opsional" error={errors.event_start?.[0]}>
-                        <input className="input" type="datetime-local" value={acceptForm.event_start} onChange={(e) => setAcceptForm({ ...acceptForm, event_start: e.target.value })} />
+                        <input className="input" type="time" value={acceptForm.start_time} onChange={(e) => setAcceptForm({ ...acceptForm, start_time: e.target.value })} />
                     </Field>
                     <Field label="Waktu Selesai Acara" hint="opsional" error={errors.event_end?.[0]}>
-                        <input className="input" type="datetime-local" value={acceptForm.event_end} onChange={(e) => setAcceptForm({ ...acceptForm, event_end: e.target.value })} />
+                        <input className="input" type="time" value={acceptForm.end_time} onChange={(e) => setAcceptForm({ ...acceptForm, end_time: e.target.value })} />
                     </Field>
 
                     {acceptForm.package_id === 'custom' && (
