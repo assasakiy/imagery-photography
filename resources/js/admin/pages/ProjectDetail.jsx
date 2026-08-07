@@ -313,28 +313,39 @@ export default function ProjectDetail() {
                             subtitle="Data ini diisi saat proyek dibuat. Status berpindah ke Pemotretan setelah fotografer mengunggah bukti mulai sesi."
                         />
                         <div className="p-5">
-                            <div className="grid gap-4 rounded-xl bg-surface-muted p-4 sm:grid-cols-2">
+                            <div className="grid gap-4 rounded-xl border border-line bg-surface-muted/30 p-4 sm:grid-cols-2 lg:grid-cols-4">
+                                {project.booking && (
+                                    <div>
+                                        <p className="text-xs font-semibold uppercase tracking-wider text-ink-muted">No. Booking</p>
+                                        <p className="mt-1 font-mono font-medium text-ink">{project.booking.booking_no}</p>
+                                    </div>
+                                )}
+                                <div>
+                                    <p className="text-xs font-semibold uppercase tracking-wider text-ink-muted">Paket</p>
+                                    <p className="mt-1 font-medium text-ink">{project.package ? project.package.name : (project.pricing_snapshot?.package || 'Layanan Satuan / Kustom')}</p>
+                                </div>
                                 <div>
                                     <p className="text-xs font-semibold uppercase tracking-wider text-ink-muted">Tanggal Acara</p>
                                     <p className="mt-1 font-medium text-ink">{project.event_start ? formatDate(project.event_start) : (project.event_date ? formatDate(project.event_date) : '-')}</p>
                                 </div>
                                 <div>
-                                    <p className="text-xs font-semibold uppercase tracking-wider text-ink-muted">Waktu Mulai</p>
-                                    <p className="mt-1 font-medium text-ink">{project.event_start ? project.event_start.slice(11, 16) : '-'}</p>
+                                    <p className="text-xs font-semibold uppercase tracking-wider text-ink-muted">Waktu Acara</p>
+                                    <p className="mt-1 font-medium text-ink">
+                                        {project.event_start ? project.event_start.slice(11, 16) : '-'} 
+                                        {project.event_end ? ` - ${project.event_end.slice(11, 16)}` : ''}
+                                    </p>
                                 </div>
-                                {project.package && (
-                                    <div>
-                                        <p className="text-xs font-semibold uppercase tracking-wider text-ink-muted">Paket / Layanan</p>
-                                        <p className="mt-1 font-medium text-ink">{project.package.name}</p>
-                                    </div>
-                                )}
+                                <div>
+                                    <p className="text-xs font-semibold uppercase tracking-wider text-ink-muted">Dibuat Pada</p>
+                                    <p className="mt-1 font-medium text-ink">{formatDate(project.created_at)}</p>
+                                </div>
                                 <div>
                                     <p className="text-xs font-semibold uppercase tracking-wider text-ink-muted">Klien</p>
                                     <p className="mt-1 font-medium text-ink">{project.user?.name || '-'}</p>
                                 </div>
                                 {project.description && (
-                                    <div className="sm:col-span-2">
-                                        <p className="text-xs font-semibold uppercase tracking-wider text-ink-muted">Lokasi & Catatan Acara</p>
+                                    <div className="sm:col-span-2 lg:col-span-4 border-t border-line pt-4 mt-1">
+                                        <p className="text-xs font-semibold uppercase tracking-wider text-ink-muted">Lokasi & Catatan</p>
                                         <p className="mt-1 text-sm text-ink">{project.description}</p>
                                     </div>
                                 )}
