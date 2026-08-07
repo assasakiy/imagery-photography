@@ -86,6 +86,16 @@ class Project extends Model implements HasMedia
         });
     }
 
+    /**
+     * Buat proyek dgn nomor pesanan unik (lock serial; aman utk create bersamaan).
+     * Cache lock utk `order_no` — kunci file/storage berfungsi antar worker php-fpm.
+     */
+    public static function createWithOrderNumber(array $attributes): self
+    {
+        return \Illuminate\Support\Facades\Cache::lock('projects:order-no', 10)
+            ->block(10, fn () => static::create($attributes));
+    }
+
     public function package()
     {
         return $this->belongsTo(Package::class);

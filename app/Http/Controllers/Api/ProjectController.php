@@ -115,7 +115,7 @@ class ProjectController extends Controller
             }
         }
 
-        $project = Project::create([
+        $project = Project::createWithOrderNumber([
             'user_id' => $user->id,
             'name' => $data['name'],
             'package_id' => $package?->id ?? null,
