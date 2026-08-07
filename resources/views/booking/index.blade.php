@@ -78,14 +78,14 @@
 
                         <div>
                             <label for="event_start" class="label">Waktu Mulai Acara</label>
-                            <input type="datetime-local" id="event_start" name="event_start" value="{{ old('event_start') }}" class="input">
-                            @error('event_start') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
+                            <input type="time" id="event_start" name="event_start_time" value="{{ old('event_start_time') }}" class="input">
+                            @error('event_start_time') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
                         </div>
 
                         <div>
                             <label for="event_end" class="label">Waktu Selesai Acara</label>
-                            <input type="datetime-local" id="event_end" name="event_end" value="{{ old('event_end') }}" class="input">
-                            @error('event_end') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
+                            <input type="time" id="event_end" name="event_end_time" value="{{ old('event_end_time') }}" class="input">
+                            @error('event_end_time') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
                         </div>
 
                         <div class="sm:col-span-2">

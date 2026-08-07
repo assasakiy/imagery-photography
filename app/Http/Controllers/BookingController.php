@@ -49,11 +49,18 @@ class BookingController extends Controller
             'service_ids' => 'nullable|array',
             'service_ids.*' => 'exists:services,id',
             'event_date' => 'nullable|date',
-            'event_start' => 'nullable|date',
-            'event_end' => 'nullable|date|after:event_start',
+            'event_start_time' => 'nullable|date_format:H:i',
+            'event_end_time' => 'nullable|date_format:H:i',
             'location' => 'nullable|string|max:255',
             'message' => 'nullable|string',
         ]);
+
+        // Gabung tanggal + jam utama acara menjadi datetime.
+        $startTime = $data['event_start_time'] ?? null;
+        $endTime = $data['event_end_time'] ?? null;
+        $data['event_start'] = $data['event_date'] && $startTime ? \Illuminate\Support\Carbon::parse($data['event_date'])->setTimeFromTimeString($startTime) : null;
+        $data['event_end'] = $data['event_date'] && $endTime ? \Illuminate\Support\Carbon::parse($data['event_date'])->setTimeFromTimeString($endTime) : null;
+        unset($data['event_start_time'], $data['event_end_time']);
 
         if ($data['package_id'] === 'custom' && empty($data['service_ids'])) {
             return back()->withErrors(['service_ids' => 'Pilih minimal satu layanan untuk paket kustom.'])->withInput();

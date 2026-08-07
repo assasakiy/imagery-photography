@@ -19,7 +19,7 @@ export default function ClientBookings() {
     const [services, setServices] = useState([]);
     const [createOpen, setCreateOpen] = useState(false);
     const [saving, setSaving] = useState(false);
-    const [form, setForm] = useState({ service_ids: [] });
+    const [form, setForm] = useState({ service_ids: [], start_time: '08:00', end_time: '12:00' });
     const [canceling, setCanceling] = useState(null);
     const { show, node } = useToast();
 
@@ -40,10 +40,17 @@ export default function ClientBookings() {
         e.preventDefault();
         setSaving(true);
         try {
-            await api.post('/customer/bookings', form);
+            const payload = { ...form };
+            if (form.event_date) {
+                if (form.start_time) payload.event_start = `${form.event_date}T${form.start_time}`;
+                if (form.end_time) payload.event_end = `${form.event_date}T${form.end_time}`;
+            }
+            delete payload.start_time;
+            delete payload.end_time;
+            await api.post('/customer/bookings', payload);
             show('Booking berhasil dikirim.');
             setCreateOpen(false);
-            setForm({ service_ids: [] });
+            setForm({ service_ids: [], start_time: '08:00', end_time: '12:00' });
             load();
         } catch (err) {
             if (err.response?.data?.errors?.service_ids) {
@@ -158,10 +165,10 @@ export default function ClientBookings() {
                         <input type="date" className="input" value={form.event_date || ''} onChange={(e) => setForm({ ...form, event_date: e.target.value })} />
                     </Field>
                     <Field label="Waktu Mulai Acara">
-                        <input type="datetime-local" className="input" value={form.event_start || ''} onChange={(e) => setForm({ ...form, event_start: e.target.value })} />
+                        <input type="time" className="input" value={form.start_time || ''} onChange={(e) => setForm({ ...form, start_time: e.target.value })} />
                     </Field>
                     <Field label="Waktu Selesai Acara">
-                        <input type="datetime-local" className="input" value={form.event_end || ''} onChange={(e) => setForm({ ...form, event_end: e.target.value })} />
+                        <input type="time" className="input" value={form.end_time || ''} onChange={(e) => setForm({ ...form, end_time: e.target.value })} />
                     </Field>
                     <Field label="Lokasi Acara">
                         <input className="input" value={form.location || ''} onChange={(e) => setForm({ ...form, location: e.target.value })} placeholder="Kota / Nama Gedung" />
