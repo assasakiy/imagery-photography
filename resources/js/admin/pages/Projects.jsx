@@ -306,7 +306,7 @@ export default function Projects() {
                         <input className="input" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
                     </Field>
                     {isAdmin && packages.length > 0 && (
-                        <div className="sm:col-span-2">
+                        <>
                             <Field label="Paket" hint="pilih paket untuk mengisi harga otomatis">
                                 <select
                                     className="input"
@@ -334,46 +334,51 @@ export default function Projects() {
                                     <option value="custom">Layanan Satuan</option>
                                 </select>
                             </Field>
+                            <Field label="Tanggal Acara" hint="opsional" error={errors.event_date?.[0]}>
+                                <input className="input" type="date" value={form.event_date} onChange={(e) => setForm({ ...form, event_date: e.target.value })} />
+                            </Field>
                             {form.package_id === 'custom' && (
-                                <Field label="Pilih Layanan Satuan (bisa lebih dari satu)">
-                                    <div className="max-h-48 overflow-y-auto rounded-xl border border-line bg-surface p-2">
-                                        {services.map(s => (
-                                            <label key={s.id} className="flex cursor-pointer items-center gap-3 rounded-lg p-2 hover:bg-surface-muted transition-colors">
-                                                <input 
-                                                    type="checkbox" 
-                                                    className="h-4 w-4 rounded border-line text-brand-600"
-                                                    checked={(form.service_ids || []).includes(s.id)}
-                                                    onChange={(e) => {
-                                                        const ids = new Set(form.service_ids || []);
-                                                        if (e.target.checked) ids.add(s.id);
-                                                        else ids.delete(s.id);
-                                                        const idArray = Array.from(ids);
-                                                        const selectedServices = services.filter(svc => idArray.includes(svc.id));
-                                                        const sumPrice = selectedServices.reduce((acc, svc) => acc + Number(svc.price), 0);
-                                                        const customName = 'Kustom: ' + selectedServices.map(svc => `${svc.event} (${svc.media})`).join(' + ');
-                                                        
-                                                        setForm({ 
-                                                            ...form, 
-                                                            service_ids: idArray,
-                                                            name: idArray.length ? customName : '',
-                                                            price: idArray.length ? sumPrice : ''
-                                                        });
-                                                    }}
-                                                />
-                                                <div className="flex flex-1 justify-between text-sm">
-                                                    <span className="font-medium text-ink">{s.event} <span className="text-xs text-ink-muted capitalize">({s.media})</span></span>
-                                                    <span className="font-semibold text-brand-600 dark:text-brand-400">{formatRupiah(s.price)}</span>
-                                                </div>
-                                            </label>
-                                        ))}
-                                    </div>
-                                </Field>
+                                <div className="sm:col-span-2">
+                                    <Field label="Pilih Layanan Satuan (bisa lebih dari satu)">
+                                        <div className="max-h-48 overflow-y-auto rounded-xl border border-line bg-surface p-2">
+                                            {services.map(s => (
+                                                <label key={s.id} className="flex cursor-pointer items-center gap-3 rounded-lg p-2 hover:bg-surface-muted transition-colors">
+                                                    <input 
+                                                        type="checkbox" 
+                                                        className="h-4 w-4 rounded border-line text-brand-600"
+                                                        checked={(form.service_ids || []).includes(s.id)}
+                                                        onChange={(e) => {
+                                                            const ids = new Set(form.service_ids || []);
+                                                            if (e.target.checked) ids.add(s.id);
+                                                            else ids.delete(s.id);
+                                                            const idArray = Array.from(ids);
+                                                            const selectedServices = services.filter(svc => idArray.includes(svc.id));
+                                                            const sumPrice = selectedServices.reduce((acc, svc) => acc + Number(svc.price), 0);
+                                                            const customName = 'Kustom: ' + selectedServices.map(svc => `${svc.event} (${svc.media})`).join(' + ');
+                                                            
+                                                            setForm({ 
+                                                                ...form, 
+                                                                service_ids: idArray,
+                                                                name: idArray.length ? customName : '',
+                                                                price: idArray.length ? sumPrice : ''
+                                                            });
+                                                        }}
+                                                    />
+                                                    <div className="flex flex-1 justify-between text-sm">
+                                                        <span className="font-medium text-ink">{s.event} <span className="text-xs text-ink-muted capitalize">({s.media})</span></span>
+                                                        <span className="font-semibold text-brand-600 dark:text-brand-400">{formatRupiah(s.price)}</span>
+                                                    </div>
+                                                </label>
+                                            ))}
+                                        </div>
+                                    </Field>
+                                </div>
                             )}
                             {form.package_id !== 'custom' && (() => {
                                 const pkg = packages.find((p) => String(p.id) === form.package_id);
                                 if (!pkg) return null;
                                 return (
-                                    <div className="mt-2 rounded-xl border border-line bg-surface-muted/50 p-3 text-sm">
+                                    <div className="sm:col-span-2 mt-2 rounded-xl border border-line bg-surface-muted/50 p-3 text-sm">
                                         <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-muted">Isi Paket</p>
                                         <div className="flex flex-wrap gap-1.5">
                                             {(pkg.items || []).map((it, i) => (
@@ -388,11 +393,13 @@ export default function Projects() {
                                     </div>
                                 );
                             })()}
-                        </div>
+                        </>
                     )}
-                    <Field label="Tanggal Acara" hint="opsional" error={errors.event_date?.[0]}>
-                        <input className="input" type="date" value={form.event_date} onChange={(e) => setForm({ ...form, event_date: e.target.value })} />
-                    </Field>
+                    {!(isAdmin && packages.length > 0) && (
+                        <Field label="Tanggal Acara" hint="opsional" error={errors.event_date?.[0]}>
+                            <input className="input" type="date" value={form.event_date} onChange={(e) => setForm({ ...form, event_date: e.target.value })} />
+                        </Field>
+                    )}
                     <div className="sm:col-span-2">
                         <Field label="Deskripsi" hint="opsional" error={errors.description?.[0]}>
                             <textarea className="input min-h-[80px]" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
