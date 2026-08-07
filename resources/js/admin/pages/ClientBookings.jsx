@@ -30,7 +30,7 @@ export default function ClientBookings() {
 
     useEffect(() => {
         load();
-        api.get('/packages').then(({ data }) => setPackages(data));
+        api.get('/customer/packages').then(({ data }) => setPackages(data));
     }, []);
 
     const handleCreate = async (e) => {

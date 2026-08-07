@@ -37,6 +37,11 @@ class CustomerController extends Controller
         ]);
     }
 
+    public function packages()
+    {
+        return response()->json(\App\Models\Package::where('is_active', true)->orderBy('display_order')->get(['id', 'name', 'type', 'manual_price', 'price_mode', 'promo_value', 'promo_type']));
+    }
+
     public function bookings(Request $request)
     {
         $user = $request->user();
