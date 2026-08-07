@@ -148,7 +148,7 @@ export default function Bookings() {
     const startAccept = () => {
         setAcceptForm({
             name: detail.package_label || detail.name,
-            event_date: detail.event_date || '',
+            event_date: detail.event_date ? detail.event_date.split('T')[0] : '',
             description: detail.notes || '',
             price: detail.price || '',
         });
