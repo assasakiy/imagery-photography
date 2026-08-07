@@ -33,6 +33,16 @@ class Invoice extends Model
         return $this->belongsTo(Project::class);
     }
 
+    public static function nextNumber(): string
+    {
+        $dateStr = now()->format('ymd');
+        $prefix = "INV-DAY-{$dateStr}-";
+        $last = static::where('number', 'like', $prefix . '%')->orderByDesc('id')->value('number');
+        $seq = $last ? ((int) substr($last, -4)) + 1 : 1;
+
+        return $prefix . str_pad((string) $seq, 4, '0', STR_PAD_LEFT);
+    }
+
     public function remaining(): float
     {
         return max(0, round($this->base_amount - $this->paid_amount, 2));

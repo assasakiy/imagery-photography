@@ -59,7 +59,7 @@ class PaymentController extends Controller
 
         if (!$project->invoice) {
             $invoice = $project->invoice()->create([
-                'number' => 'INV-' . str_pad((string) $project->id, 5, '0', STR_PAD_LEFT),
+                'number' => \App\Models\Invoice::nextNumber(),
                 'issued_at' => now()->toDateString(),
                 'due_at' => now()->addDays(7)->toDateString(),
                 'base_amount' => $project->price ?? 0,

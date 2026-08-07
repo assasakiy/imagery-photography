@@ -69,9 +69,11 @@ class Booking extends Model
 
     public static function nextNumber(): string
     {
-        $last = static::orderByDesc('id')->value('booking_no');
-        $seq = $last ? ((int) Str::after($last, 'BK-')) + 1 : 1;
+        $dateStr = now()->format('ymd');
+        $prefix = "BK-DAY-{$dateStr}-";
+        $last = static::where('booking_no', 'like', $prefix . '%')->orderByDesc('id')->value('booking_no');
+        $seq = $last ? ((int) substr($last, -4)) + 1 : 1;
 
-        return 'BK-' . str_pad((string) $seq, 5, '0', STR_PAD_LEFT);
+        return $prefix . str_pad((string) $seq, 4, '0', STR_PAD_LEFT);
     }
 }

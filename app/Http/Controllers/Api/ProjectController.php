@@ -429,12 +429,10 @@ class ProjectController extends Controller
     private function createInvoice(Project $project): \App\Models\Invoice
     {
         $invoice = $project->invoice()->firstOrCreate([
-            'number' => 'INV-' . str_pad((string) $project->id, 5, '0', STR_PAD_LEFT),
+            'number' => \App\Models\Invoice::nextNumber(),
             'issued_at' => now()->toDateString(),
             'due_at' => now()->addDays(7)->toDateString(),
-            'base_amount' => $project->price ?? 0,
-            'paid_amount' => 0,
-            'status' => 'unpaid',
+            'base_amount' => $project->price,
         ]);
 
         $project->addSystemUpdate('Invoice ' . $invoice->number . ' dibuat sebesar Rp ' . number_format((float) ($project->price ?? 0), 0, ',', '.') . '.');
