@@ -101,6 +101,21 @@ export default function Bookings() {
         }
     };
 
+    const handleConfirm = async (e) => {
+        e.preventDefault();
+        setSaving(true);
+        try {
+            const { data } = await api.post(`/bookings/${detail.id}/confirm`);
+            show('Booking dikonfirmasi.');
+            setDetail(data);
+            load(meta.current_page);
+        } catch {
+            show('Gagal mengkonfirmasi booking.', 'error');
+        } finally {
+            setSaving(false);
+        }
+    };
+
     const handleAccept = async (e) => {
         e.preventDefault();
         setSaving(true);
@@ -222,7 +237,15 @@ export default function Bookings() {
                         <button className="btn-outline text-red-600 hover:bg-red-50 hover:text-red-700 hover:border-red-200" onClick={() => setRejectOpen(true)}>Tolak</button>
                         <div className="flex gap-2">
                             <button className="btn-outline" onClick={startEdit}>Ubah</button>
-                            <button className="btn-primary" onClick={startAccept}>Terima</button>
+                            <button className="btn-primary" onClick={handleConfirm} disabled={saving}>{saving ? '...' : 'Konfirmasi'}</button>
+                        </div>
+                    </div>
+                ) : detail?.status === 'confirmed' ? (
+                    <div className="flex w-full justify-between gap-2">
+                        <button className="btn-outline text-red-600 hover:bg-red-50 hover:text-red-700 hover:border-red-200" onClick={() => setRejectOpen(true)}>Batal / Tolak</button>
+                        <div className="flex gap-2">
+                            <button className="btn-outline" onClick={startEdit}>Ubah</button>
+                            <button className="btn-primary" onClick={startAccept}>Buat Proyek</button>
                         </div>
                     </div>
                 ) : null

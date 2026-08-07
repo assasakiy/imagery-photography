@@ -68,10 +68,22 @@ class BookingApiController extends Controller
         return response()->json($booking->load(['user.profile', 'package']));
     }
 
-    public function accept(Request $request, Booking $booking)
+    public function confirm(Request $request, Booking $booking)
     {
         if (!$booking->isPending()) {
             abort(422, 'Booking tidak dalam status menunggu.');
+        }
+
+        $booking->update(['status' => 'confirmed']);
+        app(AuditLogger::class)->log('booking.confirmed', 'Booking ' . $booking->booking_no . ' dikonfirmasi', $booking);
+
+        return response()->json($booking->fresh(['user.profile', 'package']));
+    }
+
+    public function accept(Request $request, Booking $booking)
+    {
+        if (!in_array($booking->status, ['pending', 'confirmed'])) {
+            abort(422, 'Booking tidak valid untuk diubah jadi proyek.');
         }
 
         $data = $request->validate([
@@ -135,8 +147,8 @@ class BookingApiController extends Controller
 
     public function reject(Request $request, Booking $booking)
     {
-        if ($booking->status !== 'pending') {
-            abort(422, 'Booking tidak dalam status menunggu.');
+        if (!in_array($booking->status, ['pending', 'confirmed'])) {
+            abort(422, 'Booking tidak valid untuk ditolak.');
         }
 
         $request->validate(['reason' => 'nullable|string|max:500']);

@@ -104,6 +104,7 @@ Route::middleware(['web', 'auth:sanctum', 'maintenance'])->group(function () {
         Route::get('/bookings', [BookingApiController::class, 'index']);
         Route::get('/bookings/{booking}', [BookingApiController::class, 'show']);
         Route::put('/bookings/{booking}', [BookingApiController::class, 'update']);
+        Route::post('/bookings/{booking}/confirm', [BookingApiController::class, 'confirm']);
         Route::post('/bookings/{booking}/accept', [BookingApiController::class, 'accept']);
         Route::post('/bookings/{booking}/reject', [BookingApiController::class, 'reject']);
 
