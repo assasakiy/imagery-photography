@@ -15,9 +15,10 @@ export default function ClientBookings() {
     const [items, setItems] = useState([]);
     const [loading, setLoading] = useState(true);
     const [packages, setPackages] = useState([]);
+    const [services, setServices] = useState([]);
     const [createOpen, setCreateOpen] = useState(false);
     const [saving, setSaving] = useState(false);
-    const [form, setForm] = useState({});
+    const [form, setForm] = useState({ service_ids: [] });
     const [canceling, setCanceling] = useState(null);
     const { show, node } = useToast();
 
@@ -31,6 +32,7 @@ export default function ClientBookings() {
     useEffect(() => {
         load();
         api.get('/customer/packages').then(({ data }) => setPackages(data));
+        api.get('/customer/services').then(({ data }) => setServices(data));
     }, []);
 
     const handleCreate = async (e) => {
@@ -40,10 +42,14 @@ export default function ClientBookings() {
             await api.post('/customer/bookings', form);
             show('Booking berhasil dikirim.');
             setCreateOpen(false);
-            setForm({});
+            setForm({ service_ids: [] });
             load();
-        } catch {
-            show('Gagal mengirim booking.', 'error');
+        } catch (err) {
+            if (err.response?.data?.errors?.service_ids) {
+                show(err.response.data.errors.service_ids[0], 'error');
+            } else {
+                show('Gagal mengirim booking.', 'error');
+            }
         } finally {
             setSaving(false);
         }
@@ -117,8 +123,36 @@ export default function ClientBookings() {
                         <select className="input" value={form.package_id || ''} onChange={(e) => setForm({ ...form, package_id: e.target.value })} required>
                             <option value="">-- Pilih Paket --</option>
                             {packages.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                            <option value="custom">Kustom / Pilih Sendiri</option>
                         </select>
                     </Field>
+                    
+                    {form.package_id === 'custom' && (
+                        <Field label="Pilih Layanan Satuan (bisa lebih dari satu)">
+                            <div className="max-h-48 overflow-y-auto rounded-xl border border-line bg-surface p-2">
+                                {services.map(s => (
+                                    <label key={s.id} className="flex cursor-pointer items-center gap-3 rounded-lg p-2 hover:bg-surface-muted transition-colors">
+                                        <input 
+                                            type="checkbox" 
+                                            className="h-4 w-4 rounded border-line text-brand-600"
+                                            checked={(form.service_ids || []).includes(s.id)}
+                                            onChange={(e) => {
+                                                const ids = new Set(form.service_ids || []);
+                                                if (e.target.checked) ids.add(s.id);
+                                                else ids.delete(s.id);
+                                                setForm({ ...form, service_ids: Array.from(ids) });
+                                            }}
+                                        />
+                                        <div className="flex flex-1 justify-between text-sm">
+                                            <span className="font-medium text-ink">{s.event} <span className="text-xs text-ink-muted capitalize">({s.media})</span></span>
+                                            <span className="font-semibold text-brand-600 dark:text-brand-400">{formatRupiah(s.price)}</span>
+                                        </div>
+                                    </label>
+                                ))}
+                            </div>
+                        </Field>
+                    )}
+
                     <Field label="Tanggal Acara (Perkiraan)">
                         <input type="date" className="input" value={form.event_date || ''} onChange={(e) => setForm({ ...form, event_date: e.target.value })} />
                     </Field>

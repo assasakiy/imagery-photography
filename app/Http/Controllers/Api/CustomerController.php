@@ -42,6 +42,11 @@ class CustomerController extends Controller
         return response()->json(\App\Models\Package::where('is_active', true)->orderBy('display_order')->get(['id', 'name', 'type', 'manual_price', 'price_mode', 'promo_value', 'promo_type']));
     }
 
+    public function services()
+    {
+        return response()->json(\App\Models\Service::where('active', true)->orderBy('order')->get(['id', 'event', 'media', 'price']));
+    }
+
     public function bookings(Request $request)
     {
         $user = $request->user();
@@ -58,28 +63,48 @@ class CustomerController extends Controller
         $user = $request->user();
 
         $data = $request->validate([
-            'package_id' => 'required|exists:packages,id',
+            'package_id' => 'required',
+            'service_ids' => 'nullable|array',
+            'service_ids.*' => 'exists:services,id',
             'event_date' => 'nullable|date',
             'location' => 'nullable|string|max:255',
             'notes' => 'nullable|string|max:2000',
         ]);
 
+        if ($data['package_id'] === 'custom' && empty($data['service_ids'])) {
+            return response()->json(['errors' => ['service_ids' => ['Pilih minimal satu layanan untuk paket kustom.']]], 422);
+        }
+
+        if ($data['package_id'] !== 'custom' && !\App\Models\Package::where('id', $data['package_id'])->exists()) {
+            return response()->json(['errors' => ['package_id' => ['Paket yang dipilih tidak valid.']]], 422);
+        }
+
         $data['notes'] = \App\Support\ContentSanitizer::plainText($data['notes'] ?? '');
         $data['location'] = \App\Support\ContentSanitizer::plainText($data['location'] ?? '');
         
-        $package = \App\Models\Package::find($data['package_id']);
+        if ($data['package_id'] === 'custom') {
+            $services = \App\Models\Service::whereIn('id', $data['service_ids'])->get();
+            $packageId = null;
+            $packageLabel = 'Kustom: ' . $services->map(fn($s) => $s->event . ' (' . ucfirst($s->media) . ')')->join(' + ');
+            $price = $services->sum('price');
+        } else {
+            $package = \App\Models\Package::find($data['package_id']);
+            $packageId = $package->id;
+            $packageLabel = $package->name;
+            $price = $package->computedPrice();
+        }
 
         $booking = Booking::create([
             'user_id' => $user->id,
             'name' => $user->name,
             'email' => $user->email,
             'phone' => $user->phone,
-            'package_id' => $package->id,
-            'package_label' => $package->name,
+            'package_id' => $packageId,
+            'package_label' => $packageLabel,
             'event_date' => $data['event_date'] ?? null,
             'location' => $data['location'] ?? null,
             'notes' => $data['notes'] ?? null,
-            'price' => $package->computedPrice(),
+            'price' => $price,
             'status' => 'pending',
         ]);
 

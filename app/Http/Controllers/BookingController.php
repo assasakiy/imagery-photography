@@ -45,11 +45,21 @@ class BookingController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255',
             'phone' => 'nullable|string|max:20',
-            'package_id' => 'required|exists:packages,id',
+            'package_id' => 'required',
+            'service_ids' => 'nullable|array',
+            'service_ids.*' => 'exists:services,id',
             'event_date' => 'nullable|date',
             'location' => 'nullable|string|max:255',
             'message' => 'nullable|string',
         ]);
+
+        if ($data['package_id'] === 'custom' && empty($data['service_ids'])) {
+            return back()->withErrors(['service_ids' => 'Pilih minimal satu layanan untuk paket kustom.'])->withInput();
+        }
+
+        if ($data['package_id'] !== 'custom' && !\App\Models\Package::where('id', $data['package_id'])->exists()) {
+            return back()->withErrors(['package_id' => 'Paket yang dipilih tidak valid.'])->withInput();
+        }
 
         $data['notes'] = ContentSanitizer::plainText($data['message'] ?? '');
         $data['location'] = ContentSanitizer::plainText($data['location'] ?? '');
@@ -65,19 +75,29 @@ class BookingController extends Controller
         );
         $user = $result['user'];
 
-        $package = Package::find($data['package_id']);
+        if ($data['package_id'] === 'custom') {
+            $services = \App\Models\Service::whereIn('id', $data['service_ids'])->get();
+            $packageId = null;
+            $packageLabel = 'Kustom: ' . $services->map(fn($s) => $s->event . ' (' . ucfirst($s->media) . ')')->join(' + ');
+            $price = $services->sum('price');
+        } else {
+            $package = Package::find($data['package_id']);
+            $packageId = $package->id;
+            $packageLabel = $package->name;
+            $price = $package->computedPrice();
+        }
 
         $booking = Booking::create([
             'user_id' => $user->id,
-            'package_id' => $package->id,
+            'package_id' => $packageId,
             'name' => $data['name'],
             'email' => $data['email'] ?? null,
             'phone' => $data['phone'] ?? null,
-            'package_label' => $package->name,
+            'package_label' => $packageLabel,
             'event_date' => $data['event_date'] ?? null,
             'location' => $data['location'] ?? null,
             'notes' => $data['notes'] ?? null,
-            'price' => $package->computedPrice(),
+            'price' => $price,
             'status' => 'pending',
         ]);
 

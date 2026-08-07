@@ -76,15 +76,32 @@
                             @error('event_date') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
                         </div>
 
-                        <div>
+                        <div class="sm:col-span-2">
                             <label for="package_id" class="label">Paket <span class="text-red-500">*</span></label>
-                            <select id="package_id" name="package_id" class="input" required>
+                            <select id="package_id" name="package_id" class="input" required onchange="document.getElementById('custom_services').style.display = this.value === 'custom' ? 'block' : 'none'">
                                 <option value="">Pilih paket...</option>
                                 @foreach ($packages as $pkg)
                                     <option value="{{ $pkg['id'] }}" {{ old('package_id') == $pkg['id'] ? 'selected' : '' }}>{{ $pkg['name'] }}{{ $pkg['price'] ? ' — Rp ' . number_format($pkg['price'], 0, ',', '.') : '' }}</option>
                                 @endforeach
+                                <option value="custom" {{ old('package_id') == 'custom' ? 'selected' : '' }}>Kustom / Pilih Sendiri</option>
                             </select>
                             @error('package_id') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
+                        </div>
+
+                        <div id="custom_services" class="sm:col-span-2" style="display: {{ old('package_id') == 'custom' ? 'block' : 'none' }}">
+                            <label class="label">Pilih Layanan Satuan</label>
+                            <div class="max-h-48 overflow-y-auto rounded-xl border border-line bg-zinc-50/50 p-2 dark:bg-zinc-800/50">
+                                @foreach ($services as $svc)
+                                    <label class="flex cursor-pointer items-center gap-3 rounded-lg p-2 transition-colors hover:bg-white dark:hover:bg-zinc-800">
+                                        <input type="checkbox" name="service_ids[]" value="{{ $svc->id }}" class="h-4 w-4 rounded border-line text-brand-600 focus:ring-brand-500" {{ in_array($svc->id, old('service_ids', [])) ? 'checked' : '' }}>
+                                        <div class="flex flex-1 justify-between text-sm">
+                                            <span class="font-medium text-ink">{{ $svc->event }} <span class="text-xs text-ink-muted capitalize">({!! $svc->media !!})</span></span>
+                                            <span class="font-semibold text-brand-600 dark:text-brand-400">Rp {{ number_format($svc->price, 0, ',', '.') }}</span>
+                                        </div>
+                                    </label>
+                                @endforeach
+                            </div>
+                            @error('service_ids') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
                         </div>
 
                         <div>
