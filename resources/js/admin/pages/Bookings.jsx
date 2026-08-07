@@ -160,7 +160,7 @@ export default function Bookings() {
                 </div>
                 <div className="relative min-w-0 flex-1">
                     <Icon name="search" size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" />
-                    <input className="input w-full pl-9" placeholder="Cari nama, email, nomor..." value={q} onChange={(e) => setQ(e.target.value)} />
+                    <input className="input w-full pl-9 py-1.5" placeholder="Cari nama, email, nomor..." value={q} onChange={(e) => setQ(e.target.value)} />
                 </div>
             </div>
 
