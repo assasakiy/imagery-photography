@@ -132,7 +132,7 @@ class BookingApiController extends Controller
         // Hubungkan booking → project (histori tetap).
         $booking->update(['status' => 'converted', 'project_id' => $project->id]);
 
-        // Invoice dibuat bila DP di muka ditentukan (selainnya ditunda ke tahap Menunggu Pembayaran).
+        // Invoice dibuat bila DP di muka ditentukan (selainnya ditunda ke tahap Preview Tersedia).
         if ((float) ($data['dp_amount'] ?? 0) > 0) {
             $invoice = \App\Models\Invoice::create([
                 'project_id' => $project->id,

@@ -9,7 +9,7 @@ export const statusOptions = [
     { value: 'scheduled', label: 'Dijadwalkan', color: 'bg-amber-500/15 text-amber-600 dark:text-amber-400' },
     { value: 'shooting', label: 'Pemotretan', color: 'bg-sky-500/15 text-sky-600 dark:text-sky-400' },
     { value: 'editing', label: 'Editing', color: 'bg-indigo-500/15 text-indigo-600 dark:text-indigo-400' },
-    { value: 'awaiting_payment', label: 'Menunggu Pembayaran', color: 'bg-orange-500/15 text-orange-600 dark:text-orange-400' },
+    { value: 'awaiting_payment', label: 'Preview Tersedia', color: 'bg-orange-500/15 text-orange-600 dark:text-orange-400' },
     { value: 'completed', label: 'Selesai', color: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' },
     { value: 'archived', label: 'Diarsipkan', color: 'bg-zinc-500/15 text-zinc-600 dark:text-zinc-400' },
 ];

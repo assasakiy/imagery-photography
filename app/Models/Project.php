@@ -15,7 +15,7 @@ class Project extends Model
         'scheduled' => 'Dijadwalkan',
         'shooting' => 'Pemotretan',
         'editing' => 'Editing',
-        'awaiting_payment' => 'Menunggu Pembayaran',
+        'awaiting_payment' => 'Preview Tersedia',
         'completed' => 'Selesai',
         'archived' => 'Diarsipkan',
     ];
@@ -215,6 +215,11 @@ class Project extends Model
             case 'completed':
                 if (!$this->completed_at) {
                     $this->completed_at = now();
+                }
+                break;
+            case 'archived':
+                if (!$this->archived_at) {
+                    $this->archived_at = now();
                 }
                 break;
         }

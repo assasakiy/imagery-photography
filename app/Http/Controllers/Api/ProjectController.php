@@ -137,7 +137,7 @@ class ProjectController extends Controller
         ]);
 
         // Invoice dibuat saat ini HANYA jika admin menentukan DP di muka.
-        // Jika tanpa DP, invoice ditunda sampai tahap "Menunggu Pembayaran".
+        // Jika tanpa DP, invoice ditunda sampai tahap "Preview Tersedia".
         if ((float) ($data['dp_amount'] ?? 0) > 0) {
             $this->createInvoice($project);
             $project->invoice->update(['dp_amount' => (float) $data['dp_amount']]);
@@ -258,7 +258,7 @@ class ProjectController extends Controller
             $project->invoice->refreshStatus();
         }
 
-        // Saat melaju ke "Menunggu Pembayaran", pastikan invoice tersedia.
+        // Saat melaju ke "Preview Tersedia", pastikan invoice tersedia.
         if ($newStatus === 'awaiting_payment' && !$project->invoice) {
             $this->createInvoice($project);
         }
@@ -472,7 +472,8 @@ class ProjectController extends Controller
 
     public function archive(Request $request, Project $project)
     {
-        $project->update(['archived_at' => now()]);
+        $project->update(['archived_at' => now(), 'status' => 'archived']);
+        $project->addSystemUpdate('Pesanan diarsipkan.');
         app(AuditLogger::class)->log('project.archived', 'Galeri diarsipkan: "' . $project->name . '"', $project);
 
         return response()->json($project);
@@ -480,7 +481,8 @@ class ProjectController extends Controller
 
     public function restore(Request $request, Project $project)
     {
-        $project->update(['archived_at' => null]);
+        $project->update(['archived_at' => null, 'status' => 'completed']);
+        $project->addSystemUpdate('Pesanan dipulihkan dari arsip.');
         app(AuditLogger::class)->log('project.restored', 'Galeri dikembalikan: "' . $project->name . '"', $project);
 
         return response()->json($project);

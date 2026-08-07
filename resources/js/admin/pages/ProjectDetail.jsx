@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from 'react';
-import { useParams, Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Fragment, useEffect, useRef, useState } from 'react';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import api from '../api';
 import Icon from '../components/Icon';
 import { useAuth } from '../context/AuthContext';
@@ -10,9 +10,9 @@ const STEPS = [
     { key: 'scheduled', label: 'Dijadwalkan', icon: 'calendar' },
     { key: 'shooting', label: 'Pemotretan', icon: 'camera' },
     { key: 'editing', label: 'Editing', icon: 'edit' },
-    { key: 'awaiting_payment', label: 'Menunggu Pembayaran', icon: 'credit-card' },
+    { key: 'awaiting_payment', label: 'Preview Tersedia', icon: 'eye' },
     { key: 'completed', label: 'Selesai', icon: 'check' },
-    { key: 'archived', label: 'Arsip', icon: 'archive' },
+    { key: 'archived', label: 'Arsip', icon: 'folder-open' },
 ];
 
 function Stars({ value, onChange }) {
@@ -27,10 +27,31 @@ function Stars({ value, onChange }) {
     );
 }
 
+function PanelHeader({ icon, iconCls, title, subtitle }) {
+    return (
+        <div className="flex items-start gap-3 border-b border-line p-5">
+            <span className={`mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${iconCls}`}>
+                <Icon name={icon} size={20} />
+            </span>
+            <div>
+                <h3 className="text-lg font-bold text-ink">{title}</h3>
+                {subtitle && <p className="mt-1 text-sm text-ink-muted">{subtitle}</p>}
+            </div>
+        </div>
+    );
+}
+
+function PanelFooter({ children }) {
+    return (
+        <div className="flex flex-wrap items-center justify-end gap-2 border-t border-line bg-surface-muted/30 px-5 py-4">
+            {children}
+        </div>
+    );
+}
+
 export default function ProjectDetail() {
     const { id } = useParams();
     const navigate = useNavigate();
-    const [searchParams] = useSearchParams();
 
     const { user } = useAuth();
     const isAdmin = ['owner', 'admin'].includes(user?.role);
@@ -40,13 +61,11 @@ export default function ProjectDetail() {
     const [step, setStep] = useState(null);
     const [updateText, setUpdateText] = useState('');
     const [uploading, setUploading] = useState(false);
-    const [paymentForm, setPaymentForm] = useState({ amount: '', notes: '', proof: null });
     const [progressForm, setProgressForm] = useState({ total: '', done: '' });
     const [saving, setSaving] = useState(false);
     const [reviewOpen, setReviewOpen] = useState(false);
     const [reviewForm, setReviewForm] = useState({ rating: 5, title: '', content: '', recommend_score: 10 });
     const fileRef = useRef(null);
-    const proofRef = useRef(null);
     const { show, node } = useToast();
 
     const load = () => {
@@ -65,19 +84,66 @@ export default function ProjectDetail() {
     const currentIdx = STEPS.findIndex((s) => s.key === project.status);
     const activeKey = step || project.status;
     const activeIdx = STEPS.findIndex((s) => s.key === activeKey);
-    const nextStep = currentIdx >= 0 && currentIdx < STEPS.length - 1 ? STEPS[currentIdx + 1] : null;
-    const isReached = activeIdx <= currentIdx;
     const isCurrentStep = activeKey === project.status;
+
+    const invMeta =
+        project.invoice?.status === 'paid' ? { label: 'Lunas', cls: 'bg-emerald-500/15 text-emerald-600' }
+        : project.invoice?.status === 'awaiting_dp' ? { label: 'Menunggu DP', cls: 'bg-red-500/15 text-red-600' }
+        : project.invoice?.status === 'partial' ? { label: 'DP/Cicilan', cls: 'bg-amber-500/15 text-amber-600' }
+        : project.invoice?.status ? { label: 'Belum Bayar', cls: 'bg-zinc-500/15 text-zinc-600' }
+        : null;
+
+    const progressUpdates = (project.updates || []).filter((u) => u.message.startsWith('Proses editing'));
+    const lastProgress = progressUpdates[0];
+    let doneCount = 0;
+    let totalCount = 0;
+    if (lastProgress) {
+        const m = lastProgress.message.match(/(\d+)\s*\/\s*(\d+)/);
+        if (m) {
+            doneCount = Number(m[1]);
+            totalCount = Number(m[2]);
+        }
+    }
+    const progressPct = totalCount > 0 ? Math.min(100, Math.round((doneCount / totalCount) * 100)) : 0;
 
     const advance = async () => {
         setSaving(true);
         try {
             await api.post(`/projects/${id}/advance`);
             show('Alur pesanan dilanjutkan.');
-            setStep(null); // Reset view to real current
+            setStep(null);
             await load();
         } catch (err) {
             show(err.response?.data?.message || 'Gagal melanjutkan alur.', 'error');
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const archive = async () => {
+        if (!confirm('Arsipkan pesanan ini?')) return;
+        setSaving(true);
+        try {
+            await api.patch(`/projects/${id}/archive`);
+            show('Pesanan diarsipkan.');
+            setStep(null);
+            await load();
+        } catch (err) {
+            show(err.response?.data?.message || 'Gagal mengarsipkan.', 'error');
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const restore = async () => {
+        setSaving(true);
+        try {
+            await api.patch(`/projects/${id}/restore`);
+            show('Pesanan dipulihkan dari arsip.');
+            setStep(null);
+            await load();
+        } catch (err) {
+            show(err.response?.data?.message || 'Gagal memulihkan.', 'error');
         } finally {
             setSaving(false);
         }
@@ -123,19 +189,6 @@ export default function ProjectDetail() {
         load();
     };
 
-    const submitPayment = async (e) => {
-        e.preventDefault();
-        const data = new FormData();
-        data.append('amount', paymentForm.amount);
-        data.append('method', 'manual_transfer');
-        data.append('notes', paymentForm.notes || '');
-        if (paymentForm.proof) data.append('proof_file', paymentForm.proof);
-        await api.post(`/projects/${id}/payments`, data);
-        show('Pembayaran dikirim untuk dikonfirmasi.');
-        setPaymentForm({ amount: '', notes: '', proof: null });
-        load();
-    };
-
     const submitReview = async (e) => {
         e.preventDefault();
         setSaving(true);
@@ -159,6 +212,8 @@ export default function ProjectDetail() {
     const openChat = () => {
         navigate(isAdmin ? `/dashboard/messages?pesanan=${project.order_no || project.id}` : `/dashboard/client-messages?pesanan=${project.order_no || project.id}`);
     };
+
+    const previewHref = `/dashboard/preview/${project.order_no || project.id}`;
 
     return (
         <>
@@ -200,248 +255,334 @@ export default function ProjectDetail() {
                 </div>
             </div>
 
-            {/* STEPPER NAV */}
-            <div className="card mb-6 p-5">
-                <div className="flex items-center flex-wrap gap-x-1 gap-y-3">
-                    {STEPS.map((s, i) => {
-                        const isDone = i < currentIdx;
-                        const isCurReal = i === currentIdx;
-                        const isSelected = i === activeIdx;
-                        return (
-                            <button
-                                key={s.key}
-                                type="button"
-                                onClick={() => setStep(s.key)}
-                                className="group flex flex-col items-center gap-1.5"
-                            >
-                                <span className="flex items-center">
-                                    <span className={`flex h-10 w-10 items-center justify-center rounded-full border-2 transition-colors ${
-                                        isSelected ? 'border-brand-600 bg-brand-600 text-white shadow-lg shadow-brand-600/30'
-                                        : isDone ? 'border-emerald-500 bg-emerald-500/10 text-emerald-600'
-                                        : isCurReal && !isSelected ? 'border-brand-600 text-brand-600'
-                                        : 'border-line bg-surface text-ink-muted/60'
-                                    }`}>
-                                        <Icon name={isDone && !isSelected ? 'check' : s.icon} size={18} />
-                                    </span>
+            {/* FILMSTRIP STEPPER */}
+            <div className="card mb-6 overflow-hidden">
+                <div className="bg-zinc-900 px-4 py-4 sm:px-6 dark:bg-zinc-950">
+                    <div className="flex items-start gap-2 overflow-x-auto pb-1">
+                        {STEPS.map((s, i) => {
+                            const isDone = i < currentIdx;
+                            const isCurrent = i === currentIdx;
+                            const isSelected = i === activeIdx;
+                            return (
+                                <Fragment key={s.key}>
+                                    <button
+                                        type="button"
+                                        onClick={() => setStep(s.key)}
+                                        title={s.label}
+                                        className="group flex shrink-0 flex-col items-center gap-2 px-0.5"
+                                    >
+                                        <span className="relative flex h-10 w-10 items-center justify-center">
+                                            {isSelected && <span className="absolute -inset-1 rounded-full border-2 border-white/70" />}
+                                            <span className={`flex h-10 w-10 items-center justify-center rounded-full transition-colors ${
+                                                isSelected ? 'bg-brand-500 text-white'
+                                                : isDone ? 'bg-emerald-500 text-white'
+                                                : isCurrent ? 'bg-brand-600 text-white shadow-lg shadow-brand-600/40'
+                                                : 'bg-zinc-700/80 text-zinc-400 group-hover:bg-zinc-700'
+                                            }`}>
+                                                <Icon name={isDone && !isCurrent && !isSelected ? 'check' : s.icon} size={16} />
+                                            </span>
+                                        </span>
+                                        <span className={`whitespace-nowrap text-[11px] font-semibold leading-tight ${
+                                            isSelected ? 'text-white'
+                                            : isDone || isCurrent ? 'text-white/90'
+                                            : 'text-zinc-500'
+                                        }`}>
+                                            {s.label}
+                                        </span>
+                                    </button>
                                     {i < STEPS.length - 1 && (
-                                        <span className={`ml-1 h-0.5 w-6 sm:w-12 lg:w-16 ${i < currentIdx ? 'bg-emerald-500' : 'bg-line'} -mb-12`} />
+                                        <div className={`mt-5 h-0.5 w-6 shrink-0 rounded-full sm:w-10 lg:w-14 ${i < currentIdx ? 'bg-emerald-500' : 'bg-zinc-700'}`} />
                                     )}
-                                </span>
-                                <span className={`text-[11px] font-semibold leading-tight ${isSelected ? 'text-ink' : 'text-ink-muted'}`}>{s.label}</span>
-                            </button>
-                        );
-                    })}
-                </div>
-                {/* Advance Button (only shows when viewing the REAL current step) */}
-                {isAdmin && isCurrentStep && currentIdx >= 0 && currentIdx < STEPS.length - 1 && (
-                    <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-line pt-4">
-                        <p className="text-sm text-ink-muted">
-                            {nextStep.key === 'shooting' && project.event_start ? <>Pindah otomatis ke Pemotretan saat jadwal tiba.</> : ''}
-                            {nextStep.key === 'editing' && project.event_end ? <>Pindah otomatis ke Editing saat acara selesai.</> : ''}
-                            {nextStep.key === 'completed' && !isPaid ? <>Selesaikan pelunasan untuk pindah ke Selesai.</> : ''}
-                        </p>
-                        <button className="btn-primary" onClick={advance} disabled={saving || (nextStep.key === 'completed' && !isPaid)}>
-                            {nextStep.key === 'completed' && !isPaid ? 'Menunggu Pelunasan' : saving ? 'Memproses...' : `Lanjut ke ${nextStep.label}`}
-                        </button>
+                                </Fragment>
+                            );
+                        })}
                     </div>
-                )}
+                </div>
             </div>
 
-            {/* TAB PANELS (Contextual content based on activeStepKey) */}
+            {/* STEP PANELS */}
             <div className="space-y-6">
-                
+
                 {/* SCHEDULED */}
                 {activeKey === 'scheduled' && (
-                    <div className="card border-l-4 border-l-amber-500 p-5">
-                        <div className="mb-4">
-                            <h3 className="text-lg font-bold text-ink">Pesanan Terjadwal</h3>
-                            <p className="text-sm text-ink-muted mt-1">Admin telah menjadwalkan pesanan ini. Siap diproses pada waktu yang ditentukan.</p>
+                    <div className="card overflow-hidden">
+                        <PanelHeader
+                            icon="calendar"
+                            iconCls="bg-amber-500/15 text-amber-600 dark:text-amber-400"
+                            title="Pesanan Terjadwal"
+                            subtitle="Jadwal acara sudah disusun. Pemotretan berjalan otomatis saat jadwal tiba."
+                        />
+                        <div className="p-5">
+                            <div className="grid gap-4 rounded-xl bg-surface-muted p-4 sm:grid-cols-2">
+                                <div>
+                                    <p className="text-xs font-semibold uppercase tracking-wider text-ink-muted">Waktu Mulai Acara</p>
+                                    <p className="mt-1 font-semibold text-ink">{project.event_start ? `${formatDate(project.event_start)} · ${project.event_start.slice(11, 16)}` : '-'}</p>
+                                </div>
+                                <div>
+                                    <p className="text-xs font-semibold uppercase tracking-wider text-ink-muted">Waktu Selesai Acara</p>
+                                    <p className="mt-1 font-semibold text-ink">{project.event_end ? `${formatDate(project.event_end)} · ${project.event_end.slice(11, 16)}` : '-'}</p>
+                                </div>
+                                {project.description && (
+                                    <div className="sm:col-span-2">
+                                        <p className="text-xs font-semibold uppercase tracking-wider text-ink-muted">Detail / Lokasi Acara</p>
+                                        <p className="mt-1 text-sm text-ink">{project.description}</p>
+                                    </div>
+                                )}
+                            </div>
+                            <button className="btn-outline mt-4" onClick={openChat}><Icon name="message-circle" size={16} /> Kirim Pesan Pesanan Ini</button>
                         </div>
-                        <div className="grid gap-4 sm:grid-cols-2 rounded-xl bg-surface-muted p-4 mb-4">
-                            <div><p className="text-xs text-ink-muted">Waktu Mulai Acara</p><p className="font-semibold text-ink">{project.event_start ? formatDate(project.event_start) + ' ' + project.event_start.slice(11,16) : '-'}</p></div>
-                            <div><p className="text-xs text-ink-muted">Waktu Selesai Acara</p><p className="font-semibold text-ink">{project.event_end ? formatDate(project.event_end) + ' ' + project.event_end.slice(11,16) : '-'}</p></div>
-                        </div>
-                        <button className="btn-outline" onClick={openChat}><Icon name="message-circle" size={16} /> Kirim Pesan Pesanan Ini</button>
+                        {isAdmin && isCurrentStep && (
+                            <PanelFooter>
+                                <button className="btn-primary" onClick={advance} disabled={saving}>
+                                    <Icon name="camera" size={16} /> Mulai Pemotretan <Icon name="arrow-right" size={16} />
+                                </button>
+                            </PanelFooter>
+                        )}
                     </div>
                 )}
 
                 {/* SHOOTING */}
                 {activeKey === 'shooting' && (
-                    <div className="card border-l-4 border-l-sky-500 p-5">
-                        <div className="mb-4">
-                            <h3 className="text-lg font-bold text-ink">Pemotretan Sedang Berlangsung</h3>
-                            <p className="text-sm text-ink-muted mt-1">Tim sedang / segera tiba di lokasi acara. Jangan lupa siapkan keperluan dokumentasi di lokasi.</p>
+                    <div className="card overflow-hidden">
+                        <PanelHeader
+                            icon="camera"
+                            iconCls="bg-sky-500/15 text-sky-600 dark:text-sky-400"
+                            title="Pemotretan Sedang Berlangsung"
+                            subtitle="Tim sedang / segera tiba di lokasi acara."
+                        />
+                        <div className="p-5">
+                            {isAdmin && isCurrentStep && (
+                                <div className="mb-4">
+                                    <p className="mb-2 text-sm font-semibold text-ink">Upload Bukti Pemotretan</p>
+                                    <button className="btn-outline" onClick={() => fileRef.current?.click()} disabled={uploading}>
+                                        <Icon name="upload" size={16} /> {uploading ? 'Mengupload...' : 'Upload Gambar'}
+                                    </button>
+                                    <input ref={fileRef} type="file" className="hidden" onChange={uploadFile} />
+                                </div>
+                            )}
+                            {project.files?.length > 0 && (
+                                <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 lg:grid-cols-6">
+                                    {project.files.map((f) => (
+                                        <div key={f.id} className="group relative aspect-square overflow-hidden rounded-xl bg-surface-muted">
+                                            <img src={f.url} className="h-full w-full object-cover" alt="" />
+                                            {isAdmin && (
+                                                <button className="absolute right-1 top-1 rounded bg-red-500 p-1.5 text-white opacity-0 transition-opacity group-hover:opacity-100" onClick={() => deleteFile(f)} aria-label="Hapus">
+                                                    <Icon name="trash" size={14} />
+                                                </button>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                            <button className="btn-outline mt-4" onClick={openChat}><Icon name="message-circle" size={16} /> Kirim Pesan Pesanan Ini</button>
                         </div>
-                        {isAdmin && (
-                            <div className="mb-4 border-t border-line pt-4">
-                                <p className="mb-2 text-sm font-semibold text-ink">Upload Gambar Detail (opsional)</p>
-                                <button className="btn-outline" onClick={() => fileRef.current?.click()} disabled={!isCurrentStep}><Icon name="upload" size={16} /> Upload Gambar</button>
-                                <input ref={fileRef} type="file" className="hidden" onChange={uploadFile} />
-                            </div>
+                        {isAdmin && isCurrentStep && (
+                            <PanelFooter>
+                                <button className="btn-primary" onClick={advance} disabled={saving}>
+                                    Tandai Pemotretan Selesai <Icon name="arrow-right" size={16} />
+                                </button>
+                            </PanelFooter>
                         )}
-                        {project.files?.length > 0 && (
-                            <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-3">
-                                {project.files.map(f => (
-                                    <div key={f.id} className="aspect-square bg-surface-muted rounded-xl overflow-hidden relative group">
-                                        <img src={f.url} className="w-full h-full object-cover" alt="" />
-                                        {isAdmin && <button className="absolute top-1 right-1 p-1.5 bg-red-500 text-white rounded opacity-0 group-hover:opacity-100" onClick={() => deleteFile(f)}><Icon name="trash" size={14}/></button>}
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                        <button className="btn-outline mt-4" onClick={openChat}><Icon name="message-circle" size={16} /> Kirim Pesan Pesanan Ini</button>
                     </div>
                 )}
 
                 {/* EDITING */}
                 {activeKey === 'editing' && (
-                    <div className="card border-l-4 border-l-indigo-500 p-5">
-                        <div className="mb-4">
-                            <h3 className="text-lg font-bold text-ink">Proses Editing</h3>
-                            <p className="text-sm text-ink-muted mt-1">Tim kami sedang mengedit file media pesanan Anda.</p>
-                        </div>
-                        <div className="rounded-xl bg-surface-muted p-4 mb-4">
-                            <p className="text-sm font-semibold text-ink">Update Progres Terakhir</p>
-                            {project.updates?.filter(u => u.message.startsWith('Proses editing')).length ? (
-                                <p className="text-sm text-ink mt-1">{project.updates.filter(u => u.message.startsWith('Proses editing'))[0].message}</p>
-                            ) : <p className="text-sm text-ink-muted mt-1">Belum ada progres tercatat.</p>}
-                        </div>
-                        {isAdmin && isCurrentStep && (
-                            <form onSubmit={submitProgress} className="mb-4 border-t border-line pt-4">
-                                <p className="mb-2 text-sm font-semibold text-ink">Update Progres Baru</p>
-                                <div className="flex flex-wrap items-end gap-3">
-                                    <Field label="Total Item">
-                                        <input className="input" type="number" value={progressForm.total} onChange={e => setProgressForm({...progressForm, total: e.target.value})} placeholder="300" />
-                                    </Field>
-                                    <Field label="Selesai" required>
-                                        <input className="input" type="number" value={progressForm.done} onChange={e => setProgressForm({...progressForm, done: e.target.value})} required placeholder="150" />
-                                    </Field>
-                                    <button className="btn-primary">Update Progres</button>
+                    <div className="card overflow-hidden">
+                        <PanelHeader
+                            icon="edit"
+                            iconCls="bg-indigo-500/15 text-indigo-600 dark:text-indigo-400"
+                            title="Proses Editing"
+                            subtitle="Tim sedang mengedit file media pesanan Anda."
+                        />
+                        <div className="p-5">
+                            <div className="mb-4 rounded-xl bg-surface-muted p-4">
+                                <div className="flex items-center justify-between">
+                                    <p className="text-sm font-semibold text-ink">Progres Editing</p>
+                                    {totalCount > 0 && <p className="text-sm font-bold text-brand-600 dark:text-brand-400">{progressPct}%</p>}
                                 </div>
-                            </form>
-                        )}
-                        {isAdmin && isCurrentStep && (
-                            <div className="border-t border-line pt-4">
-                                <p className="text-sm text-ink-muted mb-2">Upload hasil akhir ke Preview sebelum lanjut.</p>
-                                <button className="btn-outline" onClick={() => fileRef.current?.click()}><Icon name="upload" size={16} /> Upload ke Preview</button>
-                                <input ref={fileRef} type="file" className="hidden" onChange={uploadFile} />
+                                <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-surface-strong">
+                                    <div className="h-full rounded-full bg-brand-600 transition-all" style={{ width: `${progressPct}%` }} />
+                                </div>
+                                {lastProgress ? (
+                                    <p className="mt-2 text-sm text-ink-muted">{lastProgress.message}</p>
+                                ) : (
+                                    <p className="mt-2 text-sm text-ink-muted">Belum ada progres tercatat.</p>
+                                )}
                             </div>
+                            {isAdmin && isCurrentStep && (
+                                <>
+                                    <form onSubmit={submitProgress} className="mb-4 border-t border-line pt-4">
+                                        <p className="mb-2 text-sm font-semibold text-ink">Update Progres Baru</p>
+                                        <div className="flex flex-wrap items-end gap-3">
+                                            <Field label="Total Item">
+                                                <input className="input" type="number" min="0" value={progressForm.total} onChange={(e) => setProgressForm({ ...progressForm, total: e.target.value })} placeholder="mis. 300" />
+                                            </Field>
+                                            <Field label="Selesai" required>
+                                                <input className="input" type="number" min="0" value={progressForm.done} onChange={(e) => setProgressForm({ ...progressForm, done: e.target.value })} required placeholder="mis. 150" />
+                                            </Field>
+                                            <button className="btn-primary">Update Progres</button>
+                                        </div>
+                                    </form>
+                                    <div className="border-t border-line pt-4">
+                                        <p className="mb-2 text-sm text-ink-muted">Upload hasil akhir untuk ditampilkan di preview.</p>
+                                        <button className="btn-outline" onClick={() => fileRef.current?.click()} disabled={uploading}>
+                                            <Icon name="upload" size={16} /> {uploading ? 'Mengupload...' : 'Upload ke Preview'}
+                                        </button>
+                                        <input ref={fileRef} type="file" className="hidden" onChange={uploadFile} />
+                                    </div>
+                                </>
+                            )}
+                            <button className="btn-outline mt-4" onClick={openChat}><Icon name="message-circle" size={16} /> Chat Pesanan</button>
+                        </div>
+                        {isAdmin && isCurrentStep && (
+                            <PanelFooter>
+                                <button className="btn-primary" onClick={advance} disabled={saving}>
+                                    Lanjut ke Preview Tersedia <Icon name="arrow-right" size={16} />
+                                </button>
+                            </PanelFooter>
                         )}
-                        <button className="btn-outline mt-4" onClick={openChat}><Icon name="message-circle" size={16} /> Chat Pesanan</button>
                     </div>
                 )}
 
-                {/* AWAITING PAYMENT */}
+                {/* PREVIEW TERSEDIA (awaiting_payment) */}
                 {activeKey === 'awaiting_payment' && (
-                    <div className="card border-l-4 border-l-orange-500 p-5">
-                        <div className="mb-6 flex flex-col sm:flex-row gap-4 sm:justify-between sm:items-center">
-                            <div>
-                                <h3 className="text-lg font-bold text-ink">Menunggu Pembayaran</h3>
-                                <p className="text-sm text-ink-muted mt-1">Silakan lunasi invoice untuk membuka akses unduhan HD penuh.</p>
-                            </div>
-                            <Link to={`/dashboard/preview/${project.order_no || project.id}`} className="btn-outline">
-                                <Icon name="eye" size={16} /> Lihat Preview Media
-                            </Link>
-                        </div>
-
-                        {project.invoice && (
-                            <div className="grid gap-4 sm:grid-cols-4 rounded-xl border border-line bg-surface p-4 mb-6">
-                                <div><p className="text-xs text-ink-muted">No. Invoice</p><p className="font-mono font-bold text-ink">{project.invoice.number}</p></div>
-                                <div><p className="text-xs text-ink-muted">DP / Tanda Jadi</p><p className="font-bold text-ink">{formatRupiah(project.invoice.dp_amount)}</p></div>
-                                <div><p className="text-xs text-ink-muted">Sisa Tagihan</p><p className={`font-bold ${isPaid ? 'text-emerald-600' : 'text-red-600'}`}>{formatRupiah(remaining)}</p></div>
-                                <div><p className="text-xs text-ink-muted">Status</p>
-                                    <span className={`badge mt-1 ${project.invoice.status === 'paid' ? 'bg-emerald-500/15 text-emerald-600' : project.invoice.status === 'awaiting_dp' ? 'bg-red-500/15 text-red-600' : project.invoice.status === 'partial' ? 'bg-amber-500/15 text-amber-600' : 'bg-zinc-500/15 text-zinc-600'}`}>
-                                        {project.invoice.status === 'paid' ? 'Lunas' : project.invoice.status === 'awaiting_dp' ? 'Menunggu DP' : project.invoice.status === 'partial' ? 'DP/Cicilan' : 'Belum Bayar'}
-                                    </span>
-                                </div>
-                            </div>
-                        )}
-
-                        {!isPaid && (!isAdmin || isCurrentStep) && (
-                            <form onSubmit={submitPayment} className="rounded-xl border border-line p-5 mb-6 bg-surface-muted/30">
-                                <h4 className="mb-4 font-semibold text-ink">Form Pembayaran Manual</h4>
-                                <div className="grid gap-4 sm:grid-cols-2">
-                                    <Field label="Jumlah Transfer (Rp)" required>
-                                        <input className="input" type="number" min="0" value={paymentForm.amount} onChange={(e) => setPaymentForm({...paymentForm, amount: e.target.value})} required disabled={!isCurrentStep && isAdmin}/>
-                                    </Field>
-                                    <Field label="Bukti Transfer (opsional)">
-                                        <button type="button" className="input flex items-center gap-2 text-left text-ink-muted" onClick={() => proofRef.current?.click()} disabled={!isCurrentStep && isAdmin}>
-                                            <Icon name="upload" size={16} /> {paymentForm.proof ? paymentForm.proof.name : 'Upload bukti...'}
-                                        </button>
-                                        <input ref={proofRef} type="file" className="hidden" onChange={(e) => setPaymentForm({...paymentForm, proof: e.target.files[0]})} />
-                                    </Field>
-                                    <div className="sm:col-span-2">
-                                        <button className="btn-primary" disabled={(!isCurrentStep && isAdmin) || saving}>Konfirmasi Transfer</button>
+                    <div className="card overflow-hidden">
+                        <PanelHeader
+                            icon="eye"
+                            iconCls="bg-orange-500/15 text-orange-600 dark:text-orange-400"
+                            title="Preview Tersedia"
+                            subtitle="Hasil akhir sudah bisa dilihat. Unduhan HD dibuka setelah tagihan lunas."
+                        />
+                        <div className="p-5">
+                            {project.invoice ? (
+                                <div className="mb-4 grid gap-4 rounded-xl border border-line bg-surface p-4 sm:grid-cols-2 lg:grid-cols-4">
+                                    <div>
+                                        <p className="text-xs text-ink-muted">No. Invoice</p>
+                                        <p className="font-mono text-sm font-bold text-ink">{project.invoice.number}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-xs text-ink-muted">DP / Tanda Jadi</p>
+                                        <p className="font-semibold text-ink">{formatRupiah(project.invoice.dp_amount)}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-xs text-ink-muted">Sisa Tagihan</p>
+                                        <p className={`font-semibold ${isPaid ? 'text-emerald-600' : 'text-red-600'}`}>{formatRupiah(remaining)}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-xs text-ink-muted">Status</p>
+                                        {invMeta && <span className={`badge mt-1 ${invMeta.cls}`}>{invMeta.label}</span>}
                                     </div>
                                 </div>
-                            </form>
-                        )}
+                            ) : (
+                                <div className="mb-4 rounded-xl border border-line bg-surface-muted/30 p-4 text-sm text-ink-muted">Invoice sedang disiapkan.</div>
+                            )}
 
-                        {project.payments?.length > 0 && (
-                            <div>
-                                <h4 className="mb-3 font-semibold text-ink text-sm">Riwayat Pembayaran</h4>
-                                <div className="overflow-x-auto rounded-xl border border-line">
-                                    <table className="table mb-0">
-                                        <thead><tr><th>Tanggal</th><th>Jumlah</th><th>Status</th></tr></thead>
-                                        <tbody>
-                                            {project.payments.map((p) => (
-                                                <tr key={p.id}>
-                                                    <td className="text-sm text-ink-muted">{formatDate(p.created_at)}</td>
-                                                    <td className="font-semibold text-ink">{formatRupiah(p.amount)}</td>
-                                                    <td>
-                                                        <span className={`badge ${p.status === 'confirmed' ? 'bg-emerald-500/15 text-emerald-600' : p.status === 'pending' ? 'bg-amber-500/15 text-amber-600' : 'bg-red-500/15 text-red-600'}`}>
-                                                            {p.status === 'confirmed' ? 'Terkonfirmasi' : p.status === 'pending' ? 'Menunggu' : 'Ditolak'}
-                                                        </span>
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
+                            {project.payments?.length > 0 && (
+                                <div className="mb-4">
+                                    <h4 className="mb-3 text-sm font-semibold text-ink">Riwayat Pembayaran</h4>
+                                    <div className="overflow-x-auto rounded-xl border border-line">
+                                        <table className="table mb-0">
+                                            <thead><tr><th>Tanggal</th><th>Jumlah</th><th>Status</th></tr></thead>
+                                            <tbody>
+                                                {project.payments.map((p) => (
+                                                    <tr key={p.id}>
+                                                        <td className="text-sm text-ink-muted">{formatDate(p.created_at)}</td>
+                                                        <td className="font-semibold text-ink">{formatRupiah(p.amount)}</td>
+                                                        <td>
+                                                            <span className={`badge ${p.status === 'confirmed' ? 'bg-emerald-500/15 text-emerald-600' : p.status === 'pending' ? 'bg-amber-500/15 text-amber-600' : 'bg-red-500/15 text-red-600'}`}>
+                                                                {p.status === 'confirmed' ? 'Terkonfirmasi' : p.status === 'pending' ? 'Menunggu' : 'Ditolak'}
+                                                            </span>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 </div>
-                            </div>
-                        )}
+                            )}
+                        </div>
+                        <PanelFooter>
+                            <Link to={previewHref} className="btn-outline"><Icon name="eye" size={16} /> Lihat Preview Media</Link>
+                            {!isAdmin && (
+                                <Link to="/dashboard/client-invoices" className="btn-primary"><Icon name="credit-card" size={16} /> Bayar di Halaman Tagihan</Link>
+                            )}
+                            {isAdmin && isCurrentStep && (
+                                <button className="btn-primary" onClick={advance} disabled={saving || !isPaid}>
+                                    {isPaid ? 'Tandai Selesai' : 'Menunggu Pelunasan'}
+                                </button>
+                            )}
+                        </PanelFooter>
                     </div>
                 )}
 
                 {/* COMPLETED */}
                 {activeKey === 'completed' && (
-                    <div className="card border-l-4 border-l-emerald-500 p-5">
-                        <div className="mb-6 flex flex-col sm:flex-row gap-4 sm:justify-between sm:items-center">
-                            <div>
-                                <h3 className="text-lg font-bold text-ink">Pesanan Selesai</h3>
-                                <p className="text-sm text-ink-muted mt-1">Terima kasih. File HD dapat diunduh melalui tautan di bawah.</p>
+                    <div className="card overflow-hidden">
+                        <PanelHeader
+                            icon="check"
+                            iconCls="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
+                            title="Pesanan Selesai"
+                            subtitle="Terima kasih atas kepercayaan Anda."
+                        />
+                        <div className="p-5">
+                            <div className="flex items-center gap-3 rounded-xl border border-line p-4">
+                                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-500 text-white"><Icon name="check" size={16} /></span>
+                                <div>
+                                    <p className="font-semibold text-ink">Pembayaran Lunas</p>
+                                    <p className="text-sm text-ink-muted">Tagihan telah diselesaikan — file HD siap diunduh.</p>
+                                </div>
                             </div>
-                            <Link to={`/dashboard/preview/${project.order_no || project.id}`} className="btn-primary">
+                            {!isAdmin && (
+                                <div className="mt-4 rounded-xl border border-line bg-surface-muted/30 p-5 text-center">
+                                    <p className="mb-4 text-sm text-ink-muted">Bagikan pengalaman Anda bekerja bersama kami.</p>
+                                    <button className="btn-primary" onClick={() => setReviewOpen(true)}><Icon name="star" size={16} /> Berikan Review</button>
+                                </div>
+                            )}
+                        </div>
+                        <PanelFooter>
+                            <Link to={previewHref} className={isAdmin ? 'btn-outline' : 'btn-primary'}>
                                 <Icon name="download" size={16} /> Buka Halaman Unduh
                             </Link>
-                        </div>
-                        {!isAdmin && (
-                            <div className="rounded-xl border border-line bg-surface-muted/30 p-5 text-center">
-                                <p className="mb-4 text-sm text-ink-muted">Bagikan pengalaman Anda bekerja bersama kami.</p>
-                                <button className="btn-primary" onClick={() => setReviewOpen(true)}><Icon name="star" size={16} /> Berikan Review</button>
-                            </div>
-                        )}
+                            {isAdmin && (
+                                <button className="btn-outline" onClick={archive} disabled={saving}>
+                                    <Icon name="folder-open" size={16} /> Arsipkan
+                                </button>
+                            )}
+                        </PanelFooter>
                     </div>
                 )}
 
                 {/* ARCHIVED */}
                 {activeKey === 'archived' && (
-                    <div className="card border-l-4 border-l-zinc-500 p-5">
-                        <h3 className="text-lg font-bold text-ink">Pesanan Diarsipkan</h3>
-                        <p className="text-sm text-ink-muted mt-1">File proyek telah diarsipkan karena masa retensi berakhir. Hubungi admin bila Anda masih membutuhkan akses.</p>
+                    <div className="card overflow-hidden">
+                        <PanelHeader
+                            icon="folder-open"
+                            iconCls="bg-zinc-500/15 text-zinc-600 dark:text-zinc-400"
+                            title="Pesanan Diarsipkan"
+                            subtitle="Pesanan ini telah diarsipkan."
+                        />
+                        <div className="p-5">
+                            <p className="text-sm text-ink-muted">File proyek telah diarsipkan karena masa retensi berakhir atau atas permintaan admin. Hubungi admin bila Anda masih membutuhkan akses.</p>
+                        </div>
+                        {isAdmin && project.status === 'archived' && (
+                            <PanelFooter>
+                                <button className="btn-primary" onClick={restore} disabled={saving}><Icon name="refresh" size={16} /> Pulihkan Pesanan</button>
+                            </PanelFooter>
+                        )}
                     </div>
                 )}
 
-                {/* TIMELINE LOG (Always visible at bottom) */}
-                <div className="mt-8 pt-6 border-t border-line">
-                    <h3 className="font-semibold text-ink mb-4 flex items-center gap-2"><Icon name="clock" size={16}/> Catatan Riwayat</h3>
+                {/* TIMELINE LOG */}
+                <div className="card p-5">
+                    <h3 className="mb-4 flex items-center gap-2 font-semibold text-ink"><Icon name="clock" size={16} /> Catatan Riwayat</h3>
                     {isAdmin && (
                         <form onSubmit={addUpdate} className="mb-6 flex gap-2">
                             <input className="input" placeholder="Tulis log sistem atau catatan manual..." value={updateText} onChange={(e) => setUpdateText(e.target.value)} />
                             <button className="btn-primary shrink-0" disabled={!updateText.trim()}><Icon name="send" size={16} /></button>
                         </form>
                     )}
-                    <div className="relative space-y-5 border-l-2 border-line/50 pl-5 ml-2">
+                    <div className="relative ml-2 space-y-5 border-l-2 border-line/50 pl-5">
                         {project.updates?.length ? (
                             project.updates.map((u) => (
                                 <div key={u.id} className="relative">
