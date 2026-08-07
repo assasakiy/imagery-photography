@@ -135,7 +135,7 @@ export default function Media() {
                 }
             />
 
-            <div className="mb-5 flex flex-wrap items-center gap-2">
+            <div className="mb-4 flex flex-wrap items-center gap-2 border-b border-line pb-4">
                 {TABS.map((tab) => (
                     <button
                         key={tab.key}
