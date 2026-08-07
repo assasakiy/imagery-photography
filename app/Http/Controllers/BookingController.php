@@ -45,8 +45,7 @@ class BookingController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255',
             'phone' => 'nullable|string|max:20',
-            'package_id' => 'nullable|exists:packages,id',
-            'package' => 'nullable|string|max:255',
+            'package_id' => 'required|exists:packages,id',
             'event_date' => 'nullable|date',
             'location' => 'nullable|string|max:255',
             'message' => 'nullable|string',
@@ -66,23 +65,19 @@ class BookingController extends Controller
         );
         $user = $result['user'];
 
-        $package = null;
-        $packageId = $data['package_id'] ?? null;
-        if ($packageId) {
-            $package = Package::find($packageId);
-        }
+        $package = Package::find($data['package_id']);
 
         $booking = Booking::create([
             'user_id' => $user->id,
-            'package_id' => $package?->id ?? null,
+            'package_id' => $package->id,
             'name' => $data['name'],
             'email' => $data['email'] ?? null,
             'phone' => $data['phone'] ?? null,
-            'package_label' => $data['package'] ?? $package?->name ?? null,
+            'package_label' => $package->name,
             'event_date' => $data['event_date'] ?? null,
             'location' => $data['location'] ?? null,
             'notes' => $data['notes'] ?? null,
-            'price' => $package?->computedPrice() ?? null,
+            'price' => $package->computedPrice(),
             'status' => 'pending',
         ]);
 

@@ -53,8 +53,7 @@ class CustomerController extends Controller
         $user = $request->user();
 
         $data = $request->validate([
-            'package_id' => 'nullable|exists:packages,id',
-            'package_label' => 'nullable|string|max:255',
+            'package_id' => 'required|exists:packages,id',
             'event_date' => 'nullable|date',
             'location' => 'nullable|string|max:255',
             'notes' => 'nullable|string|max:2000',
@@ -63,22 +62,19 @@ class CustomerController extends Controller
         $data['notes'] = \App\Support\ContentSanitizer::plainText($data['notes'] ?? '');
         $data['location'] = \App\Support\ContentSanitizer::plainText($data['location'] ?? '');
         
-        $package = null;
-        if (!empty($data['package_id'])) {
-            $package = \App\Models\Package::find($data['package_id']);
-        }
+        $package = \App\Models\Package::find($data['package_id']);
 
         $booking = Booking::create([
             'user_id' => $user->id,
             'name' => $user->name,
             'email' => $user->email,
             'phone' => $user->phone,
-            'package_id' => $package?->id,
-            'package_label' => $package?->name ?? $data['package_label'],
+            'package_id' => $package->id,
+            'package_label' => $package->name,
             'event_date' => $data['event_date'] ?? null,
             'location' => $data['location'] ?? null,
             'notes' => $data['notes'] ?? null,
-            'price' => $package ? $package->computedPrice() : null,
+            'price' => $package->computedPrice(),
             'status' => 'pending',
         ]);
 

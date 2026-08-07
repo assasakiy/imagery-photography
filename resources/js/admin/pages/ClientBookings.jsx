@@ -113,17 +113,12 @@ export default function ClientBookings() {
                 </div>
             }>
                 <form className="space-y-4" onSubmit={handleCreate}>
-                    <Field label="Pilih Paket">
-                        <select className="input" value={form.package_id || ''} onChange={(e) => setForm({ ...form, package_id: e.target.value })}>
-                            <option value="">-- Pilih Paket (Opsional) --</option>
+                    <Field label="Pilih Paket" required>
+                        <select className="input" value={form.package_id || ''} onChange={(e) => setForm({ ...form, package_id: e.target.value })} required>
+                            <option value="">-- Pilih Paket --</option>
                             {packages.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                         </select>
                     </Field>
-                    {!form.package_id && (
-                        <Field label="Tipe Layanan (Jika tidak ada di paket)">
-                            <input className="input" value={form.package_label || ''} onChange={(e) => setForm({ ...form, package_label: e.target.value })} placeholder="Misal: Foto Produk" />
-                        </Field>
-                    )}
                     <Field label="Tanggal Acara (Perkiraan)">
                         <input type="date" className="input" value={form.event_date || ''} onChange={(e) => setForm({ ...form, event_date: e.target.value })} />
                     </Field>

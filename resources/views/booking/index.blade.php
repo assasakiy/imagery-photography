@@ -77,8 +77,8 @@
                         </div>
 
                         <div>
-                            <label for="package_id" class="label">Paket / Jenis Acara</label>
-                            <select id="package_id" name="package_id" class="input">
+                            <label for="package_id" class="label">Paket <span class="text-red-500">*</span></label>
+                            <select id="package_id" name="package_id" class="input" required>
                                 <option value="">Pilih paket...</option>
                                 @foreach ($packages as $pkg)
                                     <option value="{{ $pkg['id'] }}" {{ old('package_id') == $pkg['id'] ? 'selected' : '' }}>{{ $pkg['name'] }}{{ $pkg['price'] ? ' — Rp ' . number_format($pkg['price'], 0, ',', '.') : '' }}</option>
