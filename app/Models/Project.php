@@ -21,10 +21,9 @@ class Project extends Model
     ];
 
     protected $fillable = [
-        'user_id', 'name', 'type', 'package_id', 'event_date', 'description',
+        'user_id', 'name', 'package_id', 'event_date', 'description',
         'price', 'pricing_snapshot', 'status', 'start_date', 'end_date',
-        'retention_days', 'archived_at', 'deleted_at',
-        'deleted_by_id', 'deleted_by_name', 'delete_reason',
+        'client_notes', 'gallery_preview_released', 'gallery_released',
     ];
 
     protected function casts(): array

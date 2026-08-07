@@ -31,7 +31,6 @@ const emptyForm = {
     client_email: '',
     client_notes: '',
     name: '',
-    type: '',
     package_id: '',
     service_ids: [],
     event_date: '',
@@ -96,7 +95,6 @@ export default function Projects() {
             client_email: '',
             client_notes: '',
             name: item.name,
-            type: item.type || '',
             package_id: item.package_id || '',
             event_date: item.event_date?.split('T')[0] || '',
             description: item.description || '',
@@ -307,9 +305,6 @@ export default function Projects() {
                     <Field label="Nama Project" required error={errors.name?.[0]}>
                         <input className="input" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
                     </Field>
-                    <Field label="Jenis" hint="opsional" error={errors.type?.[0]}>
-                        <input className="input" placeholder="Wedding, Prewedding, Event..." value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })} />
-                    </Field>
                     {isAdmin && packages.length > 0 && (
                         <div className="sm:col-span-2">
                             <Field label="Paket" hint="pilih paket untuk mengisi harga otomatis">
@@ -327,7 +322,6 @@ export default function Projects() {
                                             ...form,
                                             package_id: pid,
                                             name: form.name || (pkg ? pkg.name : ''),
-                                            type: form.type || (pkg ? pkg.type : ''),
                                             price: pkg ? pkg.price : form.price,
                                             service_ids: [],
                                         });

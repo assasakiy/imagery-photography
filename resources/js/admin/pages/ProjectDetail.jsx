@@ -211,8 +211,8 @@ export default function ProjectDetail() {
                             <p className="mt-2 truncate text-sm font-semibold text-ink">{project.event_date ? formatDate(project.event_date) : '-'}</p>
                         </div>
                         <div className="rounded-2xl border border-line bg-surface p-4 hidden lg:block">
-                            <p className="flex items-center gap-1.5 text-xs font-semibold text-ink-muted uppercase tracking-wider"><Icon name="briefcase" size={14} /> Jenis</p>
-                            <p className="mt-2 truncate text-sm font-semibold text-ink">{project.type || '-'}</p>
+                            <p className="flex items-center gap-1.5 text-xs font-semibold text-ink-muted uppercase tracking-wider"><Icon name="box" size={14} /> Paket</p>
+                            <p className="mt-2 truncate text-sm font-semibold text-ink">{project.package?.name || 'Manual / Kustom'}</p>
                         </div>
                     </div>
 

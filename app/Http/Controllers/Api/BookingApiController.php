@@ -88,7 +88,6 @@ class BookingApiController extends Controller
 
         $data = $request->validate([
             'name' => 'nullable|string|max:255',
-            'type' => 'nullable|string|max:100',
             'event_date' => 'nullable|date',
             'description' => 'nullable|string',
             'price' => 'nullable|numeric|min:0',
@@ -110,7 +109,6 @@ class BookingApiController extends Controller
         $project = Project::create([
             'user_id' => $user->id,
             'name' => $data['name'] ?? $booking->package_label ?: ($booking->name . ' ' . ($booking->event_date?->year ?? '')),
-            'type' => $data['type'] ?? null,
             'package_id' => $package?->id ?? null,
             'event_date' => $data['event_date'] ?? $booking->event_date,
             'description' => ContentSanitizer::plainText($data['description'] ?? ($booking->notes ?? '')) ?: null,

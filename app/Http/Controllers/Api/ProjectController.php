@@ -58,7 +58,6 @@ class ProjectController extends Controller
             'client_email' => 'nullable|email|max:255',
             'client_notes' => 'nullable|string|max:1000',
             'name' => 'required|string|max:255',
-            'type' => 'nullable|string|max:100',
             'package_id' => 'nullable|exists:packages,id',
             'event_date' => 'nullable|date',
             'description' => 'nullable|string',
@@ -105,7 +104,6 @@ class ProjectController extends Controller
         $project = Project::create([
             'user_id' => $user->id,
             'name' => $data['name'],
-            'type' => $data['type'] ?? null,
             'package_id' => $package?->id ?? null,
             'event_date' => $data['event_date'] ?? null,
             'description' => $data['description'] ?? null,
@@ -199,7 +197,6 @@ class ProjectController extends Controller
     {
         $data = $request->validate([
             'name' => 'required|string|max:255',
-            'type' => 'nullable|string|max:100',
             'package_id' => 'nullable|exists:packages,id',
             'event_date' => 'nullable|date',
             'description' => 'nullable|string',
