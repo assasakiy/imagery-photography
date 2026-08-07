@@ -114,7 +114,7 @@ export default function PreviewDetail() {
                     <div>
                         <div className="flex flex-wrap items-center gap-2">
                             <span className="rounded-lg bg-brand-500/15 px-2 py-0.5 font-mono text-xs font-bold text-brand-600 dark:text-brand-400">PSN-{project.order_no}</span>
-                            {isPaid ? (
+                            {project.is_paid ? (
                                 <span className="badge bg-emerald-500/15 text-emerald-600"><Icon name="check" size={12} /> Lunas</span>
                             ) : (
                                 <span className="badge bg-amber-500/15 text-amber-600">Menunggu Pelunasan</span>
