@@ -85,6 +85,8 @@ import RecycleBin from './pages/RecycleBin';
 import ProfileSettings from './pages/ProfileSettings';
 import ClientBookings from './pages/ClientBookings';
 import ClientInvoices from './pages/ClientInvoices';
+import Preview from './pages/Preview';
+import PreviewDetail from './pages/PreviewDetail';
 import ClientMessages from './pages/ClientMessages';
 import Bookmarks from './pages/Bookmarks';
 import History from './pages/History';
@@ -137,6 +139,8 @@ function AppRoutes() {
                 <Route path="invoices" element={<Protected adminOnly><Invoices /></Protected>} />
                 <Route path="client-bookings" element={<Protected notStaffCase><ClientBookings /></Protected>} />
                 <Route path="client-invoices" element={<Protected notStaffCase><ClientInvoices /></Protected>} />
+                <Route path="preview" element={<Protected notStaffCase><Preview /></Protected>} />
+                <Route path="preview/:id" element={<Protected notStaffCase><PreviewDetail /></Protected>} />
                 <Route path="client-messages" element={<Protected notStaffCase><ClientMessages /></Protected>} />
                 <Route path="bookmarks" element={<Protected notStaffCase><Bookmarks /></Protected>} />
                 <Route path="history" element={<Protected notStaffCase><History /></Protected>} />

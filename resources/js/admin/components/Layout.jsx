@@ -36,6 +36,7 @@ const clientNav = [
     { to: '/dashboard/projects', icon: 'folder-open', label: 'Pesanan' },
     { to: '/dashboard/client-bookings', icon: 'calendar', label: 'Booking' },
     { to: '/dashboard/client-invoices', icon: 'credit-card', label: 'Tagihan' },
+    { to: '/dashboard/preview', icon: 'image', label: 'Preview' },
     { to: '/dashboard/client-messages', icon: 'message-circle', label: 'Pesan' },
     { to: '/dashboard/bookmarks', icon: 'heart', label: 'Bookmark' },
     { to: '/dashboard/history', icon: 'clock', label: 'Riwayat' },

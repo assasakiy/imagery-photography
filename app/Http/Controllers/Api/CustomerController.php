@@ -173,64 +173,82 @@ class CustomerController extends Controller
     public function gallery(Request $request)
     {
         $projectId = $request->query('project_id');
-        $projects = $request->user()->projects();
+        $user = $request->user();
+        
+        $projectsQuery = clone ($user->isStaff() ? \App\Models\Project::query() : $user->projects());
 
         if ($projectId) {
-            $projects = $projects->where('id', $projectId);
+            $projectsQuery->where(function ($q) use ($projectId) {
+                $q->where('id', $projectId)->orWhere('order_no', $projectId);
+            });
         }
 
-        $projects = $projects->with('files')->get();
+        $projects = $projectsQuery->with(['files', 'payments', 'invoice'])->latest()->get();
 
-        return response()->json($projects->map(function ($p) {
+        return response()->json($projects->filter(fn($p) => $p->files->count() > 0)->map(function ($p) {
             return [
                 'id' => $p->id,
+                'order_no' => $p->order_no,
                 'name' => $p->name,
+                'event_date' => $p->event_date,
                 'status' => $p->status,
+                'is_paid' => $p->isPaid(),
                 'files' => $p->files->map(function ($f) {
                     return [
                         'id' => $f->id,
                         'name' => $f->original_name,
+                        'url' => $f->url,
+                        'type' => $f->type,
+                        'category' => $f->category,
                         'size' => $f->size,
                         'expires_at' => $f->expires_at,
                         'available' => !$f->expires_at || $f->expires_at->isFuture(),
                     ];
-                }),
+                })->values(),
             ];
-        }));
+        })->values());
     }
 
     public function messages(Request $request)
     {
         $user = $request->user();
+        $query = \App\Models\ContactMessage::with('project')->where('type', 'message')
+            ->where(fn ($q) => $q->where('email', $user->email)->orWhere('phone', $user->phone));
+            
+        if ($request->filled('project_id')) {
+            $projectId = $request->input('project_id');
+            $query->whereHas('project', function ($q) use ($projectId) {
+                $q->where('id', $projectId)->orWhere('order_no', $projectId);
+            });
+        }
 
-        return response()->json(
-            ContactMessage::where('type', 'message')
-                ->where(fn ($q) => $q->where('email', $user->email)->orWhere('phone', $user->phone))
-                ->orderByDesc('created_at')
-                ->get(['id', 'message', 'created_at', 'status'])
-        );
+        return response()->json($query->orderByDesc('created_at')->get());
     }
 
     public function sendMessage(Request $request)
     {
         $data = $request->validate([
             'message' => 'required|string|max:2000',
-            'project_id' => 'nullable|integer',
+            'project_id' => 'nullable',
         ]);
 
         $user = $request->user();
+        $projectId = null;
 
         if (!empty($data['project_id'])) {
-            $user->projects()->findOrFail($data['project_id']);
+            $project = $user->isStaff() ? \App\Models\Project::where('id', $data['project_id'])->orWhere('order_no', $data['project_id'])->firstOrFail() : $user->projects()->where(function ($q) use ($data) {
+                $q->where('id', $data['project_id'])->orWhere('order_no', $data['project_id']);
+            })->firstOrFail();
+            $projectId = $project->id;
         }
 
-        ContactMessage::create([
+        \App\Models\ContactMessage::create([
             'type' => 'message',
             'name' => $user->name,
             'email' => $user->email,
             'phone' => $user->phone,
             'message' => $data['message'],
-            'project_id' => $data['project_id'] ?? null,
+            'project_id' => $projectId,
         ]);
 
         return response()->json(['ok' => true]);

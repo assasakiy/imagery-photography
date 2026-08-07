@@ -1,11 +1,14 @@
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useSearchParams } from 'react-router-dom';
 import api from '../api';
 import Icon from '../components/Icon';
 import { PageHeader, Spinner, EmptyState, Confirm, useToast, formatDate } from '../components/ui';
 
 export default function Messages() {
     const { id: paramId } = useParams();
+    const [searchParams] = useSearchParams();
+    const pesanan = searchParams.get('pesanan') || '';
+
     const [items, setItems] = useState([]);
     const [meta, setMeta] = useState({});
     const [unreadOnly, setUnreadOnly] = useState(false);
@@ -16,7 +19,7 @@ export default function Messages() {
 
     const load = (page = 1) => {
         setLoading(true);
-        api.get('/messages', { params: { page, per_page: 15, unread_only: unreadOnly || undefined } })
+        api.get('/messages', { params: { page, per_page: 15, unread_only: unreadOnly || undefined, project_id: pesanan || undefined } })
             .then(({ data }) => {
                 setItems(data.data);
                 setMeta(data);
@@ -26,7 +29,7 @@ export default function Messages() {
 
     useEffect(() => {
         load();
-    }, [unreadOnly]);
+    }, [unreadOnly, pesanan]);
 
     useEffect(() => {
         if (!paramId) return;
@@ -53,11 +56,12 @@ export default function Messages() {
 
     return (
         <>
-            <PageHeader title="Pesan" subtitle="Pesan yang dikirim pengunjung lewat halaman Kontak." />
+            <PageHeader title="Pesan" subtitle="Pesan dari klien & pengunjung." />
 
-            <div className="mb-4 flex flex-wrap gap-2">
+            <div className="mb-4 flex flex-wrap gap-2 items-center">
                 <button className={`chip ${!unreadOnly ? 'chip-active' : ''}`} onClick={() => setUnreadOnly(false)}>Semua</button>
                 <button className={`chip ${unreadOnly ? 'chip-active' : ''}`} onClick={() => setUnreadOnly(true)}>Belum dibaca</button>
+                {pesanan && <span className="badge bg-brand-500/15 text-brand-600 font-mono">Pesanan: PSN-{pesanan}</span>}
             </div>
 
             {loading ? (
@@ -101,9 +105,10 @@ export default function Messages() {
                     <div className="card lg:col-span-3">
                         {selected ? (
                             <div className="p-6">
-                                <div className="mb-4 flex items-start justify-between gap-3">
+                                <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
                                     <div>
                                         <h2 className="text-lg font-bold text-ink">{selected.name}</h2>
+                                        {selected.project && <span className="badge bg-surface-muted text-ink-muted mb-2 font-mono">PSN-{selected.project.order_no}</span>}
                                         <div className="mt-1 flex flex-wrap gap-3 text-sm text-ink-muted">
                                             {selected.email && (
                                                 <a className="flex items-center gap-1.5 hover:text-brand-600" href={`mailto:${selected.email}`}>

@@ -118,6 +118,7 @@ class BookingApiController extends Controller
         $project = Project::create([
             'user_id' => $user->id,
             'name' => $data['name'] ?? $booking->package_label ?: ($booking->name . ' ' . ($booking->event_date?->year ?? '')),
+            'order_no' => \Illuminate\Support\Str::after($booking->booking_no, 'BK-'),
             'package_id' => $package?->id ?? null,
             'event_date' => $data['event_date'] ?? $booking->event_date,
             'event_start' => $data['event_start'] ?? $booking->event_start,

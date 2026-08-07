@@ -24,7 +24,7 @@ class Project extends Model
     public const STEP_ORDER = ['scheduled', 'shooting', 'editing', 'awaiting_payment', 'completed', 'archived'];
 
     protected $fillable = [
-        'user_id', 'name', 'package_id', 'event_date', 'event_start', 'event_end', 'description',
+        'user_id', 'name', 'order_no', 'package_id', 'event_date', 'event_start', 'event_end', 'description',
         'price', 'pricing_snapshot', 'status', 'shooting_at', 'editing_at', 'awaiting_payment_at', 'completed_at',
         'client_notes', 'gallery_preview_released', 'gallery_released',
     ];
@@ -46,10 +46,36 @@ class Project extends Model
         ];
     }
 
-    /** Jeda (menit) dari waktu mulai/selesai acara utk transisi otomatis. */
     public static function graceMinutes(): int
     {
         return (int) app(\App\Services\RuntimeSettings::class)->get('event_grace_minutes', '10');
+    }
+
+    /** Nomor pesanan: satu kode {ABBR}-{YYMMDD}-{XXXX} (tanpa awalan jenis). */
+    public static function nextOrderNumber(): string
+    {
+        $siteName = app(\App\Services\RuntimeSettings::class)->siteName();
+        $words = preg_split("/\s+/", strtoupper(trim($siteName)));
+        $abbr = count($words) >= 2
+            ? implode('', array_map(fn ($w) => mb_substr($w, 0, 1), array_slice($words, 0, 3)))
+            : mb_substr($words[0] ?? 'SYS', 0, 3);
+        $abbr = $abbr ?: 'SYS';
+
+        $dateStr = now()->format('ymd');
+        $prefix = "{$abbr}-{$dateStr}-";
+        $last = static::where('order_no', 'like', $prefix . '%')->orderByDesc('id')->value('order_no');
+        $seq = $last ? ((int) substr($last, -4)) + 1 : 1;
+
+        return $prefix . str_pad((string) $seq, 4, '0', STR_PAD_LEFT);
+    }
+
+    protected static function booted(): void
+    {
+        static::creating(function (Project $project) {
+            if (empty($project->order_no)) {
+                $project->order_no = static::nextOrderNumber();
+            }
+        });
     }
 
     public function package()

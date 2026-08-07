@@ -11,10 +11,17 @@ class MessageController extends Controller
 {
     public function index(Request $request)
     {
-        $query = ContactMessage::query();
+        $query = ContactMessage::with('project');
 
         if ($request->has('unread_only') && $request->boolean('unread_only')) {
             $query->whereNull('read_at');
+        }
+        
+        if ($request->filled('project_id')) {
+            $projectId = $request->input('project_id');
+            $query->whereHas('project', function ($q) use ($projectId) {
+                $q->where('id', $projectId)->orWhere('order_no', $projectId);
+            });
         }
 
         return response()->json($query->latest()->paginate(15));
