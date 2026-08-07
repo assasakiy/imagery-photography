@@ -59,7 +59,6 @@ export default function ProjectDetail() {
     const [project, setProject] = useState(null);
     const [loading, setLoading] = useState(true);
     const [step, setStep] = useState(null);
-    const [updateText, setUpdateText] = useState('');
     const [uploading, setUploading] = useState(false);
     const [editForm, setEditForm] = useState({ photo_total: '', photo_done: '', video_total: '', video_done: '' });
     const [editNote, setEditNote] = useState('');
@@ -179,15 +178,6 @@ export default function ProjectDetail() {
         } finally {
             setSaving(false);
         }
-    };
-
-    const addUpdate = async (e) => {
-        e.preventDefault();
-        if (!updateText.trim()) return;
-        await api.post(`/projects/${id}/updates`, { message: updateText });
-        setUpdateText('');
-        show('Timeline ditambah.');
-        load();
     };
 
     const saveEditProgress = async (e) => {
@@ -799,28 +789,22 @@ export default function ProjectDetail() {
                 )}
 
                 {/* TIMELINE LOG */}
-                {isAdmin && (
-                    <div className="card p-5">
-                        <h3 className="mb-4 flex items-center gap-2 font-semibold text-ink"><Icon name="clock" size={16} /> Catatan Riwayat</h3>
-                        <form onSubmit={addUpdate} className="mb-6 flex gap-2">
-                            <input className="input" placeholder="Tulis log sistem atau catatan manual..." value={updateText} onChange={(e) => setUpdateText(e.target.value)} />
-                            <button className="btn-primary shrink-0" disabled={!updateText.trim()}><Icon name="send" size={16} /></button>
-                        </form>
-                        <div className="relative ml-2 space-y-5 border-l-2 border-line/50 pl-5">
-                            {project.updates?.length ? (
-                                project.updates.map((u) => (
-                                    <div key={u.id} className="relative">
-                                        <span className={`absolute -left-[27px] top-1.5 h-2.5 w-2.5 rounded-full ring-4 ring-surface ${u.kind === 'system' ? 'bg-brand-500' : 'bg-zinc-400 dark:bg-zinc-600'}`} />
-                                        <p className={`text-sm ${u.kind === 'system' ? 'text-ink' : 'text-ink-muted'}`}>{u.message}</p>
-                                        <p className="mt-0.5 text-xs text-ink-muted/80">{u.kind === 'system' ? 'Sistem' : u.user?.name || 'Admin'} · {formatDate(u.created_at)}</p>
-                                    </div>
-                                ))
-                            ) : (
-                                <p className="text-sm text-ink-muted">Belum ada riwayat tercatat.</p>
-                            )}
-                        </div>
+                <div className="card p-5">
+                    <h3 className="mb-4 flex items-center gap-2 font-semibold text-ink"><Icon name="clock" size={16} /> Catatan Riwayat</h3>
+                    <div className="relative ml-2 space-y-5 border-l-2 border-line/50 pl-5">
+                        {project.updates?.length ? (
+                            project.updates.map((u) => (
+                                <div key={u.id} className="relative">
+                                    <span className={`absolute -left-[27px] top-1.5 h-2.5 w-2.5 rounded-full ring-4 ring-surface ${u.kind === 'system' ? 'bg-brand-500' : 'bg-zinc-400 dark:bg-zinc-600'}`} />
+                                    <p className={`text-sm ${u.kind === 'system' ? 'text-ink' : 'text-ink-muted'}`}>{u.message}</p>
+                                    <p className="mt-0.5 text-xs text-ink-muted/80">{u.kind === 'system' ? 'Sistem' : u.user?.name || 'Admin'} · {formatDate(u.created_at)}</p>
+                                </div>
+                            ))
+                        ) : (
+                            <p className="text-sm text-ink-muted">Belum ada riwayat tercatat.</p>
+                        )}
                     </div>
-                )}
+                </div>
             </div>
 
             {/* REVIEW MODAL */}
