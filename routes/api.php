@@ -102,6 +102,7 @@ Route::middleware(['web', 'auth:sanctum', 'maintenance'])->group(function () {
         Route::post('/projects/{project}/advance', [ProjectController::class, 'advance']);
         Route::post('/projects/{project}/files', [ProjectController::class, 'uploadFile']);
         Route::post('/projects/{project}/videos', [ProjectController::class, 'uploadVideo']);
+        Route::delete('/files/bulk', [ProjectController::class, 'deleteFiles']);
         Route::delete('/files/{file}', [ProjectController::class, 'deleteFile']);
         Route::post('/projects/{project}/regenerate-credentials', [ProjectController::class, 'regenerateCredentials']);
         Route::patch('/projects/{project}/archive', [ProjectController::class, 'archive']);

@@ -557,6 +557,34 @@ class ProjectController extends Controller
 
     public function deleteFile(ProjectFile $file)
     {
+        $this->deleteProjectFile($file);
+
+        app(AuditLogger::class)->log('project.file_deleted', 'File dihapus: "' . $file->original_name . '"', $file);
+
+        return response()->json(['ok' => true]);
+    }
+
+    /** Hapus massal file aset (admin dari halaman Preview). */
+    public function deleteFiles(Request $request)
+    {
+        $data = $request->validate([
+            'ids' => 'required|array|min:1',
+            'ids.*' => 'integer',
+        ]);
+
+        $files = ProjectFile::with('media')->whereIn('id', $data['ids'])->get();
+
+        foreach ($files as $file) {
+            $this->deleteProjectFile($file);
+        }
+
+        app(AuditLogger::class)->log('project.files_bulk_deleted', 'File aset dihapus massal: ' . $files->count() . ' file', null);
+
+        return response()->json(['ok' => true, 'deleted' => $files->count()]);
+    }
+
+    private function deleteProjectFile(ProjectFile $file): void
+    {
         if ($file->category === 'video' && $file->asset_key) {
             $group = $file->project->files()->where('asset_key', $file->asset_key)->get();
             foreach ($group as $pf) {
@@ -573,10 +601,6 @@ class ProjectController extends Controller
             }
             $file->delete();
         }
-
-        app(AuditLogger::class)->log('project.file_deleted', 'File dihapus: "' . $file->original_name . '"', $file);
-
-        return response()->json(['ok' => true]);
     }
 
     public function addUpdate(Request $request, Project $project)

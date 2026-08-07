@@ -37,7 +37,7 @@ export default function PreviewDetail() {
     if (!project) return <EmptyState title="Galeri tidak ditemukan" />;
 
     const files = (project.files || []).filter((f) => f.url);
-    const canDownload = isAdmin || !!project.is_paid;
+    const canDownload = !isAdmin && !!project.is_paid;
     const allSelected = files.length > 0 && files.every((f) => selected.has(f.id));
 
     const toggleSelect = (fileId) => {
@@ -103,6 +103,18 @@ export default function PreviewDetail() {
         }
     };
 
+    const bulkDelete = async () => {
+        if (!confirm(`Hapus ${selected.size} file aset?`)) return;
+        try {
+            await api.delete('/files/bulk', { data: { ids: [...selected] } });
+            show('File dihapus.', 'success');
+            cancelSelect();
+            load();
+        } catch (err) {
+            show(err.response?.data?.message || 'Gagal menghapus file.', 'error');
+        }
+    };
+
     return (
         <>
             <Link to="/dashboard/preview" className="mb-4 inline-flex items-center gap-1.5 text-sm font-medium text-ink-muted hover:text-brand-600">
@@ -124,19 +136,23 @@ export default function PreviewDetail() {
                         <p className="mt-0.5 text-sm text-ink-muted">{files.length} file · preview ber-watermark</p>
                     </div>
                     <div className="flex flex-wrap items-center gap-2">
-                        <button className="btn-outline" onClick={copyLink} disabled={!canDownload} title={canDownload ? 'Salin link publik preview' : 'Salin link setelah pelunasan'}>
-                            <Icon name="link" size={16} /> Salin Link
-                        </button>
-                        <button
-                            className="btn-primary"
-                            disabled={!canDownload || (selecting && selected.size === 0)}
-                            onClick={() => (selecting && selected.size ? downloadSelected() : (window.location.href = `/api/projects/${project.id}/download-zip`))}
-                        >
-                            <Icon name="download" size={16} /> {selecting && selected.size ? `Download HD (${selected.size})` : 'Download ZIP'}
-                        </button>
+                        {!isAdmin && (
+                            <>
+                                <button className="btn-outline" onClick={copyLink} disabled={!canDownload} title={canDownload ? 'Salin link publik preview' : 'Salin link setelah pelunasan'}>
+                                    <Icon name="link" size={16} /> Salin Link
+                                </button>
+                                <button
+                                    className="btn-primary"
+                                    disabled={!canDownload || (selecting && selected.size === 0)}
+                                    onClick={() => (selecting && selected.size ? downloadSelected() : (window.location.href = `/api/projects/${project.id}/download-zip`))}
+                                >
+                                    <Icon name="download" size={16} /> {selecting && selected.size ? `Download HD (${selected.size})` : 'Download ZIP'}
+                                </button>
+                            </>
+                        )}
                     </div>
                 </div>
-                {!canDownload && (
+                {!isAdmin && !project.is_paid && (
                     <div className="border-b border-line bg-amber-500/10 p-4 text-sm text-amber-700 dark:text-amber-400">
                         <strong>Informasi:</strong> Anda dapat melihat preview di bawah ini. Salin link & unduh file original tersedia setelah menyelesaikan pelunasan (Invoice).
                     </div>
@@ -153,9 +169,20 @@ export default function PreviewDetail() {
                             <Icon name={allSelected ? 'check-square' : 'square'} size={16} />
                             <span className="hidden sm:inline">{allSelected ? 'Batal pilih semua' : 'Pilih semua'}</span>
                         </button>
-                        <button className="btn-outline !px-2 !py-1 text-sm" disabled={selected.size === 0 || !canDownload} onClick={downloadSelected} title={`Download HD ${selected.size} file`}>
-                            <Icon name="download" size={16} /> HD ({selected.size})
-                        </button>
+                        {isAdmin ? (
+                            <button
+                                className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-semibold text-red-600 transition-colors hover:bg-red-500/10 disabled:opacity-40"
+                                disabled={selected.size === 0}
+                                onClick={bulkDelete}
+                                title={`Hapus ${selected.size} file`}
+                            >
+                                <Icon name="trash" size={16} /> Hapus ({selected.size})
+                            </button>
+                        ) : (
+                            <button className="btn-outline !px-2 !py-1 text-sm" disabled={selected.size === 0 || !canDownload} onClick={downloadSelected} title={`Download HD ${selected.size} file`}>
+                                <Icon name="download" size={16} /> HD ({selected.size})
+                            </button>
+                        )}
                         <button className="rounded-lg p-1.5 text-ink-muted transition-colors hover:bg-surface-muted hover:text-ink" onClick={cancelSelect} title="Batal">
                             <Icon name="x" size={18} />
                         </button>
@@ -216,19 +243,19 @@ export default function PreviewDetail() {
                                             <button onClick={() => setViewing(f)} className="rounded-lg bg-white p-2 text-zinc-900" title="Lihat">
                                                 <Icon name="eye" size={16} />
                                             </button>
-                                            <button
-                                                onClick={() => canDownload && downloadFile(f.id)}
-                                                disabled={!canDownload}
-                                                className={canDownload ? 'rounded-lg bg-white p-2 text-zinc-900' : 'rounded-lg bg-white/80 p-2 text-zinc-900/50'}
-                                                title={canDownload ? 'Download HD' : 'Download setelah pelunasan'}
-                                            >
-                                                <Icon name="download" size={16} />
-                                            </button>
-                                            {isAdmin && (
-                                                <button onClick={() => removeFile(f)} className="rounded-lg bg-red-500 p-2 text-white" title="Hapus">
-                                                    <Icon name="trash" size={16} />
+                                            {!isAdmin && (
+                                                <button
+                                                    onClick={() => canDownload && downloadFile(f.id)}
+                                                    disabled={!canDownload}
+                                                    className={canDownload ? 'rounded-lg bg-white p-2 text-zinc-900' : 'rounded-lg bg-white/80 p-2 text-zinc-900/50'}
+                                                    title={canDownload ? 'Download HD' : 'Download setelah pelunasan'}
+                                                >
+                                                    <Icon name="download" size={16} />
                                                 </button>
                                             )}
+                                            <button onClick={() => removeFile(f)} className="rounded-lg bg-white p-2 text-red-600" title="Hapus">
+                                                <Icon name="trash" size={16} />
+                                            </button>
                                         </div>
                                     )}
                                 </div>
