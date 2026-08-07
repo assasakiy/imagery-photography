@@ -387,7 +387,7 @@ export default function ProjectDetail() {
             <div className="card mb-6 overflow-hidden">
                 <div className="bg-zinc-900 px-4 py-4 sm:px-6 dark:bg-zinc-950">
                     <div className="flex items-start justify-between gap-1 px-1 pb-1 sm:gap-2">
-                        {STEPS.map((s, i) => {
+                        {STEPS.filter((s) => s.key !== 'archived').map((s, i) => {
                             const isDone = i < currentIdx;
                             const isCurrent = i === currentIdx;
                             const isSelected = i === activeIdx;
@@ -418,7 +418,7 @@ export default function ProjectDetail() {
                                             {s.label}
                                         </span>
                                     </button>
-                                    {i < STEPS.length - 1 && (
+                                    {i < STEPS.filter((s) => s.key !== 'archived').length - 1 && (
                                         <div className={`mt-3.5 h-0.5 max-w-12 flex-1 rounded-full sm:mt-5 sm:max-w-16 ${i < currentIdx ? 'bg-emerald-500' : 'bg-zinc-700'}`} />
                                     )}
                                 </Fragment>
