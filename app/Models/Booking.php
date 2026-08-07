@@ -69,7 +69,7 @@ class Booking extends Model
 
     public static function nextNumber(): string
     {
-        $last = static::withTrashed()->orderByDesc('id')->value('booking_no');
+        $last = static::orderByDesc('id')->value('booking_no');
         $seq = $last ? ((int) Str::after($last, 'BK-')) + 1 : 1;
 
         return 'BK-' . str_pad((string) $seq, 5, '0', STR_PAD_LEFT);
