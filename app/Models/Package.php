@@ -84,7 +84,7 @@ class Package extends Model
 
     public function summary(): string
     {
-        $byEvent = $this->services->groupBy(fn ($s) => $s->event ?: $s->name);
+        $byEvent = $this->services->groupBy(fn ($s) => $s->event);
         $parts = [];
         foreach ($byEvent as $event => $rows) {
             $media = $rows->pluck('media')->map(fn ($m) => ucfirst($m))->unique()->join(' + ');

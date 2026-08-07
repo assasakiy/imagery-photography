@@ -20,7 +20,7 @@ class ServiceController extends Controller
         $data = $this->validateData($request);
 
         $service = Service::create($data);
-        app(AuditLogger::class)->log('service.created', 'Layanan satuan dibuat: ' . $service->name, $service);
+        app(AuditLogger::class)->log('service.created', 'Layanan satuan dibuat: ' . $service->event, $service);
 
         return response()->json($service, 201);
     }
@@ -30,14 +30,14 @@ class ServiceController extends Controller
         $data = $this->validateData($request);
 
         $service->update($data);
-        app(AuditLogger::class)->log('service.updated', 'Layanan satuan diperbarui: ' . $service->name, $service);
+        app(AuditLogger::class)->log('service.updated', 'Layanan satuan diperbarui: ' . $service->event, $service);
 
         return response()->json($service);
     }
 
     public function destroy(Service $service)
     {
-        app(AuditLogger::class)->log('service.deleted', 'Layanan satuan dihapus: ' . $service->name, $service);
+        app(AuditLogger::class)->log('service.deleted', 'Layanan satuan dihapus: ' . $service->event, $service);
         $service->delete();
 
         return response()->json(['ok' => true]);
@@ -46,8 +46,7 @@ class ServiceController extends Controller
     private function validateData(Request $request): array
     {
         return Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
-            'event' => 'nullable|string|max:255',
+            'event' => 'required|string|max:255',
             'media' => 'required|in:photo,video,drone,photobooth,livestream',
             'duration' => 'nullable|string|max:255',
             'terms' => 'nullable|string|max:255',

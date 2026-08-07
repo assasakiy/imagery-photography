@@ -7,7 +7,7 @@ use Illuminate\Support\Str;
 
 class Service extends Model
 {
-    protected $fillable = ['name', 'slug', 'event', 'media', 'duration', 'terms', 'price', 'active', 'order'];
+    protected $fillable = ['slug', 'event', 'media', 'duration', 'terms', 'price', 'active', 'order'];
 
     protected function casts(): array
     {
@@ -21,7 +21,7 @@ class Service extends Model
     {
         static::saving(function (Service $service) {
             if (empty($service->slug)) {
-                $service->slug = Str::slug($service->name) . '-' . Str::slug($service->media ?? '') . '-' . Str::slug($service->event ?? '');
+                $service->slug = Str::slug($service->event ?? 'layanan') . '-' . Str::slug($service->media ?? '') . '-' . Str::slug($service->event ?? '');
             }
         });
     }

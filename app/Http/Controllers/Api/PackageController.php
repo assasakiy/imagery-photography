@@ -88,7 +88,7 @@ class PackageController extends Controller
             'price' => $package->computedPrice(),
             'items' => $package->services->map(fn ($svc) => [
                 'service_id' => $svc->id,
-                'name' => $svc->name,
+                'name' => $svc->event,
                 'media' => $svc->media,
                 'event' => $svc->event,
                 'duration' => $svc->duration,

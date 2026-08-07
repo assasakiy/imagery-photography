@@ -17,7 +17,7 @@ const PROMO_OPTIONS = [
     { value: 'percent', label: 'Persen (%)' },
 ];
 
-const emptyService = { name: '', event: '', media: 'photo', duration: '', terms: '', price: '', active: true, order: 0 };
+const emptyService = { event: '', media: 'photo', duration: '', terms: '', price: '', active: true, order: 0 };
 const emptyPackage = {
     name: '', type: 'bundling', price_mode: 'auto', promo_type: 'none', promo_value: '',
     manual_price: '', description: '', is_popular: false, is_featured: false, is_active: true, display_order: 0, items: [],
@@ -75,7 +75,7 @@ export default function Services() {
     const openSvcCreate = () => { setSvcEditing(null); setSvcForm(emptyService); setSvcErrors({}); setSvcOpen(true); };
     const openSvcEdit = (item) => {
         setSvcEditing(item);
-        setSvcForm({ name: item.name, event: item.event || '', media: item.media || 'photo', duration: item.duration || '', terms: item.terms || '', price: item.price, active: Boolean(item.active), order: item.order || 0 });
+        setSvcForm({ event: item.event || '', media: item.media || 'photo', duration: item.duration || '', terms: item.terms || '', price: item.price, active: Boolean(item.active), order: item.order || 0 });
         setSvcErrors({});
         setSvcOpen(true);
     };
@@ -254,8 +254,7 @@ export default function Services() {
                         <table className="table">
                             <thead>
                                 <tr>
-                                    <th>Nama</th>
-                                    <th>Event</th>
+                                    <th>Event / Nama</th>
                                     <th>Media</th>
                                     <th>Ketentuan</th>
                                     <th>Durasi</th>
@@ -267,8 +266,7 @@ export default function Services() {
                             <tbody>
                                 {services.map((s) => (
                                     <tr key={s.id}>
-                                        <td className="font-medium text-ink">{s.name}</td>
-                                        <td className="text-ink">{s.event || '-'}</td>
+                                        <td className="font-medium text-ink">{s.event || '-'}</td>
                                         <td><span className="badge bg-brand-500/15 text-brand-600 dark:text-brand-400">{s.media}</span></td>
                                         <td className="text-xs text-ink-muted">{s.terms || '-'}</td>
                                         <td className="text-xs text-ink-muted">{s.duration || '-'}</td>
@@ -390,13 +388,10 @@ export default function Services() {
                 </div>
             }>
                 <form id="service-form" onSubmit={handleSvcSubmit} className="space-y-4">
-                    <Field label="Nama" required error={svcErrors.name?.[0]}>
-                        <input className="input" value={svcForm.name} onChange={(e) => setSvcForm({ ...svcForm, name: e.target.value })} required placeholder="Akad Foto" />
+                    <Field label="Event / Nama Layanan" required error={svcErrors.event?.[0]}>
+                        <input className="input" value={svcForm.event} onChange={(e) => setSvcForm({ ...svcForm, event: e.target.value })} required placeholder="Akad" />
                     </Field>
                     <div className="grid grid-cols-2 gap-4">
-                        <Field label="Event" hint="opsional" error={svcErrors.event?.[0]}>
-                            <input className="input" value={svcForm.event} onChange={(e) => setSvcForm({ ...svcForm, event: e.target.value })} placeholder="Akad" />
-                        </Field>
                         <Field label="Media" required error={svcErrors.media?.[0]}>
                             <select className="input" value={svcForm.media} onChange={(e) => setSvcForm({ ...svcForm, media: e.target.value })}>
                                 {MEDIA_OPTIONS.map((m) => (
@@ -461,8 +456,8 @@ export default function Services() {
                                         <label className="flex flex-1 cursor-pointer items-center gap-3">
                                             <input type="checkbox" checked={!!sel} onChange={() => togglePkgItem(s.id)} className="h-4 w-4 rounded border-line text-brand-600" />
                                             <span className="min-w-0">
-                                                <span className="block truncate text-sm font-medium text-ink">{s.name}</span>
-                                                <span className="text-xs text-ink-muted">{s.event || '-'} · {s.media} {s.duration ? `· ${s.duration}` : ''}</span>
+                                                <span className="block truncate text-sm font-medium text-ink">{s.event}</span>
+                                                <span className="text-xs text-ink-muted">{s.media} {s.duration ? `· ${s.duration}` : ''}</span>
                                             </span>
                                         </label>
                                         {sel ? (
