@@ -183,7 +183,7 @@ class CustomerController extends Controller
             });
         }
 
-        $projects = $projectsQuery->with(['files.media', 'payments', 'invoice'])->latest()->get();
+        $projects = $projectsQuery->with(['files.media', 'payments', 'invoice', 'accessTokens'])->latest()->get();
 
         return response()->json($projects->filter(fn ($p) => $p->files->filter(fn ($f) => $f->category !== 'video' || $f->variant === 'preview')->count() > 0)->map(function ($p) {
             return [
@@ -193,6 +193,7 @@ class CustomerController extends Controller
                 'event_date' => $p->event_date,
                 'status' => $p->status,
                 'is_paid' => $p->isPaid(),
+                'access_url' => $p->accessTokens()->valid()->latest('id')->first()?->url,
                 'files' => $p->files
                     ->filter(fn ($f) => $f->category !== 'video' || $f->variant === 'preview')
                     ->map(function ($f) {
