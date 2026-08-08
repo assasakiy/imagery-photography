@@ -105,6 +105,7 @@ Route::middleware(['web', 'auth:sanctum', 'maintenance'])->group(function () {
         Route::delete('/files/bulk', [ProjectController::class, 'deleteFiles']);
         Route::delete('/files/{file}', [ProjectController::class, 'deleteFile']);
         Route::post('/projects/{project}/regenerate-credentials', [ProjectController::class, 'regenerateCredentials']);
+        Route::post('/projects/{project}/send-link', [ProjectController::class, 'sendAccessLink']);
         Route::patch('/projects/{project}/archive', [ProjectController::class, 'archive']);
         Route::patch('/projects/{project}/restore', [ProjectController::class, 'restore']);
         Route::patch('/projects/{project}/gallery-status', [ProjectController::class, 'setGalleryStatus']);

@@ -2,7 +2,12 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../api';
 import Icon from '../components/Icon';
-import { PageHeader, Spinner, EmptyState, formatDate } from '../components/ui';
+import { PageHeader, Spinner, EmptyState } from '../components/ui';
+
+function formatLongDate(value) {
+    if (!value) return '-';
+    return new Date(value).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+}
 
 export default function Preview() {
     const [items, setItems] = useState([]);
@@ -19,29 +24,50 @@ export default function Preview() {
     return (
         <>
             <PageHeader title="Preview & Galeri" subtitle="Lihat hasil pesanan Anda." />
-            
+
             {items.length ? (
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                    {items.map((p) => (
-                        <div key={p.id} className="card p-5 group transition-all hover:-translate-y-1 hover:shadow-xl">
-                            <div className="mb-4">
-                                <span className="rounded-lg bg-brand-500/15 px-2 py-0.5 font-mono text-xs font-bold text-brand-600 dark:text-brand-400">
-                                    PSN-{p.order_no}
-                                </span>
+                    {items.map((p) => {
+                        const files = (p.files || []).filter((f) => f.url);
+                        const cover = files.find((f) => f.category === 'photo' || f.type?.startsWith('image/')) || files[0];
+                        return (
+                            <div key={p.id} className="card group overflow-hidden transition-all hover:-translate-y-1 hover:shadow-xl">
+                                <div className="relative aspect-[4/3] overflow-hidden bg-surface-muted">
+                                    {cover ? (
+                                        <img src={cover.url} alt={p.name} loading="lazy" className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
+                                    ) : (
+                                        <div className="h-full w-full bg-gradient-to-br from-brand-500/70 via-brand-600/70 to-brand-800/70" />
+                                    )}
+                                    <span className="absolute left-3 top-3 rounded-lg bg-black/55 px-2 py-0.5 font-mono text-xs font-bold text-white backdrop-blur-sm">PSN-{p.order_no}</span>
+                                    <span className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-lg bg-black/55 px-2 py-0.5 text-xs font-semibold text-white backdrop-blur-sm">
+                                        <Icon name="image" size={12} /> {files.length} Foto
+                                    </span>
+                                    <span className="absolute bottom-3 left-3 text-xs font-medium text-white/90">{cover ? cover.name : 'Sampul pratinjau'}</span>
+                                </div>
+                                <div className="flex flex-col gap-3 p-4">
+                                    <div className="flex items-start justify-between gap-3">
+                                        <h3 className="font-bold text-ink">{p.name}</h3>
+                                        {p.event_date && (
+                                            <span className="flex shrink-0 items-center gap-1.5 text-sm text-ink-muted">
+                                                <Icon name="calendar" size={14} /> {formatLongDate(p.event_date)}
+                                            </span>
+                                        )}
+                                    </div>
+                                    <div>
+                                        {p.is_paid ? (
+                                            <span className="badge bg-emerald-500/15 text-emerald-600"><Icon name="check" size={12} /> Lunas</span>
+                                        ) : (
+                                            <span className="badge bg-amber-500/15 text-amber-600"><Icon name="clock" size={12} /> Menunggu Pembayaran</span>
+                                        )}
+                                    </div>
+                                    <div className="flex-1" />
+                                    <Link to={`/dashboard/preview/${p.order_no || p.id}`} className="btn-primary w-full">
+                                        Lihat Preview
+                                    </Link>
+                                </div>
                             </div>
-                            <h3 className="font-bold text-ink text-lg mb-1">{p.name}</h3>
-                            <p className="text-sm text-ink-muted flex items-center gap-1.5"><Icon name="calendar" size={14} /> {p.event_date ? formatDate(p.event_date) : '-'}</p>
-                            
-                            <div className="mt-4 flex items-center gap-2">
-                                <span className="badge bg-surface-muted text-ink-muted">{p.files.length} File</span>
-                                {p.is_paid && <span className="badge bg-emerald-500/15 text-emerald-600"><Icon name="check" size={12} /> Lunas (Bisa Download)</span>}
-                            </div>
-                            
-                            <Link to={`/dashboard/preview/${p.order_no || p.id}`} className="btn-primary w-full mt-5">
-                                Lihat Preview
-                            </Link>
-                        </div>
-                    ))}
+                        );
+                    })}
                 </div>
             ) : (
                 <EmptyState title="Belum ada preview" message="Belum ada file media yang diupload untuk pesanan Anda." icon="image" />

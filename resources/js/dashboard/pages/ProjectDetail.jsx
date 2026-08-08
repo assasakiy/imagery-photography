@@ -70,6 +70,9 @@ export default function ProjectDetail() {
     const [endProof, setEndProof] = useState(false);
     const [saving, setSaving] = useState(false);
     const [deleteConfirm, setDeleteConfirm] = useState(null);
+    const [shareOpen, setShareOpen] = useState(false);
+    const [shareForm, setShareForm] = useState({ enabled: true, expires_days: '7' });
+    const [sharing, setSharing] = useState(false);
     const [reviewOpen, setReviewOpen] = useState(false);
     const [reviewForm, setReviewForm] = useState({ rating: 5, title: '', content: '', recommend_score: 10 });
     const fileRef = useRef(null);
@@ -300,6 +303,23 @@ export default function ProjectDetail() {
         } catch (err) {
             show(err.response?.data?.message || 'Gagal menghapus file.', 'error');
             setDeleteConfirm(null);
+        }
+    };
+
+    const submitShareLink = async () => {
+        setSharing(true);
+        try {
+            await api.post(`/projects/${id}/send-link`, {
+                enabled: shareForm.enabled,
+                expires_in_days: shareForm.enabled && shareForm.expires_days ? Number(shareForm.expires_days) : null,
+            });
+            show(shareForm.enabled ? 'Link akses diaktifkan & dikirim ke klien.' : 'Link akses dinonaktifkan.', 'success');
+            setShareOpen(false);
+            load();
+        } catch (err) {
+            show(err.response?.data?.message || 'Gagal mengirim link.', 'error');
+        } finally {
+            setSharing(false);
         }
     };
 
@@ -839,6 +859,17 @@ export default function ProjectDetail() {
                         />
                         <div className="p-5">
                             <p className="text-sm text-ink-muted">File proyek telah diarsipkan karena masa retensi berakhir atau atas permintaan admin. Hubungi admin bila Anda masih membutuhkan akses.</p>
+
+                            {isAdmin && (
+                                <div className="mt-5 rounded-xl border border-line bg-surface-muted/30 p-4">
+                                    <p className="mb-2 text-sm font-semibold text-ink">Link akses</p>
+                                    <div className="flex items-center gap-2">
+                                        <span className="min-w-0 flex-1 truncate font-mono text-xs text-ink">{previewLink}</span>
+                                        <button type="button" className="btn-outline shrink-0 !px-2 !py-1 text-xs" onClick={copyPreviewLink}><Icon name="copy" size={14} /> Salin</button>
+                                    </div>
+                                    <button type="button" className="btn-primary mt-3" onClick={() => setShareOpen(true)}><Icon name="send" size={16} /> Kirim Akses</button>
+                                </div>
+                            )}
                         </div>
                         {isAdmin && project.status === 'archived' && (
                             <PanelFooter>
@@ -956,6 +987,51 @@ export default function ProjectDetail() {
                             <p className="mt-2 text-xs text-ink-muted">File final tampil di halaman Preview.</p>
                         </div>
                     )}
+                </div>
+            </Modal>
+
+            {/* KIRIM AKSES MODAL */}
+            <Modal
+                open={shareOpen}
+                onClose={() => setShareOpen(false)}
+                title="Kirim Akses"
+                footer={
+                    <div className="flex justify-end gap-2">
+                        <button type="button" className="btn-outline" onClick={() => setShareOpen(false)} disabled={sharing}>Batal</button>
+                        <button type="button" className="btn-primary" onClick={submitShareLink} disabled={sharing}>
+                            {sharing ? 'Mengirim...' : (shareForm.enabled ? 'Aktifkan & Kirim' : 'Nonaktifkan')}
+                        </button>
+                    </div>
+                }
+            >
+                <div className="space-y-4">
+                    <button type="button" onClick={() => setShareForm({ ...shareForm, enabled: !shareForm.enabled })} className="flex w-full items-center justify-between gap-4 rounded-xl border border-line p-4 text-left hover:bg-surface-muted/30">
+                        <div>
+                            <p className="text-sm font-semibold text-ink">Link akses aktif</p>
+                            <p className="mt-0.5 text-xs text-ink-muted">Klien dapat membuka link untuk mengakses file.</p>
+                        </div>
+                        <span className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors ${shareForm.enabled ? 'bg-emerald-500' : 'bg-zinc-300 dark:bg-zinc-700'}`}>
+                            <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${shareForm.enabled ? 'translate-x-6' : 'translate-x-1'}`} />
+                        </span>
+                    </button>
+
+                    {shareForm.enabled && (
+                        <>
+                            <Field label="Masa berlaku link">
+                                <select className="input" value={shareForm.expires_days} onChange={(e) => setShareForm({ ...shareForm, expires_days: e.target.value })}>
+                                    <option value="3">3 hari</option>
+                                    <option value="7">7 hari</option>
+                                    <option value="30">30 hari</option>
+                                </select>
+                            </Field>
+                            <div>
+                                <p className="mb-1 text-xs text-ink-muted">Link yang dikirim:</p>
+                                <p className="truncate rounded-lg border border-line bg-surface-muted/30 p-2 font-mono text-xs text-ink">{previewLink}</p>
+                            </div>
+                        </>
+                    )}
+
+                    <p className="text-xs text-ink-muted">Pengiriman mengikuti aturan notifikasi yang aktif (WhatsApp / email / dalam aplikasi) sesuai preferensi klien.</p>
                 </div>
             </Modal>
 

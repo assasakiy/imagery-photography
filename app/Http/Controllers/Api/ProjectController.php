@@ -215,6 +215,54 @@ class ProjectController extends Controller
         ]);
     }
 
+    /** Admin mengaktifkan link akses (dgn durasi) & kirim ke klien via kanal yang aktif. */
+    public function sendAccessLink(Request $request, Project $project)
+    {
+        $data = $request->validate([
+            'enabled' => 'required|boolean',
+            'expires_in_days' => 'nullable|integer|min:1|max:365',
+        ]);
+
+        if (!$data['enabled']) {
+            ClientAccessToken::where('project_id', $project->id)->valid()->update(['expires_at' => now()]);
+            $project->addSystemUpdate('Link akses dinonaktifkan.');
+            app(AuditLogger::class)->log('project.access_link_disabled', 'Link akses dinonaktifkan utk "' . $project->name . '"', $project);
+
+            return response()->json(['ok' => true, 'enabled' => false, 'url' => null]);
+        }
+
+        $last = $project->accessTokens()->orderByDesc('id')->first();
+        $expires = !empty($data['expires_in_days']) ? now()->addDays((int) $data['expires_in_days']) : now()->addYear();
+
+        $token = $last ?? ClientAccessToken::create([
+            'project_id' => $project->id,
+            'user_id' => $project->user_id,
+            'token' => ClientAccessToken::generateToken(),
+            'expires_at' => $expires,
+        ]);
+        $token->expires_at = $expires;
+        $token->save();
+
+        $project->addSystemUpdate('Link akses aktif sampai ' . $expires->format('d/m/Y') . '.');
+
+        $user = $project->user;
+        $notifications = app(NotificationService::class);
+        if ($user) {
+            $notifications->inApp(
+                $user,
+                'Link akses tersedia',
+                'Link akses galeri "' . $project->name . '" tersedia. Buka link untuk mengakses file.',
+                $token->url,
+                'order.gallery_ready'
+            );
+            $notifications->send(\App\Services\NotificationType::DOWNLOAD_LINK, $user, ['name' => $user->name, 'link' => $token->url]);
+        }
+
+        app(AuditLogger::class)->log('project.access_link_sent', 'Link akses dikirim utk "' . $project->name . '" (s/d ' . $expires->toDateString() . ')', $project);
+
+        return response()->json(['ok' => true, 'enabled' => true, 'url' => $token->url, 'expires_at' => $expires->toISOString()]);
+    }
+
     public function update(Request $request, Project $project)
     {
         $data = $request->validate([
