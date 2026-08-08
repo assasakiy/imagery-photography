@@ -70,7 +70,10 @@ class ClientAccessToken extends Model
 
     public function getUrlAttribute(): string
     {
-        return url('/access/' . $this->token);
+        // Pakai APP_URL (domain produksi) supaya bebas port/host request (mis. dev :8081).
+        $base = rtrim((string) config('app.url'), '/') ?: url('/');
+
+        return $base . '/access/' . $this->token;
     }
 
     public static function generateToken(): string
