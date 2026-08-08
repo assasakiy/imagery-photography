@@ -1080,10 +1080,16 @@ export default function ProjectDetail() {
                             {photoQueue.length > 0 && !uploading && (
                                 <>
                                     <div className="mt-3 grid grid-cols-2 gap-3">
-                                        {photoQueue.map((f) => (
-                                            <div key={f.name} onClick={() => setThumbFile(f)} className={`group relative cursor-pointer overflow-hidden rounded-lg border ${thumbFile === f ? 'border-brand-600 ring-2 ring-brand-600' : 'border-line'}`}>
+                                        {photoQueue.map((f, qi) => (
+                                            <div key={`${qi}-${f.name}`} onClick={() => setThumbFile(f)} className={`group relative cursor-pointer overflow-hidden rounded-lg border ${thumbFile === f ? 'border-brand-600 ring-2 ring-brand-600' : 'border-line'}`}>
                                                 <div className="aspect-square w-full overflow-hidden bg-surface-muted">
-                                                    <img src={URL.createObjectURL(f)} alt="" className="h-full w-full object-cover" />
+                                                    {(() => {
+                                                        try {
+                                                            return <img src={URL.createObjectURL(f)} alt={f.name} className="h-full w-full object-cover" />;
+                                                        } catch {
+                                                            return <div className="flex h-full w-full items-center justify-center px-2 text-center text-[10px] text-ink-muted">{f.name}</div>;
+                                                        }
+                                                    })()}
                                                 </div>
                                                 <p className="truncate border-t border-line bg-surface/80 px-2 py-1 text-xs text-ink-muted">{f.name}</p>
                                                 <button type="button" onClick={(e) => { e.stopPropagation(); removePhoto(f); }} className="absolute right-1 top-1 rounded bg-black/60 p-1 text-white" title="Batal pilih">
@@ -1107,7 +1113,7 @@ export default function ProjectDetail() {
                                     <p className="mt-2 text-xs text-ink-muted">Menunggu selesai — tidak bisa memilih/pilih foto saat pengunggahan berlangsung.</p>
                                 </div>
                             )}
-                            <input ref={photoRef} type="file" accept="image/*" multiple className="hidden" onChange={(e) => { setPhotoQueue((prev) => [...prev, ...Array.from(e.target.files || [])]); e.target.value = ''; }} disabled={uploading} />
+                            <input ref={photoRef} type="file" accept="image/*" multiple className="hidden" onChange={(e) => { const picked = Array.from(e.target.files || []); if (picked.length) setPhotoQueue((prev) => [...prev, ...picked]); e.target.value = ''; }} disabled={uploading} />
                         </div>
                     )}
                     {hasVideo && (

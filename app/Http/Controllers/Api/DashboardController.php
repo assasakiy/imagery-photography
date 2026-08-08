@@ -8,6 +8,7 @@ use App\Models\Payment;
 use App\Models\Portfolio;
 use App\Models\Project;
 use App\Models\User;
+use Illuminate\Http\Request;
 
 class DashboardController extends Controller
 {
@@ -51,6 +52,26 @@ class DashboardController extends Controller
             'total_spent' => Payment::whereHas('project', fn ($q) => $q->where('user_id', $user->id))->where('status', 'confirmed')->sum('amount'),
             'recent_projects' => $user->projects()->with('user.profile')->latest()->take(5)->get(),
         ]);
+    }
+
+    /** Ringkas angka utk badge notifikasi (1 request menggantikan 3 polling terpisah). */
+    public function summary(Request $request)
+    {
+        $user = $request->user();
+
+        $res = [
+            'notifications_unread' => $user->unreadNotifications()->count(),
+        ];
+
+        if ($user->isStaff()) {
+            $res['messages_unread'] = ContactMessage::whereNull('read_at')->count();
+            $res['bookings_pending'] = \App\Models\Booking::where('status', 'pending')->count();
+        } else {
+            $res['messages_unread'] = null;
+            $res['bookings_pending'] = null;
+        }
+
+        return response()->json($res);
     }
 
     private function isAdmin(): bool

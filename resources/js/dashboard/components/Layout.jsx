@@ -83,11 +83,15 @@ export default function Layout() {
     useEffect(() => {
         if (!user) return;
         const load = () => {
-            api.get('/notifications/unread-count').then(({ data }) => setUnread(data.count)).catch(() => {});
-            if (['admin', 'owner'].includes(user.role)) {
-                api.get('/messages-unread/count').then(({ data }) => setUnreadMessages(data.count)).catch(() => {});
-                api.get('/bookings', { params: { per_page: 1, status: 'pending' } }).then(({ data }) => setUnreadBookings(data.total)).catch(() => {});
-            }
+            api.get('/dashboard/summary')
+                .then(({ data }) => {
+                    setUnread(data.notifications_unread ?? 0);
+                    if (['admin', 'owner'].includes(user.role)) {
+                        setUnreadMessages(data.messages_unread ?? 0);
+                        setUnreadBookings(data.bookings_pending ?? 0);
+                    }
+                })
+                .catch(() => {});
         };
         load();
         const timer = setInterval(load, 45000);
