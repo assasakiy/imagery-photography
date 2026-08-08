@@ -69,6 +69,7 @@ Route::middleware(['web', 'auth:sanctum', 'maintenance'])->group(function () {
         Route::post('/projects/{project}/updates', [ProjectController::class, 'addUpdate']);
         Route::get('/files/{file}/download', [ProjectController::class, 'downloadFile'])->name('api.file.download');
         Route::get('/projects/{project}/download-zip', [ProjectController::class, 'downloadZip'])->name('api.project.download-zip');
+        Route::get('/projects/{project}/download-status', [ProjectController::class, 'downloadStatus']);
         Route::post('/projects/{project}/payments', [PaymentController::class, 'store']);
         Route::post('/projects/{project}/redelivery-requests', [ProjectController::class, 'storeRedeliveryRequest']);
     });

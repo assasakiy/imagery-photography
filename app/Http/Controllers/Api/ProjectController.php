@@ -716,6 +716,18 @@ class ProjectController extends Controller
     }
 
     /** Unduh semua file original (HD) sebagai ZIP. Klien wajib lunas; original privat di-stream server-side. */
+    /** Status kesiapan unduhan (ringan; memicu build on-the-fly bila perlu). */
+    public function downloadStatus(Request $request, Project $project)
+    {
+        $state = app(\App\Services\DeliveryService::class)->ensureReady($project);
+
+        return response()->json([
+            'ready' => $state !== 'empty',
+            'kind' => $state,
+            'message' => $state === 'empty' ? 'Belum ada file untuk diunduh.' : null,
+        ]);
+    }
+
     public function downloadZip(Request $request, Project $project)
     {
         $user = Auth::user();
@@ -734,20 +746,25 @@ class ProjectController extends Controller
             }
         }
 
-        // ZIP hasil deliver (day-30) bila sudah ada — lebih ringan & file individual sudah dirapikan.
+        // ZIP permanen (day-30/arsip) bila ada — instan, stream native browser.
         if ($project->delivery_zip && $project->deliveryZipAbsPath() && is_file($project->deliveryZipAbsPath())) {
             app(AuditLogger::class)->log('project.zip_downloaded', 'ZIP diunduh: "' . $project->name . '" (delivery zip)', $project);
 
             return Storage::disk('local')->download($project->delivery_zip, 'PSN-' . $project->order_no . '-files.zip');
         }
 
+        // Fallback: stream langsung dari original yang masih ada (tanpa hapus apa pun).
         $files = $project->files()
             ->with('media')
             ->where('variant', 'original')
             ->get()
             ->filter(fn (ProjectFile $f) => $f->media && $f->media->getPath() && is_file($f->media->getPath()));
 
-        app(AuditLogger::class)->log('project.zip_downloaded', 'ZIP diunduh: "' . $project->name . '" (' . $files->count() . ' file)', $project);
+        if ($files->isEmpty()) {
+            abort(404, 'Tidak ada file untuk diunduh.');
+        }
+
+        app(AuditLogger::class)->log('project.zip_downloaded', 'ZIP diunduh: "' . $project->name . '" (' . $files->count() . ' file, live)', $project);
 
         $zip = new ZipStream(outputName: 'PSN-' . $project->order_no . '-files.zip');
 
@@ -779,7 +796,12 @@ class ProjectController extends Controller
 
     public function archive(Request $request, Project $project)
     {
-        $project->update(['archived_at' => now(), 'status' => 'archived']);
+        // Percepat seluruh alur: pastikan ZIP siap (verify-before-kill) baru arsipkan.
+        app(\App\Services\DeliveryService::class)->ensureReady($project);
+
+        $project->archived_at = now();
+        $project->status = 'archived';
+        $project->save();
         $project->addSystemUpdate('Pesanan diarsipkan.');
         app(AuditLogger::class)->log('project.archived', 'Galeri diarsipkan: "' . $project->name . '"', $project);
 
@@ -788,7 +810,9 @@ class ProjectController extends Controller
 
     public function restore(Request $request, Project $project)
     {
-        $project->update(['archived_at' => null, 'status' => 'completed']);
+        $project->archived_at = null;
+        $project->status = 'completed';
+        $project->save();
         $project->addSystemUpdate('Pesanan dipulihkan dari arsip.');
         app(AuditLogger::class)->log('project.restored', 'Galeri dikembalikan: "' . $project->name . '"', $project);
 

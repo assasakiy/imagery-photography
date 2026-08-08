@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import api from '../api';
 import Icon from '../components/Icon';
 import { useAuth } from '../context/AuthContext';
-import { Spinner, EmptyState, Modal, Confirm, Field, useToast } from '../components/ui';
+import { Spinner, EmptyState, Modal, Confirm, Field, ButtonSpinner, useToast } from '../components/ui';
 
 function formatBytes(bytes) {
     if (bytes === null || bytes === undefined) return '-';
@@ -27,6 +27,7 @@ export default function PreviewDetail() {
     const [requestOpen, setRequestOpen] = useState(false);
     const [requestNote, setRequestNote] = useState('');
     const [requesting, setRequesting] = useState(false);
+    const [downloading, setDownloading] = useState(false);
     const { show, node } = useToast();
 
     const load = () => {
@@ -101,6 +102,28 @@ export default function PreviewDetail() {
             setTimeout(() => downloadFile(fileId), i * 400);
         });
         show(`${selected.size} file HD diunduh.`, 'success');
+    };
+
+    // Cek status dulu (fetch ringan); terus giliran unduh via href NATIVE (stream ke disk, bukan blob RAM).
+    const startDownloadZip = async () => {
+        if (downloading) return;
+        setDownloading(true);
+        try {
+            for (let i = 0; i < 60; i++) {
+                const { data } = await api.get(`/projects/${project.id}/download-status`);
+                if (!data.ready) {
+                    show(data.message || 'Belum ada file untuk diunduh.', 'error');
+                    return;
+                }
+                if (data.kind !== '') break;
+                await new Promise((r) => setTimeout(r, 2000));
+            }
+            window.location.href = `/api/projects/${project.id}/download-zip`;
+        } catch (err) {
+            show(err.response?.data?.message || 'Gagal menyiapkan unduhan.', 'error');
+        } finally {
+            setDownloading(false);
+        }
     };
 
     const removeFile = (file) => {
@@ -210,12 +233,16 @@ export default function PreviewDetail() {
                     <div className="mt-6 flex flex-wrap justify-center gap-2">
                         {archived ? (
                             activeRedelivery || isAdmin ? (
-                                <a href={`/api/projects/${project.id}/download-zip`} className="btn-primary"><Icon name="download" size={16} /> Unduh Semua (ZIP)</a>
+                                <button className="btn-primary" onClick={startDownloadZip} disabled={downloading}>
+                                    {downloading ? (<><ButtonSpinner /> Sedang menyiapkan file Anda…</>) : (<><Icon name="download" size={16} /> Unduh Semua (ZIP)</>)}
+                                </button>
                             ) : (
                                 <button className="btn-primary" onClick={() => setRequestOpen(true)}><Icon name="download" size={16} /> Ajukan Permintaan Unduh Ulang</button>
                             )
                         ) : project.is_paid || isAdmin ? (
-                            <a href={`/api/projects/${project.id}/download-zip`} className="btn-primary"><Icon name="download" size={16} /> Unduh Semua (ZIP)</a>
+                            <button className="btn-primary" onClick={startDownloadZip} disabled={downloading}>
+                                {downloading ? (<><ButtonSpinner /> Sedang menyiapkan file Anda…</>) : (<><Icon name="download" size={16} /> Unduh Semua (ZIP)</>)}
+                            </button>
                         ) : (
                             <Link to="/dashboard/client-invoices" className="btn-primary"><Icon name="credit-card" size={16} /> Bayar Tagihan</Link>
                         )}
