@@ -7,6 +7,7 @@ use App\Models\ClientAccessToken;
 use App\Models\Project;
 use App\Models\ProjectFile;
 use App\Models\ProjectUpdate;
+use App\Models\Redelivery;
 use App\Models\User;
 use App\Services\AuditLogger;
 use App\Services\NotificationService;
@@ -54,7 +55,12 @@ class ProjectController extends Controller
         // Bersihkan preview yg sudah lewat masa (berjalan sebagai user web = pemilik file).
         \App\Models\ProjectFile::pruneExpired($project->id);
 
-        $project->load(['user.profile', 'files.media', 'payments', 'updates.user', 'accessTokens', 'invoice', 'booking', 'reviews']);
+        // Lazy-finalize day-30 (ZIP + hapus individual original) — lewat request web agar file bisa dibaca.
+        if ($project->status !== 'archived' && $project->preview_ends_at && ! $project->preview_expired_at && $project->preview_ends_at->isPast()) {
+            app(\App\Services\DeliveryService::class)->finalize($project);
+        }
+
+        $project->load(['user.profile', 'files.media', 'payments', 'updates.user', 'accessTokens', 'invoice', 'booking', 'reviews', 'redeliveries']);
 
         return response()->json($project);
     }
@@ -693,6 +699,10 @@ class ProjectController extends Controller
             if ($file->gallery_status === 'preparing') {
                 abort(403, 'Galeri masih disiapkan.');
             }
+            // Setelah preview berakhir, unduhan per-file ditutup — hanya via ZIP.
+            if ($file->project->preview_expired_at || $file->project->archived_at) {
+                abort(403, $file->project->archived_at ? 'Galeri diarsipkan. Ajukan permintaan unduh ulang.' : 'Preview berakhir — unduh melalui Unduh Semua (ZIP).');
+            }
         }
 
         app(AuditLogger::class)->log('project.file_downloaded', 'File diunduh: "' . $file->original_name . '" (project ' . $file->project->name . ')', $file);
@@ -714,8 +724,21 @@ class ProjectController extends Controller
             abort(403);
         }
 
-        if ($user->isClient() && !$project->isPaid()) {
-            abort(403, 'Pelunasan belum selesai. Anda dapat melihat preview, bukan mengunduh file HD.');
+        // Klien: wajib lunas; arsip hanya boleh lewat permintaan unduh ulang (redelivery aktif).
+        if ($user->isClient()) {
+            if ($project->archived_at && !$project->hasActiveRedelivery()) {
+                abort(403, 'Proyek diarsipkan. Ajukan permintaan unduhan ulang.');
+            }
+            if (!$project->isPaid()) {
+                abort(403, 'Pelunasan belum selesai. Anda dapat melihat preview, bukan mengunduh file HD.');
+            }
+        }
+
+        // ZIP hasil deliver (day-30) bila sudah ada — lebih ringan & file individual sudah dirapikan.
+        if ($project->delivery_zip && $project->deliveryZipAbsPath() && is_file($project->deliveryZipAbsPath())) {
+            app(AuditLogger::class)->log('project.zip_downloaded', 'ZIP diunduh: "' . $project->name . '" (delivery zip)', $project);
+
+            return Storage::disk('local')->download($project->delivery_zip, 'PSN-' . $project->order_no . '-files.zip');
         }
 
         $files = $project->files()
@@ -770,6 +793,79 @@ class ProjectController extends Controller
         app(AuditLogger::class)->log('project.restored', 'Galeri dikembalikan: "' . $project->name . '"', $project);
 
         return response()->json($project);
+    }
+
+    /** Klien mengajukan permintaan unduh ulang (proyek arsip). */
+    public function storeRedeliveryRequest(Request $request, Project $project)
+    {
+        $user = $request->user();
+        if ($user->isClient() && $project->user_id !== $user->id) {
+            abort(403);
+        }
+        if (!$project->archived_at) {
+            abort(422, 'Permohonan unduh ulang hanya untuk proyek yang diarsipkan.');
+        }
+
+        $data = $request->validate(['note' => 'nullable|string|max:1000']);
+
+        $redelivery = $project->redeliveries()->create([
+            'user_id' => $user->id,
+            'note' => ContentSanitizer::plainText($data['note'] ?? ''),
+            'status' => 'pending',
+        ]);
+
+        $project->addSystemUpdate('Klien meminta unduhan ulang arsip.');
+        app(NotificationService::class)->toAdmins(
+            'Permintaan Unduh Ulang: ' . $project->name,
+            'Klien menginginkan akses file '. $project->name . ' (arsip).',
+            '/dashboard/projects/' . $project->id,
+            'message.new'
+        );
+        app(AuditLogger::class)->log('project.redelivery_requested', 'Unduh ulang diminta utk "' . $project->name . '"', $project);
+
+        return response()->json($redelivery, 201);
+    }
+
+    /** Admin menyetujui/menolak permintaan unduh ulang; approve = temp link 7 hari + kirim. */
+    public function reviewRedelivery(Request $request, Redelivery $redelivery)
+    {
+        $data = $request->validate([
+            'status' => 'required|in:approved,rejected',
+            'fee' => 'nullable|numeric|min:0',
+        ]);
+
+        $project = $redelivery->project;
+        $user = $project->user;
+
+        if ($data['status'] === 'approved') {
+            $expires = now()->addDays(7);
+            $token = $project->accessTokens()->orderByDesc('id')->first()
+                ?? ClientAccessToken::create([
+                    'project_id' => $project->id,
+                    'user_id' => $user?->id,
+                    'token' => ClientAccessToken::generateToken(),
+                    'expires_at' => $expires,
+                ]);
+            $token->expires_at = $expires;
+            $token->save();
+
+            $redelivery->update(['status' => 'approved', 'fee' => $data['fee'] ?? null, 'expires_at' => $expires]);
+            $project->addSystemUpdate('Permintaan unduh ulang disetujui — link akses aktif sampai ' . $expires->format('d/m/Y') . '.');
+
+            if ($user) {
+                $notifications = app(NotificationService::class);
+                $notifications->inApp($user, 'Unduh ulang disetujui', 'Link akses galeri "' . $project->name . '" aktif 7 hari.', $token->url, 'order.gallery_ready');
+                $notifications->send(\App\Services\NotificationType::DOWNLOAD_LINK, $user, ['name' => $user->name, 'link' => $token->url]);
+            }
+
+            app(AuditLogger::class)->log('project.redelivery_approved', 'Unduh ulang disetujui utk "' . $project->name . '"', $project);
+        } else {
+            $redelivery->update(['status' => 'rejected']);
+            $project->addSystemUpdate('Permintaan unduh ulang ditolak.');
+            app(AuditLogger::class)->log('project.redelivery_rejected', 'Unduh ulang ditolak utk "' . $project->name . '"', $project);
+        }
+
+        return response()->json($redelivery->fresh());
     }
 
     /** Buat invoice utk proyek baru (saat project dibuat / booking diterima). */

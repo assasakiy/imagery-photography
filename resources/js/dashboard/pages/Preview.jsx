@@ -54,7 +54,11 @@ export default function Preview() {
                                         )}
                                     </div>
                                     <div>
-                                        {p.is_paid ? (
+                                        {p.archived ? (
+                                            <span className="badge bg-zinc-500/15 text-zinc-600 dark:text-zinc-400"><Icon name="folder-open" size={12} /> Diarsipkan</span>
+                                        ) : p.preview_expired ? (
+                                            <span className="badge bg-amber-500/15 text-amber-600"><Icon name="clock" size={12} /> Preview Berakhir</span>
+                                        ) : p.is_paid ? (
                                             <span className="badge bg-emerald-500/15 text-emerald-600"><Icon name="check" size={12} /> Lunas</span>
                                         ) : (
                                             <span className="badge bg-amber-500/15 text-amber-600"><Icon name="clock" size={12} /> Menunggu Pembayaran</span>

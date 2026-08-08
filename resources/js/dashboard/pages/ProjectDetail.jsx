@@ -73,6 +73,9 @@ export default function ProjectDetail() {
     const [shareOpen, setShareOpen] = useState(false);
     const [shareForm, setShareForm] = useState({ enabled: true, expires_days: '7' });
     const [sharing, setSharing] = useState(false);
+    const [feeMap, setFeeMap] = useState({});
+    const [rerequestOpen, setRerequestOpen] = useState(false);
+    const [rerequestNote, setRerequestNote] = useState('');
     const [reviewOpen, setReviewOpen] = useState(false);
     const [reviewForm, setReviewForm] = useState({ rating: 5, title: '', content: '', recommend_score: 10 });
     const fileRef = useRef(null);
@@ -320,6 +323,34 @@ export default function ProjectDetail() {
             show(err.response?.data?.message || 'Gagal mengirim link.', 'error');
         } finally {
             setSharing(false);
+        }
+    };
+
+    const reviewRedelivery = async (red, status) => {
+        setSaving(true);
+        try {
+            await api.patch(`/redeliveries/${red.id}`, { status, fee: status === 'approved' ? Number(feeMap[red.id] || 0) : undefined });
+            show(status === 'approved' ? 'Permintaan disetujui — link akses dikirim.' : 'Permintaan ditolak.', 'success');
+            load();
+        } catch (err) {
+            show(err.response?.data?.message || 'Gagal mengubah permintaan.', 'error');
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const submitRerequest = async () => {
+        setSaving(true);
+        try {
+            await api.post(`/projects/${id}/redelivery-requests`, { note: rerequestNote });
+            show('Permintaan unduh ulang dikirim.', 'success');
+            setRerequestOpen(false);
+            setRerequestNote('');
+            load();
+        } catch (err) {
+            show(err.response?.data?.message || 'Gagal mengirim permintaan.', 'error');
+        } finally {
+            setSaving(false);
         }
     };
 
@@ -870,6 +901,37 @@ export default function ProjectDetail() {
                                     <button type="button" className="btn-primary mt-3" onClick={() => setShareOpen(true)}><Icon name="send" size={16} /> Kirim Akses</button>
                                 </div>
                             )}
+
+                            {(isAdmin || (project.redeliveries || []).length > 0) && (
+                                <div className="mt-5 rounded-xl border border-line bg-surface-muted/30 p-4">
+                                    <p className="mb-3 text-sm font-semibold text-ink">Permintaan Unduh Ulang</p>
+                                    {(project.redeliveries || []).length ? (
+                                        <div className="space-y-2">
+                                            {project.redeliveries.map((rd) => (
+                                                <div key={rd.id} className="flex flex-wrap items-center gap-2 rounded-lg border border-line bg-surface px-3 py-2 text-sm">
+                                                    <span className={`badge ${rd.status === 'approved' ? 'bg-emerald-500/15 text-emerald-600' : rd.status === 'rejected' ? 'bg-red-500/15 text-red-600' : 'bg-amber-500/15 text-amber-600'}`}>
+                                                        {rd.status}
+                                                    </span>
+                                                    <span className="min-w-0 flex-1 truncate text-xs text-ink-muted">{rd.note || (rd.user?.name ?? 'Klien')}{rd.fee ? ` · Biaya ${formatRupiah(rd.fee)}` : ''}</span>
+                                                    {rd.expires_at && <span className="font-mono text-xs text-ink-muted">s/d {formatDate(rd.expires_at)}</span>}
+                                                    {isAdmin && rd.status === 'pending' && (
+                                                        <>
+                                                            <input type="number" min="0" className="input !w-28 !py-1 text-xs" value={feeMap[rd.id] ?? ''} onChange={(e) => setFeeMap({ ...feeMap, [rd.id]: e.target.value })} placeholder="Biaya (0)" />
+                                                            <button className="btn-outline !px-2 !py-1 text-xs" onClick={() => reviewRedelivery(rd, 'approved')} disabled={saving}>Setujui</button>
+                                                            <button className="btn-outline !px-2 !py-1 text-xs text-red-600" onClick={() => reviewRedelivery(rd, 'rejected')} disabled={saving}>Tolak</button>
+                                                        </>
+                                                    )}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <p className="text-xs text-ink-muted">Belum ada permintaan.</p>
+                                    )}
+                                    {!isAdmin && (
+                                        <button className="btn-primary mt-3" onClick={() => setRerequestOpen(true)} disabled={saving}><Icon name="download" size={16} /> Ajukan Permintaan Unduh Ulang</button>
+                                    )}
+                                </div>
+                            )}
                         </div>
                         {isAdmin && project.status === 'archived' && (
                             <PanelFooter>
@@ -901,6 +963,21 @@ export default function ProjectDetail() {
                 </div>
                 )}
             </div>
+
+            {/* REREQUEST MODAL */}
+            <Modal open={rerequestOpen} onClose={() => setRerequestOpen(false)} title="Ajukan Permintaan Unduh Ulang" footer={
+                <div className="flex justify-end gap-2">
+                    <button type="button" className="btn-outline" onClick={() => setRerequestOpen(false)} disabled={saving}>Batal</button>
+                    <button type="button" className="btn-primary" onClick={submitRerequest} disabled={saving}>{saving ? 'Mengirim...' : 'Kirim Permintaan'}</button>
+                </div>
+            }>
+                <div className="space-y-4">
+                    <p className="text-sm text-ink-muted">Proyek ini telah diarsipkan. Permintaan akan ditinjau admin; link akses sementara diberikan bila disetujui (mungkin berbayar).</p>
+                    <Field label="Catatan (opsional)">
+                        <textarea className="input min-h-[90px]" placeholder="Alasan / kebutuhan unduh ulang..." value={rerequestNote} onChange={(e) => setRerequestNote(e.target.value)} />
+                    </Field>
+                </div>
+            </Modal>
 
             {/* DELETE CONFIRM */}
             <Confirm open={!!deleteConfirm} onClose={() => setDeleteConfirm(null)} onConfirm={handleDeleteConfirm} title="Hapus file?" message={`File "${deleteConfirm?.original_name || ''}" akan dihapus dari server.`} />

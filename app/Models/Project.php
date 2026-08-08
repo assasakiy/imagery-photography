@@ -34,6 +34,8 @@ class Project extends Model implements HasMedia
         'location', 'price', 'pricing_snapshot', 'status', 'shooting_at', 'editing_at', 'awaiting_payment_at', 'completed_at',
         'client_notes',
         'photo_total', 'photo_done', 'video_total', 'video_done',
+        'preview_ends_at', 'preview_expired_at', 'reminded_at',
+        'delivery_zip', 'delivery_zip_size', 'delivery_zip_count',
     ];
 
     protected function casts(): array
@@ -50,6 +52,9 @@ class Project extends Model implements HasMedia
             'completed_at' => 'datetime',
             'archived_at' => 'datetime',
             'deleted_at' => 'datetime',
+            'preview_ends_at' => 'datetime',
+            'preview_expired_at' => 'datetime',
+            'reminded_at' => 'datetime',
         ];
     }
 
@@ -186,6 +191,26 @@ class Project extends Model implements HasMedia
         return $this->hasMany(ClientAccessToken::class);
     }
 
+    public function redeliveries()
+    {
+        return $this->hasMany(Redelivery::class);
+    }
+
+    /** Ada permintaan unduh-ulang yang disetujui & link-nya belum kedaluwarsa. */
+    public function hasActiveRedelivery(): bool
+    {
+        return $this->redeliveries()
+            ->where('status', 'approved')
+            ->where(fn ($q) => $q->whereNull('expires_at')->orWhere('expires_at', '>', now()))
+            ->exists();
+    }
+
+    /** Zip hasil deliver (jika preview sudah berakhir). */
+    public function deliveryZipAbsPath(): ?string
+    {
+        return $this->delivery_zip ? storage_path('app/private/' . $this->delivery_zip) : null;
+    }
+
     public function totalPaid()
     {
         return $this->payments()->where('status', 'confirmed')->sum('amount');
@@ -252,6 +277,9 @@ class Project extends Model implements HasMedia
             case 'awaiting_payment':
                 if (!$this->awaiting_payment_at) {
                     $this->awaiting_payment_at = now();
+                }
+                if (!$this->preview_ends_at && $this->awaiting_payment_at) {
+                    $this->preview_ends_at = $this->awaiting_payment_at->copy()->addDays(30);
                 }
                 break;
             case 'completed':

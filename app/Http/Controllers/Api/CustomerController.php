@@ -183,19 +183,30 @@ class CustomerController extends Controller
             });
         }
 
-        $projects = $projectsQuery->with(['files.media', 'payments', 'invoice', 'accessTokens'])->latest()->get();
+        $projects = $projectsQuery->with(['files.media', 'payments', 'invoice', 'accessTokens', 'redeliveries'])->latest()->get();
 
-        return response()->json($projects->filter(fn ($p) => $p->files->filter(fn ($f) => $f->media_id && ($f->category !== 'video' || $f->variant === 'preview'))->count() > 0)->map(function ($p) {
-            return [
+        return response()->json(
+            $projects->filter(fn ($p) => $p->files->filter(fn ($f) => in_array($f->category, ['photo', 'video'], true) && ($f->media_id || $f->variant === 'original'))->count() > 0)
+                ->map(function ($p) {
+                    return [
                 'id' => $p->id,
                 'order_no' => $p->order_no,
                 'name' => $p->name,
                 'event_date' => $p->event_date,
                 'status' => $p->status,
                 'is_paid' => $p->isPaid(),
+                'preview_expired' => (bool) $p->preview_expired_at,
+                'archived' => (bool) $p->isArchived(),
                 'access_url' => $p->accessTokens()->valid()->latest('id')->first()?->url,
+                'redeliveries' => $p->redeliveries->map(fn ($r) => [
+                    'id' => $r->id,
+                    'status' => $r->status,
+                    'fee' => $r->fee,
+                    'note' => $r->note,
+                    'expires_at' => $r->expires_at,
+                ])->values(),
                 'files' => $p->files
-                    ->filter(fn ($f) => $f->media_id && ($f->category !== 'video' || $f->variant === 'preview'))
+                    ->filter(fn ($f) => in_array($f->category, ['photo', 'video'], true) && ($f->media_id || $f->variant === 'original'))
                     ->map(function ($f) {
                         $available = $f->isPreviewAvailable();
 

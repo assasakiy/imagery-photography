@@ -70,6 +70,7 @@ Route::middleware(['web', 'auth:sanctum', 'maintenance'])->group(function () {
         Route::get('/files/{file}/download', [ProjectController::class, 'downloadFile'])->name('api.file.download');
         Route::get('/projects/{project}/download-zip', [ProjectController::class, 'downloadZip'])->name('api.project.download-zip');
         Route::post('/projects/{project}/payments', [PaymentController::class, 'store']);
+        Route::post('/projects/{project}/redelivery-requests', [ProjectController::class, 'storeRedeliveryRequest']);
     });
 
     Route::get('/customer/dashboard', [CustomerController::class, 'dashboard']);
@@ -109,6 +110,7 @@ Route::middleware(['web', 'auth:sanctum', 'maintenance'])->group(function () {
         Route::patch('/projects/{project}/archive', [ProjectController::class, 'archive']);
         Route::patch('/projects/{project}/restore', [ProjectController::class, 'restore']);
         Route::patch('/projects/{project}/gallery-status', [ProjectController::class, 'setGalleryStatus']);
+        Route::patch('/redeliveries/{redelivery}', [ProjectController::class, 'reviewRedelivery']);
 
         Route::get('/bookings', [BookingApiController::class, 'index']);
         Route::get('/bookings/{booking}', [BookingApiController::class, 'show']);

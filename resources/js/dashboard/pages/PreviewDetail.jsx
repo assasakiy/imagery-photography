@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import api from '../api';
 import Icon from '../components/Icon';
 import { useAuth } from '../context/AuthContext';
-import { Spinner, EmptyState, Modal, Confirm, useToast } from '../components/ui';
+import { Spinner, EmptyState, Modal, Confirm, Field, useToast } from '../components/ui';
 
 function formatBytes(bytes) {
     if (bytes === null || bytes === undefined) return '-';
@@ -24,6 +24,9 @@ export default function PreviewDetail() {
     const [viewing, setViewing] = useState(null);
     const [removing, setRemoving] = useState(null);
     const [bulkOpen, setBulkOpen] = useState(false);
+    const [requestOpen, setRequestOpen] = useState(false);
+    const [requestNote, setRequestNote] = useState('');
+    const [requesting, setRequesting] = useState(false);
     const { show, node } = useToast();
 
     const load = () => {
@@ -40,6 +43,12 @@ export default function PreviewDetail() {
 
     const files = (project.files || []).filter((f) => f.url);
     const canDownload = !isAdmin && !!project.is_paid;
+    const archived = !!project.archived;
+    const previewExpired = !!project.preview_expired;
+    const phased = archived || previewExpired;
+    const activeRedelivery = (project.redeliveries || []).some((r) => r.status === 'approved' && (!r.expires_at || new Date(r.expires_at) > new Date()));
+    const photoCount = (project.files || []).filter((f) => f.category === 'photo').length;
+    const videoCount = (project.files || []).filter((f) => f.category === 'video').length;
     const allSelected = files.length > 0 && files.every((f) => selected.has(f.id));
 
     const toggleSelect = (fileId) => {
@@ -124,6 +133,21 @@ export default function PreviewDetail() {
         }
     };
 
+    const submitRedeliveryRequest = async () => {
+        setRequesting(true);
+        try {
+            await api.post(`/projects/${project.id}/redelivery-requests`, { note: requestNote });
+            show('Permintaan unduh ulang dikirim. Admin akan meninjau.', 'success');
+            setRequestOpen(false);
+            setRequestNote('');
+            load();
+        } catch (err) {
+            show(err.response?.data?.message || 'Gagal mengirim permintaan.', 'error');
+        } finally {
+            setRequesting(false);
+        }
+    };
+
     return (
         <>
             <Link to="/dashboard/preview" className="mb-4 inline-flex items-center gap-1.5 text-sm font-medium text-ink-muted hover:text-brand-600">
@@ -134,18 +158,22 @@ export default function PreviewDetail() {
                 <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line p-5">
                     <div>
                         <div className="flex flex-wrap items-center gap-2">
-                            <span className="rounded-lg bg-brand-500/15 px-2 py-0.5 font-mono text-xs font-bold text-brand-600 dark:text-brand-400">PSN-{project.order_no}</span>
-                            {project.is_paid ? (
+<span className="rounded-lg bg-brand-500/15 px-2 py-0.5 font-mono text-xs font-bold text-brand-600 dark:text-brand-400">PSN-{project.order_no}</span>
+                            {archived ? (
+                                <span className="badge bg-zinc-500/15 text-zinc-600 dark:text-zinc-400"><Icon name="folder-open" size={12} /> Diarsipkan</span>
+                            ) : previewExpired ? (
+                                <span className="badge bg-amber-500/15 text-amber-600"><Icon name="clock" size={12} /> Preview Berakhir</span>
+                            ) : project.is_paid ? (
                                 <span className="badge bg-emerald-500/15 text-emerald-600"><Icon name="check" size={12} /> Lunas</span>
                             ) : (
-                                <span className="badge bg-amber-500/15 text-amber-600">Menunggu Pelunasan</span>
+                                <span className="badge bg-amber-500/15 text-amber-600">Menunggu Pembayaran</span>
                             )}
                         </div>
                         <h1 className="mt-2 text-xl font-bold text-ink sm:text-2xl">{project.name}</h1>
-                        <p className="mt-0.5 text-sm text-ink-muted">{files.length} file · preview ber-watermark</p>
+                        <p className="mt-0.5 text-sm text-ink-muted">{phased ? `${photoCount} foto · ${videoCount} video` : `${files.length} file · preview ber-watermark`}</p>
                     </div>
                     <div className="flex flex-wrap items-center gap-2">
-                        {!isAdmin && (
+                        {!isAdmin && !archived && (
                             <>
                                 <button className="btn-outline" onClick={copyLink} disabled={!canDownload} title={canDownload ? 'Salin link publik preview' : 'Salin link setelah pelunasan'}>
                                     <Icon name="link" size={16} /> Salin Link
@@ -161,13 +189,43 @@ export default function PreviewDetail() {
                         )}
                     </div>
                 </div>
-                {!isAdmin && !project.is_paid && (
+                {!isAdmin && !project.is_paid && !phased && (
                     <div className="border-b border-line bg-amber-500/10 p-4 text-sm text-amber-700 dark:text-amber-400">
                         <strong>Informasi:</strong> Anda dapat melihat preview di bawah ini. Salin link & unduh file original tersedia setelah menyelesaikan pelunasan (Invoice).
                     </div>
                 )}
             </div>
 
+            {phased ? (
+                <div className="card p-8 text-center">
+                    <Icon name={archived ? 'folder-open' : 'clock'} size={30} className="mx-auto mb-3 text-ink-muted" />
+                    <h3 className="text-lg font-semibold text-ink">{archived ? 'Proyek Diarsipkan' : 'Preview Berakhir'}</h3>
+                    <p className="mx-auto mt-1 max-w-md text-sm text-ink-muted">
+                        {archived
+                            ? `Arsip berisi ${photoCount} foto & ${videoCount} video. Akses unduhan ditutup — ajukan permintaan untuk mengunduh ulang (melalui persetujuan admin).`
+                            : project.is_paid || isAdmin
+                              ? 'File individual telah dikemas menjadi 1 file ZIP dan tidak lagi tampil satu per satu.'
+                              : 'Jendela preview telah berakhir. Selesaikan pelunasan untuk mendapatkan file dalam 1 file ZIP.'}
+                    </p>
+                    <div className="mt-6 flex flex-wrap justify-center gap-2">
+                        {archived ? (
+                            activeRedelivery || isAdmin ? (
+                                <a href={`/api/projects/${project.id}/download-zip`} className="btn-primary"><Icon name="download" size={16} /> Unduh Semua (ZIP)</a>
+                            ) : (
+                                <button className="btn-primary" onClick={() => setRequestOpen(true)}><Icon name="download" size={16} /> Ajukan Permintaan Unduh Ulang</button>
+                            )
+                        ) : project.is_paid || isAdmin ? (
+                            <a href={`/api/projects/${project.id}/download-zip`} className="btn-primary"><Icon name="download" size={16} /> Unduh Semua (ZIP)</a>
+                        ) : (
+                            <Link to="/dashboard/client-invoices" className="btn-primary"><Icon name="credit-card" size={16} /> Bayar Tagihan</Link>
+                        )}
+                    </div>
+                    {activeRedelivery && (
+                        <p className="mt-4 inline-flex items-center gap-1.5 text-xs text-emerald-600"><Icon name="check" size={14} /> Permintaan unduh ulang disetujui — link aktif.</p>
+                    )}
+                </div>
+            ) : (
+                <>
             <div className="mb-4 flex flex-wrap items-center gap-2 border-b border-line pb-4">
                 <span className="inline-flex items-center gap-1.5 rounded-lg bg-surface-muted px-3 py-1.5 text-sm font-medium text-ink-muted">
                     <Icon name="images" size={16} /> <span className="hidden sm:inline">Semua</span> <span className="font-mono">({files.length})</span>
@@ -279,6 +337,22 @@ export default function PreviewDetail() {
             ) : (
                 <EmptyState title="Tidak ada preview" message="Belum ada file media untuk pesanan ini." icon="image" />
             )}
+            </>
+            )}
+
+            <Modal open={!!requestOpen} onClose={() => setRequestOpen(false)} title="Ajukan Permintaan Unduh Ulang" footer={
+                <div className="flex justify-end gap-2">
+                    <button type="button" className="btn-outline" onClick={() => setRequestOpen(false)} disabled={requesting}>Batal</button>
+                    <button type="button" className="btn-primary" onClick={submitRedeliveryRequest} disabled={requesting}>{requesting ? 'Mengirim...' : 'Kirim Permintaan'}</button>
+                </div>
+            }>
+                <div className="space-y-4">
+                    <p className="text-sm text-ink-muted">Proyek ini telah diarsipkan. Permintaan akan ditinjau admin; link akses sementara diberikan bila disetujui (mungkin berbayar).</p>
+                    <Field label="Catatan (opsional)">
+                        <textarea className="input min-h-[90px]" placeholder="Alasan / kebutuhan unduh ulang..." value={requestNote} onChange={(e) => setRequestNote(e.target.value)} />
+                    </Field>
+                </div>
+            </Modal>
 
             <Modal open={!!viewing} onClose={() => setViewing(null)} title="Preview" wide fullscreen bodyClassName="bg-zinc-950 flex items-center justify-center">
                 <div className="flex min-h-[60vh] items-center justify-center">
