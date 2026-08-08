@@ -753,7 +753,7 @@ export default function ProjectDetail() {
                                     <a className="btn-outline shrink-0 !px-2 !py-1 text-xs" href={previewLink} target="_blank" rel="noreferrer"><Icon name="globe" size={14} /> Buka</a>
                                 </div>
                             )}
-                            {isAdmin && project.invoice ? (
+                            {!isAdmin && project.invoice ? (
                                 <div className="mt-4 flex items-center justify-between gap-3 rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-4">
                                     <div>
                                         <p className="font-mono text-[10px] font-semibold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">Invoice Terkirim · {project.invoice.number}</p>
@@ -764,11 +764,7 @@ export default function ProjectDetail() {
                                         <p className="mt-0.5 font-semibold">{formatDate(project.invoice.due_at)}</p>
                                     </div>
                                 </div>
-                            ) : (
-                                !isAdmin && (
-                                    <div className="mt-4 rounded-xl border border-line bg-surface-muted/30 p-4 text-sm text-ink-muted">Tagihan dan rincian pembayaran terlihat di <Link to="/dashboard/client-invoices" className="text-brand-600 underline">Halaman Tagihan</Link>.</div>
-                                )
-                            )}
+                            ) : null}
                             <p className="mt-4 text-xs text-ink-muted">
                                 Status berpindah ke <b>Selesai</b> otomatis setelah pembayaran invoice lunas.
                             </p>
