@@ -38,7 +38,7 @@ class Maintenance
         }
 
         return response()
-            ->view('maintenance', ['message' => $settings->maintenanceMessage()])
+            ->view('landing_pages.maintenance', ['message' => $settings->maintenanceMessage()])
             ->setStatusCode(503);
     }
 }

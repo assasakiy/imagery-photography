@@ -22,6 +22,6 @@ class LandingPageController extends Controller
         $faqs = Faq::where('published', true)->orderBy('order')->get();
         $reviews = Review::approved()->orderBy('order')->orderByDesc('id')->take(6)->get();
 
-        return view('landing.index', compact('contents', 'portfolios', 'services', 'packages', 'blogs', 'faqs', 'reviews'));
+        return view('landing_pages.home', compact('contents', 'portfolios', 'services', 'packages', 'blogs', 'faqs', 'reviews'));
     }
 }

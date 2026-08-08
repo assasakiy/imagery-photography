@@ -36,7 +36,7 @@ class BookingController extends Controller
             ];
         });
 
-        return view('booking.index', compact('contents', 'services', 'packages'));
+        return view('landing_pages.booking', compact('contents', 'services', 'packages'));
     }
 
     public function store(Request $request)

@@ -22,6 +22,6 @@ class PageController extends Controller
 
         abort_unless($page, 404);
 
-        return view('page.show', compact('page'));
+        return view('landing_pages.page', compact('page'));
     }
 }

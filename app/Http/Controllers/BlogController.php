@@ -51,7 +51,7 @@ class BlogController extends Controller
         $popular = Blog::with(['author', 'category', 'tags'])->published()
             ->orderByDesc('views_count')->orderByDesc('published_at')->take(5)->get();
 
-        return view('blog.index', compact('posts', 'categories', 'tags', 'featured', 'popular'));
+        return view('landing_pages.blog.index', compact('posts', 'categories', 'tags', 'featured', 'popular'));
     }
 
     public function show(string $slug)
@@ -74,7 +74,7 @@ class BlogController extends Controller
             ->take(3)
             ->get();
 
-        return view('blog.show', compact('post', 'related'));
+        return view('landing_pages.blog.show', compact('post', 'related'));
     }
 
     public function author(string $identifier)
@@ -90,7 +90,7 @@ class BlogController extends Controller
         $categories = BlogCategory::withCount('publishedPosts')->get();
         $tags = BlogTag::withCount('posts')->get();
 
-        return view('blog.author', compact('author', 'posts', 'categories', 'tags'));
+        return view('landing_pages.blog.author', compact('author', 'posts', 'categories', 'tags'));
     }
 
     public function category(string $slug)
@@ -105,7 +105,7 @@ class BlogController extends Controller
 
         $categories = BlogCategory::withCount('publishedPosts')->get();
 
-        return view('blog.category', compact('category', 'posts', 'categories'));
+        return view('landing_pages.blog.category', compact('category', 'posts', 'categories'));
     }
 
     public function tag(string $slug)
@@ -120,6 +120,6 @@ class BlogController extends Controller
 
         $categories = BlogCategory::withCount('publishedPosts')->get();
 
-        return view('blog.tag', compact('tag', 'posts', 'categories'));
+        return view('landing_pages.blog.tag', compact('tag', 'posts', 'categories'));
     }
 }

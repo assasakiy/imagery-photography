@@ -16,7 +16,7 @@ class ContactController extends Controller
             'social_facebook', 'social_instagram', 'social_tiktok', 'social_whatsapp',
         ])->pluck('value', 'key')->toArray();
 
-        return view('contact.index', compact('contents'));
+        return view('landing_pages.contact', compact('contents'));
     }
 
     public function store(Request $request)
@@ -51,6 +51,6 @@ class ContactController extends Controller
     public function services()
     {
         $services = \App\Models\Service::active()->orderBy('order')->get();
-        return view('services.index', compact('services'));
+        return view('landing_pages.services', compact('services'));
     }
 }

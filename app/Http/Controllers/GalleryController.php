@@ -11,7 +11,7 @@ class GalleryController extends Controller
         $portfolios = Portfolio::orderBy('order')->paginate(12);
         $categories = Portfolio::select('category')->distinct()->pluck('category')->filter();
 
-        return view('gallery.index', compact('portfolios', 'categories'));
+        return view('landing_pages.gallery.index', compact('portfolios', 'categories'));
     }
 
     public function show(string $slug)
@@ -28,6 +28,6 @@ class GalleryController extends Controller
             ->take(3)
             ->get();
 
-        return view('gallery.show', compact('portfolio', 'related'));
+        return view('landing_pages.gallery.show', compact('portfolio', 'related'));
     }
 }

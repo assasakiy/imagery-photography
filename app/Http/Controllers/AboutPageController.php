@@ -21,6 +21,6 @@ class AboutPageController extends Controller
         $timeline = json_decode($contents['about_timeline'] ?? '[]', true);
         $timeline = is_array($timeline) ? array_values(array_filter($timeline, fn ($t) => !empty($t['year']))) : [];
 
-        return view('about.index', compact('contents', 'aboutImage', 'featured', 'team', 'timeline'));
+        return view('landing_pages.about', compact('contents', 'aboutImage', 'featured', 'team', 'timeline'));
     }
 }

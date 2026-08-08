@@ -10,6 +10,6 @@ class FaqController extends Controller
     {
         $faqs = Faq::where('published', true)->orderBy('order')->get();
 
-        return view('faq.index', compact('faqs'));
+        return view('landing_pages.faq', compact('faqs'));
     }
 }

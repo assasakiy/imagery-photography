@@ -42,6 +42,6 @@
         };
     </script>
     <div id="app"></div>
-    @vite('resources/js/admin.jsx')
+    @vite('resources/js/dashboard.jsx')
 </body>
 </html>

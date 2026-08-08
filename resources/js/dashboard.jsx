@@ -1,6 +1,6 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-import App from './admin/App';
+import App from './dashboard/App';
 
 const el = document.getElementById('app');
 
