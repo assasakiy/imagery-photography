@@ -169,6 +169,8 @@ Halaman dashboard yang punya beberapa tab **WAJIB** dipisah ke folder `pages/<na
 - **Bukti mulai/selesai (potret-project)**: kini **Spatie collection `proofs`** (public, `project-proofs/`) + ProjectFile row `category='proof'`, `variant='record'`. `recordFiles` filter = `category==='proof'` (bukan `!media_id`); assets filter `media_id && category!=='proof'`. Legacy `path`-based di-backfill `category='proof'` (migration `backfill_proof_category`). Proof PERMANEN — tak ikut zip/prune/gallery.
 - **Label tombol upload deteksi konten**: `uploadLabel` (`hasPhoto`/`hasVideo`) → "Unggah Foto & Video" / "Unggah Foto" / "Unggah Video". Modal tambah sektor **Thumbnail** (preview + Pilih Gambar + Simpan → `POST thumbnail`).
 - **GOTCHA `archived_at`**: `update()` menggenang karena tak di `$fillable` → set properti langsung + `save()` (archive/restore sudah).
+- **Visibilitas galeri klien (aman-konfirmasi)**: `CustomerController@gallery` kini utk **klien hanya** proyek ber-status `awaiting_payment|completed|archived` (aset baru **tersembunyi** sampai admin klik "Konfirmasi"); admin/staff tetap melihat semua. 
+- **Modal upload (ProjectDetail)**: foto dipilih ditampilkan sbg **card 2-kolom** (preview + nama + **✕ batal pilih**); klik card foto → set **Thumbnail** (ring); **bar progress menggantikan grid foto** selama upload (tak bisa pilih). Sektor Thumbnail menampilkan gambar (baru/lama) + Pilih Gambar + Simpan.
 - **Tahap 3 (belum tamat)**: aturan & stati "Preview Berakhir → Diarsipkan" sudah jalan tapi **teks kebijakan FAQ/syarat belum diisi** (konten admin).
 - **Halaman Media = aset WEBSITE saja, di luar project**: `MediaController@index` difilter `where('model_type','!=',Project::class)` — aset final project (`media_id`) tidak tampil di pustaka media.
 

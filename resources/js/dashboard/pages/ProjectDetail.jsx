@@ -276,6 +276,11 @@ export default function ProjectDetail() {
         });
     };
 
+    const removePhoto = (file) => {
+        setPhotoQueue((prev) => prev.filter((f) => f !== file));
+        if (thumbFile === file) setThumbFile(null);
+    };
+
     const saveThumbnail = async () => {
         if (!thumbFile) return;
         setUploading(true);
@@ -1043,31 +1048,66 @@ export default function ProjectDetail() {
                     {/* THUMBNAIL CARD — kategori terpisah & permanen */}
                     <div className="rounded-xl border border-line p-4">
                         <p className="text-sm font-semibold text-ink">Thumbnail Card</p>
-                        <p className="mt-0.5 text-xs text-ink-muted">Permanen, otomatis dari foto pertama; bisa ganti dengan gambar baru. Tampil di halaman Preview.</p>
+                        <p className="mt-0.5 text-xs text-ink-muted">Permanent, tampil di halaman Preview. Otomatis dari foto pertama; boleh ganti dari foto yg diklik atau gambar baru.</p>
                         <div className="mt-3 flex items-center gap-3">
-                            {project.thumb_url ? (
-                                <img src={project.thumb_url} alt="Thumbnail" className="h-16 w-20 shrink-0 rounded-lg object-cover" />
-                            ) : (
-                                <div className="flex h-16 w-20 shrink-0 items-center justify-center rounded-lg bg-surface-strong text-xs text-ink-muted">Belum ada</div>
-                            )}
-                            <button type="button" className="btn-outline" onClick={() => thumbRef.current?.click()} disabled={uploading}>Pilih Gambar</button>
-                            <button type="button" className="btn-primary" onClick={saveThumbnail} disabled={uploading || !thumbFile}>Simpan</button>
+                            <div className="relative h-20 w-24 shrink-0 overflow-hidden rounded-lg border border-line bg-surface-strong">
+                                {thumbFile ? (
+                                    <img src={URL.createObjectURL(thumbFile)} alt="Thumbnail" className="h-full w-full object-cover" />
+                                ) : project.thumb_url ? (
+                                    <img src={project.thumb_url} alt="Thumbnail" className="h-full w-full object-cover" />
+                                ) : (
+                                    <div className="flex h-full w-full items-center justify-center text-center text-[10px] text-ink-muted">Belum ada</div>
+                                )}
+                            </div>
+                            <div className="flex flex-col gap-2">
+                                <button type="button" className="btn-outline" onClick={() => thumbRef.current?.click()} disabled={uploading}>Pilih Gambar</button>
+                                <button type="button" className="btn-primary" onClick={saveThumbnail} disabled={uploading || !thumbFile}>Simpan</button>
+                            </div>
                             <input ref={thumbRef} type="file" accept="image/*" className="hidden" onChange={(e) => { setThumbFile(e.target.files[0]); e.target.value = ''; }} disabled={uploading} />
                         </div>
-                        {thumbFile && <p className="mt-2 break-words text-xs text-ink-muted">{thumbFile.name}</p>}
+                        {thumbFile && <p className="mt-2 break-words text-xs text-ink-muted">Thumbnail baru: {thumbFile.name}</p>}
                     </div>
                     {hasPhoto && (
                         <div>
                             <p className="text-sm font-semibold text-ink">Foto (bisa banyak)</p>
-                            <p className="mt-0.5 text-xs text-ink-muted">Foto original tersimpan privat · preview ber-watermark dibuat otomatis.</p>
-                            <button type="button" className="mt-3 btn-outline flex w-full flex-col items-center justify-center gap-1 border-dashed py-5 text-center hover:bg-surface-muted/50" onClick={() => photoRef.current?.click()} disabled={uploading}>
-                                <Icon name="upload" size={20} className="mb-1 text-ink-muted" />
-                                <span className="font-semibold text-ink">{photoQueue.length ? `${photoQueue.length} foto dipilih` : 'Pilih foto hasil edit'}</span>
-                            </button>
-                            <input ref={photoRef} type="file" accept="image/*" multiple className="hidden" onChange={(e) => { setPhotoQueue(Array.from(e.target.files || [])); e.target.value = ''; }} disabled={uploading} />
-                            {photoQueue.length > 0 && (
-                                <p className="mt-2 break-words text-xs text-ink-muted">{photoQueue.map((f) => f.name).join(', ')}</p>
+                            <p className="mt-0.5 text-xs text-ink-muted">Klik foto untuk jadikan Thumbnail Card · ✕ untuk batal pilih.</p>
+                            {!photoQueue.length && !uploading && (
+                                <button type="button" className="mt-3 btn-outline flex w-full flex-col items-center justify-center gap-1 border-dashed py-5 text-center hover:bg-surface-muted/50" onClick={() => photoRef.current?.click()} disabled={uploading}>
+                                    <Icon name="upload" size={20} className="mb-1 text-ink-muted" />
+                                    <span className="font-semibold text-ink">Pilih foto hasil edit</span>
+                                </button>
                             )}
+                            {photoQueue.length > 0 && !uploading && (
+                                <>
+                                    <div className="mt-3 grid grid-cols-2 gap-3">
+                                        {photoQueue.map((f) => (
+                                            <div key={f.name} onClick={() => setThumbFile(f)} className={`group relative cursor-pointer overflow-hidden rounded-lg border ${thumbFile === f ? 'border-brand-600 ring-2 ring-brand-600' : 'border-line'}`}>
+                                                <div className="aspect-square w-full overflow-hidden bg-surface-muted">
+                                                    <img src={URL.createObjectURL(f)} alt="" className="h-full w-full object-cover" />
+                                                </div>
+                                                <p className="truncate border-t border-line bg-surface/80 px-2 py-1 text-xs text-ink-muted">{f.name}</p>
+                                                <button type="button" onClick={(e) => { e.stopPropagation(); removePhoto(f); }} className="absolute right-1 top-1 rounded bg-black/60 p-1 text-white" title="Batal pilih">
+                                                    <Icon name="x" size={12} />
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <p className="mt-2 text-xs text-ink-muted">Klik untuk pilih jadi thumbnail {thumbFile ? `→ “${thumbFile.name}” terpilih` : ''}</p>
+                                </>
+                            )}
+                            {uploading && photoQueue.length > 0 && (
+                                <div className="mt-3 rounded-xl border border-line bg-surface-muted/30 p-4">
+                                    <div className="mb-2 flex items-center justify-between text-sm">
+                                        <span className="font-semibold text-ink">Mengunggah {photoQueue.length} foto…</span>
+                                        <span className="font-mono text-xs text-ink-muted">{uploadProgress}%</span>
+                                    </div>
+                                    <div className="h-2.5 w-full overflow-hidden rounded-full bg-surface-strong">
+                                        <div className="h-full rounded-full bg-brand-500 transition-all" style={{ width: `${uploadProgress}%` }} />
+                                    </div>
+                                    <p className="mt-2 text-xs text-ink-muted">Menunggu selesai — tidak bisa memilih/pilih foto saat pengunggahan berlangsung.</p>
+                                </div>
+                            )}
+                            <input ref={photoRef} type="file" accept="image/*" multiple className="hidden" onChange={(e) => { setPhotoQueue((prev) => [...prev, ...Array.from(e.target.files || [])]); e.target.value = ''; }} disabled={uploading} />
                         </div>
                     )}
                     {hasVideo && (
@@ -1088,7 +1128,7 @@ export default function ProjectDetail() {
                             </div>
                         </div>
                     )}
-                    {uploading && (
+                    {uploading && !photoQueue.length && (
                         <div className="rounded-xl border border-line bg-surface-muted/30 p-4">
                             <div className="mb-2 flex items-center justify-between text-sm">
                                 <span className="font-semibold text-ink">Mengunggah…</span>
@@ -1097,7 +1137,7 @@ export default function ProjectDetail() {
                             <div className="h-2.5 w-full overflow-hidden rounded-full bg-surface-strong">
                                 <div className="h-full rounded-full bg-brand-500 transition-all" style={{ width: `${uploadProgress}%` }} />
                             </div>
-                            <p className="mt-2 text-xs text-ink-muted">File final tampil di halaman Preview.</p>
+                            <p className="mt-2 text-xs text-ink-muted">Menunggu selesai — tidak bisa pilih lagi.</p>
                         </div>
                     )}
                 </div>

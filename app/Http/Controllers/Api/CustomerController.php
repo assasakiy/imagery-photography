@@ -175,7 +175,16 @@ class CustomerController extends Controller
         $projectId = $request->query('project_id');
         $user = $request->user();
         
-        $projectsQuery = clone ($user->isStaff() ? \App\Models\Project::query() : $user->projects());
+        // Admin/staff: lihat semua. Klien: aset baru tampil SETELAH admin konfirmasi (status preview/akhir/arsip).
+        $query = $user->isStaff()
+            ? \App\Models\Project::query()
+            : \App\Models\Project::whereIn('status', ['awaiting_payment', 'completed', 'archived']);
+
+        if ($user->isClient()) {
+            $query->where('user_id', $user->id);
+        }
+
+        $projectsQuery = clone $query;
 
         if ($projectId) {
             $projectsQuery->where(function ($q) use ($projectId) {
