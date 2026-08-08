@@ -364,7 +364,7 @@ export default function ProjectDetail() {
                     </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-px bg-line sm:grid-cols-3">
+                <div className="grid grid-cols-2 gap-px bg-line sm:grid-cols-4">
                     <div className="bg-surface p-4">
                         <p className="text-xs font-semibold uppercase tracking-wider text-ink-muted">Nilai Pesanan</p>
                         <p className="mt-1 text-lg font-bold text-ink">{formatRupiah(project.price)}</p>
@@ -377,9 +377,10 @@ export default function ProjectDetail() {
                         <p className="text-xs font-semibold uppercase tracking-wider text-ink-muted">Sisa Tagihan</p>
                         <p className={`mt-1 text-lg font-bold ${remaining > 0 ? 'text-amber-600 dark:text-amber-400' : 'text-ink'}`}>{formatRupiah(remaining)}</p>
                     </div>
-                </div>
-                <div className="flex items-center border-t border-line px-5 py-3">
-                    <button className="btn-outline" onClick={openChat}><Icon name="message-circle" size={16} /> Kirim Pesan Pesanan Ini</button>
+                    <div className="bg-surface p-4">
+                        <p className="text-xs font-semibold uppercase tracking-wider text-ink-muted">Status</p>
+                        <div className="mt-1"><StatusBadge value={project.status} /></div>
+                    </div>
                 </div>
             </div>
 
@@ -514,6 +515,7 @@ export default function ProjectDetail() {
                         </div>
                         {isAdmin && !pastScheduled && (
                             <PanelFooter>
+                                <button className="btn-outline mr-auto" onClick={openChat}><Icon name="message-circle" size={16} /> Kirim Pesan</button>
                                 <button className="btn-primary" onClick={advance} disabled={formLocked || saving}>
                                     Konfirmasi
                                 </button>
@@ -595,6 +597,7 @@ export default function ProjectDetail() {
                         </div>
                         {isAdmin && !pastShooting && (
                             <PanelFooter>
+                                <button className="btn-outline mr-auto" onClick={openChat}><Icon name="message-circle" size={16} /> Kirim Pesan</button>
                                 <button className="btn-primary" onClick={confirmShootingDone} disabled={formLocked || saving || (!endProof && !proofEndUploaded)}>
                                     Konfirmasi
                                 </button>
@@ -706,6 +709,7 @@ export default function ProjectDetail() {
                         </div>
                         {isAdmin && !pastEditing && (
                             <PanelFooter>
+                                <button className="btn-outline mr-auto" onClick={openChat}><Icon name="message-circle" size={16} /> Kirim Pesan</button>
                                 <button className="btn-primary" onClick={advance} disabled={formLocked || saving || !editAllDone}>
                                     Konfirmasi
                                 </button>
