@@ -774,9 +774,9 @@ export default function ProjectDetail() {
                             {!isAdmin && (
                                 <Link to="/dashboard/client-invoices" className="btn-primary"><Icon name="credit-card" size={16} /> Bayar Tagihan</Link>
                             )}
-                            {isAdmin && (
-                                <button className="btn-primary" onClick={advance} disabled={formLocked || saving || !isPaid}>
-                                    {isPaid ? 'Tandai Selesai' : 'Menunggu Pelunasan'}
+                            {isAdmin && isPaid && (
+                                <button className="btn-primary" onClick={advance} disabled={formLocked || saving}>
+                                    Tandai Selesai
                                 </button>
                             )}
                         </PanelFooter>
