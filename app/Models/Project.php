@@ -157,23 +157,29 @@ class Project extends Model implements HasMedia
         $this->addMediaCollection('files')
             ->useDisk('local')
             ->storeConversionsOnDisk('public');
+
+        // Bukti mulai/selesai sesi — record permanen, jalur terpisah (project-proofs).
+        $this->addMediaCollection('proofs')->useDisk('public');
+
+        // Thumbnail card — permanen, jalur terpisah (project-thumbs), tanpa watermark.
+        $this->addMediaCollection('thumbnail')->singleFile()->useDisk('public');
     }
 
     /**
-     * Hanya foto yang dapat konversi 'preview' (fit + watermark).
-     * Video TIDAK dikonversi — preview video adalah file ber-watermark dari editor,
-     * disimpan apa adanya di disk 'public'.
+     * Hanya foto di collection 'files' yang dapat konversi 'preview' (fit + watermark).
+     * HoakVideo/dokumen lain TIDAK dikonversi.
      */
     public function registerMediaConversions(?Media $media = null): void
     {
-        if ($media && str_starts_with($media->mime_type ?? '', 'video/')) {
+        if ($media && ($media->collection_name !== 'files' || str_starts_with($media->mime_type ?? '', 'video/'))) {
             return;
         }
 
         $this->addMediaConversion('preview')
             ->fit(Fit::Max, 1920, 1920)
             ->watermark(public_path('watermark.png'), AlignPosition::Center)
-            ->nonQueued();
+            ->nonQueued()
+            ->performOnCollections('files');
     }
 
     public function payments()

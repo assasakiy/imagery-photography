@@ -29,7 +29,7 @@ export default function Preview() {
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                     {items.map((p) => {
                         const files = (p.files || []).filter((f) => f.url);
-                        const cover = files.find((f) => f.category === 'photo' || f.type?.startsWith('image/')) || files[0];
+                        const cover = p.thumb_url ? { url: p.thumb_url, name: 'Sampul' } : files.find((f) => f.category === 'photo' || f.type?.startsWith('image/')) || files[0];
                         return (
                             <div key={p.id} className="card group overflow-hidden transition-all hover:-translate-y-1 hover:shadow-xl">
                                 <div className="relative aspect-[4/3] overflow-hidden bg-surface-muted">

@@ -38,7 +38,8 @@ class ProjectFile extends Model
     {
         $media = $this->media;
         if ($media) {
-            if ($this->variant === 'preview') {
+            // Bukti sesi (media public, tidak di-watermark) & video preview → URL langsung.
+            if ($this->variant === 'record' || $this->variant === 'preview') {
                 return $media->getUrl();
             }
             if ($media->hasGeneratedConversion('preview')) {
@@ -46,7 +47,7 @@ class ProjectFile extends Model
             }
         }
 
-        // Legacy path-based (mis. bukti mulai/selesai sesi).
+        // Legacy path-based (mis. bukti mulai/selesai sesi lama).
         if ($this->path) {
             return asset('storage/' . $this->path);
         }

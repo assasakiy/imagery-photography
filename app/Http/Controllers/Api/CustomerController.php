@@ -197,6 +197,7 @@ class CustomerController extends Controller
                 'is_paid' => $p->isPaid(),
                 'preview_expired' => (bool) $p->preview_expired_at,
                 'archived' => (bool) $p->isArchived(),
+                'thumb_url' => $p->getMedia('thumbnail')->first()?->getUrl(),
                 'access_url' => $p->accessTokens()->valid()->latest('id')->first()?->url,
                 'redeliveries' => $p->redeliveries->map(fn ($r) => [
                     'id' => $r->id,

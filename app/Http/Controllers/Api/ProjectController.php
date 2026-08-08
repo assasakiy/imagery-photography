@@ -61,6 +61,7 @@ class ProjectController extends Controller
         }
 
         $project->load(['user.profile', 'files.media', 'payments', 'updates.user', 'accessTokens', 'invoice', 'booking', 'reviews', 'redeliveries']);
+        $project->thumb_url = $project->getMedia('thumbnail')->first()?->getUrl();
 
         return response()->json($project);
     }
@@ -431,37 +432,43 @@ class ProjectController extends Controller
             return $this->uploadFiles($request, $project);
         }
 
-        // Legacy: bukti mulai/selesai sesi (satu foto, path-based).
+        // Bukti mulai/selesai sesi (Spatie collection 'proofs' — record permanen, jalur terpisah).
         $request->validate([
             'file' => 'required|file|max:512000',
             'gallery_status' => 'nullable|in:preparing,preview_ready,released',
         ]);
 
         $file = $request->file('file');
-        $path = $file->store('project-files/' . $project->id, 'public');
+        $size = $file->getSize();
+        $mime = $file->getMimeType();
+        $originalName = $file->getClientOriginalName();
 
-        $expiresAt = null;
-        $retentionDays = $project->retentionDays();
-        if ($retentionDays) {
-            $expiresAt = now()->addDays($retentionDays);
-        }
+        $media = $project
+            ->addMedia($file)
+            ->usingFileName($file->hashName())
+            ->withCustomProperties(['type' => 'proof', 'variant' => 'record'])
+            ->toMediaCollection('proofs', 'public');
+        $media->uploaded_by = Auth::id();
+        $media->is_public = true;
+        $media->save();
 
         ProjectFile::create([
             'project_id' => $project->id,
-            'filename' => $file->hashName(),
-            'original_name' => $file->getClientOriginalName(),
-            'path' => $path,
-            'size' => $file->getSize(),
-            'type' => $file->getMimeType(),
-            'category' => $this->inferCategory($file),
+            'media_id' => $media->id,
+            'variant' => 'record',
+            'category' => 'proof',
+            'filename' => $media->file_name,
+            'original_name' => $originalName,
+            'path' => null,
+            'size' => $size,
+            'type' => $mime,
             'gallery_status' => $request->gallery_status ?? 'preview_ready',
-            'expires_at' => $expiresAt,
         ]);
 
         ProjectUpdate::create([
             'project_id' => $project->id,
             'user_id' => Auth::id(),
-            'message' => 'File "' . $file->getClientOriginalName() . '" telah diupload.',
+            'message' => 'Bukti sesi "' . $originalName . '" diunggah.',
             'type' => 'update',
             'kind' => 'manual',
         ]);
@@ -500,6 +507,9 @@ class ProjectController extends Controller
             $media->uploaded_by = Auth::id();
             $media->is_public = false;
             $media->save();
+
+            // Auto thumbnail card (foto pertama, sekali pakai) — kategori terpisah & permanen.
+            app(\App\Services\ThumbnailService::class)->ensureAuto($project, $media->getPath());
 
             $created->push(ProjectFile::create([
                 'project_id' => $project->id,
@@ -773,6 +783,22 @@ class ProjectController extends Controller
         }
 
         $zip->finish();
+    }
+
+    /** Admin atur thumbnail card (override) dari gambar baru. */
+    public function setThumbnail(Request $request, Project $project)
+    {
+        $request->validate(['file' => 'required|image|mimes:jpeg,jpg,png,webp|max:10240']);
+
+        $url = app(\App\Services\ThumbnailService::class)->overrideFromUpload($project, $request->file('file'));
+        if (! $url) {
+            abort(422, 'Gagal memproses gambar thumbnail.');
+        }
+
+        $project->addSystemUpdate('Thumbnail galeri diperbarui.');
+        app(AuditLogger::class)->log('project.thumbnail_updated', 'Thumbnail diupdate utk "' . $project->name . '"', $project);
+
+        return response()->json(['ok' => true, 'thumb_url' => $url]);
     }
 
     /** Admin menandai status gallery & memicu timeline system. */

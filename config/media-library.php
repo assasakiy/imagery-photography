@@ -155,6 +155,7 @@ return [
         \App\Models\MediaLibrary::class => \App\Support\MediaPathGenerator::class,
         \App\Models\Blog::class => \App\Support\MediaPathGenerator::class,
         \App\Models\Portfolio::class => \App\Support\MediaPathGenerator::class,
+        \App\Models\Project::class => \App\Support\MediaPathGenerator::class,
     ],
 
     /*

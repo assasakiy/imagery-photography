@@ -5,6 +5,7 @@ namespace App\Support;
 use App\Models\Blog;
 use App\Models\MediaLibrary;
 use App\Models\Portfolio;
+use App\Models\Project;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Spatie\MediaLibrary\Support\PathGenerator\DefaultPathGenerator;
 
@@ -39,6 +40,14 @@ class MediaPathGenerator extends DefaultPathGenerator
             // portfolio -> portfolios/{portfolio_id}/{media_id}
             is_a($modelClass, Portfolio::class, true)
                 => "portfolios/{$media->model_id}/{$media->getKey()}",
+            // project: kategori aset terpisah (thumbnail & bukti) di folder sendiri;
+            // collection files (asset original/preview) tetap di jalur lama "media/..." agar tidak merusak data lama.
+            is_a($modelClass, Project::class, true)
+                => match ($media->collection_name) {
+                    'thumbnail' => "project-thumbs/{$media->model_id}/{$media->getKey()}",
+                    'proofs' => "project-proofs/{$media->model_id}/{$media->getKey()}",
+                    default => "media/{$media->getKey()}",
+                },
             default
                 => "media/{$media->getKey()}",
         };

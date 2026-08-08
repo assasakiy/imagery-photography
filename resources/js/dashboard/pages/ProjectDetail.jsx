@@ -63,6 +63,7 @@ export default function ProjectDetail() {
     const [uploadProgress, setUploadProgress] = useState(0);
     const [uploadOpen, setUploadOpen] = useState(false);
     const [photoQueue, setPhotoQueue] = useState([]);
+    const [thumbFile, setThumbFile] = useState(null);
     const [videoForm, setVideoForm] = useState({ preview: null, original: null });
     const [editForm, setEditForm] = useState({ photo_total: '', photo_done: '', video_total: '', video_done: '' });
     const [editNote, setEditNote] = useState('');
@@ -80,6 +81,7 @@ export default function ProjectDetail() {
     const [reviewForm, setReviewForm] = useState({ rating: 5, title: '', content: '', recommend_score: 10 });
     const fileRef = useRef(null);
     const photoRef = useRef(null);
+    const thumbRef = useRef(null);
     const videoPreviewRef = useRef(null);
     const videoOriginalRef = useRef(null);
     const { show, node } = useToast();
@@ -117,6 +119,7 @@ export default function ProjectDetail() {
     const mediaTypes = [...new Set((project.pricing_snapshot?.items || []).map((i) => i.media).filter(Boolean))];
     const hasPhoto = mediaTypes.length === 0 || mediaTypes.includes('photo');
     const hasVideo = mediaTypes.length === 0 || mediaTypes.includes('video');
+    const uploadLabel = hasPhoto && hasVideo ? 'Unggah Foto & Video' : hasPhoto ? 'Unggah Foto' : hasVideo ? 'Unggah Video' : 'Unggah File';
     const photoDone = Number(project.photo_done) || 0;
     const photoTotal = Number(project.photo_total) || 0;
     const videoDone = Number(project.video_done) || 0;
@@ -130,10 +133,10 @@ export default function ProjectDetail() {
     const progressUpdates = (project.updates || []).filter((u) => u.message.startsWith('Proses editing'));
     // Grid di halaman proyek hanya menampilkan file REKAM/detail (bukti mulai/selesai sesi — legacy tanpa media_id).
     // Aset final (milik klien, upload via Spatie) tampil di halaman PREVIEW saja.
-    const recordFiles = (project.files || []).filter((f) => !f.media_id);
+    const recordFiles = (project.files || []).filter((f) => f.category === 'proof');
     const recordStart = recordFiles[0];
     const recordEnd = recordFiles[1];
-    const assets = (project.files || []).filter((f) => f.media_id);
+    const assets = (project.files || []).filter((f) => f.media_id && f.category !== 'proof');
     const photoAssetCount = assets.filter((f) => f.category === 'photo').length;
     const videoAssetCount = assets.filter((f) => f.category === 'video' && f.variant === 'preview').length;
     const pastScheduled = currentIdx > 0;
@@ -271,6 +274,23 @@ export default function ProjectDetail() {
                 if (ev.total) setUploadProgress(Math.round((ev.loaded / ev.total) * 100));
             },
         });
+    };
+
+    const saveThumbnail = async () => {
+        if (!thumbFile) return;
+        setUploading(true);
+        try {
+            const data = new FormData();
+            data.append('file', thumbFile);
+            await api.post(`/projects/${id}/thumbnail`, data);
+            show('Thumbnail tersimpan.', 'success');
+            setThumbFile(null);
+            load();
+        } catch (err) {
+            show(err.response?.data?.message || 'Gagal menyimpan thumbnail.', 'error');
+        } finally {
+            setUploading(false);
+        }
     };
 
     const submitUpload = async () => {
@@ -760,7 +780,7 @@ export default function ProjectDetail() {
                                         <p className="mb-3 text-xs text-ink-muted">File final = aset klien, tampil di halaman <Link to={previewHref} className="text-brand-600 underline">Preview</Link>. Buka popup untuk unggah foto/video.</p>
                                         {!pastEditing && (
                                             <button type="button" className="btn-primary w-full" onClick={() => setUploadOpen(true)} disabled={formLocked}>
-                                                <Icon name="upload" size={16} /> Unggah Foto & Video
+                                                <Icon name="upload" size={16} /> {uploadLabel}
                                             </button>
                                         )}
                                     </div>
@@ -1020,6 +1040,22 @@ export default function ProjectDetail() {
                 }
             >
                 <div className="space-y-5">
+                    {/* THUMBNAIL CARD — kategori terpisah & permanen */}
+                    <div className="rounded-xl border border-line p-4">
+                        <p className="text-sm font-semibold text-ink">Thumbnail Card</p>
+                        <p className="mt-0.5 text-xs text-ink-muted">Permanen, otomatis dari foto pertama; bisa ganti dengan gambar baru. Tampil di halaman Preview.</p>
+                        <div className="mt-3 flex items-center gap-3">
+                            {project.thumb_url ? (
+                                <img src={project.thumb_url} alt="Thumbnail" className="h-16 w-20 shrink-0 rounded-lg object-cover" />
+                            ) : (
+                                <div className="flex h-16 w-20 shrink-0 items-center justify-center rounded-lg bg-surface-strong text-xs text-ink-muted">Belum ada</div>
+                            )}
+                            <button type="button" className="btn-outline" onClick={() => thumbRef.current?.click()} disabled={uploading}>Pilih Gambar</button>
+                            <button type="button" className="btn-primary" onClick={saveThumbnail} disabled={uploading || !thumbFile}>Simpan</button>
+                            <input ref={thumbRef} type="file" accept="image/*" className="hidden" onChange={(e) => { setThumbFile(e.target.files[0]); e.target.value = ''; }} disabled={uploading} />
+                        </div>
+                        {thumbFile && <p className="mt-2 break-words text-xs text-ink-muted">{thumbFile.name}</p>}
+                    </div>
                     {hasPhoto && (
                         <div>
                             <p className="text-sm font-semibold text-ink">Foto (bisa banyak)</p>
