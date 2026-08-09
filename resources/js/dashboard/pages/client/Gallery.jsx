@@ -45,12 +45,7 @@ export default function Preview() {
                                     <span className="absolute bottom-3 left-3 text-xs font-medium text-white/90">{cover ? cover.name : 'Sampul pratinjau'}</span>
                                 </div>
                                 <div className="flex flex-col gap-3 p-4">
-                                    <div className="flex items-start justify-between gap-3">
-                                        <h3 className="font-bold text-ink">{p.name}</h3>
-                                        <span className="flex shrink-0 items-center gap-1.5 text-sm text-ink-muted">
-                                            <Icon name="calendar" size={14} /> {p.event_date ? formatLongDate(p.event_date) : '—'}
-                                        </span>
-                                    </div>
+                                    <h3 className="font-bold text-ink">{p.name}</h3>
                                     <div>
                                         {p.archived ? (
                                             <span className="badge bg-zinc-500/15 text-zinc-600 dark:text-zinc-400"><Icon name="folder-open" size={12} /> Diarsipkan</span>
@@ -62,6 +57,9 @@ export default function Preview() {
                                             <span className="badge bg-amber-500/15 text-amber-600"><Icon name="clock" size={12} /> Menunggu Pembayaran</span>
                                         )}
                                     </div>
+                                    <span className="flex items-center gap-1.5 text-sm text-ink-muted">
+                                        <Icon name="calendar" size={14} /> {p.event_date ? formatLongDate(p.event_date) : '—'}
+                                    </span>
                                     <div className="flex-1" />
                                     <Link to={`/dashboard/preview/${p.order_no || p.id}`} className="btn-primary w-full">
                                         Lihat Preview
