@@ -38,9 +38,9 @@ class ProjectController extends Controller
             return response()->json($query->latest()->paginate(15));
         }
 
-        $projects = $user->projects()->with('files.media', 'payments', 'updates')->latest()->get() ?? [];
+        $projects = $user->projects()->latest()->get() ?? [];
 
-        return response()->json($projects);
+        return response()->json($projects->map(fn ($p) => $this->clientProjectList($p))->values());
     }
 
     public function show(Request $request, Project $project)
@@ -63,7 +63,109 @@ class ProjectController extends Controller
         $project->load(['user.profile', 'files.media', 'payments', 'updates.user', 'accessTokens', 'invoice', 'booking', 'reviews', 'redeliveries']);
         $project->thumb_url = $project->getMedia('thumbnail')->first()?->getUrl();
 
+        if ($request->user()->isClient()) {
+            return response()->json($this->clientProjectDetail($project));
+        }
+
         return response()->json($project);
+    }
+
+    /** Payload klien: hanya field yg sah utk klien (tidak ada path internal / data admin). */
+    private function clientProjectDetail(\App\Models\Project $p): array
+    {
+        return [
+            'id' => $p->id,
+            'name' => $p->name,
+            'order_no' => $p->order_no,
+            'package' => $p->package?->name,
+            'package_id' => $p->package_id,
+            'event_date' => $p->event_date,
+            'event_start' => $p->event_start,
+            'event_end' => $p->event_end,
+            'status' => $p->status,
+            'status_label' => $p->statusLabel(),
+            'description' => $p->description,
+            'location' => $p->location,
+            'price' => $p->price,
+            'total_paid' => $p->totalPaid(),
+            'remaining' => $p->remainingBalance(),
+            'is_paid' => $p->isPaid(),
+            'thumb_url' => $p->getMedia('thumbnail')->first()?->getUrl(),
+            'preview_expired' => (bool) $p->preview_expired_at,
+            'archived' => (bool) $p->isArchived(),
+            'photo_total' => $p->photo_total,
+            'photo_done' => $p->photo_done,
+            'video_total' => $p->video_total,
+            'video_done' => $p->video_done,
+            'media_types' => collect($p->pricing_snapshot['items'] ?? [])->pluck('media')->filter()->unique()->values()->all(),
+            'access_url' => $p->accessTokens()->valid()->latest('id')->first()?->url,
+            'user' => ['id' => $p->user_id, 'name' => $p->user?->name, 'username' => $p->user?->username],
+            'invoice' => $p->invoice ? [
+                'number' => $p->invoice->number,
+                'base_amount' => $p->invoice->base_amount,
+                'dp_amount' => $p->invoice->dp_amount,
+                'paid_amount' => $p->invoice->paid_amount,
+                'remaining' => $p->invoice->remaining(),
+                'status' => $p->invoice->status,
+                'issued_at' => $p->invoice->issued_at,
+                'due_at' => $p->invoice->due_at,
+            ] : null,
+            'payments' => $p->payments->map(fn ($pay) => [
+                'id' => $pay->id,
+                'amount' => $pay->amount,
+                'status' => $pay->status,
+                'method' => $pay->method,
+                'paid_at' => $pay->paid_at,
+                'created_at' => $pay->created_at,
+            ])->values(),
+            'files' => $p->files->map(fn (\App\Models\ProjectFile $f) => [
+                'id' => $f->id,
+                'category' => $f->category,
+                'variant' => $f->variant,
+                'original_name' => $f->original_name,
+                'size' => $f->size,
+                'url' => $f->url,
+                'created_at' => $f->created_at,
+                'media_id' => $f->media_id,
+            ])->values(),
+            'updates' => $p->updates->map(fn ($u) => [
+                'id' => $u->id,
+                'message' => $u->message,
+                'kind' => $u->kind,
+                'user' => $u->user?->name,
+                'created_at' => $u->created_at,
+            ])->values(),
+            'redeliveries' => $p->redeliveries->map(fn ($r) => [
+                'id' => $r->id,
+                'status' => $r->status,
+                'fee' => $r->fee,
+                'note' => $r->note,
+                'expires_at' => $r->expires_at,
+                'created_at' => $r->created_at,
+            ])->values(),
+        ];
+    }
+
+    /** Payload list utk klien: minimal, tanpa detail internal. */
+    private function clientProjectList(\App\Models\Project $p): array
+    {
+        return [
+            'id' => $p->id,
+            'name' => $p->name,
+            'order_no' => $p->order_no,
+            'package' => $p->package?->name ?? ($p->pricing_snapshot['package'] ?? null),
+            'status' => $p->status,
+            'status_label' => $p->statusLabel(),
+            'event_date' => $p->event_date,
+            'price' => $p->price,
+            'total_paid' => $p->totalPaid(),
+            'remaining' => $p->remainingBalance(),
+            'is_paid' => $p->isPaid(),
+            'thumb_url' => $p->getMedia('thumbnail')->first()?->getUrl(),
+            'preview_expired' => (bool) $p->preview_expired_at,
+            'archived' => (bool) $p->isArchived(),
+            'updated_at' => $p->updated_at,
+        ];
     }
 
     public function store(Request $request)

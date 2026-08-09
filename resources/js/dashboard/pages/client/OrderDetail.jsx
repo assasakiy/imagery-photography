@@ -150,7 +150,7 @@ export default function ProjectDetail() {
     const formLocked = isAdmin && !isCurrentStep;
     const clientLocked = !isAdmin && activeIdx > currentIdx;
 
-    const mediaTypes = [...new Set((project.pricing_snapshot?.items || []).map((i) => i.media).filter(Boolean))];
+    const mediaTypes = [...new Set((project.media_types || []).filter(Boolean))];
     const hasPhoto = mediaTypes.length === 0 || mediaTypes.includes('photo');
     const hasVideo = mediaTypes.length === 0 || mediaTypes.includes('video');
     const uploadLabel = hasPhoto && hasVideo ? 'Unggah Foto & Video' : hasPhoto ? 'Unggah Foto' : hasVideo ? 'Unggah Video' : 'Unggah File';
