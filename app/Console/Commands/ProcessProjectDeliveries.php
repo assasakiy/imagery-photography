@@ -50,7 +50,7 @@ class ProcessProjectDeliveries extends Command
             ->get()
             ->each(function (Project $p) use (&$archived) {
                 $p->update(['archived_at' => now(), 'status' => 'archived']);
-                $p->addSystemUpdate('Proyek diarsipkan otomatis (90 hari sejak preview).');
+                $p->addSystemUpdate('Pesanan diarsipkan otomatis (90 hari sejak preview).');
                 $archived++;
             });
 

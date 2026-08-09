@@ -190,7 +190,7 @@ export default function ProjectDetail() {
     };
 
     const uploadEndProof = async (e) => {
-        await uploadFile(e);
+        await uploadFile(e, 'end');
         setEndProof(true);
     };
 
@@ -265,15 +265,16 @@ export default function ProjectDetail() {
         load();
     };
 
-    const uploadFile = async (e) => {
+    const uploadFile = async (e, stage = null) => {
         const file = e.target.files[0];
         if (!file) return;
         setUploading(true);
         try {
             const data = new FormData();
             data.append('file', file);
+            if (stage) data.append('stage', stage);
             await api.post(`/projects/${id}/files`, data);
-            show('File diupload.');
+            show('Foto bukti diunggah.');
             load();
         } finally {
             setUploading(false);
@@ -597,7 +598,7 @@ export default function ProjectDetail() {
                                         <span className="font-semibold text-ink">{uploading ? 'Mengupload...' : 'Seret foto ke sini atau klik untuk unggah'}</span>
                                         <span className="text-xs text-ink-muted">Foto ini menjadi penanda waktu sesi resmi dimulai</span>
                                     </button>
-                                    <input ref={fileRef} type="file" className="hidden" onChange={uploadFile} disabled={formLocked} />
+                                    <input ref={fileRef} type="file" className="hidden" onChange={(e) => uploadFile(e, 'start')} disabled={formLocked} />
                                 </div>
                             )}
 
@@ -1023,8 +1024,7 @@ export default function ProjectDetail() {
                 </>
                 )}
 
-                {/* TIMELINE LOG */}
-                {project.status === 'archived' && (
+                {/* TIMELINE LOG — selalu tampil (admin & klien), ringkas */}
                 <div className="card p-4 sm:p-5">
                     <h3 className="mb-4 flex items-center gap-2 font-semibold text-ink"><Icon name="clock" size={16} /> Catatan Riwayat</h3>
                     <div className="relative ml-1 space-y-5 border-l-2 border-line/50 pl-4 sm:ml-2 sm:pl-5">
@@ -1033,7 +1033,7 @@ export default function ProjectDetail() {
                                 <div key={u.id} className="relative min-w-0">
                                     <span className={`absolute -left-[23px] top-1.5 h-2.5 w-2.5 rounded-full ring-4 ring-surface sm:-left-[27px] ${u.kind === 'system' ? 'bg-brand-500' : 'bg-zinc-400 dark:bg-zinc-600'}`} />
                                     <p className={`break-words text-sm ${u.kind === 'system' ? 'text-ink' : 'text-ink-muted'}`}>{u.message}</p>
-                                    <p className="mt-0.5 flex flex-wrap text-xs text-ink-muted/80">{u.kind === 'system' ? 'Sistem' : u.user?.name || 'Admin'} · {formatDate(u.created_at)}</p>
+                                    <p className="mt-0.5 flex flex-wrap text-xs text-ink-muted/80">{u.kind === 'system' ? 'Update' : u.user?.name || 'Tim'} · {formatDate(u.created_at)}</p>
                                 </div>
                             ))
                         ) : (
@@ -1041,7 +1041,6 @@ export default function ProjectDetail() {
                         )}
                     </div>
                 </div>
-                )}
             </div>
 
             {/* REREQUEST MODAL */}

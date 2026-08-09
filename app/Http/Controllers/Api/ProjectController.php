@@ -146,7 +146,7 @@ class ProjectController extends Controller
         ProjectUpdate::create([
             'project_id' => $project->id,
             'user_id' => Auth::id(),
-            'message' => 'Project "' . $project->name . '" telah dibuat.',
+            'message' => 'Pesanan "' . $project->name . '" telah dibuat.',
             'type' => 'milestone',
             'kind' => 'system',
         ]);
@@ -338,7 +338,7 @@ class ProjectController extends Controller
         ProjectUpdate::create([
             'project_id' => $project->id,
             'user_id' => Auth::id(),
-            'message' => 'Project "' . $project->name . '" diupdate ke status: ' . $newStatus,
+            'message' => 'Pesanan "' . $project->name . '" diperbarui menjadi: ' . $newStatus,
             'type' => 'update',
         ]);
 
@@ -349,7 +349,7 @@ class ProjectController extends Controller
             if ($project->user->phone) {
                 $notifications->whatsapp(
                     $project->user->phone,
-                    "Halo {$project->user->name}, status project *{$project->name}* Anda: *" . strtoupper(str_replace('_', ' ', $newStatus)) . '*',
+                    "Halo {$project->user->name}, status pesanan *{$project->name}* Anda: *" . strtoupper(str_replace('_', ' ', $newStatus)) . '*',
                     null,
                     $project->user,
                     'project.updated'
@@ -357,7 +357,7 @@ class ProjectController extends Controller
             }
             $notifications->inApp(
                 $project->user,
-                'Status project diperbarui',
+                'Status pesanan diperbarui',
                 "Project \"{$project->name}\" kini berstatus: " . strtoupper(str_replace('_', ' ', $newStatus)) . '.',
                 '/dashboard/projects/' . $project->id,
                 'project.updated'
@@ -436,6 +436,7 @@ class ProjectController extends Controller
         $request->validate([
             'file' => 'required|file|max:512000',
             'gallery_status' => 'nullable|in:preparing,preview_ready,released',
+            'stage' => 'nullable|in:start,end',
         ]);
 
         $file = $request->file('file');
@@ -468,7 +469,11 @@ class ProjectController extends Controller
         ProjectUpdate::create([
             'project_id' => $project->id,
             'user_id' => Auth::id(),
-            'message' => 'Bukti sesi "' . $originalName . '" diunggah.',
+            'message' => match ($request->input('stage')) {
+                'start' => 'Tim sudah berada di lokasi acara — lihat foto bukti.',
+                'end' => 'Sesi acara selesai — lihat foto bukti.',
+                default => 'Foto bukti sesi ditambahkan.',
+            },
             'type' => 'update',
             'kind' => 'manual',
         ]);
@@ -951,7 +956,7 @@ class ProjectController extends Controller
             return;
         }
         $label = \App\Models\Project::STATUS_LABELS[$status] ?? $status;
-        $project->addSystemUpdate('Status project menjadi: ' . $label . '.');
+        $project->addSystemUpdate('Status pesanan menjadi: ' . $label . '.');
     }
 
     private function inferCategory($file): string

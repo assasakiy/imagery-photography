@@ -158,12 +158,12 @@ class BookingApiController extends Controller
             $project->addSystemUpdate('Invoice ' . $invoice->number . ' dibuat dengan DP Rp ' . number_format((float) $data['dp_amount'], 0, ',', '.') . '.');
         }
 
-        $project->addSystemUpdate('Booking ' . $booking->booking_no . ' diterima — project dibuat.');
+        $project->addSystemUpdate('Booking ' . $booking->booking_no . ' diterima — pesanan dibuat.');
 
         ProjectUpdate::create([
             'project_id' => $project->id,
             'user_id' => Auth::id(),
-            'message' => 'Project dibuat dari booking ' . $booking->booking_no,
+            'message' => 'Pesanan dibuat dari booking ' . $booking->booking_no,
             'type' => 'milestone',
             'kind' => 'system',
         ]);

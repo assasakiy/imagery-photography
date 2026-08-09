@@ -303,7 +303,7 @@ class Project extends Model implements HasMedia
         $this->save();
 
         if ($old !== $next) {
-            $this->addSystemUpdate('Alur proyek melaju ke tahap: ' . (self::STATUS_LABELS[$next] ?? $next) . '.');
+            $this->addSystemUpdate('Alur pesanan melaju ke tahap: ' . (self::STATUS_LABELS[$next] ?? $next) . '.');
         }
 
         return true;
