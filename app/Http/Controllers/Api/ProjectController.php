@@ -248,7 +248,7 @@ class ProjectController extends Controller
         ProjectUpdate::create([
             'project_id' => $project->id,
             'user_id' => Auth::id(),
-            'message' => 'Pesanan "' . $project->name . '" telah dibuat.',
+            'message' => 'Pesanan "' . $project->name . '" telah dibuat dan dijadwalkan untuk pelaksanaan acara.',
             'type' => 'milestone',
             'kind' => 'system',
         ]);

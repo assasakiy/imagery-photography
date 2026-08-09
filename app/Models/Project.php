@@ -303,7 +303,15 @@ class Project extends Model implements HasMedia
         $this->save();
 
         if ($old !== $next) {
-            $this->addSystemUpdate('Alur pesanan melaju ke tahap: ' . (self::STATUS_LABELS[$next] ?? $next) . '.');
+            $label = self::STATUS_LABELS[$next] ?? $next;
+            $messages = [
+                'shooting' => 'Pesanan melaju ke tahap Pemotretan — tim mulai pengambilan foto/video.',
+                'editing' => 'Pesanan melaju ke tahap Editing — materi hasil pemotretan sedang diproses.',
+                'awaiting_payment' => 'Pesanan melaju ke tahap Preview Tersedia — hasil pekerjaan dapat ditinjau klien.',
+                'completed' => 'Pesanan melaju ke tahap Selesai — seluruh pekerjaan dan pembayaran selesai.',
+                'archived' => 'Pesanan melaju ke tahap Arsip — disimpan sesuai kebijakan retensi.',
+            ];
+            $this->addSystemUpdate($messages[$next] ?? 'Pesanan melaju ke tahap ' . $label . '.');
         }
 
         return true;
