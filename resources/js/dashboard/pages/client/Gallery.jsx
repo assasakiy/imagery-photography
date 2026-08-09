@@ -47,11 +47,9 @@ export default function Preview() {
                                 <div className="flex flex-col gap-3 p-4">
                                     <div className="flex items-start justify-between gap-3">
                                         <h3 className="font-bold text-ink">{p.name}</h3>
-                                        {p.event_date && (
-                                            <span className="flex shrink-0 items-center gap-1.5 text-sm text-ink-muted">
-                                                <Icon name="calendar" size={14} /> {formatLongDate(p.event_date)}
-                                            </span>
-                                        )}
+                                        <span className="flex shrink-0 items-center gap-1.5 text-sm text-ink-muted">
+                                            <Icon name="calendar" size={14} /> {p.event_date ? formatLongDate(p.event_date) : '—'}
+                                        </span>
                                     </div>
                                     <div>
                                         {p.archived ? (
