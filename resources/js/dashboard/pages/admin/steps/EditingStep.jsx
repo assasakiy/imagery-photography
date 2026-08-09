@@ -6,7 +6,7 @@ export default function EditingStep({ ctx }) {
     const {
         PanelHeader, PanelFooter, PhotoThumbImg, project, isAdmin, pastEditing,
         hasPhoto, hasVideo, photoDone, photoTotal, photoPct, videoDone, videoTotal, videoPct,
-        photoAssetCount, videoAssetCount, previewHref, editForm, setEditForm, saveEditProgress,
+        photoAssetCount, videoAssetCount, previewHref, editForm, setEditForm, saveProgressCombined,
         formLocked, saving, progressUpdates, fmtLog, editNote, setEditNote, addEditNote,
         uploadLabel, setUploadOpen, thumbFile, pickAndSaveThumb, thumbRef, uploading,
         editAllDone, editDoneTotal, editGrandTotal, openChat, advance,
@@ -45,33 +45,6 @@ export default function EditingStep({ ctx }) {
                 )}
                 {isAdmin && (
                     <>
-                        {!pastEditing && (
-                        <form onSubmit={saveEditProgress} className="mt-5 grid grid-cols-2 gap-4 border-t border-line pt-5">
-                            {hasPhoto && (
-                                <>
-                                    <Field label="Total foto">
-                                        <input className="input" type="number" min="0" value={editForm.photo_total} onChange={(e) => setEditForm({ ...editForm, photo_total: e.target.value })} placeholder="mis. 480" disabled={formLocked} />
-                                    </Field>
-                                    <Field label="Foto sudah diedit">
-                                        <input className="input" type="number" min="0" value={editForm.photo_done} onChange={(e) => setEditForm({ ...editForm, photo_done: e.target.value })} placeholder="mis. 210" disabled={formLocked} />
-                                    </Field>
-                                </>
-                            )}
-                            {hasVideo && (
-                                <>
-                                    <Field label="Total video">
-                                        <input className="input" type="number" min="0" value={editForm.video_total} onChange={(e) => setEditForm({ ...editForm, video_total: e.target.value })} placeholder="mis. 3" disabled={formLocked} />
-                                    </Field>
-                                    <Field label="Video sudah diedit">
-                                        <input className="input" type="number" min="0" value={editForm.video_done} onChange={(e) => setEditForm({ ...editForm, video_done: e.target.value })} placeholder="mis. 1" disabled={formLocked} />
-                                    </Field>
-                                </>
-                            )}
-                            <div className="col-span-2">
-                                <button className="btn-primary" disabled={formLocked || saving}>{saving ? 'Menyimpan...' : 'Simpan Progres'}</button>
-                            </div>
-                        </form>
-                        )}
                         <div className="mt-5 border-t border-line pt-5">
                             <p className="mb-3 text-sm font-semibold text-ink">Riwayat pembaruan</p>
                             <div className="space-y-3">
@@ -87,10 +60,32 @@ export default function EditingStep({ ctx }) {
                                 )}
                             </div>
                             {!pastEditing && (
-                            <div className="mt-3 flex gap-2">
-                                <input className="input" placeholder="Tulis pembaruan progres..." value={editNote} onChange={(e) => setEditNote(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addEditNote(); } }} disabled={formLocked} />
-                                <button className="btn-outline shrink-0" onClick={addEditNote} disabled={formLocked || !editNote.trim()}>Tambah</button>
-                            </div>
+                            <form onSubmit={saveProgressCombined} className="mt-5 grid grid-cols-2 gap-4 border-t border-line pt-5">
+                                {hasPhoto && (
+                                    <>
+                                        <Field label="Total foto">
+                                            <input className="input" type="number" min="0" value={editForm.photo_total} onChange={(e) => setEditForm({ ...editForm, photo_total: e.target.value })} placeholder="mis. 480" disabled={formLocked} />
+                                        </Field>
+                                        <Field label="Foto sudah diedit">
+                                            <input className="input" type="number" min="0" value={editForm.photo_done} onChange={(e) => setEditForm({ ...editForm, photo_done: e.target.value })} placeholder="mis. 210" disabled={formLocked} />
+                                        </Field>
+                                    </>
+                                )}
+                                {hasVideo && (
+                                    <>
+                                        <Field label="Total video">
+                                            <input className="input" type="number" min="0" value={editForm.video_total} onChange={(e) => setEditForm({ ...editForm, video_total: e.target.value })} placeholder="mis. 3" disabled={formLocked} />
+                                        </Field>
+                                        <Field label="Video sudah diedit">
+                                            <input className="input" type="number" min="0" value={editForm.video_done} onChange={(e) => setEditForm({ ...editForm, video_done: e.target.value })} placeholder="mis. 1" disabled={formLocked} />
+                                        </Field>
+                                    </>
+                                )}
+                                <div className="col-span-2 flex items-center gap-2">
+                                    <input className="input flex-1" placeholder="Keterangan (opsional) — mis. pesan progres..." value={editNote} onChange={(e) => setEditNote(e.target.value)} disabled={formLocked} />
+                                    <button className="btn-primary shrink-0" disabled={formLocked || saving}>{saving ? 'Menyimpan...' : 'Tambah'}</button>
+                                </div>
+                            </form>
                             )}
                         </div>
                         <div className="mt-5">

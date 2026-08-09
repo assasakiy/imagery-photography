@@ -272,6 +272,33 @@ export default function ProjectDetail() {
         load();
     };
 
+    const saveProgressCombined = async (e) => {
+        e.preventDefault();
+        setSaving(true);
+        try {
+            await api.put(`/projects/${id}`, {
+                name: project.name,
+                photo_total: Number(editForm.photo_total) || 0,
+                photo_done: Number(editForm.photo_done) || 0,
+                video_total: Number(editForm.video_total) || 0,
+                video_done: Number(editForm.video_done) || 0,
+            });
+            const parts = [];
+            if (hasPhoto) parts.push(`${Number(editForm.photo_done) || 0} dari ${Number(editForm.photo_total) || 0} foto`);
+            if (hasVideo) parts.push(`${Number(editForm.video_done) || 0} dari ${Number(editForm.video_total) || 0} video`);
+            let msg = `Proses editing: ${parts.join(', ')} telah diedit`;
+            if (editNote.trim()) msg += ` — ${editNote.trim()}`;
+            await api.post(`/projects/${id}/updates`, { message: msg + '.' });
+            setEditNote('');
+            show('Progres & pembaruan disimpan.', 'success');
+            load();
+        } catch (err) {
+            show(err.response?.data?.message || 'Gagal menyimpan.', 'error');
+        } finally {
+            setSaving(false);
+        }
+    };
+
     const uploadFile = async (e, stage = null) => {
         const file = e.target.files[0];
         if (!file) return;
@@ -468,7 +495,7 @@ const ctx = {
         isPaid, paidAt,
         fieldNote, setFieldNote, endProof, setDeleteConfirm,
         uploadFile, uploadEndProof, confirmShootingDone,
-        advance, archive, restore, saveEditProgress,
+        advance, archive, restore, saveEditProgress, saveProgressCombined,
         setUploadOpen, uploadLabel, pickAndSaveThumb, thumbFile,
         setReviewOpen, openChat,
         setShareOpen, feeMap, setFeeMap, reviewRedelivery, setRerequestOpen,
