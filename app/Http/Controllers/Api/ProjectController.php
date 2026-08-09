@@ -420,7 +420,7 @@ class ProjectController extends Controller
         }
 
         $newStatus = $data['status'] ?? $project->status;
-        $this->ensureStatusTimeline($project, $newStatus);
+        $statusChanged = $newStatus !== $project->status;
 
         $project->update($data);
 
@@ -437,12 +437,10 @@ class ProjectController extends Controller
 
         app(AuditLogger::class)->log('project.updated', 'Project diperbarui: "' . $project->name . '"', $project);
 
-        ProjectUpdate::create([
-            'project_id' => $project->id,
-            'user_id' => Auth::id(),
-            'message' => 'Pesanan "' . $project->name . '" diperbarui menjadi: ' . $newStatus,
-            'type' => 'update',
-        ]);
+        // Satu pesan timeline saja saat status berganti (hindari duplikat dgn advance).
+        if ($statusChanged) {
+            $project->addSystemUpdate(\App\Models\Project::transitionMessage($newStatus));
+        }
 
         $notifications = app(NotificationService::class);
         $notifications->webhook('project.updated', ['project_id' => $project->id, 'status' => $newStatus]);
@@ -479,7 +477,9 @@ class ProjectController extends Controller
 
         app(AuditLogger::class)->log('project.status_changed', 'Status project "' . $project->name . '" menjadi ' . $request->status, $project);
 
-        $this->ensureStatusTimeline($project, $request->status, $old);
+        if ($request->status !== $old) {
+            $project->addSystemUpdate(\App\Models\Project::transitionMessage($request->status));
+        }
 
         app(NotificationService::class)->webhook('project.status_changed', [
             'project_id' => $project->id,
@@ -1052,15 +1052,6 @@ class ProjectController extends Controller
     }
 
     /** Catatan timeline system saat status berubah (tanpa duplikat utk status sama). */
-    private function ensureStatusTimeline(Project $project, string $status, ?string $old = null): void
-    {
-        if ($old === $status) {
-            return;
-        }
-        $label = \App\Models\Project::STATUS_LABELS[$status] ?? $status;
-        $project->addSystemUpdate('Status pesanan menjadi: ' . $label . '.');
-    }
-
     private function inferCategory($file): string
     {
         $mime = $file->getMimeType() ?? '';
