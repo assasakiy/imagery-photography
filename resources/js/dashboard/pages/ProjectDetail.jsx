@@ -808,12 +808,37 @@ export default function ProjectDetail() {
                                         )}
                                     </div>
                                     <div className="mt-5 border-t border-line pt-5">
-                                        <p className="mb-2 text-sm font-semibold text-ink">Unggah file final</p>
-                                        <p className="mb-3 text-xs text-ink-muted">File final = aset klien, tampil di halaman <Link to={previewHref} className="text-brand-600 underline">Preview</Link>. Buka popup untuk unggah foto/video.</p>
+                                        <p className="mb-2 text-sm font-semibold text-ink">Unggah File Final</p>
+                                        <p className="mb-3 text-xs text-ink-muted">File final = aset klien, tampil di halaman <Link to={previewHref} className="text-brand-600 underline">Preview</Link>.</p>
                                         {!pastEditing && (
-                                            <button type="button" className="btn-primary w-full" onClick={() => setUploadOpen(true)} disabled={formLocked}>
-                                                <Icon name="upload" size={16} /> {uploadLabel}
-                                            </button>
+                                            <div className="grid gap-3 sm:grid-cols-2">
+                                                <button type="button" className="btn-primary flex min-h-[130px] w-full flex-col items-center justify-center gap-2" onClick={() => setUploadOpen(true)} disabled={formLocked || uploading}>
+                                                    <Icon name="upload" size={26} />
+                                                    <span>{uploadLabel}</span>
+                                                    <span className="text-xs font-normal opacity-70">Popup utk unggah foto/video hasil edit</span>
+                                                </button>
+                                                <div className="rounded-xl border border-dashed border-line bg-surface-muted/30 p-3">
+                                                    <p className="text-sm font-semibold text-ink">Thumbnail Card</p>
+                                                    <p className="mt-0.5 text-xs text-ink-muted">Tampil di card Preview · permanen.</p>
+                                                    <div className="mt-2 flex items-center gap-3">
+                                                        <div className="relative h-16 w-20 shrink-0 overflow-hidden rounded-lg border border-line bg-surface-strong">
+                                                            {thumbFile ? (
+                                                                <PhotoThumbImg file={thumbFile} alt="Thumbnail" className="h-full w-full object-cover" />
+                                                            ) : project.thumb_url ? (
+                                                                <img src={project.thumb_url} alt="Thumbnail" className="h-full w-full object-cover" />
+                                                            ) : (
+                                                                <div className="flex h-full w-full items-center justify-center text-center text-[10px] text-ink-muted">Belum ada</div>
+                                                            )}
+                                                        </div>
+                                                        <div className="flex flex-col gap-1">
+                                                            <button type="button" className="btn-outline" onClick={() => thumbRef.current?.click()} disabled={formLocked || uploading}>Pilih Gambar</button>
+                                                            <button type="button" className="btn-primary" onClick={saveThumbnail} disabled={formLocked || uploading || !thumbFile}>Simpan</button>
+                                                            <input ref={thumbRef} type="file" accept="image/*" className="hidden" onChange={(e) => { setThumbFile(e.target.files[0]); e.target.value = ''; }} disabled={uploading} />
+                                                        </div>
+                                                    </div>
+                                                    {thumbFile && <p className="mt-2 truncate text-xs text-ink-muted">Baru: {thumbFile.name}</p>}
+                                                </div>
+                                            </div>
                                         )}
                                     </div>
                                 </>
@@ -1072,28 +1097,6 @@ export default function ProjectDetail() {
                 }
             >
                 <div className="space-y-5">
-                    {/* THUMBNAIL CARD — kategori terpisah & permanen */}
-                    <div className="rounded-xl border border-line p-4">
-                        <p className="text-sm font-semibold text-ink">Thumbnail Card</p>
-                        <p className="mt-0.5 text-xs text-ink-muted">Permanent, tampil di halaman Preview. Otomatis dari foto pertama; boleh ganti dari foto yg diklik atau gambar baru.</p>
-                        <div className="mt-3 flex items-center gap-3">
-                            <div className="relative h-20 w-24 shrink-0 overflow-hidden rounded-lg border border-line bg-surface-strong">
-                                {thumbFile ? (
-                                    <PhotoThumbImg file={thumbFile} alt="Thumbnail" className="h-full w-full object-cover" />
-                                ) : project.thumb_url ? (
-                                    <img src={project.thumb_url} alt="Thumbnail" className="h-full w-full object-cover" />
-                                ) : (
-                                    <div className="flex h-full w-full items-center justify-center text-center text-[10px] text-ink-muted">Belum ada</div>
-                                )}
-                            </div>
-                            <div className="flex flex-col gap-2">
-                                <button type="button" className="btn-outline" onClick={() => thumbRef.current?.click()} disabled={uploading}>Pilih Gambar</button>
-                                <button type="button" className="btn-primary" onClick={saveThumbnail} disabled={uploading || !thumbFile}>Simpan</button>
-                            </div>
-                            <input ref={thumbRef} type="file" accept="image/*" className="hidden" onChange={(e) => { setThumbFile(e.target.files[0]); e.target.value = ''; }} disabled={uploading} />
-                        </div>
-                        {thumbFile && <p className="mt-2 break-words text-xs text-ink-muted">Thumbnail baru: {thumbFile.name}</p>}
-                    </div>
                     {hasPhoto && (
                         <div>
                             <p className="text-sm font-semibold text-ink">Foto (bisa banyak)</p>
