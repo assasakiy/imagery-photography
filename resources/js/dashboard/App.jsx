@@ -97,18 +97,6 @@ import OrderDetail from './pages/client/OrderDetail';
 
 const STAFF_ROLES = ['admin', 'owner'];
 
-function ProjectsRoute() {
-    const { user, loading } = useAuth();
-    if (loading) return <Spinner />;
-    return STAFF_ROLES.includes(user?.role) ? <Projects /> : <Orders />;
-}
-
-function ProjectDetailRoute() {
-    const { user, loading } = useAuth();
-    if (loading) return <Spinner />;
-    return STAFF_ROLES.includes(user?.role) ? <ProjectDetail /> : <OrderDetail />;
-}
-
 function Protected({ children, adminOnly = false, ownerOnly = false, notStaffCase = false }) {
     const { user, loading } = useAuth();
     const location = useLocation();
@@ -150,8 +138,10 @@ function AppRoutes() {
                 <Route path="services" element={<Protected adminOnly><Services /></Protected>} />
                 <Route path="clients" element={<Protected adminOnly><Clients /></Protected>} />
                 <Route path="bookings" element={<Protected adminOnly><Bookings /></Protected>} />
-                <Route path="projects" element={<ProjectsRoute />} />
-                <Route path="projects/:id" element={<ProjectDetailRoute />} />
+                <Route path="projects" element={<Protected adminOnly><Projects /></Protected>} />
+                <Route path="projects/:id" element={<Protected adminOnly><ProjectDetail /></Protected>} />
+                <Route path="pesanan" element={<Protected notStaffCase><Orders /></Protected>} />
+                <Route path="pesanan/:id" element={<Protected notStaffCase><OrderDetail /></Protected>} />
                 <Route path="invoices" element={<Protected adminOnly><Invoices /></Protected>} />
                 <Route path="client-bookings" element={<Protected notStaffCase><ClientBookings /></Protected>} />
                 <Route path="client-invoices" element={<Protected notStaffCase><ClientInvoices /></Protected>} />

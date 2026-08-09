@@ -476,7 +476,7 @@ const ctx = {
 
     return (
         <>
-            <Link to="/dashboard/projects" className="mb-4 inline-flex items-center gap-1.5 text-sm font-medium text-ink-muted hover:text-brand-600">
+            <Link to="/dashboard/pesanan" className="mb-4 inline-flex items-center gap-1.5 text-sm font-medium text-ink-muted hover:text-brand-600">
                 <Icon name="arrow-left" size={16} /> Kembali
             </Link>
 
@@ -586,8 +586,8 @@ const ctx = {
                 <div className="card p-4 sm:p-5">
                     <h3 className="mb-4 flex items-center gap-2 font-semibold text-ink"><Icon name="clock" size={16} /> Catatan Riwayat</h3>
                     <div className="relative ml-1 space-y-5 border-l-2 border-line/50 pl-4 sm:ml-2 sm:pl-5">
-                        {project.updates?.length ? (
-                            project.updates.map((u) => (
+                        {(project.updates || []).slice().sort((a, b) => new Date(a.created_at) - new Date(b.created_at)).length ? (
+                            project.updates.slice().sort((a, b) => new Date(a.created_at) - new Date(b.created_at)).map((u) => (
                                 <div key={u.id} className="relative min-w-0">
                                     <span className={`absolute -left-[23px] top-1.5 h-2.5 w-2.5 rounded-full ring-4 ring-surface sm:-left-[27px] ${u.kind === 'system' ? 'bg-brand-500' : 'bg-zinc-400 dark:bg-zinc-600'}`} />
                                     <p className={`break-words text-sm ${u.kind === 'system' ? 'text-ink' : 'text-ink-muted'}`}>{u.message}</p>

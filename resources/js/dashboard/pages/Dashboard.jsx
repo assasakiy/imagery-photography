@@ -49,14 +49,14 @@ export default function Dashboard() {
                     <div className="card overflow-hidden">
                         <div className="flex items-center justify-between border-b border-line px-5 py-4">
                             <h2 className="font-bold text-ink">Proyek Terbaru</h2>
-                            <Link to="/dashboard/projects" className="text-sm font-medium text-brand-600 hover:underline dark:text-brand-400">
+                            <Link to={isAdmin ? '/dashboard/projects' : '/dashboard/pesanan'} className="text-sm font-medium text-brand-600 hover:underline dark:text-brand-400">
                                 Lihat semua
                             </Link>
                         </div>
                         <div className="divide-y divide-line">
                             {stats.recent_projects?.length ? (
                                 stats.recent_projects.map((p) => (
-                                    <Link key={p.id} to={`/dashboard/projects/${p.id}`} className="flex items-center justify-between px-5 py-3 hover:bg-surface-muted">
+                                    <Link key={p.id} to={isAdmin ? `/dashboard/projects/${p.id}` : `/dashboard/pesanan/${p.id}`} className="flex items-center justify-between px-5 py-3 hover:bg-surface-muted">
                                         <div className="min-w-0">
                                             <p className="truncate text-sm font-semibold text-ink">{p.name}</p>
                                             <p className="text-xs text-ink-muted">{p.user?.name || '—'}</p>
@@ -123,14 +123,14 @@ export default function Dashboard() {
             <div className="card mt-6 overflow-hidden">
                 <div className="flex items-center justify-between border-b border-line px-5 py-4">
                     <h2 className="font-bold text-ink">Pesanan Saya</h2>
-                    <Link to="/dashboard/projects" className="text-sm font-medium text-brand-600 hover:underline dark:text-brand-400">
+                    <Link to={isAdmin ? '/dashboard/projects' : '/dashboard/pesanan'} className="text-sm font-medium text-brand-600 hover:underline dark:text-brand-400">
                         Lihat semua
                     </Link>
                 </div>
                 <div className="divide-y divide-line">
                     {stats.recent_projects?.length ? (
                         stats.recent_projects.map((p) => (
-                            <Link key={p.id} to={`/dashboard/projects/${p.id}`} className="flex items-center justify-between px-5 py-3 hover:bg-surface-muted">
+                            <Link key={p.id} to={isAdmin ? `/dashboard/projects/${p.id}` : `/dashboard/pesanan/${p.id}`} className="flex items-center justify-between px-5 py-3 hover:bg-surface-muted">
                                 <p className="text-sm font-semibold text-ink">{p.name}</p>
                                 <StatusBadge status={p.status} />
                             </Link>

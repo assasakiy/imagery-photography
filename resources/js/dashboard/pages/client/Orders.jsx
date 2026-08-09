@@ -35,32 +35,26 @@ export default function Orders() {
             <PageHeader title="Pesanan" subtitle="Pantau progress dan file pesanan Anda." />
 
             {items.length ? (
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                    {items.map((p) => (
-                        <Link key={p.id} to={`/dashboard/projects/${p.order_no || p.id}`} className="card group overflow-hidden transition-all hover:-translate-y-1 hover:shadow-xl">
-                            <div className="relative aspect-[4/3] overflow-hidden bg-surface-muted">
-                                {p.thumb_url ? (
-                                    <img src={p.thumb_url} alt={p.name} loading="lazy" className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
-                                ) : (
-                                    <div className="h-full w-full bg-gradient-to-br from-brand-500/70 via-brand-600/70 to-brand-800/70" />
-                                )}
-                                <span className="absolute left-3 top-3 rounded-lg bg-black/55 px-2 py-0.5 font-mono text-xs font-bold text-white backdrop-blur-sm">PSN-{p.order_no}</span>
-                                <span className="absolute right-3 top-3 rounded-lg bg-black/55 px-2 py-0.5 text-xs font-semibold text-white backdrop-blur-sm">{p.is_paid ? 'Lunas' : 'Menunggu Bayar'}</span>
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+                    {items.map((item) => (
+                        <Link key={item.id} to={`/dashboard/pesanan/${item.id}`} className="card group p-5">
+                            <div className="flex items-start justify-between gap-2">
+                                <h3 className="font-bold text-ink group-hover:text-brand-600 dark:group-hover:text-brand-400">
+                                    {item.name}
+                                </h3>
+                                <StatusBadge value={item.status} />
                             </div>
-                            <div className="flex flex-col gap-2 p-4">
-                                <div className="flex items-start justify-between gap-3">
-                                    <h3 className="font-bold text-ink">{p.name}</h3>
-                                    {p.event_date && (
-                                        <span className="flex shrink-0 items-center gap-1.5 text-sm text-ink-muted">
-                                            <Icon name="calendar" size={14} /> {formatDate(p.event_date)}
-                                        </span>
-                                    )}
-                                </div>
-                                <div className="flex flex-wrap items-center gap-2">
-                                    <span className="badge bg-emerald-500/15 text-emerald-600">{p.status_label}</span>
-                                    {p.archived && <span className="badge bg-zinc-500/15 text-zinc-600">Diarsipkan</span>}
-                                </div>
-                                <p className="mt-auto text-sm text-ink-muted">{formatRupiah(p.price)}</p>
+                            <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-ink-muted">
+                                <span className="flex items-center gap-1.5 font-mono">
+                                    PSN-{item.order_no}
+                                </span>
+                                <span className="flex items-center gap-1.5">
+                                    <Icon name="calendar" size={14} />
+                                    {item.event_date ? formatDate(item.event_date) : 'Segera'}
+                                </span>
+                                {item.price !== null && item.price !== undefined && (
+                                    <span className="font-semibold text-ink">{formatRupiah(item.price)}</span>
+                                )}
                             </div>
                         </Link>
                     ))}
