@@ -5,6 +5,13 @@ import Icon from '../../components/Icon';
 import { useAuth } from '../../context/AuthContext';
 import { Spinner, Field, useToast, formatRupiah, formatDate, Modal, EmptyState, Confirm } from '../../components/ui';
 import { StatusBadge } from './List';
+import ScheduledStep from './steps/ScheduledStep';
+import ShootingStep from './steps/ShootingStep';
+import EditingStep from './steps/EditingStep';
+import AwaitingPaymentStep from './steps/AwaitingPaymentStep';
+import CompletedStep from './steps/CompletedStep';
+import ArchivedStep from './steps/ArchivedStep';
+
 
 const STEPS = [
     { key: 'scheduled', label: 'Dijadwalkan', icon: 'calendar' },
@@ -16,6 +23,27 @@ const STEPS = [
 ];
 
 function Stars({ value, onChange }) {
+const ctx = {
+        PanelHeader, PanelFooter, PhotoThumbImg,
+        project, isAdmin, formLocked,
+        pastScheduled, pastShooting, pastEditing,
+        proofStartUploaded, proofEndUploaded, recordStart, recordEnd,
+        uploading, saving, fileRef, thumbRef,
+        editForm, setEditForm, editNote, setEditNote, addEditNote,
+        progressUpdates, fmtLog,
+        hasPhoto, hasVideo, photoDone, photoTotal, photoPct, videoDone, videoTotal, videoPct,
+        editAllDone, editDoneTotal, editGrandTotal,
+        photoAssetCount, videoAssetCount,
+        previewHref, previewLink, copyPreviewLink,
+        isPaid, paidAt,
+        fieldNote, setFieldNote, endProof, setDeleteConfirm,
+        uploadFile, uploadEndProof, confirmShootingDone,
+        advance, archive, restore, saveEditProgress,
+        setUploadOpen, uploadLabel, pickAndSaveThumb, thumbFile,
+        setReviewOpen, openChat,
+        setShareOpen, feeMap, setFeeMap, reviewRedelivery, setRerequestOpen,
+    };
+
     return (
         <div className="flex gap-2">
             {[1, 2, 3, 4, 5].map((n) => (
@@ -544,487 +572,17 @@ export default function ProjectDetail() {
                         <p className="mt-1 text-sm text-ink-muted">Tahap ini belum dimulai untuk pesanan Anda. Pantau terus perkembangannya di sini.</p>
                     </div>
                 ) : (
-                <>
-                {/* SCHEDULED */}
-                {activeKey === 'scheduled' && (
-                    <div className="card overflow-hidden">
-                        <PanelHeader
-                            icon="calendar"
-                            iconCls="bg-amber-500/15 text-amber-600 dark:text-amber-400"
-                            title="Detail Proyek"
-                            subtitle={isAdmin ? "Data ini diisi saat proyek dibuat. Status berpindah ke Pemotretan setelah fotografer mengunggah bukti mulai sesi." : "Detail pesanan Anda. Status berpindah ke Pemotretan setelah sesi acara dimulai."}
-                        />
-                        <div className="p-5">
-                            <div className="grid grid-cols-2 gap-4">
-                                <div><p className="text-xs text-ink-muted">No. Pesanan</p><p className="font-mono text-sm font-semibold text-ink">{project.order_no ? `PSN-${project.order_no}` : '-'}</p></div>
-                                <div><p className="text-xs text-ink-muted">Paket</p><p className="text-sm font-semibold text-ink">{project.package ? project.package.name : (project.pricing_snapshot?.package || 'Layanan Satuan / Kustom')}</p></div>
-                                <div><p className="text-xs text-ink-muted">Tanggal Acara</p><p className="text-sm font-semibold text-ink">{project.event_start ? formatDate(project.event_start) : (project.event_date ? formatDate(project.event_date) : '-')}</p></div>
-                                <div><p className="text-xs text-ink-muted">Waktu Acara</p>
-                                    <p className="text-sm font-semibold text-ink">
-                                        {project.event_start ? project.event_start.slice(11, 16) : '-'} 
-                                        {project.event_end ? ` - ${project.event_end.slice(11, 16)}` : ''}
-                                        {!project.event_start && !project.event_end ? '-' : ''}
-                                    </p>
-                                </div>
-                                <div><p className="text-xs text-ink-muted">Lokasi</p><p className="text-sm font-semibold text-ink">{project.location || '-'}</p></div>
-                                <div><p className="text-xs text-ink-muted">Harga</p><p className="text-sm font-semibold text-ink">{project.price ? formatRupiah(project.price) : '-'}</p></div>
-                                <div><p className="text-xs text-ink-muted">Dibuat</p><p className="text-sm font-semibold text-ink">{formatDate(project.created_at)}</p></div>
-                                <div><p className="text-xs text-ink-muted">Klien</p>
-                                    <p className="text-sm font-semibold text-ink">
-                                        {project.user?.username ? `@${project.user.username}` : (project.user?.name || '-')}
-                                    </p>
-                                </div>
-                                <div className="col-span-2">
-                                    <p className="text-xs text-ink-muted">Catatan</p>
-                                    <p className="mt-0.5 whitespace-pre-line text-sm font-semibold text-ink">{project.description || '-'}</p>
-                                </div>
-                            </div>
-
-                            {isAdmin && project.event_start && new Date(project.event_start) < new Date() && (
-                                <div className="mt-4 flex items-start gap-3 rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-amber-700 dark:text-amber-400">
-                                    <Icon name="calendar" size={20} className="shrink-0 text-amber-600" />
-                                    <div className="text-sm">
-                                        <p className="font-bold">Acara sudah lewat jadwal mulainya.</p>
-                                        <p className="opacity-90">Ingatkan fotografer untuk mengunggah bukti mulai sesi.</p>
-                                    </div>
-                                </div>
-                            )}
-
-                            {isAdmin && !pastScheduled && !proofStartUploaded && (
-                                <div className="mt-6 border-t border-line pt-4">
-                                    <p className="mb-2 text-sm font-semibold text-ink">Unggah bukti mulai sesi</p>
-                                    <button className="btn-outline flex w-full flex-col items-center justify-center gap-1 border-dashed py-6 text-center hover:bg-surface-muted/50" onClick={() => fileRef.current?.click()} disabled={formLocked || uploading}>
-                                        <Icon name="camera" size={24} className="mb-1 text-ink-muted" />
-                                        <span className="font-semibold text-ink">{uploading ? 'Mengupload...' : 'Seret foto ke sini atau klik untuk unggah'}</span>
-                                        <span className="text-xs text-ink-muted">Foto ini menjadi penanda waktu sesi resmi dimulai</span>
-                                    </button>
-                                    <input ref={fileRef} type="file" className="hidden" onChange={(e) => uploadFile(e, 'start')} disabled={formLocked} />
-                                </div>
-                            )}
-
-                            {isAdmin && proofStartUploaded && (
-                                <div className="mt-6 flex items-center gap-3 rounded-xl border border-line bg-surface-muted/30 p-3">
-                                    <div className="h-20 w-20 shrink-0 overflow-hidden rounded-lg bg-surface-strong">
-                                        <img src={recordStart.url} alt="Bukti mulai sesi" className="h-full w-full object-cover" />
-                                    </div>
-                                    <div className="min-w-0">
-                                        <p className="font-semibold text-ink">Bukti mulai sesi</p>
-                                        <p className="font-mono text-xs text-ink-muted">Diunggah {formatDate(recordStart.created_at)}</p>
-                                    </div>
-                                    {!pastScheduled && (
-                                        <button className="ml-auto rounded-lg bg-red-500/10 p-2 text-red-600 transition-colors hover:bg-red-500" onClick={() => setDeleteConfirm(recordStart)} title="Hapus bukti">
-                                            <Icon name="trash" size={16} />
-                                        </button>
-                                    )}
-                                </div>
-                            )}
-                        </div>
-                        {isAdmin && !pastScheduled && (
-                            <PanelFooter>
-                                <button className="btn-outline mr-auto" onClick={openChat}><Icon name="message-circle" size={16} /> Kirim Pesan</button>
-                                <button className="btn-primary" onClick={advance} disabled={formLocked || saving}>
-                                    Konfirmasi
-                                </button>
-                            </PanelFooter>
-                        )}
-                    </div>
-                )}
-
-                {/* SHOOTING */}
-                {activeKey === 'shooting' && (
-                    <div className="card overflow-hidden">
-                        <PanelHeader
-                            icon="camera"
-                            iconCls="bg-sky-500/15 text-sky-600 dark:text-sky-400"
-                            title="Sesi Berlangsung"
-                            subtitle={isAdmin ? "Bukti mulai sudah tercatat. Unggah bukti selesai lalu konfirmasi untuk memindahkan proyek ke tahap Editing." : "Sesi pemotretan sedang berlangsung — bukti mulai sesi sudah tercatat."}
-                        />
-                        <div className="p-5">
-                            {!proofStartUploaded && !proofEndUploaded && (
-                                <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-line bg-surface-muted/30 p-8 text-center">
-                                    <Icon name="camera" size={24} className="text-ink-muted" />
-                                    {pastShooting ? (
-                                        <>
-                                            <p className="text-sm font-semibold text-ink">Sesi telah selesai</p>
-                                            <p className="text-xs text-ink-muted">Sesi telah selesai dan tidak ada file yang diunggah sebagai bukti.</p>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <p className="text-sm font-medium text-ink">Belum ada bukti tersedia</p>
-                                            <p className="text-xs text-ink-muted">Bukti mulai/selesai sesi akan tampil di sini setelah diunggah.</p>
-                                        </>
-                                    )}
-                                </div>
-                            )}
-                            {proofStartUploaded && (
-                                <div className="flex items-center gap-3 rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-3">
-                                    <div className="h-20 w-20 shrink-0 overflow-hidden rounded-lg bg-surface-strong">
-                                        <img src={recordStart.url} alt="" className="h-full w-full object-cover" />
-                                    </div>
-                                    <div className="min-w-0">
-                                        <p className="font-semibold text-ink">Bukti mulai sesi</p>
-                                        <p className="font-mono text-xs text-ink-muted">Diunggah {formatDate(recordStart.created_at)}</p>
-                                    </div>
-                                    {isAdmin && !pastShooting && (
-                                        <button className="ml-auto rounded-lg bg-red-500/10 p-2 text-red-600 transition-colors hover:bg-red-500" onClick={() => setDeleteConfirm(recordStart)} title="Hapus bukti">
-                                            <Icon name="trash" size={16} />
-                                        </button>
-                                    )}
-                                </div>
-                            )}
-
-                            {isAdmin && !pastShooting && !proofEndUploaded && (
-                                <div className="mt-5">
-                                    <div className="border-t border-line pt-5">
-                                        <p className="mb-2 text-sm font-semibold text-ink">Unggah bukti selesai sesi</p>
-                                        <button className="btn-outline flex w-full flex-col items-center justify-center gap-1 border-dashed py-6 text-center hover:bg-surface-muted/50" onClick={() => fileRef.current?.click()} disabled={formLocked || uploading}>
-                                            <Icon name="camera" size={24} className="mb-1 text-ink-muted" />
-                                            <span className="font-semibold text-ink">{uploading ? 'Mengupload...' : 'Seret 1 foto ke sini atau klik untuk unggah'}</span>
-                                            <span className="text-xs text-ink-muted">Foto ini menjadi penanda waktu sesi resmi selesai</span>
-                                        </button>
-                                        <input ref={fileRef} type="file" className="hidden" onChange={uploadEndProof} disabled={formLocked} />
-                                    </div>
-
-                                    <div className="mt-4">
-                                        <Field label="Catatan dari lapangan" hint="opsional">
-                                            <textarea className="input" placeholder="Contoh: cuaca cerah, sesi selesai lebih cepat dari jadwal..." rows="2" value={fieldNote} onChange={(e) => setFieldNote(e.target.value)} disabled={formLocked} />
-                                        </Field>
-                                    </div>
-                                </div>
-                            )}
-
-                            {proofEndUploaded && (
-                                <div className="mt-5 flex items-center gap-3 rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-3">
-                                    <div className="h-20 w-20 shrink-0 overflow-hidden rounded-lg bg-surface-strong">
-                                        <img src={recordEnd.url} alt="" className="h-full w-full object-cover" />
-                                    </div>
-                                    <div className="min-w-0">
-                                        <p className="font-semibold text-ink">Bukti selesai sesi</p>
-                                        <p className="font-mono text-xs text-ink-muted">Diunggah {formatDate(recordEnd.created_at)}</p>
-                                    </div>
-                                    {isAdmin && !pastShooting && (
-                                        <button className="ml-auto rounded-lg bg-red-500/10 p-2 text-red-600 transition-colors hover:bg-red-500" onClick={() => setDeleteConfirm(recordEnd)} title="Hapus bukti">
-                                            <Icon name="trash" size={16} />
-                                        </button>
-                                    )}
-                                </div>
-                            )}
-                        </div>
-                        {isAdmin && !pastShooting && (
-                            <PanelFooter>
-                                <button className="btn-outline mr-auto" onClick={openChat}><Icon name="message-circle" size={16} /> Kirim Pesan</button>
-                                <button className="btn-primary" onClick={confirmShootingDone} disabled={formLocked || saving || (!endProof && !proofEndUploaded)}>
-                                    Konfirmasi
-                                </button>
-                            </PanelFooter>
-                        )}
-                    </div>
-                )}
-
-                {/* EDITING */}
-                {activeKey === 'editing' && (
-                    <div className="card overflow-hidden">
-                        <PanelHeader
-                            icon="edit"
-                            iconCls="bg-indigo-500/15 text-indigo-600 dark:text-indigo-400"
-                            title="Progres Editing"
-                            subtitle={isAdmin ? "Perbarui jumlah media dan progres yang sudah diedit secara berkala. Klien dapat melihat ringkasan progres ini." : "Tim sedang mengedit file media pesanan Anda — pantau progresnya di sini."}
-                        />
-                        <div className="p-5">
-                            {hasPhoto && (
-                                <div className="mb-4">
-                                    <div className="mb-1 flex items-center justify-between">
-                                        <span className="text-sm font-medium text-ink">Foto diedit</span>
-                                        <span className="font-mono text-sm font-semibold text-ink">{photoDone} / {photoTotal}</span>
-                                    </div>
-                                    <div className="h-2 w-full overflow-hidden rounded-full bg-surface-strong">
-                                        <div className="h-full rounded-full bg-indigo-500 transition-all" style={{ width: `${photoPct}%` }} />
-                                    </div>
-                                </div>
-                            )}
-                            {hasVideo && (
-                                <div className="mb-4">
-                                    <div className="mb-1 flex items-center justify-between">
-                                        <span className="text-sm font-medium text-ink">Video diedit</span>
-                                        <span className="font-mono text-sm font-semibold text-ink">{videoDone} / {videoTotal}</span>
-                                    </div>
-                                    <div className="h-2 w-full overflow-hidden rounded-full bg-surface-strong">
-                                        <div className="h-full rounded-full bg-indigo-500 transition-all" style={{ width: `${videoPct}%` }} />
-                                    </div>
-                                </div>
-                            )}
-                            {isAdmin && (
-                                <div className="mt-4 flex flex-wrap items-center gap-2 rounded-xl border border-line bg-surface-muted/30 px-4 py-3 text-sm">
-                                    <Icon name="images" size={16} className="text-ink-muted" />
-                                    <span className="font-medium text-ink">{photoAssetCount} foto · {videoAssetCount} video diupload</span>
-                                    <span className="text-xs text-ink-muted">— kelola di halaman <Link to={previewHref} className="text-brand-600 underline">Preview</Link></span>
-                                </div>
-                            )}
-                            {isAdmin && (
-                                <>
-                                    {!pastEditing && (
-                                    <form onSubmit={saveEditProgress} className="mt-5 grid grid-cols-2 gap-4 border-t border-line pt-5">
-                                        {hasPhoto && (
-                                            <>
-                                                <Field label="Total foto">
-                                                    <input className="input" type="number" min="0" value={editForm.photo_total} onChange={(e) => setEditForm({ ...editForm, photo_total: e.target.value })} placeholder="mis. 480" disabled={formLocked} />
-                                                </Field>
-                                                <Field label="Foto sudah diedit">
-                                                    <input className="input" type="number" min="0" value={editForm.photo_done} onChange={(e) => setEditForm({ ...editForm, photo_done: e.target.value })} placeholder="mis. 210" disabled={formLocked} />
-                                                </Field>
-                                            </>
-                                        )}
-                                        {hasVideo && (
-                                            <>
-                                                <Field label="Total video">
-                                                    <input className="input" type="number" min="0" value={editForm.video_total} onChange={(e) => setEditForm({ ...editForm, video_total: e.target.value })} placeholder="mis. 3" disabled={formLocked} />
-                                                </Field>
-                                                <Field label="Video sudah diedit">
-                                                    <input className="input" type="number" min="0" value={editForm.video_done} onChange={(e) => setEditForm({ ...editForm, video_done: e.target.value })} placeholder="mis. 1" disabled={formLocked} />
-                                                </Field>
-                                            </>
-                                        )}
-                                        <div className="col-span-2">
-                                            <button className="btn-primary" disabled={formLocked || saving}>{saving ? 'Menyimpan...' : 'Simpan Progres'}</button>
-                                        </div>
-                                    </form>
-                                    )}
-                                    <div className="mt-5 border-t border-line pt-5">
-                                        <p className="mb-3 text-sm font-semibold text-ink">Riwayat pembaruan</p>
-                                        <div className="space-y-3">
-                                            {progressUpdates.length ? (
-                                                progressUpdates.map((u) => (
-                                                    <div key={u.id} className="flex items-baseline gap-3">
-                                                        <span className="shrink-0 font-mono text-xs text-ink-muted">{fmtLog(u.created_at)}</span>
-                                                        <span className="text-sm text-ink-muted">{u.message.replace(/^Proses editing:\s*/, '')}</span>
-                                                    </div>
-                                                ))
-                                            ) : (
-                                                <p className="text-sm text-ink-muted">Belum ada pembaruan tercatat.</p>
-                                            )}
-                                        </div>
-                                        {!pastEditing && (
-                                        <div className="mt-3 flex gap-2">
-                                            <input className="input" placeholder="Tulis pembaruan progres..." value={editNote} onChange={(e) => setEditNote(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addEditNote(); } }} disabled={formLocked} />
-                                            <button className="btn-outline shrink-0" onClick={addEditNote} disabled={formLocked || !editNote.trim()}>Tambah</button>
-                                        </div>
-                                        )}
-                                    </div>
-                                    <div className="mt-5">
-                                        <p className="mb-0.5 text-sm font-semibold text-ink">Unggah File Final</p>
-                                        <p className="mb-3 text-xs text-ink-muted">File final = aset klien, tampil di halaman <Link to={previewHref} className="text-brand-600 underline">Preview</Link>.</p>
-                                        {!pastEditing && (
-                                            <div className="overflow-hidden rounded-xl border border-line">
-                                                <button type="button" onClick={() => setUploadOpen(true)} disabled={formLocked || uploading} className="flex w-full items-center gap-3 border-b border-line px-4 py-3 text-left hover:bg-surface-muted/40 disabled:opacity-50">
-                                                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-brand-500/15 text-brand-600 dark:text-brand-400">
-                                                        <Icon name="upload" size={18} />
-                                                    </span>
-                                                    <span className="min-w-0 flex-1">
-                                                        <span className="block text-sm font-semibold text-ink">{uploadLabel}</span>
-                                                        <span className="block text-xs text-ink-muted">Buka popup untuk pilih file hasil edit</span>
-                                                    </span>
-                                                    <Icon name="arrow-right" size={16} className="shrink-0 text-ink-muted" />
-                                                </button>
-                                                <div className="flex items-center gap-3 px-4 py-3">
-                                                    <span className="flex h-12 w-16 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-line bg-surface-strong">
-                                                        {thumbFile ? (
-                                                            <PhotoThumbImg file={thumbFile} alt="Thumbnail" className="h-full w-full object-cover" />
-                                                        ) : project.thumb_url ? (
-                                                            <img src={project.thumb_url} alt="Thumbnail" className="h-full w-full object-cover" />
-                                                        ) : (
-                                                            <span className="px-1 text-center text-[10px] text-ink-muted">Belum ada</span>
-                                                        )}
-                                                    </span>
-                                                    <span className="min-w-0 flex-1">
-                                                        <span className="block text-sm font-semibold text-ink">Thumbnail Card</span>
-                                                        <span className="block truncate text-xs text-ink-muted">{thumbFile ? `Baru: ${thumbFile.name}` : 'Tampil permanen di card Preview klien'}</span>
-                                                    </span>
-                                                    <button type="button" className="btn-outline shrink-0 !px-3 !py-1 text-xs" onClick={() => thumbRef.current?.click()} disabled={formLocked || uploading}>Ganti</button>
-                                                    <input ref={thumbRef} type="file" accept="image/*" className="hidden" onChange={pickAndSaveThumb} disabled={uploading} />
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
-                                </>
-                            )}
-                        </div>
-                        {isAdmin && !pastEditing && (
-                            <PanelFooter>
-                                <button className="btn-outline mr-auto" onClick={openChat}><Icon name="message-circle" size={16} /> Kirim Pesan</button>
-                                <button className="btn-primary" onClick={advance} disabled={formLocked || saving || !editAllDone}>
-                                    Konfirmasi
-                                </button>
-                            </PanelFooter>
-                        )}
-                        {isAdmin && !editAllDone && !pastEditing && (
-                            <div className="border-t border-line bg-surface-muted/50 px-5 py-3">
-                                <p className="text-xs text-ink-muted">
-                                    {editGrandTotal > 0
-                                        ? `Aktif setelah seluruh media ditandai selesai diedit (saat ini ${editDoneTotal}/${editGrandTotal}).`
-                                        : 'Aktif setelah kamu mengisi total media dan menandainya selesai diedit.'}
-                                </p>
-                            </div>
-                        )}
-                    </div>
-                )}
-
-                {/* PREVIEW TERSEDIA (awaiting_payment) */}
-                {activeKey === 'awaiting_payment' && (
-                    <div className="card overflow-hidden">
-                        <PanelHeader
-                            icon="eye"
-                            iconCls="bg-orange-500/15 text-orange-600 dark:text-orange-400"
-                            title="Preview & Invoice"
-                            subtitle="File final sudah diunggah. Link pratinjau dan invoice dibuat otomatis — tinjau dulu sebelum membagikannya ke klien."
-                        />
-                        <div className="p-5">
-                            {isAdmin && (
-                                <div className="flex items-center gap-2 rounded-xl border border-line bg-surface-muted/30 p-3">
-                                    <span className="min-w-0 flex-1 truncate font-mono text-xs text-ink">{previewLink}</span>
-                                    <button type="button" className="btn-outline shrink-0 !px-2 !py-1 text-xs" onClick={copyPreviewLink}><Icon name="copy" size={14} /> Salin</button>
-                                    <a className="btn-outline shrink-0 !px-2 !py-1 text-xs" href={previewLink} target="_blank" rel="noreferrer"><Icon name="globe" size={14} /> Buka</a>
-                                </div>
-                            )}
-                            {!isAdmin && project.invoice ? (
-                                <div className="mt-4 flex items-center justify-between gap-3 rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-4">
-                                    <div>
-                                        <p className="font-mono text-[10px] font-semibold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">Invoice Terkirim · {project.invoice.number}</p>
-                                        <p className="mt-1 text-xl font-bold text-ink">{formatRupiah(project.invoice.base_amount)}</p>
-                                    </div>
-                                    <div className="text-right text-xs text-emerald-700 dark:text-emerald-400">
-                                        <p>Jatuh tempo</p>
-                                        <p className="mt-0.5 font-semibold">{formatDate(project.invoice.due_at)}</p>
-                                    </div>
-                                </div>
-                            ) : null}
-                            <p className="mt-4 text-xs text-ink-muted">
-                                Status berpindah ke <b>Selesai</b> otomatis setelah pembayaran invoice lunas.
-                            </p>
-                        </div>
-                        <PanelFooter>
-                            <Link to={previewHref} className="btn-outline"><Icon name="eye" size={16} /> Lihat Preview</Link>
-                            {!isAdmin && (
-                                <Link to="/dashboard/client-invoices" className="btn-primary"><Icon name="credit-card" size={16} /> Bayar Tagihan</Link>
-                            )}
-                            {isAdmin && isPaid && (
-                                <button className="btn-primary" onClick={advance} disabled={formLocked || saving}>
-                                    Tandai Selesai
-                                </button>
-                            )}
-                        </PanelFooter>
-                    </div>
-                )}
-
-                {/* COMPLETED */}
-                {activeKey === 'completed' && (
-                    <div className="card overflow-hidden">
-                        <PanelHeader
-                            icon="check"
-                            iconCls="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
-                            title="Proyek Selesai"
-                            subtitle="Kedua syarat berikut sudah terpenuhi. File asli tanpa watermark kini tersedia untuk diunduh."
-                        />
-                        <div className="space-y-3 p-5">
-                            <div className="flex items-center gap-3 rounded-xl border border-line p-4">
-                                <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-white ${isPaid ? 'bg-emerald-500' : 'bg-zinc-300 dark:bg-zinc-700'}`}>
-                                    <Icon name="check" size={14} />
-                                </span>
-                                <p className="flex-1 text-sm font-medium text-ink">Pembayaran invoice lunas</p>
-                                <span className={`badge ${isPaid ? 'bg-emerald-500/15 text-emerald-600' : 'bg-zinc-500/15 text-zinc-500 dark:text-zinc-400'}`}>
-                                    {isPaid ? 'TERPENUHI' : 'BELUM'}
-                                </span>
-                            </div>
-                            <div className="flex items-center justify-between gap-3 rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-4">
-                                <p className="font-mono text-[10px] font-semibold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">
-                                    {isPaid ? `Dibayar Lunas · ${formatDate(paidAt)}` : 'Menunggu Pelunasan'}
-                                </p>
-                                <p className="text-xl font-bold text-ink">{formatRupiah(Number(project.price))}</p>
-                            </div>
-                            {!isAdmin && (
-                                <div className="rounded-xl border border-line bg-surface-muted/30 p-5 text-center">
-                                    <p className="mb-4 text-sm text-ink-muted">Bagikan pengalaman Anda bekerja bersama kami.</p>
-                                    <button className="btn-primary" onClick={() => setReviewOpen(true)}><Icon name="star" size={16} /> Berikan Review</button>
-                                </div>
-                            )}
-                        </div>
-                        <PanelFooter>
-                            <Link to={previewHref} className={isAdmin ? 'btn-outline' : 'btn-primary'}>
-                                <Icon name="download" size={16} /> Unduh File
-                            </Link>
-                            {isAdmin && (
-                                <button className="btn-outline" onClick={archive} disabled={saving}>
-                                    <Icon name="folder-open" size={16} /> Arsipkan Proyek
-                                </button>
-                            )}
-                        </PanelFooter>
-                    </div>
-                )}
-
-                {/* ARCHIVED */}
-                {activeKey === 'archived' && (
-                    <div className="card overflow-hidden">
-                        <PanelHeader
-                            icon="folder-open"
-                            iconCls="bg-zinc-500/15 text-zinc-600 dark:text-zinc-400"
-                            title="Pesanan Diarsipkan"
-                            subtitle="Pesanan ini telah diarsipkan."
-                        />
-                        <div className="p-5">
-                            <p className="text-sm text-ink-muted">File proyek telah diarsipkan karena masa retensi berakhir atau atas permintaan admin. Hubungi admin bila Anda masih membutuhkan akses.</p>
-
-                            {isAdmin && (
-                                <div className="mt-5 rounded-xl border border-line bg-surface-muted/30 p-4">
-                                    <p className="mb-2 text-sm font-semibold text-ink">Link akses</p>
-                                    <div className="flex items-center gap-2">
-                                        <span className="min-w-0 flex-1 truncate font-mono text-xs text-ink">{previewLink}</span>
-                                        <button type="button" className="btn-outline shrink-0 !px-2 !py-1 text-xs" onClick={copyPreviewLink}><Icon name="copy" size={14} /> Salin</button>
-                                    </div>
-                                    <button type="button" className="btn-primary mt-3" onClick={() => setShareOpen(true)}><Icon name="send" size={16} /> Kirim Akses</button>
-                                </div>
-                            )}
-
-                            {(isAdmin || (project.redeliveries || []).length > 0) && (
-                                <div className="mt-5 rounded-xl border border-line bg-surface-muted/30 p-4">
-                                    <p className="mb-3 text-sm font-semibold text-ink">Permintaan Unduh Ulang</p>
-                                    {(project.redeliveries || []).length ? (
-                                        <div className="space-y-2">
-                                            {project.redeliveries.map((rd) => (
-                                                <div key={rd.id} className="flex flex-wrap items-center gap-2 rounded-lg border border-line bg-surface px-3 py-2 text-sm">
-                                                    <span className={`badge ${rd.status === 'approved' ? 'bg-emerald-500/15 text-emerald-600' : rd.status === 'rejected' ? 'bg-red-500/15 text-red-600' : 'bg-amber-500/15 text-amber-600'}`}>
-                                                        {rd.status}
-                                                    </span>
-                                                    <span className="min-w-0 flex-1 truncate text-xs text-ink-muted">{rd.note || (rd.user?.name ?? 'Klien')}{rd.fee ? ` · Biaya ${formatRupiah(rd.fee)}` : ''}</span>
-                                                    {rd.expires_at && <span className="font-mono text-xs text-ink-muted">s/d {formatDate(rd.expires_at)}</span>}
-                                                    {isAdmin && rd.status === 'pending' && (
-                                                        <>
-                                                            <input type="number" min="0" className="input !w-28 !py-1 text-xs" value={feeMap[rd.id] ?? ''} onChange={(e) => setFeeMap({ ...feeMap, [rd.id]: e.target.value })} placeholder="Biaya (0)" />
-                                                            <button className="btn-outline !px-2 !py-1 text-xs" onClick={() => reviewRedelivery(rd, 'approved')} disabled={saving}>Setujui</button>
-                                                            <button className="btn-outline !px-2 !py-1 text-xs text-red-600" onClick={() => reviewRedelivery(rd, 'rejected')} disabled={saving}>Tolak</button>
-                                                        </>
-                                                    )}
-                                                </div>
-                                            ))}
-                                        </div>
-                                    ) : (
-                                        <p className="text-xs text-ink-muted">Belum ada permintaan.</p>
-                                    )}
-                                    {!isAdmin && (
-                                        <button className="btn-primary mt-3" onClick={() => setRerequestOpen(true)} disabled={saving}><Icon name="download" size={16} /> Ajukan Permintaan Unduh Ulang</button>
-                                    )}
-                                </div>
-                            )}
-                        </div>
-                        {isAdmin && project.status === 'archived' && (
-                            <PanelFooter>
-                                <button className="btn-primary" onClick={restore} disabled={saving}><Icon name="refresh" size={16} /> Pulihkan Pesanan</button>
-                            </PanelFooter>
-                        )}
-                    </div>
-                )}
+                    <>
+                {activeKey === 'scheduled' && <ScheduledStep ctx={ctx} />}
+                {activeKey === 'shooting' && <ShootingStep ctx={ctx} />}
+                {activeKey === 'editing' && <EditingStep ctx={ctx} />}
+                {activeKey === 'awaiting_payment' && <AwaitingPaymentStep ctx={ctx} />}
+                {activeKey === 'completed' && <CompletedStep ctx={ctx} />}
+                {activeKey === 'archived' && <ArchivedStep ctx={ctx} />}
                 </>
                 )}
 
-                {/* TIMELINE LOG — selalu tampil (admin & klien), ringkas */}
+{/* TIMELINE LOG — selalu tampil (admin & klien), ringkas */}
                 <div className="card p-4 sm:p-5">
                     <h3 className="mb-4 flex items-center gap-2 font-semibold text-ink"><Icon name="clock" size={16} /> Catatan Riwayat</h3>
                     <div className="relative ml-1 space-y-5 border-l-2 border-line/50 pl-4 sm:ml-2 sm:pl-5">
