@@ -23,27 +23,6 @@ const STEPS = [
 ];
 
 function Stars({ value, onChange }) {
-const ctx = {
-        PanelHeader, PanelFooter, PhotoThumbImg,
-        project, isAdmin, formLocked,
-        pastScheduled, pastShooting, pastEditing,
-        proofStartUploaded, proofEndUploaded, recordStart, recordEnd,
-        uploading, saving, fileRef, thumbRef,
-        editForm, setEditForm, editNote, setEditNote, addEditNote,
-        progressUpdates, fmtLog,
-        hasPhoto, hasVideo, photoDone, photoTotal, photoPct, videoDone, videoTotal, videoPct,
-        editAllDone, editDoneTotal, editGrandTotal,
-        photoAssetCount, videoAssetCount,
-        previewHref, previewLink, copyPreviewLink,
-        isPaid, paidAt,
-        fieldNote, setFieldNote, endProof, setDeleteConfirm,
-        uploadFile, uploadEndProof, confirmShootingDone,
-        advance, archive, restore, saveEditProgress,
-        setUploadOpen, uploadLabel, pickAndSaveThumb, thumbFile,
-        setReviewOpen, openChat,
-        setShareOpen, feeMap, setFeeMap, reviewRedelivery, setRerequestOpen,
-    };
-
     return (
         <div className="flex gap-2">
             {[1, 2, 3, 4, 5].map((n) => (
@@ -472,6 +451,27 @@ export default function ProjectDetail() {
         } catch {
             show('Gagal menyalin link.', 'error');
         }
+    };
+
+const ctx = {
+        PanelHeader, PanelFooter, PhotoThumbImg,
+        project, isAdmin, formLocked,
+        pastScheduled, pastShooting, pastEditing,
+        proofStartUploaded, proofEndUploaded, recordStart, recordEnd,
+        uploading, saving, fileRef, thumbRef,
+        editForm, setEditForm, editNote, setEditNote, addEditNote,
+        progressUpdates, fmtLog,
+        hasPhoto, hasVideo, photoDone, photoTotal, photoPct, videoDone, videoTotal, videoPct,
+        editAllDone, editDoneTotal, editGrandTotal,
+        photoAssetCount, videoAssetCount,
+        previewHref, previewLink, copyPreviewLink,
+        isPaid, paidAt,
+        fieldNote, setFieldNote, endProof, setDeleteConfirm,
+        uploadFile, uploadEndProof, confirmShootingDone,
+        advance, archive, restore, saveEditProgress,
+        setUploadOpen, uploadLabel, pickAndSaveThumb, thumbFile,
+        setReviewOpen, openChat,
+        setShareOpen, feeMap, setFeeMap, reviewRedelivery, setRerequestOpen,
     };
 
     return (
