@@ -4,7 +4,7 @@ import api from '../../api';
 import Icon from '../../components/Icon';
 import { useAuth } from '../../context/AuthContext';
 import { Spinner, Field, useToast, formatRupiah, formatDate, Modal, EmptyState, Confirm } from '../../components/ui';
-import { StatusBadge } from './List';
+import { StatusBadge } from './Projects';
 import ScheduledStep from './steps/ScheduledStep';
 import ShootingStep from './steps/ShootingStep';
 import EditingStep from './steps/EditingStep';

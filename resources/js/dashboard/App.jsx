@@ -60,39 +60,54 @@ import ForgotPassword from './pages/auth/ForgotPassword';
 import ResetPassword from './pages/auth/ResetPassword';
 import SetPassword from './pages/auth/SetPassword';
 import Dashboard from './pages/Dashboard';
-import Portfolio from './pages/admin-tools/Portfolio';
-import Media from './pages/admin-tools/Media';
-import Services from './pages/admin-tools/Services';
-import Clients from './pages/admin-tools/Clients';
-import Bookings from './pages/booking/AdminView';
-import Invoices from './pages/invoice/AdminView';
-import Projects from './pages/project/List';
-import ProjectDetail from './pages/project/Detail';
-import Payments from './pages/admin-tools/Payments';
-import Messages from './pages/message/AdminView';
-import Notifications from './pages/admin-tools/Notifications';
-import Landing from './pages/admin-tools/Landing';
-import Settings from './pages/admin-tools/Settings';
-import Blog from './pages/admin-tools/Blog';
-import BlogCategories from './pages/admin-tools/BlogCategories';
-import BlogTags from './pages/admin-tools/BlogTags';
-import Faq from './pages/admin-tools/Faq';
-import Pages from './pages/admin-tools/Pages';
-import Team from './pages/admin-tools/Team';
-import Reviews from './pages/client-only/Reviews';
-import AuditLog from './pages/admin-tools/AuditLog';
-import RecycleBin from './pages/admin-tools/RecycleBin';
-import ProfileSettings from './pages/admin-tools/ProfileSettings';
-import ClientBookings from './pages/booking/ClientView';
-import ClientInvoices from './pages/invoice/ClientView';
-import Preview from './pages/preview/Gallery';
-import PreviewDetail from './pages/preview/Detail';
-import ClientMessages from './pages/message/ClientView';
-import Bookmarks from './pages/client-only/Bookmarks';
-import History from './pages/client-only/History';
+import Portfolio from './pages/admin/Portfolio';
+import Media from './pages/admin/Media';
+import Services from './pages/admin/Services';
+import Clients from './pages/admin/Clients';
+import Bookings from './pages/admin/Bookings';
+import Invoices from './pages/admin/Invoices';
+import Projects from './pages/admin/Projects';
+import ProjectDetail from './pages/admin/ProjectDetail';
+import Payments from './pages/admin/Payments';
+import Messages from './pages/admin/Messages';
+import Notifications from './pages/admin/Notifications';
+import Landing from './pages/admin/Landing';
+import Settings from './pages/admin/Settings';
+import Blog from './pages/admin/Blog';
+import BlogCategories from './pages/admin/BlogCategories';
+import BlogTags from './pages/admin/BlogTags';
+import Faq from './pages/admin/Faq';
+import Pages from './pages/admin/Pages';
+import Team from './pages/admin/Team';
+import Reviews from './pages/client/Reviews';
+import AuditLog from './pages/admin/AuditLog';
+import RecycleBin from './pages/admin/RecycleBin';
+import ProfileSettings from './pages/admin/ProfileSettings';
+import ClientBookings from './pages/client/Bookings';
+import ClientInvoices from './pages/client/Invoices';
+import Preview from './pages/admin/Gallery';
+import PreviewDetail from './pages/admin/Detail';
+import ClientMessages from './pages/client/Messages';
+import Bookmarks from './pages/client/Bookmarks';
+import History from './pages/client/History';
+import Orders from './pages/client/Orders';
+import OrderDetail from './pages/client/OrderDetail';
+
 
 
 const STAFF_ROLES = ['admin', 'owner'];
+
+function ProjectsRoute() {
+    const { user, loading } = useAuth();
+    if (loading) return <Spinner />;
+    return STAFF_ROLES.includes(user?.role) ? <Projects /> : <Orders />;
+}
+
+function ProjectDetailRoute() {
+    const { user, loading } = useAuth();
+    if (loading) return <Spinner />;
+    return STAFF_ROLES.includes(user?.role) ? <ProjectDetail /> : <OrderDetail />;
+}
 
 function Protected({ children, adminOnly = false, ownerOnly = false, notStaffCase = false }) {
     const { user, loading } = useAuth();
@@ -135,8 +150,8 @@ function AppRoutes() {
                 <Route path="services" element={<Protected adminOnly><Services /></Protected>} />
                 <Route path="clients" element={<Protected adminOnly><Clients /></Protected>} />
                 <Route path="bookings" element={<Protected adminOnly><Bookings /></Protected>} />
-                <Route path="projects" element={<Projects />} />
-                <Route path="projects/:id" element={<ProjectDetail />} />
+                <Route path="projects" element={<ProjectsRoute />} />
+                <Route path="projects/:id" element={<ProjectDetailRoute />} />
                 <Route path="invoices" element={<Protected adminOnly><Invoices /></Protected>} />
                 <Route path="client-bookings" element={<Protected notStaffCase><ClientBookings /></Protected>} />
                 <Route path="client-invoices" element={<Protected notStaffCase><ClientInvoices /></Protected>} />
