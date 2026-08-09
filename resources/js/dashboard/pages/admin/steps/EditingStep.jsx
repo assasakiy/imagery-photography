@@ -95,7 +95,6 @@ export default function EditingStep({ ctx }) {
                         </div>
                         <div className="mt-5">
                             <p className="mb-0.5 text-sm font-semibold text-ink">Unggah File Final</p>
-                            <p className="mb-3 text-xs text-ink-muted">File final = aset klien, tampil di halaman <Link to={previewHref} className="text-brand-600 underline">Preview</Link>.</p>
                             <div className="mb-3 flex flex-wrap items-center gap-2 rounded-xl border border-line bg-surface-muted/30 px-4 py-3 text-sm">
                                 <Icon name="images" size={16} className="text-ink-muted" />
                                 <span className="font-medium text-ink">{photoAssetCount} foto · {videoAssetCount} video diupload</span>
