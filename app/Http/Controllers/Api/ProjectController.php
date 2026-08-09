@@ -38,7 +38,12 @@ class ProjectController extends Controller
             return response()->json($query->latest()->paginate(15));
         }
 
-        $projects = $user->projects()->latest()->get() ?? [];
+        $query = $user->projects();
+        if ($request->filled('status')) {
+            $query->where('status', $request->input('status'));
+        }
+
+        $projects = $query->latest()->get() ?? [];
 
         return response()->json($projects->map(fn ($p) => $this->clientProjectList($p))->values());
     }
