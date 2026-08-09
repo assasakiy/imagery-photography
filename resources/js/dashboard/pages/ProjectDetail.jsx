@@ -308,15 +308,17 @@ export default function ProjectDetail() {
         if (thumbFile === file) setThumbFile(null);
     };
 
-    const saveThumbnail = async () => {
-        if (!thumbFile) return;
+    const pickAndSaveThumb = async (e) => {
+        const file = e.target.files[0];
+        e.target.value = '';
+        if (!file || uploading) return;
+        setThumbFile(file);
         setUploading(true);
         try {
             const data = new FormData();
-            data.append('file', thumbFile);
+            data.append('file', file);
             await api.post(`/projects/${id}/thumbnail`, data);
             show('Thumbnail tersimpan.', 'success');
-            setThumbFile(null);
             load();
         } catch (err) {
             show(err.response?.data?.message || 'Gagal menyimpan thumbnail.', 'error');
@@ -807,36 +809,37 @@ export default function ProjectDetail() {
                                         </div>
                                         )}
                                     </div>
-                                    <div className="mt-5 border-t border-line pt-5">
-                                        <p className="mb-2 text-sm font-semibold text-ink">Unggah File Final</p>
+                                    <div className="mt-5">
+                                        <p className="mb-0.5 text-sm font-semibold text-ink">Unggah File Final</p>
                                         <p className="mb-3 text-xs text-ink-muted">File final = aset klien, tampil di halaman <Link to={previewHref} className="text-brand-600 underline">Preview</Link>.</p>
                                         {!pastEditing && (
-                                            <div className="grid gap-3 sm:grid-cols-2">
-                                                <button type="button" className="btn-primary flex min-h-[130px] w-full flex-col items-center justify-center gap-2" onClick={() => setUploadOpen(true)} disabled={formLocked || uploading}>
-                                                    <Icon name="upload" size={26} />
-                                                    <span>{uploadLabel}</span>
-                                                    <span className="text-xs font-normal opacity-70">Popup utk unggah foto/video hasil edit</span>
+                                            <div className="overflow-hidden rounded-xl border border-line">
+                                                <button type="button" onClick={() => setUploadOpen(true)} disabled={formLocked || uploading} className="flex w-full items-center gap-3 border-b border-line px-4 py-3 text-left hover:bg-surface-muted/40 disabled:opacity-50">
+                                                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-brand-500/15 text-brand-600 dark:text-brand-400">
+                                                        <Icon name="upload" size={18} />
+                                                    </span>
+                                                    <span className="min-w-0 flex-1">
+                                                        <span className="block text-sm font-semibold text-ink">{uploadLabel}</span>
+                                                        <span className="block text-xs text-ink-muted">Buka popup untuk pilih file hasil edit</span>
+                                                    </span>
+                                                    <Icon name="arrow-right" size={16} className="shrink-0 text-ink-muted" />
                                                 </button>
-                                                <div className="rounded-xl border border-dashed border-line bg-surface-muted/30 p-3">
-                                                    <p className="text-sm font-semibold text-ink">Thumbnail Card</p>
-                                                    <p className="mt-0.5 text-xs text-ink-muted">Tampil di card Preview · permanen.</p>
-                                                    <div className="mt-2 flex items-center gap-3">
-                                                        <div className="relative h-16 w-20 shrink-0 overflow-hidden rounded-lg border border-line bg-surface-strong">
-                                                            {thumbFile ? (
-                                                                <PhotoThumbImg file={thumbFile} alt="Thumbnail" className="h-full w-full object-cover" />
-                                                            ) : project.thumb_url ? (
-                                                                <img src={project.thumb_url} alt="Thumbnail" className="h-full w-full object-cover" />
-                                                            ) : (
-                                                                <div className="flex h-full w-full items-center justify-center text-center text-[10px] text-ink-muted">Belum ada</div>
-                                                            )}
-                                                        </div>
-                                                        <div className="flex flex-col gap-1">
-                                                            <button type="button" className="btn-outline" onClick={() => thumbRef.current?.click()} disabled={formLocked || uploading}>Pilih Gambar</button>
-                                                            <button type="button" className="btn-primary" onClick={saveThumbnail} disabled={formLocked || uploading || !thumbFile}>Simpan</button>
-                                                            <input ref={thumbRef} type="file" accept="image/*" className="hidden" onChange={(e) => { setThumbFile(e.target.files[0]); e.target.value = ''; }} disabled={uploading} />
-                                                        </div>
-                                                    </div>
-                                                    {thumbFile && <p className="mt-2 truncate text-xs text-ink-muted">Baru: {thumbFile.name}</p>}
+                                                <div className="flex items-center gap-3 px-4 py-3">
+                                                    <span className="flex h-12 w-16 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-line bg-surface-strong">
+                                                        {thumbFile ? (
+                                                            <PhotoThumbImg file={thumbFile} alt="Thumbnail" className="h-full w-full object-cover" />
+                                                        ) : project.thumb_url ? (
+                                                            <img src={project.thumb_url} alt="Thumbnail" className="h-full w-full object-cover" />
+                                                        ) : (
+                                                            <span className="px-1 text-center text-[10px] text-ink-muted">Belum ada</span>
+                                                        )}
+                                                    </span>
+                                                    <span className="min-w-0 flex-1">
+                                                        <span className="block text-sm font-semibold text-ink">Thumbnail Card</span>
+                                                        <span className="block truncate text-xs text-ink-muted">{thumbFile ? `Baru: ${thumbFile.name}` : 'Tampil permanen di card Preview klien'}</span>
+                                                    </span>
+                                                    <button type="button" className="btn-outline shrink-0 !px-3 !py-1 text-xs" onClick={() => thumbRef.current?.click()} disabled={formLocked || uploading}>Ganti</button>
+                                                    <input ref={thumbRef} type="file" accept="image/*" className="hidden" onChange={pickAndSaveThumb} disabled={uploading} />
                                                 </div>
                                             </div>
                                         )}
