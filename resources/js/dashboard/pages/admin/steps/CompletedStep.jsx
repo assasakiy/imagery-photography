@@ -29,22 +29,14 @@ export default function CompletedStep({ ctx }) {
                     </p>
                     <p className="text-xl font-bold text-ink">{formatRupiah(Number(project.price))}</p>
                 </div>
-                {!isAdmin && (
-                    <div className="rounded-xl border border-line bg-surface-muted/30 p-5 text-center">
-                        <p className="mb-4 text-sm text-ink-muted">Bagikan pengalaman Anda bekerja bersama kami.</p>
-                        <button className="btn-primary" onClick={() => setReviewOpen(true)}><Icon name="star" size={16} /> Berikan Review</button>
-                    </div>
-                )}
             </div>
             <PanelFooter>
-                <Link to={previewHref} className={isAdmin ? 'btn-outline' : 'btn-primary'}>
+                <Link to={previewHref} className="btn-outline">
                     <Icon name="download" size={16} /> Unduh File
                 </Link>
-                {isAdmin && (
-                    <button className="btn-outline" onClick={archive} disabled={saving}>
-                        <Icon name="folder-open" size={16} /> Arsipkan Proyek
-                    </button>
-                )}
+                <button className="btn-outline" onClick={archive} disabled={saving}>
+                    <Icon name="folder-open" size={16} /> Arsipkan Proyek
+                </button>
             </PanelFooter>
         </div>
     );
