@@ -44,13 +44,6 @@ export default function EditingStep({ ctx }) {
                     </div>
                 )}
                 {isAdmin && (
-                    <div className="mt-4 flex flex-wrap items-center gap-2 rounded-xl border border-line bg-surface-muted/30 px-4 py-3 text-sm">
-                        <Icon name="images" size={16} className="text-ink-muted" />
-                        <span className="font-medium text-ink">{photoAssetCount} foto · {videoAssetCount} video diupload</span>
-                        <span className="text-xs text-ink-muted">— kelola di halaman <Link to={previewHref} className="text-brand-600 underline">Preview</Link></span>
-                    </div>
-                )}
-                {isAdmin && (
                     <>
                         {!pastEditing && (
                         <form onSubmit={saveEditProgress} className="mt-5 grid grid-cols-2 gap-4 border-t border-line pt-5">
@@ -103,6 +96,11 @@ export default function EditingStep({ ctx }) {
                         <div className="mt-5">
                             <p className="mb-0.5 text-sm font-semibold text-ink">Unggah File Final</p>
                             <p className="mb-3 text-xs text-ink-muted">File final = aset klien, tampil di halaman <Link to={previewHref} className="text-brand-600 underline">Preview</Link>.</p>
+                            <div className="mb-3 flex flex-wrap items-center gap-2 rounded-xl border border-line bg-surface-muted/30 px-4 py-3 text-sm">
+                                <Icon name="images" size={16} className="text-ink-muted" />
+                                <span className="font-medium text-ink">{photoAssetCount} foto · {videoAssetCount} video diupload</span>
+                                <span className="text-xs text-ink-muted">— kelola di halaman <Link to={previewHref} className="text-brand-600 underline">Preview</Link></span>
+                            </div>
                             {!pastEditing && (
                                 <div className="overflow-hidden rounded-xl border border-line">
                                     <button type="button" onClick={() => setUploadOpen(true)} disabled={formLocked || uploading} className="flex w-full items-center gap-3 border-b border-line px-4 py-3 text-left hover:bg-surface-muted/40 disabled:opacity-50">
