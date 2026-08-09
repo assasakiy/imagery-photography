@@ -50,7 +50,7 @@ export default function Orders() {
             </div>
 
             {items.length ? (
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     {items.map((item) => (
                         <Link key={item.id} to={`/dashboard/pesanan/${item.id}`} className="card group p-5">
                             <div className="flex items-start justify-between gap-2">
