@@ -65,7 +65,6 @@ import Media from './pages/admin/Media';
 import Services from './pages/admin/Services';
 import Clients from './pages/admin/Clients';
 import Bookings from './pages/admin/Bookings';
-import Invoices from './pages/admin/Invoices';
 import Projects from './pages/admin/projects/Projects';
 import ProjectDetail from './pages/admin/projects/ProjectDetail';
 import Payments from './pages/admin/Payments';
@@ -142,7 +141,6 @@ function AppRoutes() {
                 <Route path="projects/:id" element={<Protected adminOnly><ProjectDetail /></Protected>} />
                 <Route path="pesanan" element={<Protected notStaffCase><Orders /></Protected>} />
                 <Route path="pesanan/:id" element={<Protected notStaffCase><OrderDetail /></Protected>} />
-                <Route path="invoices" element={<Protected adminOnly><Invoices /></Protected>} />
                 <Route path="client-bookings" element={<Protected notStaffCase><ClientBookings /></Protected>} />
                 <Route path="client-invoices" element={<Protected notStaffCase><ClientInvoices /></Protected>} />
                 <Route path="preview" element={<Preview />} />
