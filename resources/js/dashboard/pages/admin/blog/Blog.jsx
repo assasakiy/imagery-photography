@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
-import api from '../../api';
-import Icon from '../../components/Icon';
-import MediaPicker from '../../components/MediaPicker';
-import { PageHeader, Spinner, EmptyState, Modal, Confirm, Field, useToast, formatDate } from '../../components/ui';
+import api from '../../../api';
+import Icon from '../../../components/Icon';
+import MediaPicker from '../../../components/MediaPicker';
+import { PageHeader, Spinner, EmptyState, Modal, Confirm, Field, useToast, formatDate } from '../../../components/ui';
 
 const emptyForm = {
     title: '',

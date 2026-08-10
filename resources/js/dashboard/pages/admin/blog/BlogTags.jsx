@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import api from '../../api';
-import Icon from '../../components/Icon';
-import { PageHeader, Spinner, EmptyState, Modal, Confirm, Field, useToast } from '../../components/ui';
+import api from '../../../api';
+import Icon from '../../../components/Icon';
+import { PageHeader, Spinner, EmptyState, Modal, Confirm, Field, useToast } from '../../../components/ui';
 
 const emptyForm = { name: '' };
 
