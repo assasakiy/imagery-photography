@@ -31,7 +31,7 @@ export default function Preview() {
                         const files = (p.files || []).filter((f) => f.url);
                         const cover = p.thumb_url ? { url: p.thumb_url, name: 'Sampul' } : files.find((f) => f.category === 'photo' || f.type?.startsWith('image/')) || files[0];
                         return (
-                            <div key={p.id} className="card group overflow-hidden transition-all hover:-translate-y-1 hover:shadow-xl">
+                            <div key={p.id} className="card group flex flex-col overflow-hidden transition-all hover:-translate-y-1 hover:shadow-xl">
                                 <div className="relative aspect-[4/3] overflow-hidden bg-surface-muted">
                                     {cover ? (
                                         <img src={cover.url} alt={p.name} loading="lazy" className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
@@ -44,8 +44,7 @@ export default function Preview() {
                                     </span>
                                     <span className="absolute bottom-3 left-3 text-xs font-medium text-white/90">{cover ? cover.name : 'Sampul pratinjau'}</span>
                                 </div>
-                                <div className="flex flex-col gap-3 p-4">
-                                    <h3 className="font-bold text-ink">{p.name}</h3>
+                                <div className="flex flex-1 flex-col gap-3 p-4">
                                     <div>
                                         {p.archived ? (
                                             <span className="badge bg-zinc-500/15 text-zinc-600 dark:text-zinc-400"><Icon name="folder-open" size={12} /> Diarsipkan</span>
@@ -57,6 +56,7 @@ export default function Preview() {
                                             <span className="badge bg-amber-500/15 text-amber-600"><Icon name="clock" size={12} /> Menunggu Pembayaran</span>
                                         )}
                                     </div>
+                                    <h3 className="font-bold text-ink">{p.name}</h3>
                                     <span className="flex items-center gap-1.5 text-sm text-ink-muted">
                                         <Icon name="calendar" size={14} /> {p.event_date ? formatLongDate(p.event_date) : '—'}
                                     </span>
