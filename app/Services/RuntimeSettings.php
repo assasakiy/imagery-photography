@@ -12,7 +12,15 @@ class RuntimeSettings
     public function all(): array
     {
         return Cache::remember(self::CACHE_KEY, 3600, function () {
-            return Setting::pluck('value', 'key')->all();
+            try {
+                return Setting::pluck('value', 'key')->all();
+            } catch (\Illuminate\Database\QueryException $e) {
+                if (str_contains($e->getMessage(), 'doesn\'t exist') || $e->getCode() === '42S02') {
+                    return [];
+                }
+
+                throw $e;
+            }
         });
     }
 
