@@ -14,6 +14,21 @@ const STATUS_META = {
     failed: { label: 'Gagal', cls: 'bg-red-500/15 text-red-600 dark:text-red-400' },
 };
 
+const ACCOUNT_STATE_META = {
+    registered: { label: 'Terdaftar', cls: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' },
+    pending: { label: 'Belum diaktifkan', cls: 'bg-amber-500/15 text-amber-600 dark:text-amber-400' },
+    disabled: { label: 'Dinonaktifkan', cls: 'bg-red-500/15 text-red-600 dark:text-red-400' },
+    deleted: { label: 'Akun dihapus', cls: 'bg-zinc-500/15 text-zinc-600 dark:text-zinc-400' },
+    unknown: { label: 'Belum terdaftar', cls: 'bg-zinc-500/15 text-zinc-600 dark:text-zinc-400' },
+};
+
+function AccountStateBadge({ state }) {
+    if (!state || state === 'registered') return null;
+    const meta = ACCOUNT_STATE_META[state];
+    if (!meta) return null;
+    return <span className={`badge ${meta.cls}`}>{meta.label}</span>;
+}
+
 const LINK_STATUS_META = {
     pending: { label: 'Menunggu', cls: 'bg-amber-500/15 text-amber-600 dark:text-amber-400' },
     expired: { label: 'Kedaluwarsa', cls: 'bg-zinc-500/15 text-ink-muted' },
@@ -150,7 +165,7 @@ export default function AuditLog() {
                 )}
                 <input
                     className="input w-56"
-                    placeholder="Cari nama / IP / aksi…"
+                    placeholder="Cari nama / email / IP / aksi…"
                     value={q}
                     onChange={(e) => setQ(e.target.value)}
                     onKeyDown={(e) => { if (e.key === 'Enter') load(); }}
@@ -183,8 +198,13 @@ export default function AuditLog() {
                             {items.map((it) => (
                                 <tr key={it.id}>
                                     <td>
-                                        <p className="font-medium text-ink">{it.user?.name || it.user_name || 'Akun terhapus'}</p>
-                                        {it.user?.email && <p className="text-xs text-ink-muted">{it.user.email}</p>}
+                                        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                                            <p className="font-medium text-ink">{it.account_identity || it.user?.name || (it.account_state === 'unknown' ? it.identifier : 'Akun terhapus')}</p>
+                                            <AccountStateBadge state={it.account_state} />
+                                        </div>
+                                        {it.account_state !== 'unknown' && (
+                                            <p className="text-xs text-ink-muted">{it.account_email || it.user?.email || ''}</p>
+                                        )}
                                     </td>
                                     <td>
                                         <span className={`badge ${STATUS_META[it.status]?.cls || 'bg-zinc-500/15 text-ink-muted'}`}>
@@ -271,8 +291,17 @@ export default function AuditLog() {
                                 <tr key={it.id}>
                                     <td className="whitespace-nowrap text-xs text-ink-muted">{formatDateTime(it.created_at)}</td>
                                     <td>
-                                        <p className="font-medium text-ink">{it.user_name || '-'}</p>
-                                        {it.user_role && <p className="text-xs text-ink-muted">{it.user_role}</p>}
+                                        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                                            <p className="font-medium text-ink">
+                                                {it.account_identity || it.user_name || (it.account_state === 'unknown' && it.identifier ? it.identifier : '-')}
+                                            </p>
+                                            <AccountStateBadge state={it.account_state} />
+                                        </div>
+                                        {it.account_state === 'unknown' ? (
+                                            <p className="font-mono text-xs text-ink-muted">{it.identifier || ''}</p>
+                                        ) : (
+                                            <p className="text-xs text-ink-muted">{it.user_role || ''}</p>
+                                        )}
                                     </td>
                                     <td>
                                         <code className="rounded-md bg-surface-muted px-1.5 py-0.5 text-xs text-ink">{it.action}</code>

@@ -15,6 +15,7 @@ class AuditLog extends Model
         'user_role',
         'action',
         'description',
+        'identifier',
         'subject_type',
         'subject_id',
         'old_value',

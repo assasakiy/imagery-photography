@@ -15,6 +15,7 @@ class AuditLogger
         ?User $user = null,
         ?string $oldValue = null,
         ?string $newValue = null,
+        ?string $identifier = null,
     ): void {
         $user = $user ?? Auth::user();
 
@@ -24,6 +25,7 @@ class AuditLogger
             'user_role' => $user?->getRoleNames()->first() ?? $user?->role,
             'action' => $action,
             'description' => $description,
+            'identifier' => $identifier,
             'subject_type' => is_object($subject) ? get_class($subject) : null,
             'subject_id' => is_object($subject) ? $subject->getKey() : null,
             'old_value' => $oldValue,

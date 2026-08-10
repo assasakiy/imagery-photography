@@ -12,7 +12,7 @@ class AuditLogController extends Controller
 {
     public function index(Request $request)
     {
-        $query = AuditLog::with('user')->latest('id');
+        $query = AuditLog::with(['user' => fn ($q) => $q->withTrashed()])->latest('id');
 
         if ($request->filled('action')) {
             $query->where('action', $request->input('action'));
@@ -34,10 +34,15 @@ class AuditLogController extends Controller
             $query->where(fn ($w) => $w
                 ->where('user_name', 'like', '%' . $q . '%')
                 ->orWhere('action', 'like', '%' . $q . '%')
-                ->orWhere('description', 'like', '%' . $q . '%'));
+                ->orWhere('description', 'like', '%' . $q . '%')
+                ->orWhere('identifier', 'like', '%' . $q . '%'));
         }
 
-        return response()->json($query->paginate(25));
+        $logs = $query->paginate(25);
+
+        $logs->getCollection()->transform(fn ($log) => $this->withAccountState($log));
+
+        return response()->json($logs);
     }
 
     public function actions(Request $request)
@@ -84,7 +89,7 @@ class AuditLogController extends Controller
 
     public function loginHistory(Request $request)
     {
-        $query = LoginHistory::with(['user.profile'])->latest('id');
+        $query = LoginHistory::with(['user' => fn ($q) => $q->withTrashed()->with('profile')])->latest('id');
 
         if ($request->filled('status')) {
             $query->where('status', $request->input('status'));
@@ -106,6 +111,15 @@ class AuditLogController extends Controller
             $query->whereDate('logged_in_at', '<=', $request->input('to'));
         }
 
+        if ($q = trim((string) $request->input('q'))) {
+            $query->where(fn ($w) => $w
+                ->where('identifier', 'like', '%' . $q . '%')
+                ->orWhere('ip', 'like', '%' . $q . '%')
+                ->orWhereHas('user', fn ($u) => $u->withTrashed()->where('name', 'like', '%' . $q . '%')
+                    ->orWhere('email', 'like', '%' . $q . '%')
+                    ->orWhere('username', 'like', '%' . $q . '%')));
+        }
+
         $logs = $query->paginate(25);
 
         $uids = $logs->getCollection()->pluck('user_id')->filter()->unique()->values();
@@ -121,13 +135,13 @@ class AuditLogController extends Controller
             $lh->suspicious = false;
 
             if ($lh->status !== 'success' || !$lh->user_id) {
-                return $lh;
+                return $this->withAccountState($lh);
             }
 
             $others = ($known[$lh->user_id] ?? collect())->where('id', '!=', $lh->id);
 
             if ($others->isEmpty()) {
-                return $lh;
+                return $this->withAccountState($lh);
             }
 
             $sawIp = $others->contains(fn ($r) => $r->ip && $r->ip === $lh->ip);
@@ -135,9 +149,42 @@ class AuditLogController extends Controller
 
             $lh->suspicious = !$sawIp && !$sawUa;
 
-            return $lh;
+            return $this->withAccountState($lh);
         });
 
         return response()->json($logs);
+    }
+
+    /**
+     * Klasifikasi status akun untuk menampilkan siapa yang login secara jelas:
+     * deleted / disabled / pending / registered / unknown (belum terdaftar).
+     */
+    private function withAccountState($model)
+    {
+        $user = $model->user;
+
+        if (!$user && !$model->user_id) {
+            $model->account_state = 'unknown';
+            $model->account_identity = $model->identifier ?? null;
+        } elseif (!$user) {
+            $model->account_state = 'deleted';
+            $model->account_identity = $model->user_name ?? $model->identifier ?? null;
+        } elseif ($user->trashed()) {
+            $model->account_state = 'deleted';
+            $model->account_identity = $user->name;
+        } elseif ($user->isPending()) {
+            $model->account_state = 'pending';
+            $model->account_identity = $user->name;
+        } elseif ($user->isDisabled()) {
+            $model->account_state = 'disabled';
+            $model->account_identity = $user->name;
+        } else {
+            $model->account_state = 'registered';
+            $model->account_identity = $user->name;
+        }
+
+        $model->account_email = $user?->email ?? null;
+
+        return $model;
     }
 }

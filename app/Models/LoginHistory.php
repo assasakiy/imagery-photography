@@ -13,6 +13,7 @@ class LoginHistory extends Model
         'user_id',
         'method',
         'status',
+        'identifier',
         'ip',
         'user_agent',
         'logged_in_at',

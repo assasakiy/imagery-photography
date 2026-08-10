@@ -35,8 +35,9 @@ class AuthController extends Controller
 
         $identifier = $credentials['email'] ?? '';
         $user = \App\Models\User::where('email', $identifier)->first();
-        app(LoginTracker::class)->recordFailed($user, 'password');
-        app(AuditLogger::class)->log('auth.login_failed', 'Percobaan login gagal: ' . $identifier);
+        $logUser = $user ?? \App\Models\User::withTrashed()->where('email', $identifier)->first();
+        app(LoginTracker::class)->recordFailed($logUser, 'password', $identifier);
+        app(AuditLogger::class)->log('auth.login_failed', 'Percobaan login gagal: ' . $identifier, identifier: $identifier);
 
         return back()->withErrors([
             'email' => 'Email atau password salah.',

@@ -25,12 +25,13 @@ class LoginTracker
         ]);
     }
 
-    public function recordFailed(?User $user, string $method = 'password'): void
+    public function recordFailed(?User $user, string $method = 'password', ?string $identifier = null): void
     {
         LoginHistory::create([
             'user_id' => $user?->id,
             'method' => $method,
             'status' => 'failed',
+            'identifier' => $identifier,
             'ip' => request()->ip(),
             'user_agent' => substr((string) request()->userAgent(), 0, 500),
             'logged_in_at' => now(),

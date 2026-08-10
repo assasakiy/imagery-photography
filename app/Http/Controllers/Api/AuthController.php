@@ -36,21 +36,22 @@ class AuthController extends Controller
         }
 
         $settings = app(RuntimeSettings::class);
-        $this->ensureNotLockedOut($settings);
+        $this->ensureNotLockedOut($settings, $identifier);
 
         $user = $this->resolveUser($identifier);
 
         if (!$user || !$user->canUseLoginMethod('password') || !Hash::check($data['password'], $user->password)) {
-            $this->recordFailedAttempt($settings);
-            app(LoginTracker::class)->recordFailed($user, 'password');
-            app(AuditLogger::class)->log('auth.login_failed', 'Percobaan login gagal: ' . $identifier);
+            $this->recordFailedAttempt($settings, $identifier);
+            $logUser = $user ?? $this->resolveUser($identifier, true);
+            app(LoginTracker::class)->recordFailed($logUser, 'password', $identifier);
+            app(AuditLogger::class)->log('auth.login_failed', 'Percobaan login gagal: ' . $identifier, identifier: $identifier);
 
             throw ValidationException::withMessages([
                 'email' => 'Email/ponsel atau kata sandi salah.',
             ]);
         }
 
-        $this->clearFailedAttempts();
+        $this->clearFailedAttempts($identifier);
 
         Auth::login($user, $settings->loginRememberEnabled() && ($data['remember'] ?? false));
 
@@ -73,9 +74,9 @@ class AuthController extends Controller
         }
     }
 
-    private function ensureNotLockedOut(RuntimeSettings $settings): void
+    private function ensureNotLockedOut(RuntimeSettings $settings, string $identifier): void
     {
-        $attempts = (int) Cache::get($this->lockoutKey(), 0);
+        $attempts = (int) Cache::get($this->lockoutKey($identifier), 0);
         $max = (int) $settings->loginAttemptsMax();
         $lockoutMinutes = (int) $settings->loginAttemptsLockoutMinutes();
 
@@ -86,7 +87,7 @@ class AuthController extends Controller
         }
     }
 
-    private function recordFailedAttempt(RuntimeSettings $settings): void
+    private function recordFailedAttempt(RuntimeSettings $settings, string $identifier): void
     {
         $max = (int) $settings->loginAttemptsMax();
         $lockoutMinutes = (int) $settings->loginAttemptsLockoutMinutes();
@@ -95,31 +96,33 @@ class AuthController extends Controller
             return;
         }
 
-        $attempts = (int) Cache::get($this->lockoutKey(), 0) + 1;
-        Cache::put($this->lockoutKey(), $attempts, now()->addMinutes(max(1, $lockoutMinutes)));
+        $attempts = (int) Cache::get($this->lockoutKey($identifier), 0) + 1;
+        Cache::put($this->lockoutKey($identifier), $attempts, now()->addMinutes(max(1, $lockoutMinutes)));
     }
 
-    private function clearFailedAttempts(): void
+    private function clearFailedAttempts(string $identifier): void
     {
-        Cache::forget($this->lockoutKey());
+        Cache::forget($this->lockoutKey($identifier));
     }
 
-    private function lockoutKey(): string
+    private function lockoutKey(string $identifier): string
     {
-        return 'login_attempts:' . (request()->ip() ?: 'unknown');
+        $account = hash('sha256', mb_strtolower(trim($identifier)));
+
+        return 'login_attempts:' . (request()->ip() ?: 'unknown') . ':' . $account;
     }
 
-    private function resolveUser(string $identifier): ?User
+    private function resolveUser(string $identifier, bool $withTrashed = false): ?User
     {
         $value = trim($identifier);
 
         if (filter_var($value, FILTER_VALIDATE_EMAIL)) {
-            return User::where('email', $value)->first();
+            return $this->userQuery($withTrashed)->where('email', $value)->first();
         }
 
         // Username.
         if (preg_match('/^[a-zA-Z0-9_]{3,}$/', $value)) {
-            $byUsername = User::where('username', $value)->first();
+            $byUsername = $this->userQuery($withTrashed)->where('username', $value)->first();
             if ($byUsername) {
                 return $byUsername;
             }
@@ -136,13 +139,18 @@ class AuthController extends Controller
                 $variants[] = '0' . substr($digits, 2);
             }
 
-            $byPhone = User::whereIn('phone', $variants)->first();
+            $byPhone = $this->userQuery($withTrashed)->whereIn('phone', $variants)->first();
             if ($byPhone) {
                 return $byPhone;
             }
         }
 
         return null;
+    }
+
+    private function userQuery(bool $withTrashed = false)
+    {
+        return $withTrashed ? User::withTrashed() : User::query();
     }
 
     public function logout(Request $request)
@@ -175,6 +183,10 @@ class AuthController extends Controller
         $user = $this->resolveUser($data['identifier']);
 
         if (!$user || !$user->canUseLoginMethod('otp')) {
+            $logUser = $user ?? $this->resolveUser($data['identifier'], true);
+            app(LoginTracker::class)->recordFailed($logUser, 'otp', $data['identifier']);
+            app(AuditLogger::class)->log('auth.otp_failed', 'Permintaan OTP gagal: ' . $data['identifier'], identifier: $data['identifier']);
+
             return response()->json(['message' => 'Nomor/akun tidak ditemukan.'], 422);
         }
 
@@ -204,6 +216,10 @@ class AuthController extends Controller
         $stored = session()->pull('otp_' . $user?->id);
 
         if (!$user || !$stored || !Hash::check($data['otp'], $stored['code']) || now()->greaterThan($stored['expires_at'])) {
+            $logUser = $user ?? $this->resolveUser($data['identifier'], true);
+            app(LoginTracker::class)->recordFailed($logUser, 'otp', $data['identifier']);
+            app(AuditLogger::class)->log('auth.otp_verify_failed', 'Verifikasi OTP gagal: ' . $data['identifier'], identifier: $data['identifier']);
+
             return response()->json(['message' => 'Kode OTP salah atau kadaluarsa.'], 422);
         }
 
