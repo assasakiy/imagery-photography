@@ -66,8 +66,8 @@ import Services from './pages/admin/Services';
 import Clients from './pages/admin/Clients';
 import Bookings from './pages/admin/Bookings';
 import Invoices from './pages/admin/Invoices';
-import Projects from './pages/admin/Projects';
-import ProjectDetail from './pages/admin/ProjectDetail';
+import Projects from './pages/admin/projects/Projects';
+import ProjectDetail from './pages/admin/projects/ProjectDetail';
 import Payments from './pages/admin/Payments';
 import Messages from './pages/admin/Messages';
 import Notifications from './pages/admin/Notifications';
@@ -90,8 +90,8 @@ import PreviewDetail from './pages/admin/Detail';
 import ClientMessages from './pages/client/Messages';
 import Bookmarks from './pages/client/Bookmarks';
 import History from './pages/client/History';
-import Orders from './pages/client/Orders';
-import OrderDetail from './pages/client/OrderDetail';
+import Orders from './pages/client/orders/Orders';
+import OrderDetail from './pages/client/orders/OrderDetail';
 
 
 
