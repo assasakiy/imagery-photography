@@ -1,5 +1,5 @@
-import Icon from '../../../components/Icon';
-import { formatDate } from '../../../components/ui';
+import Icon from '../../../../components/Icon';
+import { formatDate } from '../../../../components/ui';
 
 export default function ShootingStep({ ctx }) {
     const { PanelHeader, pastShooting, proofStartUploaded, proofEndUploaded, recordStart, recordEnd } = ctx;

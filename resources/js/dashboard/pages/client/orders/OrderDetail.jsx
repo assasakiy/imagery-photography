@@ -5,12 +5,12 @@ import Icon from '../../../components/Icon';
 import { useAuth } from '../../../context/AuthContext';
 import { Spinner, Field, useToast, formatRupiah, formatDate, Modal, EmptyState, Confirm } from '../../../components/ui';
 import { StatusBadge } from './Orders';
-import ScheduledStep from '../steps/ScheduledStep';
-import ShootingStep from '../steps/ShootingStep';
-import EditingStep from '../steps/EditingStep';
-import AwaitingPaymentStep from '../steps/AwaitingPaymentStep';
-import CompletedStep from '../steps/CompletedStep';
-import ArchivedStep from '../steps/ArchivedStep';
+import ScheduledStep from './steps/ScheduledStep';
+import ShootingStep from './steps/ShootingStep';
+import EditingStep from './steps/EditingStep';
+import AwaitingPaymentStep from './steps/AwaitingPaymentStep';
+import CompletedStep from './steps/CompletedStep';
+import ArchivedStep from './steps/ArchivedStep';
 
 
 const STEPS = [

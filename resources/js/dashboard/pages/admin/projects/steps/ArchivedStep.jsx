@@ -1,5 +1,5 @@
-import Icon from '../../../components/Icon';
-import { formatDate, formatRupiah } from '../../../components/ui';
+import Icon from '../../../../components/Icon';
+import { formatDate, formatRupiah } from '../../../../components/ui';
 
 export default function ArchivedStep({ ctx }) {
     const { PanelHeader, PanelFooter, project, isAdmin, previewLink, copyPreviewLink, setShareOpen, feeMap, setFeeMap, reviewRedelivery, setRerequestOpen, restore, saving } = ctx;

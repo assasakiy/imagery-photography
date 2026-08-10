@@ -1,5 +1,5 @@
-import Icon from '../../../components/Icon';
-import { formatDate, formatRupiah } from '../../../components/ui';
+import Icon from '../../../../components/Icon';
+import { formatDate, formatRupiah } from '../../../../components/ui';
 import { Link } from 'react-router-dom';
 
 export default function AwaitingPaymentStep({ ctx }) {

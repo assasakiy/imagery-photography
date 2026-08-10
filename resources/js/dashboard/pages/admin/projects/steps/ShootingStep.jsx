@@ -1,5 +1,5 @@
-import Icon from '../../../components/Icon';
-import { Field, formatDate } from '../../../components/ui';
+import Icon from '../../../../components/Icon';
+import { Field, formatDate } from '../../../../components/ui';
 
 export default function ShootingStep({ ctx }) {
     const { PanelHeader, PanelFooter, project, isAdmin, pastShooting, proofStartUploaded, proofEndUploaded, recordStart, recordEnd, uploading, formLocked, fileRef, uploadEndProof, fieldNote, setFieldNote, setDeleteConfirm, confirmShootingDone, endProof, saving, openChat } = ctx;

@@ -1,5 +1,5 @@
-import Icon from '../../../components/Icon';
-import { formatDate, formatRupiah } from '../../../components/ui';
+import Icon from '../../../../components/Icon';
+import { formatDate, formatRupiah } from '../../../../components/ui';
 
 export default function ScheduledStep({ ctx }) {
     const { PanelHeader, PanelFooter, project, isAdmin, pastScheduled, proofStartUploaded, recordStart, uploading, formLocked, fileRef, uploadFile, setDeleteConfirm, openChat, advance, saving } = ctx;
