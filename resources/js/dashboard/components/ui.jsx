@@ -139,6 +139,6 @@ export function formatRupiah(value) {
     return 'Rp ' + Number(value).toLocaleString('id-ID');
 }
 
-import { formatDate, formatDateTime, formatTime, formatTimeRange, formatTimeInput, formatLongDate, isEventPassed } from '../utils/date';
+import { formatDate, formatDateTime, formatTime, formatTimeRange, formatTimeInput, formatLongDate, isEventPassed, dateBoxParts } from '../utils/date';
 
-export { formatDate, formatDateTime, formatTime, formatTimeRange, formatTimeInput, formatLongDate, isEventPassed };
+export { formatDate, formatDateTime, formatTime, formatTimeRange, formatTimeInput, formatLongDate, isEventPassed, dateBoxParts };

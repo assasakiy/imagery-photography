@@ -77,3 +77,27 @@ export function isEventPassed(eventStart) {
     if (!d) return false;
     return d.getTime() < Date.now();
 }
+
+// Returns a safe Date (UTC) for a date-only string, or a parsed Date for a
+// datetime string — never Invalid Date. Used for schedule date boxes.
+export function parseSafe(value) {
+    if (isDateOnly(value)) {
+        const [y, m, d] = value.split('-').map(Number);
+        const date = new Date(Date.UTC(y, m - 1, d));
+        return Number.isNaN(date.getTime()) ? null : date;
+    }
+    const d = toDate(value);
+    return d;
+}
+
+// Compact box: { month: 'SEP', day: 12 } for the event date.
+// event_date is a date-only concept; Laravel's 'date' cast serializes it to an
+// ISO datetime (e.g. "2026-09-12T00:00:00.000000Z") — always parsed/formatted
+// in UTC so the rendering is deterministic across browser timezones.
+export function dateBoxParts(value) {
+    const d = parseSafe(value);
+    if (!d) return null;
+    const month = new Intl.DateTimeFormat('id-ID', { timeZone: 'UTC', month: 'short' }).format(d).replace('.', '').toUpperCase();
+    const day = d.getUTCDate();
+    return { month, day };
+}
