@@ -1,5 +1,5 @@
 import Icon from '../../../../components/Icon';
-import { formatDate, formatRupiah } from '../../../../components/ui';
+import { formatDate, formatRupiah, formatTimeRange, isEventPassed } from '../../../../components/ui';
 
 export default function ScheduledStep({ ctx }) {
     const { PanelHeader, PanelFooter, project, isAdmin, pastScheduled, proofStartUploaded, recordStart, uploading, formLocked, fileRef, uploadFile, setDeleteConfirm, openChat, advance, saving } = ctx;
@@ -19,9 +19,7 @@ export default function ScheduledStep({ ctx }) {
                     <div><p className="text-xs text-ink-muted">Tanggal Acara</p><p className="text-sm font-semibold text-ink">{project.event_start ? formatDate(project.event_start) : (project.event_date ? formatDate(project.event_date) : '-')}</p></div>
                     <div><p className="text-xs text-ink-muted">Waktu Acara</p>
                         <p className="text-sm font-semibold text-ink">
-                            {project.event_start ? project.event_start.slice(11, 16) : '-'} 
-                            {project.event_end ? ` - ${project.event_end.slice(11, 16)}` : ''}
-                            {!project.event_start && !project.event_end ? '-' : ''}
+                            {formatTimeRange(project.event_start, project.event_end)}
                         </p>
                     </div>
                     <div><p className="text-xs text-ink-muted">Lokasi</p><p className="text-sm font-semibold text-ink">{project.location || '-'}</p></div>
@@ -38,7 +36,7 @@ export default function ScheduledStep({ ctx }) {
                     </div>
                 </div>
 
-                {isAdmin && project.event_start && new Date(project.event_start) < new Date() && (
+                {isAdmin && isEventPassed(project.event_start) && (
                     <div className="mt-4 flex items-start gap-3 rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-amber-700 dark:text-amber-400">
                         <Icon name="calendar" size={20} className="shrink-0 text-amber-600" />
                         <div className="text-sm">

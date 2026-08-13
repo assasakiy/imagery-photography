@@ -1,5 +1,5 @@
 import Icon from '../../../../components/Icon';
-import { formatDate, formatRupiah } from '../../../../components/ui';
+import { formatDate, formatRupiah, formatTimeRange } from '../../../../components/ui';
 
 export default function ScheduledStep({ ctx }) {
     const { PanelHeader, project, pastScheduled } = ctx;
@@ -19,9 +19,7 @@ export default function ScheduledStep({ ctx }) {
                     <div><p className="text-xs text-ink-muted">Tanggal Acara</p><p className="text-sm font-semibold text-ink">{project.event_start ? formatDate(project.event_start) : (project.event_date ? formatDate(project.event_date) : '-')}</p></div>
                     <div><p className="text-xs text-ink-muted">Waktu Acara</p>
                         <p className="text-sm font-semibold text-ink">
-                            {project.event_start ? project.event_start.slice(11, 16) : '-'} 
-                            {project.event_end ? ` - ${project.event_end.slice(11, 16)}` : ''}
-                            {!project.event_start && !project.event_end ? '-' : ''}
+                            {formatTimeRange(project.event_start, project.event_end)}
                         </p>
                     </div>
                     <div><p className="text-xs text-ink-muted">Lokasi</p><p className="text-sm font-semibold text-ink">{project.location || '-'}</p></div>

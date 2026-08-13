@@ -208,6 +208,11 @@ class ProjectController extends Controller
         $data['client_notes'] = ContentSanitizer::plainText($data['client_notes'] ?? '');
         $data['location'] = ContentSanitizer::plainText($data['location'] ?? '');
 
+        // Jadwal acara: input wall-clock lokal (timezone bisnis) → simpan UTC.
+        $businessTime = app(\App\Support\BusinessTime::class);
+        $eventStart = $businessTime->parseToUtc($data['event_start'] ?? null);
+        $eventEnd = $businessTime->parseToUtc($data['event_end'] ?? null);
+
         if (!empty($data['user_id'])) {
             $user = User::findOrFail($data['user_id']);
         } else {
@@ -244,9 +249,9 @@ class ProjectController extends Controller
             'user_id' => $user->id,
             'name' => $data['name'],
             'package_id' => $package?->id ?? null,
-            'event_date' => $data['event_date'] ?? ($data['event_start'] ? \Illuminate\Support\Carbon::parse($data['event_start'])->toDateString() : null),
-            'event_start' => $data['event_start'] ?? null,
-            'event_end' => $data['event_end'] ?? null,
+            'event_date' => $data['event_date'] ?? ($eventStart ? $eventStart->toDateString() : null),
+            'event_start' => $eventStart,
+            'event_end' => $eventEnd,
             'description' => $data['description'] ?? null,
             'location' => $data['location'] ?? null,
             'price' => $data['price'] ?? ($package ? $package->computedPrice() : null),
@@ -409,6 +414,14 @@ class ProjectController extends Controller
 
         $data['description'] = ContentSanitizer::plainText($data['description'] ?? '');
         $data['location'] = ContentSanitizer::plainText($data['location'] ?? '');
+
+        // Jadwal acara: input wall-clock lokal (timezone bisnis) → simpan UTC.
+        $businessTime = app(\App\Support\BusinessTime::class);
+        if (array_key_exists('event_start', $data) || array_key_exists('event_end', $data)) {
+            $data['event_start'] = $businessTime->parseToUtc($data['event_start'] ?? null);
+            $data['event_end'] = $businessTime->parseToUtc($data['event_end'] ?? null);
+            $data['event_date'] = $data['event_date'] ?? ($data['event_start'] ? $data['event_start']->toDateString() : null);
+        }
 
         if (array_key_exists('package_id', $data)) {
             $project->package_id = $data['package_id'] ?: null;

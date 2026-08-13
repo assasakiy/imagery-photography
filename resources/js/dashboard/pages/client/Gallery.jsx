@@ -2,13 +2,8 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../../api';
 import Icon from '../../components/Icon';
-import { PageHeader, EmptyState } from '../../components/ui';
+import { PageHeader, EmptyState, formatLongDate } from '../../components/ui';
 import Skeleton from '../../components/Skeleton';
-
-function formatLongDate(value) {
-    if (!value) return '-';
-    return new Date(value).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
-}
 
 export default function Preview() {
     const [items, setItems] = useState([]);

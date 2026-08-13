@@ -60,6 +60,14 @@ class BookingApiController extends Controller
 
         $data['notes'] = ContentSanitizer::plainText($data['notes'] ?? '');
 
+        // Jadwal acara: input wall-clock lokal (timezone bisnis) → simpan UTC.
+        $businessTime = app(\App\Support\BusinessTime::class);
+        if (array_key_exists('event_start', $data) || array_key_exists('event_end', $data)) {
+            $data['event_start'] = $businessTime->parseToUtc($data['event_start'] ?? null);
+            $data['event_end'] = $businessTime->parseToUtc($data['event_end'] ?? null);
+            $data['event_date'] = $data['event_date'] ?? ($data['event_start'] ? $data['event_start']->toDateString() : null);
+        }
+
         if (!empty($data['package_id'])) {
             $package = \App\Models\Package::find($data['package_id']);
             $data['package_label'] = $package?->name;
@@ -103,6 +111,12 @@ class BookingApiController extends Controller
             'dp_amount' => 'nullable|numeric|min:0',
             'status' => 'nullable|in:' . implode(',', \App\Models\Project::STATUSES),
         ]);
+
+        // Jadwal acara: input wall-clock lokal (timezone bisnis) → simpan UTC.
+        $businessTime = app(\App\Support\BusinessTime::class);
+        $data['event_start'] = $businessTime->parseToUtc($data['event_start'] ?? null);
+        $data['event_end'] = $businessTime->parseToUtc($data['event_end'] ?? null);
+        $data['event_date'] = $data['event_date'] ?? ($data['event_start'] ? $data['event_start']->toDateString() : null);
 
         $user = $booking->user;
         if (!$user) {

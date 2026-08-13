@@ -96,6 +96,11 @@ class CustomerController extends Controller
             $price = $package->computedPrice();
         }
 
+        // Jadwal acara: input wall-clock lokal (timezone bisnis) → simpan UTC.
+        $businessTime = app(\App\Support\BusinessTime::class);
+        $eventStart = $businessTime->parseToUtc($data['event_start'] ?? null);
+        $eventEnd = $businessTime->parseToUtc($data['event_end'] ?? null);
+
         $booking = Booking::create([
             'user_id' => $user->id,
             'name' => $user->name,
@@ -103,9 +108,9 @@ class CustomerController extends Controller
             'phone' => $user->phone,
             'package_id' => $packageId,
             'package_label' => $packageLabel,
-            'event_date' => $data['event_date'] ?? ($data['event_start'] ? \Illuminate\Support\Carbon::parse($data['event_start'])->toDateString() : null),
-            'event_start' => $data['event_start'] ?? null,
-            'event_end' => $data['event_end'] ?? null,
+            'event_date' => $data['event_date'] ?? ($eventStart ? $eventStart->toDateString() : null),
+            'event_start' => $eventStart,
+            'event_end' => $eventEnd,
             'location' => $data['location'] ?? null,
             'notes' => $data['notes'] ?? null,
             'price' => $price,

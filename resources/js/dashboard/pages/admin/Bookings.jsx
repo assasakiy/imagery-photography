@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import api from '../../api';
 import Icon from '../../components/Icon';
-import { PageHeader, EmptyState, Modal, Field, useToast, formatDate, formatRupiah } from '../../components/ui';
+import { PageHeader, EmptyState, Modal, Field, useToast, formatDate, formatRupiah, formatTime, formatTimeInput } from '../../components/ui';
 import Skeleton from '../../components/Skeleton';
 
 const STATUS_META = {
@@ -171,8 +171,8 @@ export default function Bookings() {
             name: detail.package_label || detail.name,
             package_id: detail.package_id || '',
             event_date: detail.event_date ? detail.event_date.split('T')[0] : '',
-            start_time: detail.event_start ? detail.event_start.slice(11, 16) : '',
-            end_time: detail.event_end ? detail.event_end.slice(11, 16) : '',
+            start_time: detail.event_start ? formatTimeInput(detail.event_start) : '',
+            end_time: detail.event_end ? formatTimeInput(detail.event_end) : '',
             description: detail.notes || '',
             location: detail.location || '',
             price: detail.price || '',
@@ -309,8 +309,8 @@ export default function Bookings() {
                                 <div><p className="text-xs text-ink-muted">Tanggal Acara</p><p className="text-sm font-semibold text-ink">{detail.event_date ? formatDate(detail.event_date) : '-'}</p></div>
                                 <div><p className="text-xs text-ink-muted">Waktu Acara</p>
                                     <p className="text-sm font-semibold text-ink">
-                                        {detail.event_start ? detail.event_start.slice(11, 16) : '-'}
-                                        {detail.event_end ? ` - ${detail.event_end.slice(11, 16)}` : ''}
+                                        {detail.event_start ? formatTime(detail.event_start) : '-'}
+                                        {detail.event_end ? ` - ${formatTime(detail.event_end)}` : ''}
                                         {!detail.event_start && !detail.event_end ? '-' : ''}
                                     </p>
                                 </div>

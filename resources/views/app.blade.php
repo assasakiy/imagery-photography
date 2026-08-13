@@ -34,6 +34,7 @@
             siteName: @json($siteName),
             googleRedirect: @json(url('/auth/google/redirect')),
             rememberEnabled: @json($shellSettings->loginRememberEnabled()),
+            businessTimezone: @json($shellSettings->timezone()),
             otp: {
                 enabled: @json($shellSettings->loginMethodEnabled('otp')),
                 whatsapp: @json($shellSettings->channelEnabled('whatsapp')),

@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import api from '../../../api';
 import Icon from '../../../components/Icon';
 import { useAuth } from '../../../context/AuthContext';
-import { PageHeader, EmptyState, Modal, Field, useToast, formatRupiah, formatDate } from '../../../components/ui';
+import { PageHeader, EmptyState, Modal, Field, useToast, formatRupiah, formatDate, formatTimeInput } from '../../../components/ui';
 import Skeleton from '../../../components/Skeleton';
 
 export const statusOptions = [
@@ -102,8 +102,8 @@ export default function Projects() {
             name: item.name,
             package_id: item.package_id || '',
             event_date: item.event_date?.split('T')[0] || '',
-            start_time: item.event_start ? item.event_start.slice(11, 16) : '',
-            end_time: item.event_end ? item.event_end.slice(11, 16) : '',
+            start_time: item.event_start ? formatTimeInput(item.event_start) : '',
+            end_time: item.event_end ? formatTimeInput(item.event_end) : '',
             description: item.description || '',
             location: item.location || '',
             price: item.price || '',

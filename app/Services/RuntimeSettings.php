@@ -234,6 +234,17 @@ class RuntimeSettings
         return $this->get('site_name') ?: 'Sopian Lalu Imagery';
     }
 
+    /**
+     * Timezone bisnis global (untuk jadwal acara & tampilan waktu).
+     * 3 lapis: DB setting → .env APP_BUSINESS_TIMEZONE → default Asia/Makassar.
+     */
+    public function timezone(): string
+    {
+        $db = $this->get('timezone');
+
+        return !empty($db) ? $db : (env('APP_BUSINESS_TIMEZONE') ?: 'Asia/Makassar');
+    }
+
     public function siteTagline(): ?string
     {
         return $this->get('site_tagline') ?: null;

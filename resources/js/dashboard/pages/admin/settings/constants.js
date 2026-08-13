@@ -2,6 +2,22 @@ export const MASK = '••••••••';
 
 export const BRAND_PRESETS = ['#7c3aed', '#059669', '#0284c7', '#e11d48', '#d97706', '#18181b'];
 
+export const BUSINESS_TIMEZONES = [
+    { value: 'Asia/Makassar', label: 'Asia/Makassar (WITA, UTC+8)' },
+    { value: 'Asia/Jakarta', label: 'Asia/Jakarta (WIB, UTC+7)' },
+    { value: 'Asia/Bangkok', label: 'Asia/Bangkok (ICT, UTC+7)' },
+    { value: 'Asia/Singapore', label: 'Asia/Singapore (SGT, UTC+8)' },
+    { value: 'Asia/Kolkata', label: 'Asia/Kolkata (IST, UTC+5:30)' },
+    { value: 'Asia/Shanghai', label: 'Asia/Shanghai (CST, UTC+8)' },
+    { value: 'Asia/Tokyo', label: 'Asia/Tokyo (JST, UTC+9)' },
+    { value: 'Australia/Sydney', label: 'Australia/Sydney (AEDT, UTC+11)' },
+    { value: 'Europe/London', label: 'Europe/London (GMT/BST)' },
+    { value: 'Europe/Berlin', label: 'Europe/Berlin (CET/CEST)' },
+    { value: 'America/New_York', label: 'America/New_York (ET)' },
+    { value: 'America/Los_Angeles', label: 'America/Los_Angeles (PT)' },
+    { value: 'UTC', label: 'UTC' },
+];
+
 export const TABS = [
     { key: 'branding', label: 'Branding', icon: 'settings' },
     { key: 'integrasi', label: 'Integrasi', icon: 'link' },
@@ -13,7 +29,7 @@ export const TABS = [
 ];
 
 export const TAB_FIELDS = {
-    branding: ['site_name', 'site_tagline', 'site_description', 'site_logo', 'site_favicon'],
+    branding: ['site_name', 'site_tagline', 'site_description', 'site_logo', 'site_favicon', 'timezone'],
     integrasi: [
         'mail_host', 'mail_port', 'mail_username', 'mail_password', 'mail_from_address', 'mail_from_name',
         'whatsapp_config',
@@ -78,6 +94,7 @@ export const emptyForm = {
     site_logo: '',
     site_favicon: '',
     brand_color: '#7c3aed',
+    timezone: 'Asia/Makassar',
     mail_host: '',
     mail_port: '',
     mail_username: '',
@@ -147,6 +164,7 @@ export function normalize(data) {
         site_logo: data.site_logo || '',
         site_favicon: data.site_favicon || '',
         brand_color: data.brand_color || '#7c3aed',
+        timezone: data.timezone || 'Asia/Makassar',
         mail_host: data.mail_host || '',
         mail_port: data.mail_port || '',
         mail_username: data.mail_username || '',

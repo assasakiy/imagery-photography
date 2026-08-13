@@ -55,11 +55,12 @@ class BookingController extends Controller
             'message' => 'nullable|string',
         ]);
 
-        // Gabung tanggal + jam utama acara menjadi datetime.
+        // Gabung tanggal + jam utama acara menjadi datetime (timezone bisnis → UTC).
         $startTime = $data['event_start_time'] ?? null;
         $endTime = $data['event_end_time'] ?? null;
-        $data['event_start'] = $data['event_date'] && $startTime ? \Illuminate\Support\Carbon::parse($data['event_date'])->setTimeFromTimeString($startTime) : null;
-        $data['event_end'] = $data['event_date'] && $endTime ? \Illuminate\Support\Carbon::parse($data['event_date'])->setTimeFromTimeString($endTime) : null;
+        $businessTime = app(\App\Support\BusinessTime::class);
+        $data['event_start'] = $businessTime->toUtc($data['event_date'] ?? null, $startTime);
+        $data['event_end'] = $businessTime->toUtc($data['event_date'] ?? null, $endTime);
         unset($data['event_start_time'], $data['event_end_time']);
 
         if ($data['package_id'] === 'custom' && empty($data['service_ids'])) {

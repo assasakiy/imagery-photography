@@ -142,15 +142,15 @@ export default function Dashboard() {
                         <div className="divide-y divide-line">
                             {stats.upcoming_schedule?.length ? (
                                 stats.upcoming_schedule.map((p) => {
-                                    const ev = p.event_date ? new Date(p.event_date) : null;
+                                    const ev = p.event_date ? new Date(p.event_date + 'T00:00:00Z') : null;
                                     return (
                                         <Link key={p.id} to={`/dashboard/projects/${p.order_no || p.id}`} className="flex items-center gap-3 px-5 py-3 hover:bg-surface-muted">
                                             {ev ? (
                                                 <div className="flex h-12 w-12 shrink-0 flex-col items-center justify-center rounded-xl bg-surface-muted">
-                                                    <span className="text-[10px] font-bold uppercase leading-none text-brand-600 dark:text-brand-400">
-                                                        {ev.toLocaleDateString('id-ID', { month: 'short' })}
-                                                    </span>
-                                                    <span className="mt-0.5 text-sm font-bold leading-none text-ink">{ev.getDate()}</span>
+                                                     <span className="text-[10px] font-bold uppercase leading-none text-brand-600 dark:text-brand-400">
+                                                         {new Intl.DateTimeFormat('id-ID', { timeZone: 'UTC', month: 'short' }).format(ev)}
+                                                     </span>
+                                                     <span className="mt-0.5 text-sm font-bold leading-none text-ink">{ev.getUTCDate()}</span>
                                                 </div>
                                             ) : (
                                                 <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-surface-muted text-ink-muted">

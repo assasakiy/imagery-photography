@@ -2,7 +2,7 @@ import Icon from '../../../components/Icon';
 import Button from '../../../components/Button';
 import RichEditor from '../../../components/RichEditor';
 import { Field } from '../../../components/ui';
-import { BRAND_PRESETS, TAB_FIELDS } from './constants';
+import { BRAND_PRESETS, BUSINESS_TIMEZONES, TAB_FIELDS } from './constants';
 
 export default function BrandingTab({ form, meta, errors, saving, set, save, dirty, mediaFor, setMediaFor, dirtyColor }) {
     return (
@@ -94,6 +94,29 @@ export default function BrandingTab({ form, meta, errors, saving, set, save, dir
                 <div className="mt-6 flex justify-end border-t border-line pt-5">
                     <Button icon="check" loading={saving} disabled={!dirtyColor} onClick={() => save(['brand_color'])}>Simpan Warna</Button>
                 </div>
+            </div>
+
+            <RegionalSettings form={form} errors={errors} saving={saving} set={set} save={save} dirty={dirty} />
+        </div>
+    );
+}
+
+function RegionalSettings({ form, errors, saving, set, save, dirty }) {
+    return (
+        <div className="card w-full p-6">
+            <div className="mb-5">
+                <h2 className="font-semibold text-ink">Regional</h2>
+                <p className="text-xs text-ink-muted">Timezone bisnis global — jam acara diinput dan ditampilkan sesuai zona ini.</p>
+            </div>
+            <Field label="Timezone Bisnis" hint="jadwal acara & semua tampilan waktu disesuaikan ke zona ini" error={errors.timezone?.[0]}>
+                <select className="input" value={form.timezone || ''} onChange={(e) => set('timezone', e.target.value)}>
+                    {BUSINESS_TIMEZONES.map((tz) => (
+                        <option key={tz.value} value={tz.value}>{tz.label}</option>
+                    ))}
+                </select>
+            </Field>
+            <div className="mt-6 flex justify-end border-t border-line pt-5">
+                <Button icon="check" loading={saving} disabled={!dirty(['timezone'])} onClick={() => save(['timezone'])}>Simpan Timezone</Button>
             </div>
         </div>
     );
