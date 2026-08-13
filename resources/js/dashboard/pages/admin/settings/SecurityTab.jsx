@@ -21,10 +21,13 @@ export default function SecurityTab({ form, meta, errors, saving, set, save, dir
 
     const methods = Object.entries(form.login_methods_global || {}).filter(([method]) => {
         if (method === 'password' || method === 'token') return true;
-        if (method === 'otp') return meta.email_enabled || meta.whatsapp_enabled;
+        // OTP hanya muncul jika channel (email atau WA) sudah TERKONFIGURASI
+        if (method === 'otp') return meta.email_configured || meta.whatsapp_configured;
         if (method === 'google') return meta.google_auth_enabled && meta.google_client_id;
         return false;
     });
+
+    const isOtpConfigured = meta.email_configured || meta.whatsapp_configured;
 
     const updateRateLimit = (key, field, value) => {
         set('rate_limits', {
@@ -60,14 +63,18 @@ export default function SecurityTab({ form, meta, errors, saving, set, save, dir
                         <p className="mb-3 text-sm font-semibold text-ink">Metode Login</p>
                         <div className="space-y-3">
                             {methods.map(([method, enabled]) => (
-                                <Toggle
-                                    key={method}
-                                    size="sm"
-                                    label={METHOD_LABEL(method)}
-                                    desc={METHOD_DESC[method]}
-                                    checked={!!enabled}
-                                    onChange={(v) => set('login_methods_global', { ...form.login_methods_global, [method]: v })}
-                                />
+                                    <Toggle
+                                        key={method}
+                                        size="sm"
+                                        label={METHOD_LABEL(method)}
+                                        desc={METHOD_DESC[method]}
+                                        checked={!!enabled}
+                                        disabled={method === 'otp' && !isOtpConfigured}
+                                        onChange={(v) => {
+                                            if (method === 'otp' && !isOtpConfigured) return;
+                                            set('login_methods_global', { ...form.login_methods_global, [method]: v });
+                                        }}
+                                    />
                             ))}
                         </div>
                     </div>
