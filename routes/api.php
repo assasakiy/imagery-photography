@@ -31,15 +31,13 @@ use App\Http\Controllers\Api\TeamController;
 use App\Http\Controllers\Api\TeamMemberController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware('web')->group(function () {
-    Route::post('/login', [AuthController::class, 'login']);
-    Route::post('/send-otp', [AuthController::class, 'sendOtp']);
-    Route::post('/verify-otp', [AuthController::class, 'verifyOtp']);
-    Route::get('/whatsapp-status', [AuthController::class, 'whatsappStatus']);
-    Route::post('/forgot', [AuthController::class, 'forgot'])->middleware('throttle:forgot');
-    Route::post('/set-password', [AuthController::class, 'setPassword']);
-    Route::post('/reset-password', [AuthController::class, 'resetPassword']);
-});
+Route::post('/login', [AuthController::class, 'login'])->middleware('api.throttle:auth.login');
+Route::post('/send-otp', [AuthController::class, 'sendOtp'])->middleware('api.throttle:otp.send');
+Route::post('/verify-otp', [AuthController::class, 'verifyOtp'])->middleware('api.throttle:otp.verify');
+Route::get('/whatsapp-status', [AuthController::class, 'whatsappStatus']);
+Route::post('/forgot', [AuthController::class, 'forgot'])->middleware('api.throttle:auth.forgot');
+Route::post('/set-password', [AuthController::class, 'setPassword']);
+Route::post('/reset-password', [AuthController::class, 'resetPassword']);
 
 Route::post('/webhook/tripay', [PaymentController::class, 'webhook']);
 
@@ -84,8 +82,8 @@ Route::middleware(['web', 'auth:sanctum', 'maintenance'])->group(function () {
     Route::get('/customer/packages', [CustomerController::class, 'packages']);
     Route::get('/customer/services', [CustomerController::class, 'services']);
     Route::get('/customer/bookings', [CustomerController::class, 'bookings']);
-    Route::post('/customer/bookings', [CustomerController::class, 'storeBooking']);
-    Route::post('/customer/bookings/{booking}/cancel', [CustomerController::class, 'cancelBooking']);
+    Route::post('/customer/bookings', [CustomerController::class, 'storeBooking'])->middleware('api.throttle:booking.create');
+    Route::post('/customer/bookings/{booking}/cancel', [CustomerController::class, 'cancelBooking'])->middleware('api.throttle:booking.update');
     Route::get('/customer/invoices', [CustomerController::class, 'invoices']);
     Route::get('/customer/payments', [CustomerController::class, 'payments']);
     Route::get('/customer/payment-methods', [PaymentController::class, 'methods']);

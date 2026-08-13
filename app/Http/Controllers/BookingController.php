@@ -41,10 +41,19 @@ class BookingController extends Controller
 
     public function store(Request $request)
     {
+        $settings = app(\App\Services\RuntimeSettings::class);
+        $emailEnabled = $settings->channelEnabled('email');
+        $waEnabled = $settings->channelEnabled('whatsapp');
+
+        // Jika hanya salah satu integrasi yang aktif, paksa field tersebut wajib.
+        // Jika keduanya aktif (atau keduanya nonaktif untuk fallback), wajibkan salah satu.
+        $emailRule = $emailEnabled && !$waEnabled ? 'required' : 'required_without:phone';
+        $phoneRule = $waEnabled && !$emailEnabled ? 'required' : 'required_without:email';
+
         $data = $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|email|max:255',
-            'phone' => 'nullable|string|max:20',
+            'email' => "{$emailRule}|nullable|email|max:255",
+            'phone' => "{$phoneRule}|nullable|string|max:20",
             'package_id' => 'required',
             'service_ids' => 'nullable|array',
             'service_ids.*' => 'exists:services,id',
@@ -75,12 +84,8 @@ class BookingController extends Controller
         $data['location'] = ContentSanitizer::plainText($data['location'] ?? '');
         unset($data['message']);
 
-        // Rate limiting on-demand: counter naik HANYA saat request valid.
-        $reasons = \App\Support\BookingThrottle::exceeded($data['email'] ?? null);
-        if ($reasons) {
-            abort(429, 'Permintaan booking Anda terlalu sering. Coba beberapa menit lagi.');
-        }
-        \App\Support\BookingThrottle::record($data['email'] ?? null);
+        // Record limit: counter naik HANYA saat request lolos validasi (mode valid).
+        \App\Support\ApiThrottle::record('booking.create', ['email' => $data['email'] ?? '']);
 
         // User pending + booking + invite.
         $reg = app(ClientRegistrationService::class);

@@ -20,6 +20,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
             'guest' => \App\Http\Middleware\RedirectIfAuthenticated::class,
             'maintenance' => \App\Http\Middleware\Maintenance::class,
+            'api.throttle' => \App\Http\Middleware\ApiThrottleRequests::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

@@ -11,6 +11,7 @@ use App\Services\RuntimeSettings;
 use App\Services\WhatsApp\WhatsAppDriverRegistry;
 use App\Services\WhatsApp\WhatsAppManager;
 use App\Support\ContentSanitizer;
+use App\Support\ApiThrottle;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
@@ -69,7 +70,31 @@ class SettingsController extends Controller
             'payment_active_qris' => $settings->paymentActiveQris(),
             'payment_active_channels' => $settings->paymentActiveChannels(),
             'payment_tripay_config' => $this->maskedTripayConfig(),
+            'rate_limits' => $this->rateLimitsPayload(),
         ]);
+    }
+
+    private function rateLimitsPayload(): array
+    {
+        $cfg = config('rate_limit.policies', []);
+        $overrides = app(RuntimeSettings::class)->get('rate_limits');
+        $overrides = $overrides ? json_decode($overrides, true) : [];
+        $result = [];
+
+        foreach ($cfg as $key => $default) {
+            $result[$key] = [
+                'limit' => $overrides[$key]['limit'] ?? $default['limit'],
+                'period' => $overrides[$key]['period'] ?? $default['periode'],
+                'scope' => $default['scope'] ?? 'ip',
+                'min' => $default['floor'] ?? 1,
+                'max' => $default['ceiling'] ?? 100,
+                'enabled' => $overrides[$key]['enabled'] ?? $default['enabled'] ?? true,
+            ];
+            // clamp
+            $result[$key]['limit'] = max($result[$key]['min'], min($result[$key]['limit'], $result[$key]['max']));
+        }
+
+        return $result;
     }
 
     private function maskedTripayConfig(): array
@@ -138,6 +163,10 @@ class SettingsController extends Controller
             'payment_active_qris' => 'nullable|string',
             'payment_active_channels' => 'nullable|array',
             'payment_tripay_config' => 'nullable|array',
+            'rate_limits' => 'nullable|array',
+            'rate_limits.*.limit' => 'nullable|integer|min:1',
+            'rate_limits.*.period' => 'nullable|integer|min:10',
+            'rate_limits.*.enabled' => 'nullable|boolean',
         ]);
 
         $masked = ['mail_password', 'whatsapp_token', 'google_client_secret'];
@@ -200,6 +229,23 @@ class SettingsController extends Controller
 
             if (in_array($key, ['payment_manual_accounts', 'payment_active_manuals', 'payment_active_channels'])) {
                 Setting::setValue($key, json_encode($value ?? []));
+                continue;
+            }
+
+            if ($key === 'rate_limits') {
+                $defaults = config('rate_limit.policies', []);
+                $clamped = [];
+                foreach ($value as $k => $v) {
+                    if (!isset($defaults[$k])) continue;
+                    $floor = $defaults[$k]['floor'] ?? 1;
+                    $ceiling = $defaults[$k]['ceiling'] ?? 100;
+                    $clamped[$k] = [
+                        'limit' => max($floor, min((int) ($v['limit'] ?? $defaults[$k]['limit']), $ceiling)),
+                        'period' => max(10, (int) ($v['period'] ?? $defaults[$k]['periode'])),
+                        'enabled' => isset($v['enabled']) ? (bool) $v['enabled'] : ($defaults[$k]['enabled'] ?? true),
+                    ];
+                }
+                Setting::setValue('rate_limits', json_encode($clamped));
                 continue;
             }
 

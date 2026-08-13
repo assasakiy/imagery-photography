@@ -1,8 +1,10 @@
+import { useEffect, useState } from 'react';
 import Icon from '../../../components/Icon';
 import Button from '../../../components/Button';
 import Toggle from '../../../components/Toggle';
 import { Field } from '../../../components/ui';
 import { TAB_FIELDS, statusBadge } from './constants';
+import api from '../../../api';
 
 const METHOD_DESC = {
     password: 'Masuk dengan email dan kata sandi.',
@@ -14,6 +16,9 @@ const METHOD_DESC = {
 const METHOD_LABEL = (method) => (method === 'token' ? 'Access Link' : method[0].toUpperCase() + method.slice(1));
 
 export default function SecurityTab({ form, meta, errors, saving, set, save, dirty }) {
+    const rateLimits = form.rate_limits || {};
+    const rateLimitsBase = meta.rate_limits || {};
+
     const methods = Object.entries(form.login_methods_global || {}).filter(([method]) => {
         if (method === 'password' || method === 'token') return true;
         if (method === 'otp') return meta.email_enabled || meta.whatsapp_enabled;
@@ -21,32 +26,23 @@ export default function SecurityTab({ form, meta, errors, saving, set, save, dir
         return false;
     });
 
+    const updateRateLimit = (key, field, value) => {
+        set('rate_limits', {
+            ...rateLimits,
+            [key]: { ...rateLimits[key], [field]: value },
+        });
+    };
+
+    const isRateLimitsDirty = JSON.stringify(rateLimits) !== JSON.stringify(rateLimitsBase);
+
     return (
         <div className="space-y-6">
             <div className="card w-full p-6">
                 <div className="mb-5">
                     <h2 className="font-semibold text-ink">Keamanan Login</h2>
-                    <p className="text-xs text-ink-muted">Percobaan login, sesi ingat, dan metode login yang tersedia.</p>
+                    <p className="text-xs text-ink-muted">Sesi ingat dan metode login yang tersedia.</p>
                 </div>
                 <div className="space-y-5">
-                    <Field label="Maksimal percobaan" hint="sebelum akun dikunci" error={errors.login_attempts_max?.[0]}>
-                        <input
-                            type="number"
-                            className="input"
-                            value={form.login_attempts_max}
-                            min={1}
-                            onChange={(e) => set('login_attempts_max', e.target.value)}
-                        />
-                    </Field>
-                    <Field label="Durasi kunci" hint="menit" error={errors.login_attempts_lockout_minutes?.[0]}>
-                        <input
-                            type="number"
-                            className="input"
-                            value={form.login_attempts_lockout_minutes}
-                            min={1}
-                            onChange={(e) => set('login_attempts_lockout_minutes', e.target.value)}
-                        />
-                    </Field>
                     <Field label="Jangan lupakan saya">
                         <Toggle checked={!!form.login_remember_enabled} onChange={(v) => set('login_remember_enabled', v)} />
                     </Field>
@@ -79,6 +75,105 @@ export default function SecurityTab({ form, meta, errors, saving, set, save, dir
                 <div className="mt-6 flex justify-end border-t border-line pt-5">
                     <Button icon="check" loading={saving} disabled={!dirty(TAB_FIELDS.security_login)} onClick={() => save(TAB_FIELDS.security_login)}>
                         Simpan Keamanan Login
+                    </Button>
+                </div>
+            </div>
+
+            <div className="card w-full p-6">
+                <div className="mb-5">
+                    <h2 className="font-semibold text-ink">Rate Limit Endpoint</h2>
+                    <p className="text-xs text-ink-muted">
+                        Batas request per periode. Nilai minimum adalah proteksi dasar yang tidak bisa diturunkan.
+                        Ubah limit, periode, atau nonaktifkan untuk policy yang dapat dikonfigurasi.
+                    </p>
+                </div>
+                <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                        <thead className="border-b border-line text-xs uppercase text-ink-muted">
+                            <tr>
+                                <th className="px-3 py-2 text-left font-semibold">Policy</th>
+                                <th className="px-3 py-2 text-left font-semibold">Scope</th>
+                                <th className="px-3 py-2 text-center font-semibold">Limit</th>
+                                <th className="px-3 py-2 text-center font-semibold">Periode</th>
+                                <th className="px-3 py-2 text-center font-semibold">Min</th>
+                                <th className="px-3 py-2 text-center font-semibold">Max</th>
+                                <th className="px-3 py-2 text-center font-semibold">Aktif</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {Object.entries(rateLimits).length ? Object.entries(rateLimits).map(([key, policy]) => {
+                                const isEditable = ['booking.create', 'booking.update', 'upload', 'payment', 'contact'].includes(key);
+                                const isMandatory = ['otp.send', 'otp.verify', 'auth.login', 'auth.forgot'].includes(key);
+                                return (
+                                    <tr key={key} className="border-b border-line last:border-0">
+                                        <td className="px-3 py-2 font-medium text-ink">{key}</td>
+                                        <td className="px-3 py-2 text-ink-muted">{policy.scope || '-'}</td>
+                                        <td className="px-3 py-2 text-center">
+                                            {isEditable ? (
+                                                <input
+                                                    type="number"
+                                                    className="w-16 rounded-lg border border-line bg-transparent px-2 py-1 text-center text-sm text-ink focus:border-brand-500 focus:outline-none dark:border-line-dark"
+                                                    value={policy.limit}
+                                                    min={policy.min}
+                                                    max={policy.max}
+                                                    onChange={(e) => {
+                                                        const val = parseInt(e.target.value, 10);
+                                                        if (!isNaN(val)) updateRateLimit(key, 'limit', val);
+                                                    }}
+                                                />
+                                            ) : (
+                                                <span className="text-ink-muted">{policy.limit}</span>
+                                            )}
+                                        </td>
+                                        <td className="px-3 py-2 text-center text-ink-muted">
+                                            {isEditable ? (
+                                                <input
+                                                    type="number"
+                                                    className="w-20 rounded-lg border border-line bg-transparent px-2 py-1 text-center text-sm text-ink focus:border-brand-500 focus:outline-none dark:border-line-dark"
+                                                    value={policy.period || 60}
+                                                    min={10}
+                                                    onChange={(e) => {
+                                                        const val = parseInt(e.target.value, 10);
+                                                        if (!isNaN(val)) updateRateLimit(key, 'period', val);
+                                                    }}
+                                                />
+                                            ) : (
+                                                `${policy.period}s`
+                                            )}
+                                        </td>
+                                        <td className="px-3 py-2 text-center text-ink-muted">{policy.min}</td>
+                                        <td className="px-3 py-2 text-center text-ink-muted">{policy.max || '-'}</td>
+                                        <td className="px-3 py-2 text-center">
+                                            {isEditable ? (
+                                                <Toggle
+                                                    size="sm"
+                                                    checked={policy.enabled !== false}
+                                                    onChange={(v) => updateRateLimit(key, 'enabled', v)}
+                                                />
+                                            ) : isMandatory ? (
+                                                <span className="text-xs text-ink-muted">Wajib</span>
+                                            ) : (
+                                                <Toggle size="sm" checked={policy.enabled !== false} disabled />
+                                            )}
+                                        </td>
+                                    </tr>
+                                );
+                            }) : (
+                                <tr>
+                                    <td colSpan="7" className="py-4 text-center text-ink-muted">Memuat rate limit...</td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+                <div className="mt-6 flex justify-end border-t border-line pt-5">
+                    <Button
+                        icon="check"
+                        loading={saving}
+                        disabled={!isRateLimitsDirty}
+                        onClick={() => save(['rate_limits'], { rate_limits: rateLimits })}
+                    >
+                        Simpan Rate Limit
                     </Button>
                 </div>
             </div>

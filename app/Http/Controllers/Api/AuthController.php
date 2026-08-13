@@ -10,6 +10,7 @@ use App\Services\LoginTracker;
 use App\Services\NotificationService;
 use App\Services\NotificationType;
 use App\Services\RuntimeSettings;
+use App\Support\ApiThrottle;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
@@ -35,13 +36,9 @@ class AuthController extends Controller
             ]);
         }
 
-        $settings = app(RuntimeSettings::class);
-        $this->ensureNotLockedOut($settings, $identifier);
-
         $user = $this->resolveUser($identifier);
 
         if (!$user || !$user->canUseLoginMethod('password') || !Hash::check($data['password'], $user->password)) {
-            $this->recordFailedAttempt($settings, $identifier);
             $logUser = $user ?? $this->resolveUser($identifier, true);
             app(LoginTracker::class)->recordFailed($logUser, 'password', $identifier);
             app(AuditLogger::class)->log('auth.login_failed', 'Percobaan login gagal: ' . $identifier, identifier: $identifier);
@@ -51,8 +48,9 @@ class AuthController extends Controller
             ]);
         }
 
-        $this->clearFailedAttempts($identifier);
+        ApiThrottle::reset('auth.login', ['identifier' => $identifier]);
 
+        $settings = app(RuntimeSettings::class);
         Auth::login($user, $settings->loginRememberEnabled() && ($data['remember'] ?? false));
 
         $this->afterLogin($user, 'password');
@@ -72,44 +70,6 @@ class AuthController extends Controller
         if ($tracker->isSuspicious($user)) {
             app(NotificationService::class)->notifySuspiciousLogin($user);
         }
-    }
-
-    private function ensureNotLockedOut(RuntimeSettings $settings, string $identifier): void
-    {
-        $attempts = (int) Cache::get($this->lockoutKey($identifier), 0);
-        $max = (int) $settings->loginAttemptsMax();
-        $lockoutMinutes = (int) $settings->loginAttemptsLockoutMinutes();
-
-        if ($max > 0 && $attempts >= $max) {
-            throw ValidationException::withMessages([
-                'email' => 'Terlalu banyak percobaan gagal. Silakan coba lagi dalam ' . max(1, $lockoutMinutes) . ' menit.',
-            ]);
-        }
-    }
-
-    private function recordFailedAttempt(RuntimeSettings $settings, string $identifier): void
-    {
-        $max = (int) $settings->loginAttemptsMax();
-        $lockoutMinutes = (int) $settings->loginAttemptsLockoutMinutes();
-
-        if ($max <= 0) {
-            return;
-        }
-
-        $attempts = (int) Cache::get($this->lockoutKey($identifier), 0) + 1;
-        Cache::put($this->lockoutKey($identifier), $attempts, now()->addMinutes(max(1, $lockoutMinutes)));
-    }
-
-    private function clearFailedAttempts(string $identifier): void
-    {
-        Cache::forget($this->lockoutKey($identifier));
-    }
-
-    private function lockoutKey(string $identifier): string
-    {
-        $account = hash('sha256', mb_strtolower(trim($identifier)));
-
-        return 'login_attempts:' . (request()->ip() ?: 'unknown') . ':' . $account;
     }
 
     private function resolveUser(string $identifier, bool $withTrashed = false): ?User
@@ -223,6 +183,9 @@ class AuthController extends Controller
             return response()->json(['message' => 'Kode OTP salah atau kadaluarsa.'], 422);
         }
 
+        // Reset rate limit pada verifikasi sukses (sudah dibuktikan)
+        ApiThrottle::reset('otp.verify', ['identifier' => $data['identifier']]);
+
         Auth::login($user);
 
         $this->afterLogin($user, 'otp');
@@ -252,6 +215,7 @@ class AuthController extends Controller
         ]);
 
         $identifier = trim($data['identifier']);
+
         $user = $this->resolveUser($identifier);
 
         if (!$user) {

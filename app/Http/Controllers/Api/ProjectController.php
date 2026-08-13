@@ -186,11 +186,19 @@ class ProjectController extends Controller
 
     public function store(Request $request)
     {
+        $settings = app(\App\Services\RuntimeSettings::class);
+        $emailEnabled = $settings->channelEnabled('email');
+        $waEnabled = $settings->channelEnabled('whatsapp');
+
+        // Jika membuat klien baru (tanpa user_id), wajibkan kontak sesuai integrasi aktif.
+        $emailRule = $emailEnabled && !$waEnabled ? 'required_without:user_id' : 'required_without_all:user_id,client_phone';
+        $phoneRule = $waEnabled && !$emailEnabled ? 'required_without:user_id' : 'required_without_all:user_id,client_email';
+
         $data = $request->validate([
             'user_id' => 'nullable|exists:users,id',
             'client_name' => 'required_without:user_id|string|max:255',
-            'client_phone' => 'nullable|string|max:20',
-            'client_email' => 'nullable|email|max:255',
+            'client_phone' => "{$phoneRule}|nullable|string|max:20",
+            'client_email' => "{$emailRule}|nullable|email|max:255",
             'client_notes' => 'nullable|string|max:1000',
             'name' => 'required|string|max:255',
             'package_id' => 'nullable|exists:packages,id',

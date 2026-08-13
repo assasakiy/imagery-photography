@@ -4,17 +4,15 @@ import Toggle from '../../../components/Toggle';
 
 function NotifCard({ channel, form, meta, toggleEvent, open, setOpen }) {
     const isEmail = channel === 'email';
-    const configured = isEmail ? meta.email_enabled : meta.whatsapp_enabled;
+    const isEnabled = isEmail ? form.notif_email_enabled : form.notif_wa_enabled;
     const events = isEmail ? form.email_events : form.whatsapp_events;
     const label = isEmail ? 'Email' : 'WhatsApp';
-    const active = (events || []).some((e) => !!e.enabled);
+    const active = isEnabled && (events || []).some((e) => !!e.enabled);
 
-    const badgeClass = !configured
-        ? 'bg-zinc-500/15 text-ink-muted'
-        : active
-          ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
-          : 'bg-zinc-500/15 text-ink-muted';
-    const badgeLabel = !configured ? 'Nonaktif' : active ? 'Aktif' : 'Nonaktif';
+    const badgeClass = isEnabled
+        ? (active ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' : 'bg-zinc-500/15 text-ink-muted')
+        : 'bg-red-500/15 text-red-600 dark:text-red-400';
+    const badgeLabel = isEnabled ? (active ? 'Aktif' : 'Pasif') : 'Nonaktif';
 
     return (
         <div className="card w-full p-6">
@@ -34,12 +32,12 @@ function NotifCard({ channel, form, meta, toggleEvent, open, setOpen }) {
                 </div>
             </button>
 
-            {!configured && (
+            {!isEnabled && (
                 <div className="mt-4 flex items-start gap-2 rounded-xl bg-amber-500/10 p-3 text-xs text-amber-600 dark:text-amber-400">
                     <Icon name="alert-triangle" size={16} className="mt-0.5 shrink-0" />
                     <p>
-                        Koneksi {isEmail ? 'SMTP' : 'WhatsApp'} belum dikonfigurasi di tab Integrasi. Atur dulu di tab Integrasi untuk
-                        mengaktifkan notifikasi {isEmail ? 'email' : 'WhatsApp'}.
+                        Integrasi {isEmail ? 'Email' : 'WhatsApp'} sedang dinonaktifkan atau belum dikonfigurasi di tab Integrasi. 
+                        Event notifikasi di bawah tidak akan terkirim.
                     </p>
                 </div>
             )}
@@ -60,14 +58,11 @@ function NotifCard({ channel, form, meta, toggleEvent, open, setOpen }) {
                             <Toggle
                                 size="sm"
                                 checked={!!ev.enabled}
-                                disabled={ev.mandatory || !configured}
+                                disabled={ev.mandatory || !isEnabled}
                                 onChange={(v) => toggleEvent(channel, ev.key, v)}
                             />
                         </div>
                     ))}
-                    <p className="border-t border-line pt-2 text-xs text-ink-muted">
-                        Event Wajib tidak bisa dinonaktifkan dan hanya berlaku jika kanal sudah dikonfigurasi.
-                    </p>
                 </div>
             )}
         </div>

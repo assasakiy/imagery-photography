@@ -46,15 +46,33 @@
                             @error('name') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
                         </div>
 
+@php
+    $emailEnabled = $shellSettings->channelEnabled('email');
+    $waEnabled = $shellSettings->channelEnabled('whatsapp');
+    $reqEmail = $emailEnabled && !$waEnabled;
+    $reqPhone = $waEnabled && !$emailEnabled;
+    $reqBoth = $emailEnabled && $waEnabled;
+@endphp
+
                         <div>
-                            <label for="email" class="label">Email <span class="text-red-500">*</span></label>
-                            <input type="email" id="email" name="email" value="{{ old('email') }}" required class="input" placeholder="email@contoh.com">
+                            <label for="email" class="label">Email 
+                                @if($reqEmail) <span class="text-red-500">*</span> 
+                                @elseif($reqBoth) <span class="text-red-500">*</span><span class="text-[10px] font-normal text-ink-muted ml-1">(atau isi WA)</span> 
+                                @else <span class="text-amber-600">(opsional)</span> 
+                                @endif
+                            </label>
+                            <input type="email" id="email" name="email" value="{{ old('email') }}" {{ $reqEmail ? 'required' : '' }} class="input" placeholder="email@contoh.com">
                             @error('email') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
                         </div>
 
                         <div>
-                            <label for="phone" class="label">No. WhatsApp <span class="text-amber-600">(opsional)</span></label>
-                            <input type="text" id="phone" name="phone" value="{{ old('phone') }}" class="input" placeholder="08xxxxxxxxxx">
+                            <label for="phone" class="label">No. WhatsApp 
+                                @if($reqPhone) <span class="text-red-500">*</span> 
+                                @elseif($reqBoth) <span class="text-red-500">*</span><span class="text-[10px] font-normal text-ink-muted ml-1">(atau isi Email)</span> 
+                                @else <span class="text-amber-600">(opsional)</span> 
+                                @endif
+                            </label>
+                            <input type="text" id="phone" name="phone" value="{{ old('phone') }}" {{ $reqPhone ? 'required' : '' }} class="input" placeholder="08xxxxxxxxxx">
                             @error('phone') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
                         </div>
                     </div>

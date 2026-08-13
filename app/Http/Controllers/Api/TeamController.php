@@ -24,10 +24,17 @@ class TeamController extends Controller
 
     public function store(Request $request)
     {
+        $settings = app(\App\Services\RuntimeSettings::class);
+        $emailEnabled = $settings->channelEnabled('email');
+        $waEnabled = $settings->channelEnabled('whatsapp');
+
+        $emailRule = $emailEnabled && !$waEnabled ? 'required' : 'required_without:phone';
+        $phoneRule = $waEnabled && !$emailEnabled ? 'required' : 'required_without:email';
+
         $data = $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required_without:phone|nullable|email|max:255|unique:users,email',
-            'phone' => 'required_without:email|nullable|string|max:30',
+            'email' => "{$emailRule}|nullable|email|max:255|unique:users,email",
+            'phone' => "{$phoneRule}|nullable|string|max:30|unique:users,phone",
             'company' => 'nullable|string|max:255',
             'occupation' => 'nullable|string|max:255',
         ]);
@@ -63,11 +70,18 @@ class TeamController extends Controller
     {
         $this->ensureManaged($user);
 
+        $settings = app(\App\Services\RuntimeSettings::class);
+        $emailEnabled = $settings->channelEnabled('email');
+        $waEnabled = $settings->channelEnabled('whatsapp');
+
+        $emailRule = $emailEnabled && !$waEnabled ? 'required' : 'required_without:phone';
+        $phoneRule = $waEnabled && !$emailEnabled ? 'required' : 'required_without:email';
+
         $data = $request->validate([
             'name' => 'required|string|max:255',
             'username' => ['sometimes', 'string', 'max:255', 'regex:/^[a-zA-Z0-9_]+$/', \Illuminate\Validation\Rule::unique('users', 'username')->ignore($user->id)],
-            'email' => 'nullable|email|max:255|required_without:phone|unique:users,email,' . $user->id,
-            'phone' => 'nullable|string|max:30|required_without:email',
+            'email' => "{$emailRule}|nullable|email|max:255|unique:users,email," . $user->id,
+            'phone' => "{$phoneRule}|nullable|string|max:30|unique:users,phone," . $user->id,
             'company' => 'nullable|string|max:255',
             'occupation' => 'nullable|string|max:255',
             'bio' => 'nullable|string|max:1000',

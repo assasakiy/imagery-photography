@@ -84,11 +84,9 @@ class CustomerController extends Controller
         $data['notes'] = \App\Support\ContentSanitizer::plainText($data['notes'] ?? '');
         $data['location'] = \App\Support\ContentSanitizer::plainText($data['location'] ?? '');
 
-        // Rate limiting on-demand: counter naik HANYA pada request valid (API JSON 429).
-        if (\App\Support\BookingThrottle::exceeded($user->email ?? $user->phone ?? null)) {
-            return response()->json(['message' => 'Permintaan booking terlalu sering. Coba lagi nanti.'], 429);
-        }
-        \App\Support\BookingThrottle::record($user->email ?? $user->phone ?? null);
+        // Record limit: counter naik HANYA pada request valid. Cek sudah oleh middleware.
+        \App\Support\ApiThrottle::record('booking.create', ['email' => $user->email ?? '']);
+        
         if ($data['package_id'] === 'custom') {
             $services = \App\Models\Service::whereIn('id', $data['service_ids'])->get();
             $packageId = null;
@@ -134,6 +132,8 @@ class CustomerController extends Controller
         if ($booking->user_id !== $user->id) {
             abort(403);
         }
+
+        \App\Support\ApiThrottle::record('booking.update', ['email' => $user->email ?? '']);
 
         if (!in_array($booking->status, ['pending', 'confirmed'])) {
             abort(422, 'Hanya booking yang menunggu atau dikonfirmasi yang bisa dibatalkan.');

@@ -40,7 +40,7 @@ export const TAB_FIELDS = {
     pembayaran: ['payment_manual_enabled', 'payment_gateway_enabled', 'payment_active_manuals', 'payment_active_qris', 'payment_active_channels'],
     webhook: ['webhook_urls'],
     notifications: ['notif_email_enabled', 'notif_wa_enabled'],
-    security_login: ['login_attempts_max', 'login_attempts_lockout_minutes', 'login_remember_enabled', 'login_remember_days', 'login_methods_global'],
+    security_login: ['login_remember_enabled', 'login_remember_days', 'login_methods_global'],
     security_file: ['file_retention_days', 'invite_expiry_hours'],
     maintenance: ['maintenance_enabled', 'maintenance_message'],
 };
@@ -128,6 +128,7 @@ export const emptyForm = {
     email_events: [],
     whatsapp_events: [],
     inapp_events: [],
+    rate_limits: {},
 };
 
 export function applyBrandColor(hex) {
@@ -198,5 +199,6 @@ export function normalize(data) {
         payment_active_qris: data.payment_active_qris || '',
         payment_active_channels: Array.isArray(data.payment_active_channels) ? data.payment_active_channels : [],
         payment_tripay_config: data.payment_tripay_config || { mode: 'sandbox', api_key: '', private_key: '', merchant_code: '' },
+        rate_limits: data.rate_limits || {},
     };
 }
