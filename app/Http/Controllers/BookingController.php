@@ -75,6 +75,13 @@ class BookingController extends Controller
         $data['location'] = ContentSanitizer::plainText($data['location'] ?? '');
         unset($data['message']);
 
+        // Rate limiting on-demand: counter naik HANYA saat request valid.
+        $reasons = \App\Support\BookingThrottle::exceeded($data['email'] ?? null);
+        if ($reasons) {
+            abort(429, 'Permintaan booking Anda terlalu sering. Coba beberapa menit lagi.');
+        }
+        \App\Support\BookingThrottle::record($data['email'] ?? null);
+
         // User pending + booking + invite.
         $reg = app(ClientRegistrationService::class);
         $result = $reg->registerWithInvite(

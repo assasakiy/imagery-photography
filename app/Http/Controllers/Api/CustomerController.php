@@ -83,7 +83,12 @@ class CustomerController extends Controller
 
         $data['notes'] = \App\Support\ContentSanitizer::plainText($data['notes'] ?? '');
         $data['location'] = \App\Support\ContentSanitizer::plainText($data['location'] ?? '');
-        
+
+        // Rate limiting on-demand: counter naik HANYA pada request valid (API JSON 429).
+        if (\App\Support\BookingThrottle::exceeded($user->email ?? $user->phone ?? null)) {
+            return response()->json(['message' => 'Permintaan booking terlalu sering. Coba lagi nanti.'], 429);
+        }
+        \App\Support\BookingThrottle::record($user->email ?? $user->phone ?? null);
         if ($data['package_id'] === 'custom') {
             $services = \App\Models\Service::whereIn('id', $data['service_ids'])->get();
             $packageId = null;

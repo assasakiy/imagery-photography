@@ -34,13 +34,6 @@ class AppServiceProvider extends ServiceProvider
             'siteFavicon' => $settings->siteFavicon(),
         ]);
 
-        RateLimiter::for('booking', function ($job) {
-            return [
-                Limit::perHour(5)->by('ip:' . request()->ip()),
-                Limit::perDay(3)->by('email:' . Str::lower(request()->input('email', 'anonymous'))),
-            ];
-        });
-
         RateLimiter::for('forgot', function ($job) {
             return [
                 Limit::perHour(5)->by('email:' . Str::lower(request()->input('identifier', 'anonymous'))),
