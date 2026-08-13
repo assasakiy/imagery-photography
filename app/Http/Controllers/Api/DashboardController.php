@@ -15,6 +15,20 @@ class DashboardController extends Controller
     public function stats()
     {
         if ($this->isAdmin()) {
+            $revenueByMonth = Payment::query()
+                ->where('status', 'confirmed')
+                ->whereHas('project')
+                ->where('paid_at', '>=', now()->subMonths(6)->startOfMonth())
+                ->get(['amount', 'paid_at'])
+                ->groupBy(fn ($p) => $p->paid_at?->format('Y-m') ?? '')
+                ->map(fn ($g) => $g->sum(fn ($p) => (float) $p->amount))
+                ->sortKeys();
+
+            $statusBreakdown = Project::query()
+                ->selectRaw('status, COUNT(*) as total')
+                ->groupBy('status')
+                ->pluck('total', 'status');
+
             return response()->json([
                 'role' => 'admin',
                 'total_projects' => Project::count(),
@@ -25,6 +39,8 @@ class DashboardController extends Controller
                 'pending_payments' => Payment::where('status', 'pending')->whereHas('project')->count(),
                 'portfolios' => Portfolio::count(),
                 'unread_messages' => ContactMessage::whereNull('read_at')->where(fn ($q) => $q->whereNull('project_id')->orWhereHas('project'))->count(),
+                'revenue_by_month' => $revenueByMonth,
+                'status_breakdown' => $statusBreakdown,
                 'recent_projects' => Project::with('user.profile')->latest()->take(5)->get(),
                 'recent_messages' => ContactMessage::with('project')->where(fn ($q) => $q->whereNull('project_id')->orWhereHas('project'))->latest()->take(5)->get(),
                 'recent_payments' => Payment::with('project')->whereHas('project')->latest()->take(5)->get(),
