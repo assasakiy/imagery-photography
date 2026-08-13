@@ -68,16 +68,6 @@ export default function Dashboard() {
                 <PageHeader
                     title="Dashboard"
                     subtitle={`Selamat datang kembali, ${user?.name}`}
-                    action={
-                        <div className="flex gap-2">
-                            <Link to="/dashboard/projects" className="btn-outline inline-flex items-center gap-2">
-                                <Icon name="folder-open" size={16} /> Proyek
-                            </Link>
-                            <Link to="/dashboard/media" className="btn-primary inline-flex items-center gap-2">
-                                <Icon name="upload" size={16} /> Media
-                            </Link>
-                        </div>
-                    }
                 />
 
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -108,10 +98,18 @@ export default function Dashboard() {
 
                 <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
                     <div className="lg:col-span-2">
-                        <RevenueChart data={stats.revenue_by_month} />
+                        <RevenueChart
+                            data={stats.revenue_by_month}
+                            thisMonth={stats.revenue_this_month}
+                            lastMonth={stats.revenue_last_month}
+                            pending={stats.pending_amount}
+                            avg={stats.avg_per_project}
+                        />
                     </div>
                     <StatusBreakdown data={stats.status_breakdown} />
                 </div>
+
+                <QuickLinks />
 
                 <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
                     <div className="card overflow-hidden lg:col-span-1">
@@ -234,7 +232,7 @@ export default function Dashboard() {
     );
 }
 
-function RevenueChart({ data = {} }) {
+function RevenueChart({ data = {}, thisMonth = 0, lastMonth = 0, pending = 0, avg = 0 }) {
     const lastMonths = [];
     const now = new Date();
     for (let i = 5; i >= 0; i--) {
@@ -248,6 +246,14 @@ function RevenueChart({ data = {} }) {
     const points = lastMonths.map((m) => ({ ...m, value: Number(data[m.key]) || 0 }));
     const max = Math.max(1, ...points.map((p) => p.value));
     const total = points.reduce((s, p) => s + p.value, 0);
+    const growth = lastMonth > 0 ? Math.round(((Number(thisMonth) - Number(lastMonth)) / lastMonth) * 100) : (Number(thisMonth) > 0 ? 100 : 0);
+
+    const strip = [
+        { label: 'Bulan Ini', value: formatRupiah(thisMonth), color: 'text-emerald-600 dark:text-emerald-400' },
+        { label: 'Bulan Lalu', value: formatRupiah(lastMonth), color: 'text-ink-muted' },
+        { label: 'Rata-rata/Proyek', value: formatRupiah(avg), color: 'text-ink-muted' },
+        { label: 'Menunggu Bayar', value: formatRupiah(pending), color: 'text-amber-600 dark:text-amber-400' },
+    ];
 
     return (
         <div className="card overflow-hidden h-full">
@@ -255,7 +261,24 @@ function RevenueChart({ data = {} }) {
                 <h2 className="flex items-center gap-2 font-bold text-ink">
                     <Icon name="trending-up" size={16} /> Pendapatan 6 Bulan
                 </h2>
-                <span className="text-sm font-semibold text-ink">{formatRupiah(total)}</span>
+                <span className="flex items-center gap-1.5 text-sm font-semibold text-ink">
+                    {formatRupiah(total)}
+                    {growth !== 0 && (
+                        <span className={`badge ${growth > 0 ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' : 'bg-red-500/15 text-red-600 dark:text-red-400'}`}>
+                            {growth > 0 ? '+' : ''}{growth}%
+                        </span>
+                    )}
+                </span>
+            </div>
+            <div className="border-b border-line px-5 py-4">
+                <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+                    {strip.map((s) => (
+                        <div key={s.label}>
+                            <p className="text-xs text-ink-muted">{s.label}</p>
+                            <p className={`mt-0.5 text-lg font-bold leading-tight ${s.color}`}>{s.value}</p>
+                        </div>
+                    ))}
+                </div>
             </div>
             <div className="px-5 py-5">
                 <div className="flex h-44 items-end gap-3">
@@ -272,6 +295,41 @@ function RevenueChart({ data = {} }) {
                         </div>
                     ))}
                 </div>
+            </div>
+        </div>
+    );
+}
+
+function QuickLinks() {
+    const links = [
+        { to: '/dashboard/projects', icon: 'folder-open', label: 'Buat Proyek', desc: 'Buka manajemen proyek' },
+        { to: '/dashboard/media', icon: 'upload', label: 'Upload Media', desc: 'Kelola pustaka gambar & video' },
+        { to: '/dashboard/blog/create', icon: 'edit', label: 'Tulis Artikel', desc: 'Buat postingan blog baru' },
+        { to: '/dashboard/bookings', icon: 'calendar', label: 'Lihat Booking', desc: 'Cek daftar booking masuk' },
+        { to: '/dashboard/clients', icon: 'users', label: 'Kelola Klien', desc: 'Daftar klien terdaftar' },
+        { to: '/dashboard/landing', icon: 'sparkles', label: 'Atur Landing Page', desc: 'Konten halaman depan' },
+    ];
+
+    return (
+        <div className="card mt-6 overflow-hidden">
+            <div className="border-b border-line px-5 py-4">
+                <h2 className="flex items-center gap-2 font-bold text-ink">
+                    <Icon name="dashboard" size={16} /> Tautan Cepat
+                </h2>
+            </div>
+            <div className="grid grid-cols-1 gap-4 p-5 sm:grid-cols-2 lg:grid-cols-3">
+                {links.map((l) => (
+                    <Link key={l.to} to={l.to} className="group flex items-center gap-3 rounded-2xl border border-line bg-surface/60 px-4 py-3 transition-colors hover:border-brand-500/40 hover:bg-surface-muted">
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-500/15 text-brand-600 dark:text-brand-400">
+                            <Icon name={l.icon} size={18} />
+                        </div>
+                        <div className="min-w-0">
+                            <p className="text-sm font-semibold text-ink group-hover:text-brand-600 dark:group-hover:text-brand-400">{l.label}</p>
+                            <p className="truncate text-xs text-ink-muted">{l.desc}</p>
+                        </div>
+                        <Icon name="arrow-right" size={16} className="ml-auto shrink-0 text-ink-muted transition-transform group-hover:translate-x-0.5" />
+                    </Link>
+                ))}
             </div>
         </div>
     );

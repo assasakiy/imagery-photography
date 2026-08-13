@@ -29,13 +29,19 @@ class DashboardController extends Controller
                 ->groupBy('status')
                 ->pluck('total', 'status');
 
+            $confirmed = Payment::where('status', 'confirmed')->whereHas('project');
+
             return response()->json([
                 'role' => 'admin',
                 'total_projects' => Project::count(),
                 'active_projects' => Project::whereIn('status', ['scheduled', 'shooting', 'editing', 'awaiting_payment'])->count(),
                 'completed_projects' => Project::whereIn('status', ['completed', 'archived'])->count(),
                 'total_clients' => User::role('client')->count(),
-                'total_revenue' => Payment::where('status', 'confirmed')->whereHas('project')->sum('amount'),
+                'total_revenue' => $confirmed->sum('amount'),
+                'revenue_this_month' => (clone $confirmed)->where('paid_at', '>=', now()->startOfMonth())->sum('amount'),
+                'revenue_last_month' => (clone $confirmed)->whereBetween('paid_at', [now()->subMonth()->startOfMonth(), now()->subMonth()->endOfMonth()])->sum('amount'),
+                'pending_amount' => Payment::where('status', 'pending')->whereHas('project')->sum('amount'),
+                'avg_per_project' => Project::count() ? round((clone $confirmed)->sum('amount') / Project::count(), 2) : 0,
                 'pending_payments' => Payment::where('status', 'pending')->whereHas('project')->count(),
                 'portfolios' => Portfolio::count(),
                 'unread_messages' => ContactMessage::whereNull('read_at')->where(fn ($q) => $q->whereNull('project_id')->orWhereHas('project'))->count(),
