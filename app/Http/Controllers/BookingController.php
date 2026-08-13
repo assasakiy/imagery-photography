@@ -129,7 +129,7 @@ class BookingController extends Controller
         $notifications->toAdmins(
             'Booking baru: ' . $booking->name,
             "{$booking->name} (" . ($booking->phone ?: $booking->email) . ") memesan untuk " . ($booking->package_label ?: 'paket umum') . ($booking->event_date ? ' pada ' . $booking->event_date->format('d M Y') : '') . '.',
-            '/dashboard/bookings/' . $booking->id,
+            '/dashboard/bookings',
             'booking.new'
         );
         $notifications->webhook('booking.new', [
