@@ -105,9 +105,17 @@ Halaman dashboard yang punya beberapa tab **WAJIB** dipisah ke folder `pages/<na
 - **Media Library**: model butuh `$fillable=['id']`; `LandingContent::setValue` pertahankan `group`; reset landing images meninggalkan media orphan (TODO).
 - **Test**: skrip di `/home/opc` (`spa_test.py`, `final_test.py`, `access_test.py`); `/etc/hosts` berisi `127.0.0.1 imagery.assasakiy.my.id`; `/tmp/opencode` TIDAK writable.
 
-## 13. Sesi Terbaru (2026-08-13) — Dashboard Analitik, Progressive Loading, dan Perapian UX
-- **Dashboard Admin Analitik**: Halaman Dashboard admin diperkaya ala dashboard analitik umum — 4 KPI kartu kompak dengan **badge tren** (+N bulan ini, "Baru", % growth), **line chart SVG** tren pendapatan 6 bulan + strip KPI (bulan ini/bulan lalu/rata-rata per proyek/menunggu bayar), **donut chart SVG** distribusi status proyek (dengan legenda), **Tautan Cepat** (panel terpisah, bukan di header), dan 3 panel terbaru: Pembayaran, **Jadwal Terdekat** (blok tanggal acara ≥ hari ini + lokasi + status), Pesan (**satu percakapan per pengirim**, pesan terakhir dari klien, badge jumlah "N baru"). Semua grafik SVG/CSS murni tanpa library chart. Backend `DashboardController::stats` menambah `projects_this_month`, `projects_last_month`, `clients_this_month`, `revenue_this_month`, `revenue_last_month`, `pending_amount`, `avg_per_project`, `revenue_by_month`, `status_breakdown`, `upcoming_schedule`, dan `recent_messages` diganti helper `recentConversations()` (grouping per pengirim + `unread_count`).
-- **Progressive Loading & Skeleton**: Seluruh halaman dashboard lazy-load via registry `routes/routeImports.js` dengan idle prefetch 1.5s setelah mount (`prefetchAll.js`, `requestIdleCallback`), hover/focus/touch preload di sidebar (`Layout.jsx`), dan skip koneksi lambat (`saveData`/`2g`). `preloadRoute.js` punya cache promise + `normalizePath` untuk path `:id`. Bundle utama 335 kB → 267 kB. Semua `<Spinner />` halaman diganti skeleton `Skeleton.jsx` (varian card/table/form): **PageHeader selalu dirender, skeleton hanya area konten**, tanpa blok judul tiruan/`py-2` ekstra (mencegah layout jump). `PageFallback` tunda 150ms/200ms; `RouteErrorBoundary` auto-reload chunk gagal. Halaman auth eager import agar tanpa fallback.
-- **Perapian UX**: Badge status sejajar nomor `PSN-{no}` di card proyek/pesanan; grid media 2 kolom mobile / 3 tablet / 4 desktop dengan nama file + badge tipe (Foto/Video/File).
+## 13. Sesi Terbaru (2026-08-13) — Timezone Bisnis Global
+- **Backend**: jadwal acara (`event_start`/`event_end`) selalu disimpan UTC (config `app.timezone` tak berubah). Input wall-clock lokal (timezone bisnis) dikonversi ke UTC di `BookingController::store`, `Api\ProjectController` (store+update), `Api\BookingApiController` (confirm/accept), dan `Api\CustomerController`. Helper `App\Support\BusinessTime` (`toUtc`/`parseToUtc`/`fromUtc`) dengan tiang-3 lapis timezone: DB setting `timezone` → `.env APP_BUSINESS_TIMEZONE` → `Asia/Makassar`. `Api\SettingsController` mengekspor & memvalidasi `timezone`.
+- **Frontend**: utilitas `resources/js/dashboard/utils/date.js` berbasis `Intl.DateTimeFormat` (timezone business, date-only diperlakukan UTC). Semua `.slice(11,16)` dan `new Date(event_start)` diganti `formatTime`/`formatTimeInput`/`isEventPassed`; `formatLongDate` dipusatkan. `window.APP_CONFIG.businessTimezone` di-set di layout Blade agar apply langsung setelah ganti timezone.
+- **Settings UI**: dropdown timezone di tab **Regional** (BrandingTab).
+
+## 14. Perintah Verifikasi
+```bash
+php -l <file>.php              # lint PHP (seluruh file yang diubah)
+CI=1 npx vite build            # build frontend (public/build di-gitignore)
+php artisan test               # phpunit (composer test)
+```
+Lihat `docs/timezone_and_scheduling.md` untuk desain lengkap sistem timezone.
 
 *Untuk rincian arsitektural teknis (lifecycle Media, mekanisme RBAC, dan khususnya sistem **progressive loading dashboard**), silakan baca file-file spesifik di direktori `/docs/`.*
