@@ -32,6 +32,7 @@ class AppServiceProvider extends ServiceProvider
             'siteDescription' => $settings->siteDescription(),
             'siteLogo' => $settings->siteLogo(),
             'siteFavicon' => $settings->siteFavicon(),
+            'shellSettings' => $settings,
         ]);
 
         RateLimiter::for('forgot', function ($job) {

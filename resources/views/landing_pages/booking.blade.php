@@ -1,3 +1,11 @@
+@php
+    $emailEnabled = $shellSettings->channelEnabled('email');
+    $waEnabled = $shellSettings->channelEnabled('whatsapp');
+    $reqEmail = $emailEnabled && !$waEnabled;
+    $reqPhone = $waEnabled && !$emailEnabled;
+    $reqBoth = $emailEnabled && $waEnabled;
+@endphp
+
 @extends('layouts.app')
 
 @section('title', 'Booking')
