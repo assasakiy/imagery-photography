@@ -97,14 +97,14 @@ class BookingController extends Controller
             $price = $package->computedPrice();
         }
 
-$booking = Booking::create([
+        $booking = Booking::create([
             'user_id' => $user->id,
-            'package_id' => $package->id,
+            'package_id' => $packageId,
             'name' => $data['name'],
             'email' => $data['email'] ?? null,
             'phone' => $data['phone'] ?? null,
-            'package_label' => $package->name,
-            'event_date' => $data['event_date'] ?? ($data['event_start'] ? \Illuminate\Support\Carbon::parse($data['event_start'])->toDateString() : null),
+            'package_label' => $packageLabel,
+            'event_date' => $data['event_date'] ?? ($data['event_start'] ? $businessTime->fromUtc($data['event_start'])->toDateString() : null),
             'event_start' => $data['event_start'] ?? null,
             'event_end' => $data['event_end'] ?? null,
             'location' => $data['location'] ?? null,
