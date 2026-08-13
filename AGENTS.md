@@ -65,7 +65,9 @@ Membangun ulang website portofolio fotografi/videografi "Sopian Lalu Imagery" me
 6. **Notifikasi**: in-app, email, WhatsApp, webhook.
 7. **Build & verifikasi**: build asset, migrate, seed, tes route.
 8. **Git (wajib)**: setiap penambahan/perubahan fitur yang selesai & terverifikasi WAJIB di-commit lalu di-push.
-9. **Dokumentasi (wajib, anti-bengkak)**: setiap penambahan/perubahan fitur WAJIB dicatat di AGENTS.md SEBELUM commit — tapi TIDAK menumpuk. Aturannya: **replace, bukan append**. Detail perubahan terbaru ditulis menggantikan isi section "Sesi Terbaru"; gotcha/bug yang masih berlaku dipindah ke "Arsip". Riwayat lengkap tersimpan di git history.
+9. **Dokumentasi (wajib)**: 
+   - **Update Sesi Terakhir**: Setiap selesai sesi, **GANTI (replace)** isi section "Sesi Terbaru" di `AGENTS.md` dengan rangkuman ringkas apa yang baru saja Anda kerjakan. Jangan sekadar *append* / menumpuk peluru baru.
+   - **Update Detail Dokumentasi Resmi**: Semua penjabaran teknis mendalam mengenai fitur (misal: bagaimana arsitektur RBAC bekerja, bagaimana alur QRIS, bagaimana media diatur) **TIDAK BOLEH ditumpuk di AGENTS.md**. Anda WAJIB memperbarui file markdown terkait di dalam folder **`docs/`** (contoh: `docs/architecture_and_rbac.md`, `docs/payments_and_qris.md`). `AGENTS.md` hanya menjadi pintu gerbang (indeks).
 
 ## 10. Perintah Penting
 ```bash
@@ -81,7 +83,8 @@ composer test        # phpunit
 Halaman dashboard yang punya beberapa tab **WAJIB** dipisah ke folder `pages/<nama>/`: `index.jsx` (state global + tab bar + render tab aktif), file per tab (`<Tab>Tab.jsx`), dan `constants.js` (konstanta/helper bersama). `pages/<Nama>.jsx` cukup re-export `export { default } from './<nama>';`. Kontrak antar-tab: index menyusun objek `ctx` (semua state & handler) lalu render `{tab === 'x' && <XTab {...ctx} />}`; tiap tab destructure props yang dipakai dari `ctx`. Berlaku utk halaman baru & refactor bertahap halaman lama (Settings sudah, AuditLog/Services/Notifications/Media menyusul).
 
 ## 11. Catatan & Alur Git
-- **Dokumentasi: replace, bukan append**: setiap perubahan fitur dicatat di section **"Sesi Terbaru"** — GANTI isinya (jangan tambah bullet baru terus-menerus). Gotcha/bug permanen yang masih relevan dipindahkan ke **"Arsip"**. Kalau AGENTS.md mulai bengkak, ringkas/musnahkan yang lama (riwayat tetap ada di git).
+- **Dokumentasi Terpisah**: File `AGENTS.md` ini hanya untuk *Rule of Thumb* operasional, Gotcha yang sering menjebak, dan log "Sesi Terbaru". Jika Anda membuat/mengubah fitur besar (seperti Booking, Pembayaran, Media, Blog), Anda **DIWAJIBKAN untuk menganalisis dan memperbarui** dokumentasi resminya yang berada di direktori `docs/` (`docs/*.md`).
+- **Update Sesi Terbaru**: GANTI isi section "Sesi Terbaru" dengan apa yang baru saja dikerjakan. Riwayat kerjaan yang lama dihapus dari sini (riwayat sesungguhnya ada di Git history).
 - **Git WAJIB untuk setiap fitur**: setiap penambahan/perubahan fitur yang selesai & sudah build+verifikasi sukses, agent HARUS `git add -A`, `git commit` (pesan ringkas sesuai perubahan), lalu `git push origin main`. Jangan menunggu diminta.
 - Remote: `origin` = `https://github.com/assasakiy/imagery-photography.git` (repo PRIVAT).
 - Periksa `git status` sebelum commit; jangan commit `.env`, dump SQL (`storage/backups/`), file storage, atau credential (sudah di-ignore).
@@ -102,11 +105,9 @@ Halaman dashboard yang punya beberapa tab **WAJIB** dipisah ke folder `pages/<na
 - **Media Library**: model butuh `$fillable=['id']`; `LandingContent::setValue` pertahankan `group`; reset landing images meninggalkan media orphan (TODO).
 - **Test**: skrip di `/home/opc` (`spa_test.py`, `final_test.py`, `access_test.py`); `/etc/hosts` berisi `127.0.0.1 imagery.assasakiy.my.id`; `/tmp/opencode` TIDAK writable.
 
-## 13. Sesi Terbaru (2026-08-12) — Pembayaran & Editor Blog
-- **Modul Integrasi & Aturan Pembayaran**: Memisahkan peran tab konfigurasi. **Tab Integrasi** sekarang menjadi satu-satunya tempat untuk menginput data rahasia/konfigurasi, mencakup: Transfer Manual (Bank, Dompet Digital, QRIS), Payment Gateway (TriPay), dan Google Auth. Sedangkan **Tab Pembayaran** berfungsi sebagai papan kontrol (Aturan Tampil) dengan checklist *checkbox/radio* untuk mengatur rekening atau *channel* apa saja yang benar-benar aktif dan akan ditayangkan pada popup klien (mirip cara kerja tab Notifikasi).
-- **Inovasi QRIS Dinamis Otomatis**: Admin cukup memasukkan gambar QRIS statis di tab Integrasi → komponen menggunakan pustaka `jsQR` pada browser untuk mengekstrak teks mentah (awalan `000201...`) → divalidasi memastikan hanya tipe *Statis* (Tag `01`='11'). Ketika Popup Pembayaran klien dimuat, utility `utils/qris.js` akan mem-*parsing* teks mentah, menyisipkan besaran tagihan aktual (Tag `54`), lalu menghitung ulang sandi keamanan EMVCo (CRC16-CCITT). Klien otomatis mendapat QRIS Dinamis berisikan nominal via pustaka render `qrcode`. Tanpa koneksi API pihak ketiga.
-- **Rombak UI Pembuatan Blog**: Mengubah editor blog bawaan dari pop-up modal menjadi halaman *full-page* profesional (`CreateEditBlog.jsx`). Memiliki tata letak *grid 3 kolom* (Area teks editor Tiptap lebar di kiri, opsi penerbitan/Cover/Kategori di sebelah kanan). Fitur **Auto-Generate Excerpt/SEO**: jika *excerpt* kosong, sistem akan *strip HTML tags* konten dan mengambil 160 karakter pertama untuk keperluan meta otomatis, card pengaturan SEO dihilangkan.
-- **Perbaikan Sidebar Menu (*Accordion*)**: Merapikan keseluruhan layout admin (React Sidebar). Navigasi kini dikelompokkan dalam berbagai kategori besar (*Katalog & Media*, *Proyek & Transaksi*, *Interaksi & Klien*, *Konten Website*, *Sistem*). Grup bisa diklik/buka-tutup (akordeon) dilengkapi dengan rotasi ikon *chevron-down*, dan menu turunannya menyala dengan ikon masing-masing secara dinamis dan rapi.
+## 13. Sesi Terbaru (2026-08-12) — Pematangan Aturan Pembayaran, Layout Admin, dan Taksonomi Sidebar
+- **Tab Integrasi & Pembayaran**: Memindahkan seluruh form input Payment Gateway, Transfer Bank, E-Wallet, dan QRIS Statis ke dalam satu pintu: **Tab Integrasi**. Di sisi lain, Tab Pembayaran kini dialihfungsikan **sepenuhnya sebagai "Panel Aturan Tampil"**, di mana admin hanya me-*nyalakan/mematikan* (toggle) dan memilih (checkbox) daftar rekening/kanal mana yang akan dilempar ke Klien via API.
+- **Rombak Form UI Admin (PaymentTab)**: Menghapus layout dua grid agar lebih luas, menghapus nama pemilik rekening *global* dari hirarki, dan menjadikan field "Atas nama" wajib diisi (*required*) di setiap card rekening secara independen.
+- **Hierarki Navigasi Sidebar**: Menyempurnakan komponen Menu Samping Dashboard (`Layout.jsx`) dengan sistem *Akordeon* bertingkat untuk semua fungsi (Katalog & Media, Proyek & Transaksi, Interaksi & Klien, dll). Khusus untuk **Blog**, turunannya (*Semua Artikel, Kategori, Tag*) tampil berindensasi rapi lengkap dengan ikon spesifik yang sesuai.
 
-## 14. Arsip Catatan (2026-08-02 → 08-08) — gotcha yang masih berlaku
-
+*Untuk rincian arsitektural teknis (bagaimana QRIS dinamis di-encode di klien, mekanisme RBAC, lifecycle Media, dsb) silakan baca file-file spesifik di direktori `/docs/`.*
