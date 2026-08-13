@@ -3,7 +3,8 @@ import api from '../../api';
 import Icon from '../../components/Icon';
 import MediaPicker from '../../components/MediaPicker';
 import UserDetailModal from '../../components/UserDetailModal';
-import { PageHeader, Spinner, EmptyState, Modal, Confirm, Field, useToast } from '../../components/ui';
+import { PageHeader, EmptyState, Modal, Confirm, Field, useToast } from '../../components/ui';
+import Skeleton from '../../components/Skeleton';
 
 const EMPTY_ADMIN = { name: '', username: '', email: '', phone: '', company: '', occupation: '', bio: '', status: 'pending', avatar: undefined };
 const EMPTY_MEMBER = { name: '', position: '', bio: '', photo_url: '', social_facebook: '', social_instagram: '', social_tiktok: '', social_whatsapp: '', order: 0 };
@@ -134,8 +135,6 @@ function AdminTab() {
         load();
     };
 
-    if (loading) return <Spinner />;
-
     return (
         <>
             <PageHeader
@@ -148,7 +147,9 @@ function AdminTab() {
                 }
             />
 
-            {items.length ? (
+            {loading ? (
+                <Skeleton variant="card" />
+            ) : items.length ? (
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
                     {items.map((item) => (
                         <div key={item.id} className="card p-5">
@@ -377,8 +378,6 @@ function TeamTab() {
             </a>
         ) : null;
 
-    if (loading) return <Spinner />;
-
     return (
         <>
             <PageHeader
@@ -396,7 +395,9 @@ function TeamTab() {
                 }
             />
 
-            {members.length ? (
+            {loading ? (
+                <Skeleton variant="card" />
+            ) : members.length ? (
                 <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
                     {members.map((m) => (
                         <div key={m.id} className="card overflow-hidden">

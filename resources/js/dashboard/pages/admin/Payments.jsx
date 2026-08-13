@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import api from '../../api';
 import Icon from '../../components/Icon';
-import { PageHeader, Spinner, EmptyState, useToast, formatRupiah, formatDate } from '../../components/ui';
+import { PageHeader, EmptyState, useToast, formatRupiah, formatDate } from '../../components/ui';
+import Skeleton from '../../components/Skeleton';
 
 export default function Payments() {
     const [items, setItems] = useState([]);
@@ -55,7 +56,7 @@ export default function Payments() {
             </div>
 
             {loading ? (
-                <Spinner />
+                <Skeleton variant="table" />
             ) : items.length ? (
                 <div className="card overflow-x-auto">
                     <table className="table">

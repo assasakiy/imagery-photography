@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import api from '../../api';
 import Icon from '../../components/Icon';
-import { PageHeader, Spinner, EmptyState, Modal, Field, useToast, formatDate, formatRupiah } from '../../components/ui';
+import { PageHeader, EmptyState, Modal, Field, useToast, formatDate, formatRupiah } from '../../components/ui';
+import Skeleton from '../../components/Skeleton';
 
 const STATUS_META = {
     pending: { label: 'Menunggu', cls: 'bg-amber-500/15 text-amber-600 dark:text-amber-400' },
@@ -207,7 +208,7 @@ export default function Bookings() {
             </div>
 
             {loading ? (
-                <Spinner />
+                <Skeleton variant="table" />
             ) : items.length ? (
                 <div className="card overflow-x-auto">
                     <table className="table">

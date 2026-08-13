@@ -4,6 +4,7 @@ import api from '../../api';
 import Icon from '../../components/Icon';
 import PaymentModal from '../../components/PaymentModal';
 import { PageHeader, Spinner, EmptyState, useToast, formatRupiah, formatDate } from '../../components/ui';
+import Skeleton from '../../components/Skeleton';
 
 const STATUS_META = {
     unpaid: { label: 'Belum Bayar', cls: 'bg-red-500/15 text-red-600 dark:text-red-400' },
@@ -56,14 +57,16 @@ export default function ClientInvoices() {
         reloadInvoices();
     };
 
-    if (loading) return <Spinner />;
-
     const totalOutstanding = items.reduce((sum, it) => sum + Number(it.remaining || 0), 0);
 
     return (
         <>
             <PageHeader title="Tagihan" subtitle="Status tagihan untuk pesanan Anda." />
 
+            {loading ? (
+                <Skeleton variant="table" />
+            ) : (
+            <>
             {items.length > 0 && (
                 <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
                     <div className="card p-4">
@@ -167,6 +170,8 @@ export default function ClientInvoices() {
                     <p className="text-sm text-ink-muted">Belum ada pembayaran tercatat.</p>
                 )}
             </div>
+            </>
+            )}
             {node}
         </>
     );

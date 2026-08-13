@@ -4,7 +4,8 @@ import api from '../../../api';
 import Icon from '../../../components/Icon';
 import RichEditor from '../../../components/RichEditor';
 import MediaPicker from '../../../components/MediaPicker';
-import { Spinner, useToast, ButtonSpinner } from '../../../components/ui';
+import { useToast, ButtonSpinner } from '../../../components/ui';
+import Skeleton from '../../../components/Skeleton';
 
 export default function CreateEditBlog() {
     const { id } = useParams();
@@ -126,7 +127,7 @@ export default function CreateEditBlog() {
         setMediaOpen(false);
     };
 
-    if (loading) return <Spinner />;
+    if (loading) return <Skeleton variant="form" />;
 
     return (
         <div className="flex-1 overflow-y-auto bg-surface/50 scroll-smooth relative h-[calc(100vh-64px)] -mx-4 sm:-mx-6 lg:-mx-8 -my-6">

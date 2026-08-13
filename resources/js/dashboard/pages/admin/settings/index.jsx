@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import api from '../../../api';
 import Icon from '../../../components/Icon';
 import MediaPicker from '../../../components/MediaPicker';
-import { PageHeader, Spinner, useToast } from '../../../components/ui';
+import { PageHeader, useToast } from '../../../components/ui';
+import Skeleton from '../../../components/Skeleton';
 import BrandingTab from './BrandingTab';
 import IntegrasiTab from './IntegrasiTab';
 import WebhookTab from './WebhookTab';
@@ -193,8 +194,6 @@ export default function Settings() {
         await save(['google_auth_enabled'], { google_auth_enabled: v });
     };
 
-    if (loading) return <Spinner />;
-
     const ctx = {
         form, meta, errors, saving, set, setChecked, save, dirty, dirtyColor, show,
         openEmail, setOpenEmail, openWa, setOpenWa,
@@ -211,6 +210,10 @@ export default function Settings() {
         <>
             <PageHeader title="Pengaturan" subtitle="Branding, integrasi, login sosial, webhook, notifikasi, keamanan, dan pemeliharaan." />
 
+            {loading ? (
+                <Skeleton variant="form" />
+            ) : (
+            <>
             <div className="mb-6 flex gap-1 overflow-x-auto rounded-2xl border border-line bg-surface p-1.5">
                 {TABS.map((t) => (
                     <button
@@ -237,6 +240,8 @@ export default function Settings() {
             {tab === 'notifications' && <NotificationsTab {...ctx} />}
             {tab === 'security' && <SecurityTab {...ctx} />}
             {tab === 'maintenance' && <MaintenanceTab {...ctx} />}
+            </>
+            )}
 
             <MediaPicker
                 open={!!mediaFor}

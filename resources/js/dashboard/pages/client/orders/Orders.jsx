@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../../../api';
 import Icon from '../../../components/Icon';
-import { PageHeader, Spinner, EmptyState, formatRupiah, formatDate } from '../../../components/ui';
+import { PageHeader, EmptyState, formatRupiah, formatDate } from '../../../components/ui';
+import Skeleton from '../../../components/Skeleton';
 
 const statusOptions = [
     { value: 'scheduled', label: 'Dijadwalkan', color: 'bg-amber-500/15 text-amber-600 dark:text-amber-400' },
@@ -32,8 +33,6 @@ export default function Orders() {
 
     useEffect(load, [status]);
 
-    if (loading) return <Spinner />;
-
     return (
         <>
             <PageHeader title="Pesanan" subtitle="Pantau progress dan file pesanan Anda." />
@@ -49,17 +48,17 @@ export default function Orders() {
                 ))}
             </div>
 
-            {items.length ? (
+            {loading ? (
+                <Skeleton variant="card" />
+            ) : items.length ? (
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     {items.map((item) => (
                         <div key={item.id} className="card flex flex-col p-5">
-                            <div className="flex items-start justify-between gap-2">
-                                <div>
-                                    <p className="font-mono text-xs font-semibold text-ink-muted">PSN-{item.order_no}</p>
-                                    <h3 className="mt-1 font-bold text-ink">{item.name}</h3>
-                                </div>
+                            <div className="flex items-center justify-between gap-2">
+                                <p className="font-mono text-xs font-semibold text-ink-muted">PSN-{item.order_no}</p>
                                 <StatusBadge value={item.status} />
                             </div>
+                            <h3 className="mt-1 font-bold text-ink">{item.name}</h3>
                             {item.description && <p className="mt-2 line-clamp-2 text-sm text-ink-muted">{item.description}</p>}
                             <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-ink-muted">
                                 <span className="flex items-center gap-1.5">

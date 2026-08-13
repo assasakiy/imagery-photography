@@ -4,7 +4,8 @@ import Icon from '../../components/Icon';
 import Button from '../../components/Button';
 import MediaPicker from '../../components/MediaPicker';
 import RichEditor from '../../components/RichEditor';
-import { PageHeader, Spinner, Field, useToast } from '../../components/ui';
+import { PageHeader, Field, useToast } from '../../components/ui';
+import Skeleton from '../../components/Skeleton';
 
 const FIELD_SECTIONS = [
     { group: 'hero', title: 'Hero', fields: [
@@ -95,8 +96,6 @@ export default function Landing() {
             .finally(() => setLoading(false));
     }, []);
 
-    if (loading) return <Spinner />;
-
     const contentDirty = Object.keys(baseContent).some((k) => JSON.stringify(content[k] ?? '') !== JSON.stringify(baseContent[k] ?? ''));
     const timelineDirty = JSON.stringify(timeline) !== baseTimeline;
     const mediaDirty = Object.keys(images).length > 0 || Object.keys(reset).length > 0;
@@ -162,6 +161,9 @@ export default function Landing() {
         <>
             <PageHeader title="Landing" subtitle="Atur konten halaman beranda. Branding (logo, favicon, tagline, deskripsi) ada di Pengaturan." />
 
+            {loading ? (
+                <Skeleton variant="form" />
+            ) : (
             <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
                     <div className="space-y-6 lg:col-span-2">
@@ -260,6 +262,7 @@ export default function Landing() {
                     </Button>
                 </div>
             </form>
+            )}
 
             <MediaPicker
                 open={!!mediaOpenFor}

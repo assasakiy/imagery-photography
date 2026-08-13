@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import api from '../../api';
 import Icon from '../../components/Icon';
-import { PageHeader, Spinner, EmptyState, useToast, Confirm, formatDate } from '../../components/ui';
+import { PageHeader, EmptyState, useToast, Confirm, formatDate } from '../../components/ui';
+import Skeleton from '../../components/Skeleton';
 
 const TYPE_LABEL = { client: 'Klien' };
 
@@ -36,8 +37,6 @@ export default function RecycleBin() {
         load();
     };
 
-    if (loading) return <Spinner />;
-
     return (
         <>
             <PageHeader title="Recycle Bin" subtitle="Data yang dihapus. Pulihkan atau hapus permanen." />
@@ -57,7 +56,9 @@ export default function RecycleBin() {
                 ))}
             </div>
 
-            {items.length ? (
+            {loading ? (
+                <Skeleton variant="table" />
+            ) : items.length ? (
                 <div className="card overflow-x-auto">
                     <table className="table">
                         <thead>

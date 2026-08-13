@@ -3,7 +3,8 @@ import api from '../../api';
 import Icon from '../../components/Icon';
 import MediaPicker from '../../components/MediaPicker';
 import UserDetailModal from '../../components/UserDetailModal';
-import { PageHeader, Spinner, EmptyState, Modal, Confirm, Field, useToast, formatDate } from '../../components/ui';
+import { PageHeader, EmptyState, Modal, Confirm, Field, useToast, formatDate } from '../../components/ui';
+import Skeleton from '../../components/Skeleton';
 
 const emptyForm = { name: '', username: '', email: '', phone: '', company: '', occupation: '', bio: '', status: 'pending', avatar: undefined };
 
@@ -166,7 +167,7 @@ export default function Clients() {
             </div>
 
             {loading ? (
-                <Spinner />
+                <Skeleton variant="table" />
             ) : items.length ? (
                 <div className="card overflow-x-auto">
                     <table className="table">

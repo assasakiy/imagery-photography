@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import api from '../../../api';
 import Icon from '../../../components/Icon';
-import { PageHeader, Spinner, EmptyState, Modal, Confirm, Field, useToast } from '../../../components/ui';
+import { PageHeader, EmptyState, Modal, Confirm, Field, useToast } from '../../../components/ui';
+import Skeleton from '../../../components/Skeleton';
 
 const emptyForm = { name: '' };
 
@@ -67,8 +68,6 @@ export default function BlogTags() {
         load();
     };
 
-    if (loading && !items.length) return <Spinner />;
-
     return (
         <>
             <PageHeader
@@ -81,7 +80,9 @@ export default function BlogTags() {
                 }
             />
 
-            {items.length ? (
+            {loading ? (
+                <Skeleton variant="card" />
+            ) : items.length ? (
                 <div className="flex flex-wrap gap-2">
                     {items.map((item) => (
                         <span key={item.id} className="card group flex items-center gap-2 px-4 py-2 text-sm">

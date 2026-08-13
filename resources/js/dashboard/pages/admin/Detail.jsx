@@ -3,7 +3,8 @@ import { useParams, Link } from 'react-router-dom';
 import api from '../../api';
 import Icon from '../../components/Icon';
 import { useAuth } from '../../context/AuthContext';
-import { Spinner, EmptyState, Modal, Confirm, Field, ButtonSpinner, useToast, formatDate, formatRupiah } from '../../components/ui';
+import { EmptyState, Modal, Confirm, Field, ButtonSpinner, useToast, formatDate, formatRupiah } from '../../components/ui';
+import Skeleton from '../../components/Skeleton';
 
 function formatBytes(bytes) {
     if (bytes === null || bytes === undefined) return '-';
@@ -41,7 +42,7 @@ export default function PreviewDetail() {
 
     useEffect(load, [id]);
 
-    if (loading) return <Spinner />;
+    if (loading) return <Skeleton variant="form" />;
     if (!project) return <EmptyState title="Galeri tidak ditemukan" />;
 
     const files = (project.files || []).filter((f) => f.url);

@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import api from '../../api';
 import Icon from '../../components/Icon';
-import { PageHeader, Spinner, EmptyState, Modal, Confirm, Field, useToast } from '../../components/ui';
+import { PageHeader, EmptyState, Modal, Confirm, Field, useToast } from '../../components/ui';
+import Skeleton from '../../components/Skeleton';
 
 const emptyForm = { question: '', answer: '', order: 0, published: true };
 
@@ -67,8 +68,6 @@ export default function Faq() {
         load();
     };
 
-    if (loading && !items.length) return <Spinner />;
-
     return (
         <>
             <PageHeader
@@ -81,7 +80,9 @@ export default function Faq() {
                 }
             />
 
-            {items.length ? (
+            {loading ? (
+                <Skeleton variant="table" />
+            ) : items.length ? (
                 <div className="space-y-3">
                     {items.map((item) => (
                         <div key={item.id} className="card flex flex-col gap-3 p-5 sm:flex-row sm:items-center">

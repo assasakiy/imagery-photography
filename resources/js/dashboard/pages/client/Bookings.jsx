@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import api from '../../api';
 import Icon from '../../components/Icon';
-import { PageHeader, Spinner, EmptyState, formatDate, formatRupiah, Modal, Field, useToast, Confirm } from '../../components/ui';
+import { PageHeader, EmptyState, formatDate, formatRupiah, Modal, Field, useToast, Confirm } from '../../components/ui';
+import Skeleton from '../../components/Skeleton';
 
 const STATUS_META = {
     pending: { label: 'Menunggu', cls: 'bg-amber-500/15 text-amber-600 dark:text-amber-400' },
@@ -82,7 +83,7 @@ export default function ClientBookings() {
                 action={<button className="btn-primary" onClick={() => setCreateOpen(true)}>Buat Booking Baru</button>}
             />
             {loading ? (
-                <Spinner />
+                <Skeleton variant="card" />
             ) : items.length ? (
                 <div className="space-y-4">
                     {items.map((b) => (

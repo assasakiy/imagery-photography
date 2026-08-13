@@ -4,6 +4,7 @@ import Icon from './Icon';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import api from '../api';
+import { preloadRoute } from '../routes/preloadRoute';
 
 function NavGroup({ item, setSidebarOpen }) {
     const [open, setOpen] = useState(true);
@@ -28,6 +29,9 @@ function NavGroup({ item, setSidebarOpen }) {
                             to={subItem.to}
                             end={subItem.end}
                             onClick={() => setSidebarOpen(false)}
+                            onMouseEnter={() => preloadRoute(subItem.to)}
+                            onFocus={() => preloadRoute(subItem.to)}
+                            onTouchStart={() => preloadRoute(subItem.to)}
                             className={({ isActive }) =>
                                 `flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${
                                     isActive
@@ -227,6 +231,9 @@ export default function Layout() {
                                 to={item.to}
                                 end={item.end}
                                 onClick={() => setSidebarOpen(false)}
+                                onMouseEnter={() => preloadRoute(item.to)}
+                                onFocus={() => preloadRoute(item.to)}
+                                onTouchStart={() => preloadRoute(item.to)}
                                 className={({ isActive }) =>
                                     `flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${
                                         isActive

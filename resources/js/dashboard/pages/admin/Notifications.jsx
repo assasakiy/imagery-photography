@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../../api';
 import Icon from '../../components/Icon';
-import { PageHeader, Spinner, EmptyState, Confirm, formatDate } from '../../components/ui';
+import { PageHeader, EmptyState, Confirm, formatDate } from '../../components/ui';
+import Skeleton from '../../components/Skeleton';
 
 const CATEGORY_META = {
     pesan: { label: 'Pesan', cls: 'bg-blue-500/10 text-blue-600 dark:text-blue-400' },
@@ -114,7 +115,7 @@ export default function Notifications() {
             </div>
 
             {loading ? (
-                <Spinner />
+                <Skeleton variant="table" />
             ) : items.length ? (
                 <div className="card">
                     <ul className="divide-y divide-line">

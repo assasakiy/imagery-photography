@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import api from '../../api';
 import Icon from '../../components/Icon';
 import MediaPicker from '../../components/MediaPicker';
-import { PageHeader, Spinner, EmptyState, Modal, Confirm, Field, useToast, formatDate } from '../../components/ui';
+import { PageHeader, EmptyState, Modal, Confirm, Field, useToast, formatDate } from '../../components/ui';
+import Skeleton from '../../components/Skeleton';
 
 const emptyForm = {
     title: '',
@@ -126,8 +127,6 @@ export default function Portfolio() {
         load(meta.current_page);
     };
 
-    if (loading && !items.length) return <Spinner />;
-
     return (
         <>
             <PageHeader
@@ -141,7 +140,9 @@ export default function Portfolio() {
                 }
             />
 
-            {items.length ? (
+            {loading ? (
+                <Skeleton variant="card" />
+            ) : items.length ? (
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                     {items.map((item) => (
                         <div key={item.id} className="card group overflow-hidden">
@@ -179,7 +180,7 @@ export default function Portfolio() {
                 <EmptyState title="Belum ada portofolio" message="Tambahkan karya pertama Anda." />
             )}
 
-            {meta.links && (
+            {!loading && meta.links && (
                 <div className="mt-6 flex items-center justify-between">
                     <button className="btn-outline disabled:opacity-40" disabled={!meta.prev_page_url} onClick={() => load(meta.current_page - 1)}>
                         <Icon name="arrow-left" size={16} /> Sebelumnya

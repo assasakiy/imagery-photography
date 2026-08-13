@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import api from '../../api';
 import Icon from '../../components/Icon';
-import { PageHeader, Spinner, EmptyState } from '../../components/ui';
+import { PageHeader, EmptyState } from '../../components/ui';
+import Skeleton from '../../components/Skeleton';
 
 const VIEWS = [
     { key: 'login', label: 'Riwayat Login', icon: 'clock' },
@@ -179,7 +180,7 @@ export default function AuditLog() {
             </div>
 
             {loading ? (
-                <Spinner />
+                <Skeleton variant="table" />
             ) : items.length === 0 ? (
                 <EmptyState icon="clock" title={view === 'login' ? 'Belum ada riwayat login' : view === 'links' ? 'Belum ada riwayat tautan' : 'Belum ada log aktivitas'} />
             ) : view === 'login' ? (

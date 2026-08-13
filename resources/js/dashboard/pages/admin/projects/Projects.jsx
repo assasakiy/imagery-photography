@@ -3,7 +3,8 @@ import { Link } from 'react-router-dom';
 import api from '../../../api';
 import Icon from '../../../components/Icon';
 import { useAuth } from '../../../context/AuthContext';
-import { PageHeader, Spinner, EmptyState, Modal, Field, useToast, formatRupiah, formatDate } from '../../../components/ui';
+import { PageHeader, EmptyState, Modal, Field, useToast, formatRupiah, formatDate } from '../../../components/ui';
+import Skeleton from '../../../components/Skeleton';
 
 export const statusOptions = [
     { value: 'scheduled', label: 'Dijadwalkan', color: 'bg-amber-500/15 text-amber-600 dark:text-amber-400' },
@@ -193,7 +194,7 @@ export default function Projects() {
             )}
 
             {loading ? (
-                <Spinner />
+                <Skeleton variant="card" />
             ) : items.length ? (
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
                     {items.map((item) => {
@@ -203,13 +204,11 @@ export default function Projects() {
                         const hasPreview = (item.files || []).some((f) => (f.category === 'photo' || f.category === 'video') && (f.media_id || f.variant === 'original'));
                         return (
                             <div key={item.id} className="card flex flex-col p-5">
-                                <div className="flex items-start justify-between gap-2">
-                                    <div>
-                                        <p className="font-mono text-xs font-semibold text-ink-muted">PSN-{item.order_no}</p>
-                                        <h3 className="mt-1 font-bold text-ink">{item.name}</h3>
-                                    </div>
+                                <div className="flex items-center justify-between gap-2">
+                                    <p className="font-mono text-xs font-semibold text-ink-muted">PSN-{item.order_no}</p>
                                     <StatusBadge value={item.status} />
                                 </div>
+                                <h3 className="mt-1 font-bold text-ink">{item.name}</h3>
                                 {item.description && <p className="mt-2 line-clamp-2 text-sm text-ink-muted">{item.description}</p>}
                                 <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-ink-muted">
                                     {isAdmin && (

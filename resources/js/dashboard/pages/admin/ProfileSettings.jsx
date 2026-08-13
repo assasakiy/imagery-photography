@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import api from '../../api';
 import Icon from '../../components/Icon';
 import MediaPicker from '../../components/MediaPicker';
-import { PageHeader, Spinner, Field, Modal, useToast, ButtonSpinner } from '../../components/ui';
+import { PageHeader, Field, Modal, useToast, ButtonSpinner } from '../../components/ui';
+import Skeleton from '../../components/Skeleton';
 import { useAuth } from '../../context/AuthContext';
 
 const ROLE_LABEL = { owner: 'Pemilik', admin: 'Dashboard Admin', client: 'Portal Klien' };
@@ -128,7 +129,7 @@ export default function ProfileSettings() {
             .finally(() => setLoading(false));
     }, []);
 
-    if (loading) return <Spinner />;
+    if (loading) return <Skeleton variant="form" />;
 
     const save = async (payload, successMsg) => {
         setSaving(true);

@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import api from '../../api';
 import Icon from '../../components/Icon';
-import { PageHeader, Spinner, EmptyState, Confirm, useToast, Modal, ButtonSpinner } from '../../components/ui';
+import { PageHeader, EmptyState, Confirm, useToast, Modal, ButtonSpinner } from '../../components/ui';
+import Skeleton from '../../components/Skeleton';
 import MediaViewModal from '../../components/MediaViewModal';
 import MediaEditModal from '../../components/MediaEditModal';
 
@@ -218,7 +219,7 @@ export default function Media() {
             </Modal>
 
             {loading ? (
-                <Spinner />
+                <Skeleton variant="card" />
             ) : items.length ? (
                 <>
                     <div className="grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-6">

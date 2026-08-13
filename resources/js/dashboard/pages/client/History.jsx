@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import api from '../../api';
 import Icon from '../../components/Icon';
-import { PageHeader, Spinner, EmptyState, formatDate } from '../../components/ui';
+import { PageHeader, EmptyState, formatDate } from '../../components/ui';
+import Skeleton from '../../components/Skeleton';
 
 function formatDateTime(value) {
     if (!value) return '-';
@@ -22,12 +23,12 @@ export default function History() {
             .finally(() => setLoading(false));
     }, []);
 
-    if (loading) return <Spinner />;
-
     return (
         <>
             <PageHeader title="Riwayat" subtitle="Aktivitas terakhir Anda di situs." />
-            {items.length ? (
+            {loading ? (
+                <Skeleton variant="table" />
+            ) : items.length ? (
                 <div className="card divide-y divide-line">
                     {items.map((h) => (
                         <div key={h.id} className="flex items-start gap-3 p-4">

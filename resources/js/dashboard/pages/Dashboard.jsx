@@ -2,8 +2,10 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../api';
 import Icon from '../components/Icon';
-import { PageHeader, Spinner, EmptyState, formatRupiah, formatDate } from '../components/ui';
+import { PageHeader, EmptyState, formatRupiah, formatDate } from '../components/ui';
+import Skeleton from '../components/Skeleton';
 import { useAuth } from '../context/AuthContext';
+import { prefetchAllRoutesInBackground } from '../routes/prefetchAll';
 
 export default function Dashboard() {
     const { user } = useAuth();
@@ -11,15 +13,30 @@ export default function Dashboard() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        const timer = setTimeout(() => {
+            prefetchAllRoutesInBackground();
+        }, 1500);
+
+        return () => clearTimeout(timer);
+    }, []);
+
+    useEffect(() => {
         api.get('/dashboard/stats')
             .then(({ data }) => setStats(data))
             .finally(() => setLoading(false));
     }, []);
 
-    if (loading) return <Spinner />;
-    if (!stats) return null;
+    const isAdmin = user ? ['admin', 'owner'].includes(user.role) : stats?.role === 'admin';
 
-    const isAdmin = stats.role === 'admin';
+    if (loading) {
+        return (
+            <>
+                <PageHeader title={isAdmin ? 'Dashboard' : 'Portal Klien'} subtitle={isAdmin ? `Selamat datang kembali, ${user?.name}` : `Halo, ${user?.name}`} />
+                <Skeleton variant="card" />
+            </>
+        );
+    }
+    if (!stats) return null;
 
     if (isAdmin) {
         const cards = [

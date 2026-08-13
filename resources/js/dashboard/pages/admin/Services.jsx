@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import api from '../../api';
 import Icon from '../../components/Icon';
-import { PageHeader, Spinner, EmptyState, Modal, Confirm, Field, useToast, formatRupiah } from '../../components/ui';
+import { PageHeader, EmptyState, Modal, Confirm, Field, useToast, formatRupiah } from '../../components/ui';
+import Skeleton from '../../components/Skeleton';
 
 const VIEWS = [
     { key: 'master', label: 'Master Layanan', icon: 'briefcase' },
@@ -209,8 +210,6 @@ export default function Services() {
         loadAll();
     };
 
-    if (loading && !services.length) return <Spinner />;
-
     return (
         <>
             <PageHeader
@@ -248,6 +247,10 @@ export default function Services() {
                 ))}
             </div>
 
+            {loading ? (
+                <Skeleton variant="table" />
+            ) : (
+                <>
             {view === 'master' && (
                 services.length ? (
                     <div className="card overflow-x-auto">
@@ -379,6 +382,8 @@ export default function Services() {
                 ) : (
                     <EmptyState title="Belum ada kategori" message="Atur kategori tampilan landing." icon="list" />
                 )
+            )}
+                </>
             )}
 
             <Modal open={svcOpen} onClose={() => setSvcOpen(false)} title={svcEditing ? 'Edit Layanan Satuan' : 'Tambah Layanan Satuan'} wide footer={

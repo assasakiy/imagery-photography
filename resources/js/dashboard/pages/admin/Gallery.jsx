@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../../api';
 import Icon from '../../components/Icon';
-import { PageHeader, Spinner, EmptyState } from '../../components/ui';
+import { PageHeader, EmptyState } from '../../components/ui';
+import Skeleton from '../../components/Skeleton';
 
 const statusOptions = [
     { value: 'scheduled', label: 'Dijadwalkan', color: 'bg-amber-500/15 text-amber-600 dark:text-amber-400' },
@@ -33,13 +34,13 @@ export default function Preview() {
             .finally(() => setLoading(false));
     }, []);
 
-    if (loading) return <Spinner />;
-
     return (
         <>
             <PageHeader title="Preview & Galeri" subtitle="Lihat hasil pesanan Anda." />
 
-            {items.length ? (
+            {loading ? (
+                <Skeleton variant="card" />
+            ) : items.length ? (
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                     {items.map((p) => {
                         const files = (p.files || []).filter((f) => f.url);

@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import api from '../../../api';
 import Icon from '../../../components/Icon';
-import { PageHeader, Spinner, EmptyState, Modal, Confirm, Field, useToast } from '../../../components/ui';
+import { PageHeader, EmptyState, Modal, Confirm, Field, useToast } from '../../../components/ui';
+import Skeleton from '../../../components/Skeleton';
 
 const emptyForm = { name: '', description: '' };
 
@@ -67,8 +68,6 @@ export default function BlogCategories() {
         load();
     };
 
-    if (loading && !items.length) return <Spinner />;
-
     return (
         <>
             <PageHeader
@@ -81,7 +80,9 @@ export default function BlogCategories() {
                 }
             />
 
-            {items.length ? (
+            {loading ? (
+                <Skeleton variant="card" />
+            ) : items.length ? (
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
                     {items.map((item) => (
                         <div key={item.id} className="card p-5">

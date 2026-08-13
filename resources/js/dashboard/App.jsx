@@ -55,59 +55,57 @@ function TitleSync() {
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import Layout from './components/Layout';
+import PageFallback from './components/PageFallback';
+import RouteErrorBoundary from './components/RouteErrorBoundary';
 import { Spinner } from './components/ui';
+import { pageImports } from './routes/routeImports';
 
-const Login = lazy(() => import('./pages/auth/Login'));
-const ForgotPassword = lazy(() => import('./pages/auth/ForgotPassword'));
-const ResetPassword = lazy(() => import('./pages/auth/ResetPassword'));
-const SetPassword = lazy(() => import('./pages/auth/SetPassword'));
-const Dashboard = lazy(() => import('./pages/Dashboard'));
-const Portfolio = lazy(() => import('./pages/admin/Portfolio'));
-const Media = lazy(() => import('./pages/admin/Media'));
-const Services = lazy(() => import('./pages/admin/Services'));
-const Clients = lazy(() => import('./pages/admin/Clients'));
-const Bookings = lazy(() => import('./pages/admin/Bookings'));
-const Projects = lazy(() => import('./pages/admin/projects/Projects'));
-const ProjectDetail = lazy(() => import('./pages/admin/projects/ProjectDetail'));
-const Payments = lazy(() => import('./pages/admin/Payments'));
-const Messages = lazy(() => import('./pages/admin/Messages'));
-const Notifications = lazy(() => import('./pages/admin/Notifications'));
-const Landing = lazy(() => import('./pages/admin/Landing'));
-const Settings = lazy(() => import('./pages/admin/Settings'));
-const Blog = lazy(() => import('./pages/admin/blog/Blog'));
-const CreateEditBlog = lazy(() => import('./pages/admin/blog/CreateEditBlog'));
-const BlogCategories = lazy(() => import('./pages/admin/blog/BlogCategories'));
-const BlogTags = lazy(() => import('./pages/admin/blog/BlogTags'));
-const Faq = lazy(() => import('./pages/admin/Faq'));
-const Pages = lazy(() => import('./pages/admin/Pages'));
-const Team = lazy(() => import('./pages/admin/Team'));
-const Reviews = lazy(() => import('./pages/admin/Reviews'));
-const AuditLog = lazy(() => import('./pages/admin/AuditLog'));
-const RecycleBin = lazy(() => import('./pages/admin/RecycleBin'));
-const ProfileSettings = lazy(() => import('./pages/admin/ProfileSettings'));
-const ClientBookings = lazy(() => import('./pages/client/Bookings'));
-const ClientInvoices = lazy(() => import('./pages/client/Invoices'));
-const Preview = lazy(() => import('./pages/admin/Gallery'));
-const PreviewDetail = lazy(() => import('./pages/admin/Detail'));
-const ClientMessages = lazy(() => import('./pages/client/Messages'));
-const Bookmarks = lazy(() => import('./pages/client/Bookmarks'));
-const History = lazy(() => import('./pages/client/History'));
-const Orders = lazy(() => import('./pages/client/orders/Orders'));
-const OrderDetail = lazy(() => import('./pages/client/orders/OrderDetail'));
+import Login from './pages/auth/Login';
+import ForgotPassword from './pages/auth/ForgotPassword';
+import ResetPassword from './pages/auth/ResetPassword';
+import SetPassword from './pages/auth/SetPassword';
 
-function PageFallback() {
+const Dashboard = lazy(pageImports['/dashboard']);
+const Portfolio = lazy(pageImports['/dashboard/portfolios']);
+const Media = lazy(pageImports['/dashboard/media']);
+const Services = lazy(pageImports['/dashboard/services']);
+const Clients = lazy(pageImports['/dashboard/clients']);
+const Bookings = lazy(pageImports['/dashboard/bookings']);
+const Projects = lazy(pageImports['/dashboard/projects']);
+const ProjectDetail = lazy(pageImports['/dashboard/projects/:id']);
+const Payments = lazy(pageImports['/dashboard/payments']);
+const Messages = lazy(pageImports['/dashboard/messages']);
+const Notifications = lazy(pageImports['/dashboard/notifications']);
+const Landing = lazy(pageImports['/dashboard/landing']);
+const Settings = lazy(pageImports['/dashboard/settings']);
+const Blog = lazy(pageImports['/dashboard/blog']);
+const CreateEditBlog = lazy(pageImports['/dashboard/blog/create']);
+const BlogCategories = lazy(pageImports['/dashboard/blog/categories']);
+const BlogTags = lazy(pageImports['/dashboard/blog/tags']);
+const Faq = lazy(pageImports['/dashboard/faq']);
+const Pages = lazy(pageImports['/dashboard/pages']);
+const Team = lazy(pageImports['/dashboard/team']);
+const Reviews = lazy(pageImports['/dashboard/reviews']);
+const AuditLog = lazy(pageImports['/dashboard/audit']);
+const RecycleBin = lazy(pageImports['/dashboard/recycle-bin']);
+const ProfileSettings = lazy(pageImports['/dashboard/profile']);
+const ClientBookings = lazy(pageImports['/dashboard/client-bookings']);
+const ClientInvoices = lazy(pageImports['/dashboard/client-invoices']);
+const Preview = lazy(pageImports['/dashboard/preview']);
+const PreviewDetail = lazy(pageImports['/dashboard/preview/:id']);
+const ClientMessages = lazy(pageImports['/dashboard/client-messages']);
+const Bookmarks = lazy(pageImports['/dashboard/bookmarks']);
+const History = lazy(pageImports['/dashboard/history']);
+const Orders = lazy(pageImports['/dashboard/pesanan']);
+const OrderDetail = lazy(pageImports['/dashboard/pesanan/:id']);
+
+function withSuspense(node, variant = 'card') {
     return (
-        <div className="flex min-h-[50vh] items-center justify-center">
-            <Spinner />
-        </div>
+        <RouteErrorBoundary>
+            <Suspense fallback={<PageFallback variant={variant} />}>{node}</Suspense>
+        </RouteErrorBoundary>
     );
 }
-
-function withSuspense(node) {
-    return <Suspense fallback={<PageFallback />}>{node}</Suspense>;
-}
-
-
 
 const STAFF_ROLES = ['admin', 'owner'];
 
@@ -126,18 +124,17 @@ function Protected({ children, adminOnly = false, ownerOnly = false, notStaffCas
 function LoginRoute() {
     const { user, loading } = useAuth();
 
-    if (loading) return <Spinner />;
-    if (user) return <Navigate to="/dashboard" replace />;
+    if (!loading && user) return <Navigate to="/dashboard" replace />;
     return <Login />;
 }
 
 function AppRoutes() {
     return (
         <Routes>
-            <Route path="/login" element={withSuspense(<LoginRoute />)} />
-            <Route path="/forgot" element={withSuspense(<ForgotPassword />)} />
-            <Route path="/set-password" element={withSuspense(<SetPassword />)} />
-            <Route path="/reset-password" element={withSuspense(<ResetPassword />)} />
+            <Route path="/login" element={<LoginRoute />} />
+            <Route path="/forgot" element={<ForgotPassword />} />
+            <Route path="/set-password" element={<SetPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route
                 path="/dashboard"
                 element={
@@ -146,41 +143,41 @@ function AppRoutes() {
                     </Protected>
                 }
             >
-                <Route index element={withSuspense(<Dashboard />)} />
-                <Route path="portfolios" element={withSuspense(<Protected adminOnly><Portfolio /></Protected>)} />
-                <Route path="media" element={withSuspense(<Protected adminOnly><Media /></Protected>)} />
-                <Route path="services" element={withSuspense(<Protected adminOnly><Services /></Protected>)} />
-                <Route path="clients" element={withSuspense(<Protected adminOnly><Clients /></Protected>)} />
-                <Route path="bookings" element={withSuspense(<Protected adminOnly><Bookings /></Protected>)} />
-                <Route path="projects" element={withSuspense(<Protected adminOnly><Projects /></Protected>)} />
-                <Route path="projects/:id" element={withSuspense(<Protected adminOnly><ProjectDetail /></Protected>)} />
-                <Route path="pesanan" element={withSuspense(<Protected notStaffCase><Orders /></Protected>)} />
-                <Route path="pesanan/:id" element={withSuspense(<Protected notStaffCase><OrderDetail /></Protected>)} />
-                <Route path="client-bookings" element={withSuspense(<Protected notStaffCase><ClientBookings /></Protected>)} />
-                <Route path="client-invoices" element={withSuspense(<Protected notStaffCase><ClientInvoices /></Protected>)} />
-                <Route path="preview" element={withSuspense(<Preview />)} />
-                <Route path="preview/:id" element={withSuspense(<PreviewDetail />)} />
-                <Route path="client-messages" element={withSuspense(<Protected notStaffCase><ClientMessages /></Protected>)} />
-                <Route path="bookmarks" element={withSuspense(<Protected notStaffCase><Bookmarks /></Protected>)} />
-                <Route path="history" element={withSuspense(<Protected notStaffCase><History /></Protected>)} />
-                <Route path="payments" element={withSuspense(<Protected adminOnly><Payments /></Protected>)} />
-                <Route path="messages" element={withSuspense(<Protected adminOnly><Messages /></Protected>)} />
-                <Route path="messages/:id" element={withSuspense(<Protected adminOnly><Messages /></Protected>)} />
-                <Route path="notifications" element={withSuspense(<Notifications />)} />
-                <Route path="reviews" element={withSuspense(<Protected adminOnly><Reviews /></Protected>)} />
-                <Route path="profile" element={withSuspense(<ProfileSettings />)} />
-                <Route path="landing" element={withSuspense(<Protected ownerOnly><Landing /></Protected>)} />
-                <Route path="blog" element={withSuspense(<Protected adminOnly><Blog /></Protected>)} />
-                <Route path="blog/create" element={withSuspense(<Protected adminOnly><CreateEditBlog /></Protected>)} />
-                <Route path="blog/:id/edit" element={withSuspense(<Protected adminOnly><CreateEditBlog /></Protected>)} />
-                <Route path="blog/categories" element={withSuspense(<Protected adminOnly><BlogCategories /></Protected>)} />
-                <Route path="blog/tags" element={withSuspense(<Protected adminOnly><BlogTags /></Protected>)} />
-                <Route path="faq" element={withSuspense(<Protected adminOnly><Faq /></Protected>)} />
-                <Route path="pages" element={withSuspense(<Protected adminOnly><Pages /></Protected>)} />
-                <Route path="team" element={withSuspense(<Protected ownerOnly><Team /></Protected>)} />
-                <Route path="audit" element={withSuspense(<Protected adminOnly><AuditLog /></Protected>)} />
-                <Route path="recycle-bin" element={withSuspense(<Protected adminOnly><RecycleBin /></Protected>)} />
-                <Route path="settings" element={withSuspense(<Protected ownerOnly><Settings /></Protected>)} />
+                <Route index element={withSuspense(<Dashboard />, 'card')} />
+                <Route path="portfolios" element={withSuspense(<Protected adminOnly><Portfolio /></Protected>, 'table')} />
+                <Route path="media" element={withSuspense(<Protected adminOnly><Media /></Protected>, 'table')} />
+                <Route path="services" element={withSuspense(<Protected adminOnly><Services /></Protected>, 'table')} />
+                <Route path="clients" element={withSuspense(<Protected adminOnly><Clients /></Protected>, 'table')} />
+                <Route path="bookings" element={withSuspense(<Protected adminOnly><Bookings /></Protected>, 'table')} />
+                <Route path="projects" element={withSuspense(<Protected adminOnly><Projects /></Protected>, 'card')} />
+                <Route path="projects/:id" element={withSuspense(<Protected adminOnly><ProjectDetail /></Protected>, 'form')} />
+                <Route path="pesanan" element={withSuspense(<Protected notStaffCase><Orders /></Protected>, 'card')} />
+                <Route path="pesanan/:id" element={withSuspense(<Protected notStaffCase><OrderDetail /></Protected>, 'form')} />
+                <Route path="client-bookings" element={withSuspense(<Protected notStaffCase><ClientBookings /></Protected>, 'table')} />
+                <Route path="client-invoices" element={withSuspense(<Protected notStaffCase><ClientInvoices /></Protected>, 'table')} />
+                <Route path="preview" element={withSuspense(<Preview />, 'card')} />
+                <Route path="preview/:id" element={withSuspense(<PreviewDetail />, 'form')} />
+                <Route path="client-messages" element={withSuspense(<Protected notStaffCase><ClientMessages /></Protected>, 'table')} />
+                <Route path="bookmarks" element={withSuspense(<Protected notStaffCase><Bookmarks /></Protected>, 'card')} />
+                <Route path="history" element={withSuspense(<Protected notStaffCase><History /></Protected>, 'table')} />
+                <Route path="payments" element={withSuspense(<Protected adminOnly><Payments /></Protected>, 'table')} />
+                <Route path="messages" element={withSuspense(<Protected adminOnly><Messages /></Protected>, 'card')} />
+                <Route path="messages/:id" element={withSuspense(<Protected adminOnly><Messages /></Protected>, 'card')} />
+                <Route path="notifications" element={withSuspense(<Notifications />, 'table')} />
+                <Route path="reviews" element={withSuspense(<Protected adminOnly><Reviews /></Protected>, 'table')} />
+                <Route path="profile" element={withSuspense(<ProfileSettings />, 'form')} />
+                <Route path="landing" element={withSuspense(<Protected ownerOnly><Landing /></Protected>, 'form')} />
+                <Route path="blog" element={withSuspense(<Protected adminOnly><Blog /></Protected>, 'table')} />
+                <Route path="blog/create" element={withSuspense(<Protected adminOnly><CreateEditBlog /></Protected>, 'form')} />
+                <Route path="blog/:id/edit" element={withSuspense(<Protected adminOnly><CreateEditBlog /></Protected>, 'form')} />
+                <Route path="blog/categories" element={withSuspense(<Protected adminOnly><BlogCategories /></Protected>, 'table')} />
+                <Route path="blog/tags" element={withSuspense(<Protected adminOnly><BlogTags /></Protected>, 'table')} />
+                <Route path="faq" element={withSuspense(<Protected adminOnly><Faq /></Protected>, 'table')} />
+                <Route path="pages" element={withSuspense(<Protected adminOnly><Pages /></Protected>, 'table')} />
+                <Route path="team" element={withSuspense(<Protected ownerOnly><Team /></Protected>, 'table')} />
+                <Route path="audit" element={withSuspense(<Protected adminOnly><AuditLog /></Protected>, 'table')} />
+                <Route path="recycle-bin" element={withSuspense(<Protected adminOnly><RecycleBin /></Protected>, 'table')} />
+                <Route path="settings" element={withSuspense(<Protected ownerOnly><Settings /></Protected>, 'form')} />
             </Route>
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>

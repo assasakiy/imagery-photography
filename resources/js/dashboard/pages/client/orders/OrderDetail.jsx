@@ -3,7 +3,8 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import api from '../../../api';
 import Icon from '../../../components/Icon';
 import { useAuth } from '../../../context/AuthContext';
-import { Spinner, Field, useToast, formatRupiah, formatDate, Modal, EmptyState, Confirm } from '../../../components/ui';
+import { Field, useToast, formatRupiah, formatDate, Modal, EmptyState, Confirm } from '../../../components/ui';
+import Skeleton from '../../../components/Skeleton';
 import { StatusBadge } from './Orders';
 import ScheduledStep from './steps/ScheduledStep';
 import ShootingStep from './steps/ShootingStep';
@@ -136,7 +137,7 @@ export default function ProjectDetail() {
         });
     }, [project?.id]);
 
-    if (loading) return <Spinner />;
+    if (loading) return <Skeleton variant="form" />;
     if (!project) return <EmptyState title="Pesanan tidak ditemukan" />;
 
     const totalPaid = (project.payments || []).filter((p) => p.status === 'confirmed').reduce((s, p) => s + Number(p.amount), 0);

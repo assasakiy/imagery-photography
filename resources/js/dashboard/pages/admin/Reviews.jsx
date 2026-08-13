@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../../api';
 import Icon from '../../components/Icon';
-import { PageHeader, Spinner, EmptyState, Modal, Confirm, Field, useToast, formatDate } from '../../components/ui';
+import { PageHeader, EmptyState, Modal, Confirm, Field, useToast, formatDate } from '../../components/ui';
+import Skeleton from '../../components/Skeleton';
 
 function Stars({ value, size = 18 }) {
     return (
@@ -156,7 +157,7 @@ export default function Reviews() {
             </form>
 
             {loading ? (
-                <Spinner />
+                <Skeleton variant="card" />
             ) : items.length ? (
                 <div className="space-y-3">
                     {items.map((item) => (

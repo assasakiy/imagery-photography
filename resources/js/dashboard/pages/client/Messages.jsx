@@ -2,7 +2,8 @@ import { useEffect, useState, useRef } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import api from '../../api';
 import Icon from '../../components/Icon';
-import { PageHeader, Spinner, useToast, formatDate } from '../../components/ui';
+import { PageHeader, useToast, formatDate } from '../../components/ui';
+import Skeleton from '../../components/Skeleton';
 
 export default function ClientMessages() {
     const [searchParams] = useSearchParams();
@@ -75,7 +76,7 @@ export default function ClientMessages() {
 
     const removeTag = () => navigate('/dashboard/client-messages', { replace: true });
 
-    if (loading) return <Spinner />;
+    if (loading) return <Skeleton variant="form" />;
 
     return (
         <div className="flex h-[calc(100vh-64px)] flex-col -mx-4 sm:-mx-6 lg:-mx-8 -my-6">
