@@ -39,18 +39,23 @@ export default function Dashboard() {
     if (!stats) return null;
 
     if (isAdmin) {
-        const kpis = [
-            { label: 'Total Proyek', value: stats.total_projects, icon: 'folder-open', color: 'bg-brand-500/15 text-brand-600 dark:text-brand-400' },
-            { label: 'Proyek Aktif', value: stats.active_projects, icon: 'zap', color: 'bg-amber-500/15 text-amber-600 dark:text-amber-400' },
-            { label: 'Total Klien', value: stats.total_clients, icon: 'users', color: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' },
-            { label: 'Pendapatan', value: formatRupiah(stats.total_revenue), icon: 'wallet', color: 'bg-sky-500/15 text-sky-600 dark:text-sky-400' },
-        ];
+        const trend = (curr, prev, suffix = '') => {
+            const diff = curr - prev;
+            if (diff > 0) return { up: true, text: `+${diff}${suffix}` };
+            if (diff < 0) return { up: false, text: `${diff}${suffix}` };
+            return null;
+        };
 
-        const quickStats = [
-            { label: 'Proyek Selesai', value: stats.completed_projects, icon: 'check', color: 'text-emerald-600 dark:text-emerald-400' },
-            { label: 'Pembayaran Menunggu', value: stats.pending_payments, icon: 'clock', color: 'text-amber-600 dark:text-amber-400' },
-            { label: 'Pesan Belum Dibaca', value: stats.unread_messages, icon: 'mail', color: 'text-brand-600 dark:text-brand-400' },
-            { label: 'Portofolio', value: stats.portfolios, icon: 'image', color: 'text-sky-600 dark:text-sky-400' },
+        const projectTrend = trend(stats.projects_this_month, stats.projects_last_month);
+        const revenueGrowth = stats.revenue_last_month > 0
+            ? { up: Number(stats.revenue_this_month) >= Number(stats.revenue_last_month), text: `${Math.round(((Number(stats.revenue_this_month) - Number(stats.revenue_last_month)) / stats.revenue_last_month) * 100)}%` }
+            : null;
+
+        const kpis = [
+            { label: 'Total Proyek', value: stats.total_projects, icon: 'folder-open', color: 'bg-brand-500/15 text-brand-600 dark:text-brand-400', trend: projectTrend },
+            { label: 'Proyek Aktif', value: stats.active_projects, icon: 'zap', color: 'bg-amber-500/15 text-amber-600 dark:text-amber-400', trend: null },
+            { label: 'Total Klien', value: stats.total_clients, icon: 'users', color: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400', trend: stats.clients_this_month > 0 ? { up: true, text: 'Baru' } : null },
+            { label: 'Pendapatan Bulan Ini', value: formatRupiah(stats.revenue_this_month), icon: 'wallet', color: 'bg-sky-500/15 text-sky-600 dark:text-sky-400', trend: revenueGrowth },
         ];
 
         const paymentBadge = (status) => {
@@ -59,7 +64,7 @@ export default function Dashboard() {
                 confirmed: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400',
                 failed: 'bg-red-500/15 text-red-600 dark:text-red-400',
             };
-            const label = { pending: 'Menunggu', confirmed: 'Dikonfirmasi', failed: 'Ditolak' };
+            const label = { pending: 'Menunggu', confirmed: 'Lunas', failed: 'Ditolak' };
             return <span className={`badge ${map[status] || 'bg-zinc-500/15 text-ink-muted'}`}>{label[status] || status}</span>;
         };
 
@@ -70,28 +75,21 @@ export default function Dashboard() {
                     subtitle={`Selamat datang kembali, ${user?.name}`}
                 />
 
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
                     {kpis.map((c) => (
-                        <div key={c.label} className="card p-5">
-                            <div className={`mb-3 flex h-11 w-11 items-center justify-center rounded-xl ${c.color}`}>
-                                <Icon name={c.icon} size={22} />
+                        <div key={c.label} className="card p-4">
+                            <div className="flex items-start justify-between">
+                                <div className={`flex h-9 w-9 items-center justify-center rounded-lg ${c.color}`}>
+                                    <Icon name={c.icon} size={18} />
+                                </div>
+                                {c.trend && (
+                                    <span className={`badge ${c.trend.up ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' : 'bg-red-500/15 text-red-600 dark:text-red-400'}`}>
+                                        <Icon name="trending-up" size={11} className={c.trend.up ? '' : 'rotate-180'} /> {c.trend.text}
+                                    </span>
+                                )}
                             </div>
-                            <p className="text-sm text-ink-muted">{c.label}</p>
-                            <p className="mt-1 text-2xl font-bold text-ink">{c.value}</p>
-                        </div>
-                    ))}
-                </div>
-
-                <div className="mt-4 grid grid-cols-2 gap-4 lg:grid-cols-4">
-                    {quickStats.map((s) => (
-                        <div key={s.label} className="flex items-center gap-3 rounded-2xl border border-line bg-surface/60 px-4 py-3">
-                            <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-surface-muted ${s.color}`}>
-                                <Icon name={s.icon} size={18} />
-                            </div>
-                            <div className="min-w-0">
-                                <p className="text-lg font-bold leading-tight text-ink">{s.value}</p>
-                                <p className="truncate text-xs text-ink-muted">{s.label}</p>
-                            </div>
+                            <p className="mt-3 text-xl font-bold text-ink">{c.value}</p>
+                            <p className="mt-0.5 text-xs text-ink-muted">{c.label}</p>
                         </div>
                     ))}
                 </div>
@@ -138,24 +136,39 @@ export default function Dashboard() {
 
                     <div className="card overflow-hidden lg:col-span-1">
                         <div className="flex items-center justify-between border-b border-line px-5 py-4">
-                            <h2 className="flex items-center gap-2 font-bold text-ink"><Icon name="folder-open" size={16} /> Proyek Terbaru</h2>
+                            <h2 className="flex items-center gap-2 font-bold text-ink"><Icon name="calendar" size={16} /> Jadwal Terdekat</h2>
                             <Link to="/dashboard/projects" className="text-sm font-medium text-brand-600 hover:underline dark:text-brand-400">Lihat semua</Link>
                         </div>
                         <div className="divide-y divide-line">
-                            {stats.recent_projects?.length ? (
-                                stats.recent_projects.map((p) => (
-                                    <Link key={p.id} to={`/dashboard/projects/${p.order_no || p.id}`} className="flex items-center justify-between gap-3 px-5 py-3 hover:bg-surface-muted">
-                                        <div className="min-w-0">
-                                            <p className="truncate text-sm font-semibold text-ink">{p.name}</p>
-                                            <p className="text-xs text-ink-muted">
-                                                {p.user?.name || '—'} {p.event_date ? `· ${formatDate(p.event_date)}` : ''}
-                                            </p>
-                                        </div>
-                                        <StatusBadge status={p.status} />
-                                    </Link>
-                                ))
+                            {stats.upcoming_schedule?.length ? (
+                                stats.upcoming_schedule.map((p) => {
+                                    const ev = p.event_date ? new Date(p.event_date) : null;
+                                    return (
+                                        <Link key={p.id} to={`/dashboard/projects/${p.order_no || p.id}`} className="flex items-center gap-3 px-5 py-3 hover:bg-surface-muted">
+                                            {ev ? (
+                                                <div className="flex h-12 w-12 shrink-0 flex-col items-center justify-center rounded-xl bg-surface-muted">
+                                                    <span className="text-[10px] font-bold uppercase leading-none text-brand-600 dark:text-brand-400">
+                                                        {ev.toLocaleDateString('id-ID', { month: 'short' })}
+                                                    </span>
+                                                    <span className="mt-0.5 text-sm font-bold leading-none text-ink">{ev.getDate()}</span>
+                                                </div>
+                                            ) : (
+                                                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-surface-muted text-ink-muted">
+                                                    <Icon name="calendar" size={18} />
+                                                </div>
+                                            )}
+                                            <div className="min-w-0 flex-1">
+                                                <p className="truncate text-sm font-semibold text-ink">{p.name}</p>
+                                                <p className="flex items-center gap-1 truncate text-xs text-ink-muted">
+                                                    <Icon name="map-pin" size={11} /> {p.location || 'Lokasi belum diatur'}
+                                                </p>
+                                            </div>
+                                            <StatusBadge status={p.status} />
+                                        </Link>
+                                    );
+                                })
                             ) : (
-                                <EmptyState title="Belum ada proyek" message="Buat proyek pertama Anda dari menu Proyek." />
+                                <EmptyState icon="calendar" title="Tidak ada jadwal" message="Proyek dengan tanggal acara akan tampil di sini." />
                             )}
                         </div>
                     </div>
@@ -168,12 +181,17 @@ export default function Dashboard() {
                         <div className="divide-y divide-line">
                             {stats.recent_messages?.length ? (
                                 stats.recent_messages.map((m) => (
-                                    <Link key={m.id} to={`/dashboard/messages/${m.id}`} className="flex items-center justify-between gap-3 px-5 py-3 hover:bg-surface-muted">
-                                        <div className="min-w-0">
-                                            <p className="truncate text-sm font-semibold text-ink">{m.name}</p>
+                                    <Link key={m.id} to={`/dashboard/messages/${m.id}`} className="flex items-center gap-3 px-5 py-3 hover:bg-surface-muted">
+                                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-500/15 text-xs font-bold uppercase text-brand-600 dark:text-brand-400">
+                                            {m.name?.slice(0, 2) || '?'}
+                                        </div>
+                                        <div className="min-w-0 flex-1">
+                                            <div className="flex items-center justify-between gap-2">
+                                                <p className="truncate text-sm font-semibold text-ink">{m.name}</p>
+                                                {!m.read_at && <span className="badge bg-brand-500/15 text-brand-600 dark:text-brand-400">Baru</span>}
+                                            </div>
                                             <p className="truncate text-xs text-ink-muted">{m.message}</p>
                                         </div>
-                                        {!m.read_at && <span className="badge bg-brand-500/15 text-brand-600 dark:text-brand-400">Baru</span>}
                                     </Link>
                                 ))
                             ) : (
@@ -248,6 +266,20 @@ function RevenueChart({ data = {}, thisMonth = 0, lastMonth = 0, pending = 0, av
     const total = points.reduce((s, p) => s + p.value, 0);
     const growth = lastMonth > 0 ? Math.round(((Number(thisMonth) - Number(lastMonth)) / lastMonth) * 100) : (Number(thisMonth) > 0 ? 100 : 0);
 
+    const W = 560;
+    const H = 180;
+    const PAD = 20;
+    const innerW = W - PAD * 2;
+    const innerH = H - PAD * 2;
+    const stepX = points.length > 1 ? innerW / (points.length - 1) : 0;
+    const coords = points.map((p, i) => ({
+        x: PAD + i * stepX,
+        y: PAD + innerH - (p.value / max) * innerH,
+        ...p,
+    }));
+    const linePath = coords.map((c, i) => `${i === 0 ? 'M' : 'L'} ${c.x} ${c.y}`).join(' ');
+    const areaPath = `${linePath} L ${PAD + (points.length - 1) * stepX} ${PAD + innerH} L ${PAD} ${PAD + innerH} Z`;
+
     const strip = [
         { label: 'Bulan Ini', value: formatRupiah(thisMonth), color: 'text-emerald-600 dark:text-emerald-400' },
         { label: 'Bulan Lalu', value: formatRupiah(lastMonth), color: 'text-ink-muted' },
@@ -259,7 +291,7 @@ function RevenueChart({ data = {}, thisMonth = 0, lastMonth = 0, pending = 0, av
         <div className="card overflow-hidden h-full">
             <div className="flex items-center justify-between border-b border-line px-5 py-4">
                 <h2 className="flex items-center gap-2 font-bold text-ink">
-                    <Icon name="trending-up" size={16} /> Pendapatan 6 Bulan
+                    <Icon name="trending-up" size={16} /> Tren Pendapatan 6 Bulan
                 </h2>
                 <span className="flex items-center gap-1.5 text-sm font-semibold text-ink">
                     {formatRupiah(total)}
@@ -280,19 +312,19 @@ function RevenueChart({ data = {}, thisMonth = 0, lastMonth = 0, pending = 0, av
                     ))}
                 </div>
             </div>
-            <div className="px-5 py-5">
-                <div className="flex h-44 items-end gap-3">
+            <div className="px-3 py-4">
+                <svg viewBox={`0 0 ${W} ${H}`} className="h-48 w-full" preserveAspectRatio="none" role="img" aria-label="Tren pendapatan 6 bulan">
+                    <path d={areaPath} fill="brand" className="fill-brand-500/10" />
+                    <path d={linePath} fill="none" strokeWidth="2.5" className="stroke-brand-500" strokeLinecap="round" strokeLinejoin="round" />
+                    {coords.map((c) => (
+                        <circle key={c.key} cx={c.x} cy={c.y} r="3.5" className="fill-white stroke-brand-500 dark:fill-zinc-900" strokeWidth="2">
+                            <title>{`${c.label}: ${formatRupiah(c.value)}`}</title>
+                        </circle>
+                    ))}
+                </svg>
+                <div className="mt-2 flex justify-between px-2 text-xs text-ink-muted">
                     {points.map((p) => (
-                        <div key={p.key} className="group flex flex-1 flex-col items-center gap-2">
-                            <div className="flex w-full flex-1 items-end">
-                                <div
-                                    className="w-full rounded-t-lg bg-brand-500/20 transition-colors group-hover:bg-brand-500/35"
-                                    style={{ height: `${Math.max(4, Math.round((p.value / max) * 100))}%` }}
-                                    title={`${p.label}: ${formatRupiah(p.value)}`}
-                                />
-                            </div>
-                            <span className="text-xs text-ink-muted">{p.label}</span>
-                        </div>
+                        <span key={p.key}>{p.label}</span>
                     ))}
                 </div>
             </div>
@@ -336,21 +368,27 @@ function QuickLinks() {
 }
 
 const STATUS_META = {
-    pending: { label: 'Menunggu', color: 'bg-amber-500' },
-    scheduled: { label: 'Dijadwalkan', color: 'bg-amber-400' },
-    shooting: { label: 'Pemotretan', color: 'bg-sky-500' },
-    editing: { label: 'Editing', color: 'bg-indigo-500' },
-    awaiting_payment: { label: 'Preview Tersedia', color: 'bg-orange-500' },
-    completed: { label: 'Selesai', color: 'bg-emerald-500' },
-    archived: { label: 'Diarsipkan', color: 'bg-zinc-400' },
+    pending: { label: 'Menunggu', color: 'bg-amber-500', hex: '#f59e0b' },
+    scheduled: { label: 'Dijadwalkan', color: 'bg-amber-400', hex: '#fbbf24' },
+    shooting: { label: 'Pemotretan', color: 'bg-sky-500', hex: '#0ea5e9' },
+    editing: { label: 'Editing', color: 'bg-indigo-500', hex: '#6366f1' },
+    awaiting_payment: { label: 'Preview Tersedia', color: 'bg-orange-500', hex: '#f97316' },
+    completed: { label: 'Selesai', color: 'bg-emerald-500', hex: '#10b981' },
+    archived: { label: 'Diarsipkan', color: 'bg-zinc-400', hex: '#a1a1aa' },
 };
 
 function StatusBreakdown({ data = {} }) {
     const rows = Object.entries(data)
         .filter(([, v]) => Number(v) > 0)
-        .map(([key, value]) => ({ key, value: Number(value), ...(STATUS_META[key] || { label: key, color: 'bg-zinc-400' }) }));
+        .map(([key, value]) => ({ key, value: Number(value), ...(STATUS_META[key] || { label: key, color: 'bg-zinc-400', hex: '#a1a1aa' }) }));
 
     const total = rows.reduce((s, r) => s + r.value, 0);
+
+    const SIZE = 150;
+    const STROKE = 18;
+    const R = (SIZE - STROKE) / 2;
+    const C = 2 * Math.PI * R;
+    let offset = 0;
 
     return (
         <div className="card overflow-hidden h-full">
@@ -360,19 +398,45 @@ function StatusBreakdown({ data = {} }) {
                 </h2>
                 <span className="text-sm font-semibold text-ink">{total}</span>
             </div>
-            <div className="space-y-4 px-5 py-5">
+            <div className="flex flex-col items-center gap-5 px-5 py-5 sm:flex-row sm:justify-center">
                 {rows.length ? (
-                    rows.map((r) => (
-                        <div key={r.key}>
-                            <div className="mb-1.5 flex items-center justify-between text-sm">
-                                <span className="text-ink">{r.label}</span>
-                                <span className="font-semibold text-ink">{r.value}</span>
-                            </div>
-                            <div className="h-2 w-full overflow-hidden rounded-full bg-surface-muted">
-                                <div className={`h-full rounded-full ${r.color}`} style={{ width: `${total ? Math.round((r.value / total) * 100) : 0}%` }} />
-                            </div>
+                    <>
+                        <svg width={SIZE} height={SIZE} viewBox={`0 0 ${SIZE} ${SIZE}`} className="shrink-0">
+                            <circle cx={SIZE / 2} cy={SIZE / 2} r={R} fill="none" strokeWidth={STROKE} className="stroke-surface-muted" />
+                            {rows.map((r) => {
+                                const len = total ? (r.value / total) * C : 0;
+                                const seg = (
+                                    <circle
+                                        key={r.key}
+                                        cx={SIZE / 2}
+                                        cy={SIZE / 2}
+                                        r={R}
+                                        fill="none"
+                                        stroke={r.hex}
+                                        strokeWidth={STROKE}
+                                        strokeDasharray={`${len} ${C - len}`}
+                                        strokeDashoffset={-offset}
+                                        strokeLinecap="butt"
+                                        transform={`rotate(-90 ${SIZE / 2} ${SIZE / 2})`}
+                                    >
+                                        <title>{`${r.label}: ${r.value}`}</title>
+                                    </circle>
+                                );
+                                offset += len;
+                                return seg;
+                            })}
+                            <text x="50%" y="50%" dominantBaseline="central" textAnchor="middle" className="fill-ink text-xl font-bold">{total}</text>
+                        </svg>
+                        <div className="w-full space-y-2 sm:w-auto">
+                            {rows.map((r) => (
+                                <div key={r.key} className="flex items-center gap-2 text-sm">
+                                    <span className={`h-2.5 w-2.5 rounded-full ${r.color}`} />
+                                    <span className="text-ink">{r.label}</span>
+                                    <span className="ml-auto font-semibold text-ink sm:ml-3">{r.value}</span>
+                                </div>
+                            ))}
                         </div>
-                    ))
+                    </>
                 ) : (
                     <EmptyState title="Belum ada data proyek" />
                 )}

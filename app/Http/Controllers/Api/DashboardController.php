@@ -34,9 +34,12 @@ class DashboardController extends Controller
             return response()->json([
                 'role' => 'admin',
                 'total_projects' => Project::count(),
+                'projects_this_month' => Project::where('created_at', '>=', now()->startOfMonth())->count(),
+                'projects_last_month' => Project::whereBetween('created_at', [now()->subMonth()->startOfMonth(), now()->subMonth()->endOfMonth()])->count(),
                 'active_projects' => Project::whereIn('status', ['scheduled', 'shooting', 'editing', 'awaiting_payment'])->count(),
                 'completed_projects' => Project::whereIn('status', ['completed', 'archived'])->count(),
                 'total_clients' => User::role('client')->count(),
+                'clients_this_month' => User::role('client')->where('created_at', '>=', now()->startOfMonth())->count(),
                 'total_revenue' => $confirmed->sum('amount'),
                 'revenue_this_month' => (clone $confirmed)->where('paid_at', '>=', now()->startOfMonth())->sum('amount'),
                 'revenue_last_month' => (clone $confirmed)->whereBetween('paid_at', [now()->subMonth()->startOfMonth(), now()->subMonth()->endOfMonth()])->sum('amount'),
@@ -50,6 +53,13 @@ class DashboardController extends Controller
                 'recent_projects' => Project::with('user.profile')->latest()->take(5)->get(),
                 'recent_messages' => ContactMessage::with('project')->where(fn ($q) => $q->whereNull('project_id')->orWhereHas('project'))->latest()->take(5)->get(),
                 'recent_payments' => Payment::with('project')->whereHas('project')->latest()->take(5)->get(),
+                'upcoming_schedule' => Project::with('user')
+                    ->whereNotNull('event_date')
+                    ->where('event_date', '>=', now()->startOfDay())
+                    ->whereNotIn('status', ['completed', 'archived'])
+                    ->orderBy('event_date')
+                    ->take(4)
+                    ->get(['id', 'order_no', 'name', 'location', 'event_date', 'status']),
             ]);
         }
 

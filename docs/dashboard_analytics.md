@@ -14,6 +14,9 @@ Untuk admin (`isStaff()`), endpoint mengembalikan:
 | `revenue_last_month` | jumlah confirmed pada bulan sebelumnya |
 | `pending_amount` | jumlah `Payment` `status=pending` yang punya proyek |
 | `avg_per_project` | `total_revenue / jumlah proyek` (2 desimal) |
+| `projects_this_month`, `projects_last_month` | proyek dibuat bulan ini / bulan lalu (untuk badge tren) |
+| `clients_this_month` | klien baru bulan ini (untuk badge tren "Baru") |
+| `upcoming_schedule` | 4 proyek ber-`event_date` ≥ hari ini, belum selesai/arsip, urut tanggal terdekat |
 | `pending_payments` | banyak `Payment` `status=pending` yang punya proyek |
 | `portfolios` | `Portfolio::count()` |
 | `unread_messages` | `ContactMessage` `read_at` null (dengan proyek atau non-proyek) |
@@ -24,12 +27,11 @@ Untuk admin (`isStaff()`), endpoint mengembalikan:
 Untuk klien, endpoint mengembalikan data pesanan milik user sendiri (`projects`, `in_progress`, `completed`, `total_spent`, `recent_projects`).
 
 ## UI Dashboard
-- **KPI cards** (4): Total Proyek, Proyek Aktif, Total Klien, Pendapatan.
-- **Quick stats** (4): Proyek Selesai, Pembayaran Menunggu, Pesan Belum Dibaca, Portofolio.
-- **Panel Pendapatan 6 Bulan**: strip KPI (Bulan Ini, Bulan Lalu, Rata-rata/Proyek, Menunggu Bayar) + badge pertumbuhan `%` (vs bulan lalu) + bar chart murni CSS (flex + `height` persentase) — TANPA library chart. Bar dihitung dari `max(points)`; total 6 bulan tampil di header card. Growth dihitung di frontend dari `revenue_this_month` vs `revenue_last_month`. Ikuti pola ini bila menambah grafik lain.
-- **Status Proyek**: progress bar per status (persentase dari total proyek). Warna status didefinisikan di `STATUS_META` (baris dalam file Dashboard).
+- **KPI cards** (4, grid kompak): Total Proyek, Proyek Aktif, Total Klien, Pendapatan Bulan Ini — masing-masing dengan **badge tren** (ikon `trending-up`, rotasi 180° untuk turun). Tren proyek = selisih bulan ini vs bulan lalu; klien = "Baru" bila ada klien baru; pendapatan = % growth bulan ini vs bulan lalu.
+- **Panel Tren Pendapatan 6 Bulan**: strip KPI (Bulan Ini, Bulan Lalu, Rata-rata/Proyek, Menunggu Bayar) + badge growth % + **line chart SVG murni** (`<svg>` polyline + area fill + titik data) — TANPA library chart. Growth dihitung frontend dari `revenue_this_month` vs `revenue_last_month`. Ikuti pola ini bila menambah grafik lain.
+- **Distribusi Status Proyek**: **donut chart SVG** (circle `stroke-dasharray` per segmen) + legenda per status. Warna/hex didefinisikan di `STATUS_META` (baris dalam file Dashboard).
 - **Tautan Cepat**: panel kartu terpisah (di bawah grafik, **bukan** di header/title) berisi 6 link navigasi cepat (Proyek, Media, Blog, Booking, Klien, Landing).
-- **3 panel terbaru**: Pembayaran, Proyek, Pesan — masing-masing `Link` "Lihat semua".
+- **3 panel terbaru**: Pembayaran (badge Lunas/Menunggu), **Jadwal Terdekat** (tanggal acara format blok + lokasi + status), Pesan (avatar inisial + badge Baru) — masing-masing `Link` "Lihat semua".
 
 ## Konvensi
 - **Jangan menambah dependency chart** (mis. Recharts/Chart.js) — gunakan CSS/inline SVG agar bundle tetap kecil (lihat target bundle < 300 kB di `docs/progressive_loading.md`).
