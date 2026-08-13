@@ -5,30 +5,106 @@ import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import api from '../api';
 
+function NavGroup({ item, setSidebarOpen }) {
+    const [open, setOpen] = useState(true);
+
+    return (
+        <div className="pt-2">
+            <button
+                type="button"
+                onClick={() => setOpen(!open)}
+                className="flex items-center justify-between w-full px-3 py-1.5 group"
+            >
+                <span className="text-[10px] font-semibold uppercase tracking-widest text-ink-muted/50 group-hover:text-ink-muted transition-colors">
+                    {item.label}
+                </span>
+                <Icon name="chevron-down" size={14} className={`text-ink-muted/40 group-hover:text-ink-muted transition-transform ${open ? 'rotate-180' : ''}`} />
+            </button>
+            {open && (
+                <div className="space-y-0.5 mt-1">
+                    {item.sub.map(subItem => (
+                        <NavLink
+                            key={subItem.to}
+                            to={subItem.to}
+                            end={subItem.end}
+                            onClick={() => setSidebarOpen(false)}
+                            className={({ isActive }) =>
+                                `flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${
+                                    isActive
+                                        ? 'bg-brand-600/10 text-brand-600'
+                                        : 'text-ink-muted hover:bg-surface-muted hover:text-ink'
+                                }`
+                            }
+                        >
+                            <Icon name={subItem.icon} size={18} className="shrink-0" />
+                            <span>{subItem.label}</span>
+                        </NavLink>
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+}
+
 const adminNav = [
     { to: '/dashboard', icon: 'dashboard', label: 'Dashboard', end: true },
-    { to: '/dashboard/bookings', icon: 'calendar', label: 'Booking' },
-    { to: '/dashboard/portfolios', icon: 'images', label: 'Portofolio' },
-    { to: '/dashboard/media', icon: 'image', label: 'Media' },
-    { to: '/dashboard/services', icon: 'briefcase', label: 'Layanan' },
-    { to: '/dashboard/clients', icon: 'users', label: 'Klien' },
-    { to: '/dashboard/projects', icon: 'folder-open', label: 'Proyek' },
-    { to: '/dashboard/preview', icon: 'image', label: 'Preview' },
-    { to: '/dashboard/payments', icon: 'credit-card', label: 'Pembayaran' },
-    { to: '/dashboard/messages', icon: 'message-circle', label: 'Pesan' },
-    { to: '/dashboard/reviews', icon: 'star', label: 'Review' },
-    { to: '/dashboard/blog', icon: 'edit', label: 'Blog' },
-    { to: '/dashboard/faq', icon: 'message-circle', label: 'FAQ' },
-    { to: '/dashboard/pages', icon: 'file', label: 'Halaman' },
-    { to: '/dashboard/audit', icon: 'clock', label: 'Audit & Log' },
-    { to: '/dashboard/recycle-bin', icon: 'trash', label: 'Recycle Bin' },
+    {
+        label: 'Katalog & Media',
+        sub: [
+            { to: '/dashboard/services', icon: 'list', label: 'Layanan & Kategori' },
+            { to: '/dashboard/portfolios', icon: 'briefcase', label: 'Portofolio' },
+            { to: '/dashboard/media', icon: 'image', label: 'Media' },
+        ]
+    },
+    {
+        label: 'Proyek & Transaksi',
+        sub: [
+            { to: '/dashboard/bookings', icon: 'calendar', label: 'Booking' },
+            { to: '/dashboard/projects', icon: 'folder-open', label: 'Proyek' },
+            { to: '/dashboard/preview', icon: 'image', label: 'Preview' },
+            { to: '/dashboard/payments', icon: 'credit-card', label: 'Pembayaran' },
+        ]
+    },
+    {
+        label: 'Interaksi & Klien',
+        sub: [
+            { to: '/dashboard/messages', icon: 'message-circle', label: 'Pesan' },
+            { to: '/dashboard/reviews', icon: 'star', label: 'Review' },
+            { to: '/dashboard/clients', icon: 'users', label: 'Daftar Klien' },
+        ]
+    },
+    {
+        label: 'Konten Website',
+        sub: [
+            { to: '/dashboard/blog', icon: 'file-text', label: 'Semua Artikel', end: true },
+            { to: '/dashboard/blog/categories', icon: 'folder', label: 'Kategori Blog' },
+            { to: '/dashboard/blog/tags', icon: 'tag', label: 'Tag Blog' },
+            { to: '/dashboard/faq', icon: 'message-circle', label: 'FAQ' },
+            { to: '/dashboard/pages', icon: 'file', label: 'Halaman Statis' },
+        ]
+    },
+    {
+        label: 'Sistem',
+        sub: [
+            { to: '/dashboard/audit', icon: 'clock', label: 'Audit & Log' },
+            { to: '/dashboard/recycle-bin', icon: 'trash', label: 'Recycle Bin' },
+        ]
+    }
 ];
 
 const ownerNav = [
-    ...adminNav,
-    { to: '/dashboard/team', icon: 'users', label: 'Tim & Admin' },
-    { to: '/dashboard/landing', icon: 'palette', label: 'Landing' },
-    { to: '/dashboard/settings', icon: 'settings', label: 'Pengaturan' },
+    { to: '/dashboard', icon: 'dashboard', label: 'Dashboard', end: true },
+    ...adminNav.slice(1, -1),
+    {
+        label: 'Sistem',
+        sub: [
+            { to: '/dashboard/audit', icon: 'clock', label: 'Audit & Log' },
+            { to: '/dashboard/recycle-bin', icon: 'trash', label: 'Recycle Bin' },
+            { to: '/dashboard/team', icon: 'users', label: 'Tim & Admin' },
+            { to: '/dashboard/landing', icon: 'palette', label: 'Landing Page' },
+            { to: '/dashboard/settings', icon: 'settings', label: 'Pengaturan' },
+        ]
+    }
 ];
 
 const clientNav = [
@@ -140,34 +216,40 @@ export default function Layout() {
                 </div>
 
                 <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
-                    {nav.map((item) => (
-                        <NavLink
-                            key={item.to}
-                            to={item.to}
-                            end={item.end}
-                            onClick={() => setSidebarOpen(false)}
-                            className={({ isActive }) =>
-                                `flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${
-                                    isActive
-                                        ? 'bg-brand-600 text-white shadow-lg shadow-brand-600/20'
-                                        : 'text-ink-muted hover:bg-surface-muted hover:text-ink'
-                                }`
-                            }
-                        >
-                            <Icon name={item.icon} size={18} />
-                            <span>{item.label}</span>
-                            {item.to === '/dashboard/messages' && unreadMessages > 0 && (
-                                <span className="ml-auto rounded-full bg-red-500 px-2 py-0.5 text-xs font-bold text-white">
-                                    {unreadMessages}
-                                </span>
-                            )}
-                            {item.to === '/dashboard/bookings' && unreadBookings > 0 && (
-                                <span className="ml-auto rounded-full bg-amber-500 px-2 py-0.5 text-xs font-bold text-white">
-                                    {unreadBookings}
-                                </span>
-                            )}
-                        </NavLink>
-                    ))}
+                    {nav.map((item) => {
+                        if (item.sub) {
+                            return <NavGroup key={item.to} item={item} setSidebarOpen={setSidebarOpen} />;
+                        }
+
+                        return (
+                            <NavLink
+                                key={item.to}
+                                to={item.to}
+                                end={item.end}
+                                onClick={() => setSidebarOpen(false)}
+                                className={({ isActive }) =>
+                                    `flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${
+                                        isActive
+                                            ? 'bg-brand-600 text-white shadow-lg shadow-brand-600/20'
+                                            : 'text-ink-muted hover:bg-surface-muted hover:text-ink'
+                                    }`
+                                }
+                            >
+                                <Icon name={item.icon} size={18} className="shrink-0" />
+                                <span>{item.label}</span>
+                                {item.to === '/dashboard/messages' && unreadMessages > 0 && (
+                                    <span className="ml-auto rounded-full bg-red-500 px-2 py-0.5 text-xs font-bold text-white">
+                                        {unreadMessages}
+                                    </span>
+                                )}
+                                {item.to === '/dashboard/bookings' && unreadBookings > 0 && (
+                                    <span className="ml-auto rounded-full bg-amber-500 px-2 py-0.5 text-xs font-bold text-white">
+                                        {unreadBookings}
+                                    </span>
+                                )}
+                            </NavLink>
+                        );
+                    })}
                 </nav>
 
                 <div className="border-t border-line p-4">

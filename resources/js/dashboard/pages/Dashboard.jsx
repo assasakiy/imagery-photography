@@ -56,7 +56,7 @@ export default function Dashboard() {
                         <div className="divide-y divide-line">
                             {stats.recent_projects?.length ? (
                                 stats.recent_projects.map((p) => (
-                                    <Link key={p.id} to={isAdmin ? `/dashboard/projects/${p.id}` : `/dashboard/pesanan/${p.id}`} className="flex items-center justify-between px-5 py-3 hover:bg-surface-muted">
+                                    <Link key={p.id} to={isAdmin ? `/dashboard/projects/${p.order_no || p.id}` : `/dashboard/pesanan/${p.order_no || p.id}`} className="flex items-center justify-between px-5 py-3 hover:bg-surface-muted">
                                         <div className="min-w-0">
                                             <p className="truncate text-sm font-semibold text-ink">{p.name}</p>
                                             <p className="text-xs text-ink-muted">{p.user?.name || '—'}</p>
@@ -130,7 +130,7 @@ export default function Dashboard() {
                 <div className="divide-y divide-line">
                     {stats.recent_projects?.length ? (
                         stats.recent_projects.map((p) => (
-                            <Link key={p.id} to={isAdmin ? `/dashboard/projects/${p.id}` : `/dashboard/pesanan/${p.id}`} className="flex items-center justify-between px-5 py-3 hover:bg-surface-muted">
+                            <Link key={p.id} to={isAdmin ? `/dashboard/projects/${p.order_no || p.id}` : `/dashboard/pesanan/${p.order_no || p.id}`} className="flex items-center justify-between px-5 py-3 hover:bg-surface-muted">
                                 <p className="text-sm font-semibold text-ink">{p.name}</p>
                                 <StatusBadge status={p.status} />
                             </Link>

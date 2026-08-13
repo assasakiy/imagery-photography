@@ -416,21 +416,44 @@ export default function ProjectDetail() {
         }
     };
 
+    const existingReview = project.review || null;
+    const canReview = project.review_allowed === true && !existingReview;
+
+    const openReview = () => {
+        if (existingReview) {
+            setReviewForm({
+                rating: existingReview.rating || 5,
+                title: existingReview.title || '',
+                content: existingReview.content || '',
+                recommend_score: existingReview.recommend_score ?? 10,
+            });
+        } else {
+            setReviewForm({ rating: 5, title: '', content: '', recommend_score: 10 });
+        }
+        setReviewOpen(true);
+    };
+
     const submitReview = async (e) => {
         e.preventDefault();
         setSaving(true);
         try {
-            await api.post('/reviews', {
+            const payload = {
                 project_id: project.id,
                 name: project.user?.name || 'Klien',
                 service: project.package?.name || 'Layanan',
                 ...reviewForm,
-            });
-            show('Review berhasil dikirim.');
+            };
+            if (existingReview) {
+                await api.put('/reviews/my', payload);
+                show('Review Anda diperbarui.');
+            } else {
+                await api.post('/reviews', payload);
+                show('Review berhasil dikirim.');
+            }
             setReviewOpen(false);
             load();
-        } catch {
-            show('Gagal mengirim review.', 'error');
+        } catch (err) {
+            show(err.response?.data?.message || 'Gagal mengirim review.', 'error');
         } finally {
             setSaving(false);
         }
@@ -470,7 +493,7 @@ const ctx = {
         uploadFile, uploadEndProof, confirmShootingDone,
         advance, archive, restore, saveEditProgress,
         setUploadOpen, uploadLabel, pickAndSaveThumb, thumbFile,
-        setReviewOpen, openChat,
+        openReview, existingReview, canReview, setReviewOpen, openChat,
         setShareOpen, feeMap, setFeeMap, reviewRedelivery, setRerequestOpen,
     };
 
@@ -495,6 +518,11 @@ const ctx = {
                             )}
                             <span className="flex items-center gap-1.5"><Icon name="calendar" size={14} /> {project.event_date ? formatDate(project.event_date) : 'Tanpa jadwal'}</span>
                         </div>
+                    </div>
+                    <div className="flex shrink-0 items-center gap-2">
+                        <button className="btn-primary" onClick={openChat}>
+                            <Icon name="message-circle" size={16} /> Chat Admin
+                        </button>
                     </div>
                 </div>
 
@@ -617,10 +645,10 @@ const ctx = {
             </Modal>
 
             {/* REVIEW MODAL */}
-            <Modal open={reviewOpen} onClose={() => setReviewOpen(false)} title="Kirim Review & Testimoni" footer={
+            <Modal open={reviewOpen} onClose={() => setReviewOpen(false)} title={existingReview ? 'Edit Review & Testimoni' : 'Kirim Review & Testimoni'} footer={
                 <div className="flex justify-end gap-2">
                     <button type="button" className="btn-outline" onClick={() => setReviewOpen(false)}>Batal</button>
-                    <button type="button" className="btn-primary" onClick={submitReview} disabled={saving}>{saving ? 'Mengirim...' : 'Kirim Review'}</button>
+                    <button type="button" className="btn-primary" onClick={submitReview} disabled={saving}>{saving ? 'Mengirim...' : existingReview ? 'Simpan Perubahan' : 'Kirim Review'}</button>
                 </div>
             }>
                 <form className="space-y-4">

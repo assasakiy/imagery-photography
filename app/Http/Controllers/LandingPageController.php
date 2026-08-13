@@ -20,7 +20,7 @@ class LandingPageController extends Controller
         $packages = Package::with('services')->active()->orderBy('display_order')->take(3)->get();
         $blogs = Blog::with(['author:id,username', 'author.profile'])->published()->orderByDesc('published_at')->take(3)->get();
         $faqs = Faq::where('published', true)->orderBy('order')->get();
-        $reviews = Review::approved()->orderBy('order')->orderByDesc('id')->take(6)->get();
+        $reviews = Review::published()->orderBy('order')->orderByDesc('id')->take(6)->get();
 
         return view('landing_pages.home', compact('contents', 'portfolios', 'services', 'packages', 'blogs', 'faqs', 'reviews'));
     }

@@ -21,11 +21,13 @@ Repo ini berisi monolith Laravel dengan dua sisi:
 
 - Multi-role: **Owner**, **Admin**, **Klien**
 - Portofolio & galeri karya, layanan (paket fotografi)
-- Blog dengan kategori, tag, artikel unggulan, pencarian
+- Blog lengkap: Full-page Tiptap editor dengan integrasi media, auto-generate Excerpt/SEO, penjadwalan terbit, dan taksonomi (Kategori & Tag)
 - Form Kontak & Booking → masuk sebagai **Pesan** dan **Notifikasi** (dengan filter kategori: Pesan / Booking / Review / Sistem)
+- Pesan (Universal Chat): Komunikasi interaktif *real-time* dua arah antara Admin dan Klien dengan format *bubble chat*, emoji, attachment file, & fitur *reply* (balas). Terintegrasi dengan metadata referensi pesanan/proyek.
 - Notifikasi in-app: unread badge, tandai dibaca, lihat semua, hapus semua, link langsung ke item terkait
-- Proyek klien + unggah file + pembayaran (konfirmasi manual)
-- Review & rating (disetujui dulu oleh admin)
+- Proyek klien + unggah file (termasuk fitur Arsip untuk meminta ulang file yang kadaluwarsa)
+- Modul Pembayaran Lengkap: Transfer manual (bank, dompet digital), pembuatan & validasi QRIS Statis menjadi **QRIS Dinamis** via *raw string* EMVCo, serta integrasi **Payment Gateway (TriPay)** yang dikendalikan melalui UI fleksibel.
+- Review & rating otomatis (publish saat >3 bintang) dengan revisi.
 - Media library (upload, picker, reuse)
 - Audit log & riwayat login, deteksi login mencurigakan
 - Landing page & pengaturan situs via UI

@@ -2,8 +2,18 @@ import Icon from '../../../../components/Icon';
 import { formatDate, formatRupiah } from '../../../../components/ui';
 import { Link } from 'react-router-dom';
 
+function Stars({ value, size = 16 }) {
+    return (
+        <div className="flex gap-0.5">
+            {[1, 2, 3, 4, 5].map((n) => (
+                <Icon key={n} name="star" size={size} className={n <= value ? 'text-amber-400' : 'text-zinc-300 dark:text-zinc-700'} />
+            ))}
+        </div>
+    );
+}
+
 export default function CompletedStep({ ctx }) {
-    const { PanelHeader, PanelFooter, project, isPaid, paidAt, previewHref, setReviewOpen } = ctx;
+    const { PanelHeader, PanelFooter, project, isPaid, paidAt, previewHref, openReview, existingReview, canReview } = ctx;
 
     return (
         <div className="card overflow-hidden">
@@ -29,16 +39,37 @@ export default function CompletedStep({ ctx }) {
                     </p>
                     <p className="text-xl font-bold text-ink">{formatRupiah(Number(project.price))}</p>
                 </div>
-                <div className="rounded-xl border border-line bg-surface-muted/30 p-5 text-center">
-                    <p className="mb-4 text-sm text-ink-muted">Bagikan pengalaman Anda bekerja bersama kami.</p>
-                    <button className="btn-primary" onClick={() => setReviewOpen(true)}><Icon name="star" size={16} /> Berikan Review</button>
-                </div>
+
+                {canReview && (
+                    <div className="rounded-xl border border-line bg-surface-muted/30 p-5 text-center">
+                        <p className="mb-4 text-sm text-ink-muted">Bagikan pengalaman Anda bekerja bersama kami.</p>
+                        <button className="btn-primary" onClick={openReview}><Icon name="star" size={16} /> Berikan Review</button>
+                    </div>
+                )}
+
+                {existingReview && (
+                    <div className="rounded-xl border border-line p-5">
+                        <div className="flex flex-wrap items-center justify-between gap-3">
+                            <div className="flex items-center gap-2">
+                                <Stars value={existingReview.rating} />
+                                <span className="text-xs text-ink-muted">Review Anda</span>
+                            </div>
+                            <button className="btn-outline !px-3 !py-1.5 !text-xs" onClick={openReview}>
+                                <Icon name="edit" size={14} /> Edit Review
+                            </button>
+                        </div>
+                        {existingReview.title && <p className="mt-3 font-medium text-ink">{existingReview.title}</p>}
+                        <p className="mt-1 text-sm leading-relaxed text-ink-muted">{existingReview.content}</p>
+                    </div>
+                )}
             </div>
-            <PanelFooter>
-                <Link to={previewHref} className="btn-primary">
-                    <Icon name="download" size={16} /> Unduh File
-                </Link>
-            </PanelFooter>
+            {project.status !== 'archived' && (
+                <PanelFooter>
+                    <Link to={previewHref} className="btn-primary">
+                        <Icon name="download" size={16} /> Unduh File
+                    </Link>
+                </PanelFooter>
+            )}
         </div>
     );
 }

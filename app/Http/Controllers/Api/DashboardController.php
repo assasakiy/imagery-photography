@@ -21,13 +21,13 @@ class DashboardController extends Controller
                 'active_projects' => Project::whereIn('status', ['scheduled', 'shooting', 'editing', 'awaiting_payment'])->count(),
                 'completed_projects' => Project::whereIn('status', ['completed', 'archived'])->count(),
                 'total_clients' => User::role('client')->count(),
-                'total_revenue' => Payment::where('status', 'confirmed')->sum('amount'),
-                'pending_payments' => Payment::where('status', 'pending')->count(),
+                'total_revenue' => Payment::where('status', 'confirmed')->whereHas('project')->sum('amount'),
+                'pending_payments' => Payment::where('status', 'pending')->whereHas('project')->count(),
                 'portfolios' => Portfolio::count(),
-                'unread_messages' => ContactMessage::whereNull('read_at')->count(),
+                'unread_messages' => ContactMessage::whereNull('read_at')->where(fn ($q) => $q->whereNull('project_id')->orWhereHas('project'))->count(),
                 'recent_projects' => Project::with('user.profile')->latest()->take(5)->get(),
-                'recent_messages' => ContactMessage::latest()->take(5)->get(),
-                'recent_payments' => Payment::with('project')->latest()->take(5)->get(),
+                'recent_messages' => ContactMessage::with('project')->where(fn ($q) => $q->whereNull('project_id')->orWhereHas('project'))->latest()->take(5)->get(),
+                'recent_payments' => Payment::with('project')->whereHas('project')->latest()->take(5)->get(),
             ]);
         }
 
@@ -64,8 +64,8 @@ class DashboardController extends Controller
         ];
 
         if ($user->isStaff()) {
-            $res['messages_unread'] = ContactMessage::whereNull('read_at')->count();
-            $res['bookings_pending'] = \App\Models\Booking::where('status', 'pending')->count();
+            $res['messages_unread'] = ContactMessage::whereNull('read_at')->where(fn ($q) => $q->whereNull('project_id')->orWhereHas('project'))->count();
+            $res['bookings_pending'] = \App\Models\Booking::where('status', 'pending')->where(fn ($w) => $w->whereNull('user_id')->orWhereHas('user', fn ($u) => $u->whereNull('deleted_at')))->count();
         } else {
             $res['messages_unread'] = null;
             $res['bookings_pending'] = null;

@@ -38,8 +38,10 @@ export default function Payments() {
 
     const badge = (s) =>
         `badge ${
-            s === 'confirmed' ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' : s === 'pending' ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400' : 'bg-red-500/15 text-red-600 dark:text-red-400'
+            s === 'confirmed' ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' : s === 'pending' ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400' : s === 'expired' ? 'bg-zinc-500/15 text-ink-muted' : 'bg-red-500/15 text-red-600 dark:text-red-400'
         }`;
+    const statusLabel = (s) =>
+        s === 'confirmed' ? 'Terkonfirmasi' : s === 'pending' ? 'Menunggu' : s === 'expired' ? 'Kadaluarsa' : 'Ditolak';
 
     return (
         <>
@@ -77,7 +79,7 @@ export default function Payments() {
                                     <td className="text-sm text-ink-muted">{p.project?.name || '-'}</td>
                                     <td className="font-semibold text-ink">{formatRupiah(p.amount)}</td>
                                     <td className="text-sm text-ink-muted">{p.method === 'gateway' ? 'Gateway' : 'Manual'}</td>
-                                    <td><span className={badge(p.status)}>{p.status === 'confirmed' ? 'Terkonfirmasi' : p.status === 'pending' ? 'Menunggu' : 'Ditolak'}</span></td>
+                                    <td><span className={badge(p.status)}>{statusLabel(p.status)}</span></td>
                                     <td>
                                         {p.proof_file ? (
                                             <a href={`/storage/${p.proof_file}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-sm text-brand-600 hover:underline dark:text-brand-400">

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\ClientAccessToken;
 use App\Services\AuditLogger;
 use App\Models\User;
+use App\Services\ClientCascadeService;
 use App\Services\NotificationService;
 use App\Services\NotificationType;
 use App\Services\ClientRegistrationService;
@@ -171,7 +172,7 @@ class ClientController extends Controller
         $data = $request->validate(['reason' => 'nullable|string|max:500']);
         $reason = $data['reason'] ?? null;
 
-        $user->softDeleteBy($reason);
+        app(ClientCascadeService::class)->trashClient($user, $reason, $request->user());
 
         app(AuditLogger::class)->log('client.soft_deleted', 'Klien dipindah ke recycle bin: ' . $user->name . ($reason ? " (alasan: $reason)" : ''), $user, null, null, $reason);
 
@@ -198,7 +199,7 @@ class ClientController extends Controller
 
     public function restore(Request $request, User $user)
     {
-        $user->restore();
+        app(ClientCascadeService::class)->restoreClient($user);
         app(AuditLogger::class)->log('client.restored', 'Klien dipulihkan dari recycle bin: ' . $user->name, $user);
 
         return response()->json(['ok' => true]);
@@ -206,8 +207,9 @@ class ClientController extends Controller
 
     public function forceDelete(Request $request, User $user)
     {
-        $user->forceDelete();
-        app(AuditLogger::class)->log('client.force_deleted', 'Klien dihapus permanen: ' . $user->name, $user);
+        $name = $user->name;
+        app(ClientCascadeService::class)->purgeClient($user);
+        app(AuditLogger::class)->log('client.force_deleted', 'Klien dihapus permanen: ' . $name, $user);
 
         return response()->json(['ok' => true]);
     }

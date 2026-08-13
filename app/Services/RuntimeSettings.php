@@ -323,4 +323,66 @@ class RuntimeSettings
     {
         return $this->get('maintenance_message') ?: null;
     }
+
+    public function paymentManualEnabled(): bool
+    {
+        return $this->get('payment_manual_enabled', '1') === '1';
+    }
+
+    public function paymentGatewayEnabled(): bool
+    {
+        return $this->get('payment_gateway_enabled', '0') === '1';
+    }
+
+    public function paymentManualAccounts(): array
+    {
+        $raw = $this->get('payment_manual_accounts');
+        if ($raw) {
+            $decoded = json_decode($raw, true);
+            if (is_array($decoded)) return $decoded;
+        }
+
+        return [];
+    }
+
+    public function paymentActiveManuals(): array
+    {
+        $raw = $this->get('payment_active_manuals');
+        if ($raw) {
+            $decoded = json_decode($raw, true);
+            if (is_array($decoded)) return $decoded;
+        }
+        return [];
+    }
+
+    public function paymentActiveQris(): string
+    {
+        return $this->get('payment_active_qris') ?: '';
+    }
+
+    public function paymentActiveChannels(): array
+    {
+        $raw = $this->get('payment_active_channels');
+        if ($raw) {
+            $decoded = json_decode($raw, true);
+            if (is_array($decoded)) return $decoded;
+        }
+        return [];
+    }
+
+    public function paymentTripayConfig(): array
+    {
+        $raw = $this->get('payment_tripay_config');
+        if ($raw) {
+            $decoded = json_decode($raw, true);
+            if (is_array($decoded)) return $decoded;
+        }
+        return ['api_key' => '', 'private_key' => '', 'merchant_code' => '', 'mode' => 'sandbox'];
+    }
+
+    public function paymentGatewayConfigured(): bool
+    {
+        $config = $this->paymentTripayConfig();
+        return !empty($config['api_key']) && !empty($config['private_key']) && !empty($config['merchant_code']);
+    }
 }

@@ -1,36 +1,59 @@
-import { useEffect, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useEffect, useState, useRef } from 'react';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import api from '../../api';
 import Icon from '../../components/Icon';
-import { PageHeader, Spinner, EmptyState, useToast, formatDate } from '../../components/ui';
+import { PageHeader, Spinner, useToast, formatDate } from '../../components/ui';
 
 export default function ClientMessages() {
     const [searchParams] = useSearchParams();
+    const navigate = useNavigate();
     const pesanan = searchParams.get('pesanan') || '';
     
     const [items, setItems] = useState([]);
     const [loading, setLoading] = useState(true);
     const [msg, setMsg] = useState('');
+    const [file, setFile] = useState(null);
+    const [replyTo, setReplyTo] = useState(null);
+    const [showEmoji, setShowEmoji] = useState(false);
     const [sending, setSending] = useState(false);
     const { show, node } = useToast();
+    const scrollRef = useRef(null);
+    const fileInputRef = useRef(null);
+
+    const EMOJIS = ['😀','😂','🥰','😎','🤔','👍','🙏','🔥','🎉','📷','✨','💡'];
 
     const load = () => {
-        setLoading(true);
-        api.get('/customer/messages', { params: { project_id: pesanan || undefined } })
-            .then(({ data }) => setItems(data))
+        api.get('/customer/messages')
+            .then(({ data }) => {
+                setItems(data);
+                setTimeout(() => {
+                    if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+                }, 100);
+            })
             .finally(() => setLoading(false));
     };
     
-    useEffect(() => { load(); }, [pesanan]);
+    useEffect(() => { load(); }, []);
 
     const send = async (e) => {
         e.preventDefault();
-        if (!msg.trim()) return;
+        if (!msg.trim() && !file) return;
         setSending(true);
         try {
-            await api.post('/customer/messages', { message: msg.trim(), project_id: pesanan || undefined });
-            show('Pesan terkirim.');
+            const formData = new FormData();
+            if (msg.trim()) formData.append('message', msg.trim());
+            if (file) formData.append('file', file);
+            if (pesanan) formData.append('project_id', pesanan);
+            if (replyTo) formData.append('reply_to_id', replyTo.id);
+            
+            await api.post('/customer/messages', formData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
             setMsg('');
+            setFile(null);
+            setReplyTo(null);
+            setShowEmoji(false);
+            if (fileInputRef.current) fileInputRef.current.value = '';
             load();
         } catch {
             show('Gagal mengirim pesan.', 'error');
@@ -39,37 +62,157 @@ export default function ClientMessages() {
         }
     };
 
+    const handleDelete = async (id) => {
+        if (!confirm('Hapus pesan ini?')) return;
+        try {
+            await api.delete(`/customer/messages/${id}`);
+            setItems(items.filter(i => i.id !== id));
+            show('Pesan dihapus.', 'success');
+        } catch {
+            show('Gagal menghapus pesan.', 'error');
+        }
+    };
+
+    const removeTag = () => navigate('/dashboard/client-messages', { replace: true });
+
     if (loading) return <Spinner />;
 
     return (
-        <>
-            <PageHeader title="Pesan" subtitle="Kirim pesan atau pertanyaan ke tim kami." />
-
-            <form onSubmit={send} className="card mb-6 p-5">
-                <div className="mb-3 flex items-center justify-between">
-                    <label className="label mb-0">Tulis pesan</label>
-                    {pesanan && <span className="badge bg-brand-500/15 text-brand-600 font-mono">Pesanan: PSN-{pesanan}</span>}
+        <div className="flex h-[calc(100vh-64px)] flex-col -mx-4 sm:-mx-6 lg:-mx-8 -my-6">
+            <div className="flex flex-col overflow-hidden bg-surface flex-1">
+                <div className="border-b border-line p-4 flex items-center bg-surface">
+                    <h1 className="text-xl font-bold text-ink">Obrolan</h1>
                 </div>
-                <textarea className="input min-h-[90px] mb-3" value={msg} onChange={(e) => setMsg(e.target.value)} placeholder="Tulis pertanyaan atau permintaan Anda..." />
-                <button type="submit" className="btn-primary" disabled={sending || !msg.trim()}>
-                    <Icon name="send" size={16} /> Kirim
-                </button>
-            </form>
 
-            {items.length ? (
-                <div className="space-y-3">
-                    {items.map((m) => (
-                        <div key={m.id} className="card p-4">
-                            {m.project && <span className="badge bg-surface-muted text-ink-muted mb-2 font-mono">PSN-{m.project.order_no}</span>}
-                            <p className="text-sm text-ink">{m.message}</p>
-                            <p className="mt-2 text-xs text-ink-muted">{formatDate(m.created_at)}</p>
+                <div className="flex-1 overflow-y-auto p-4 sm:p-6" ref={scrollRef}>
+                    {!items.length ? (
+                        <div className="flex h-full flex-col items-center justify-center text-center text-ink-muted opacity-60">
+                            <Icon name="message-circle" size={48} className="mb-4" />
+                            <p>Belum ada pesan. Silakan mulai percakapan.</p>
                         </div>
-                    ))}
+                    ) : (
+                        <div className="space-y-4">
+                            {items.map((m) => {
+                                const isAdmin = m.sender_type === 'admin';
+                                return (
+                                    <div key={m.id} className={`flex ${isAdmin ? 'justify-start' : 'justify-end'}`}>
+                                        <div className={`max-w-[85%] sm:max-w-[75%] ${isAdmin ? '' : 'flex flex-col items-end'}`}>
+                                            <div className="mb-1 flex items-center gap-2 px-1 text-[11px] text-ink-muted">
+                                                <span>{isAdmin ? 'Admin' : 'Anda'}</span>
+                                                <span>•</span>
+                                                <span>{formatDate(m.created_at)}</span>
+                                            </div>
+                                            <div className="group relative flex items-center gap-2">
+                                                {!isAdmin && (
+                                                    <div className="opacity-0 group-hover:opacity-100 flex items-center gap-1 shrink-0 transition-opacity">
+                                                        <button onClick={() => handleDelete(m.id)} className="p-1 text-red-500 hover:bg-red-500/10 rounded-full" title="Hapus">
+                                                            <Icon name="trash" size={14} />
+                                                        </button>
+                                                        <button onClick={() => setReplyTo(m)} className="p-1 text-ink-muted hover:text-ink hover:bg-surface-muted rounded-full" title="Balas">
+                                                            <Icon name="corner-up-left" size={14} />
+                                                        </button>
+                                                    </div>
+                                                )}
+                                                <div className={`relative rounded-2xl px-4 py-3 text-sm ${isAdmin ? 'rounded-tl-sm bg-surface-muted text-ink' : 'rounded-tr-sm bg-brand-600 text-white'}`}>
+                                                    {m.reply_to_id && m.reply_to && (
+                                                        <div className={`mb-2 rounded-lg p-2 text-xs border-l-2 ${isAdmin ? 'bg-white/50 border-ink-muted/30 text-ink-muted' : 'bg-black/10 border-white/30 text-white/80'}`}>
+                                                            <p className="font-semibold">{m.reply_to.sender_type === 'admin' ? 'Admin' : (m.reply_to.user?.name || m.reply_to.name)}</p>
+                                                            <p className="line-clamp-1 truncate">{m.reply_to.message || 'Mengirim file'}</p>
+                                                        </div>
+                                                    )}
+                                                    {m.project && (
+                                                        <a
+                                                            href={`/dashboard/pesanan/${m.project.order_no || m.project.id}`}
+                                                            className={`mb-2 inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs font-semibold no-underline transition-colors ${isAdmin ? 'bg-white/60 text-brand-700 hover:bg-white' : 'bg-black/20 text-white hover:bg-black/30'}`}
+                                                        >
+                                                            <Icon name="tag" size={12} /> PSN-{m.project.order_no || m.project.id}
+                                                        </a>
+                                                    )}
+                                                    {m.message && <p className="whitespace-pre-wrap leading-relaxed">{m.message}</p>}
+                                                    {m.attachment_url && (
+                                                        <a href={m.attachment_url} target="_blank" rel="noreferrer" className={`mt-2 flex items-center gap-2 rounded-lg p-2 text-xs no-underline ${isAdmin ? 'bg-white text-ink hover:bg-white/80' : 'bg-black/20 text-white hover:bg-black/30'}`}>
+                                                            <Icon name="paperclip" size={14} /> <span>Lihat Lampiran</span>
+                                                        </a>
+                                                    )}
+                                                </div>
+                                                {isAdmin && (
+                                                    <button onClick={() => setReplyTo(m)} className="opacity-0 group-hover:opacity-100 p-1 text-ink-muted hover:text-ink transition-opacity rounded-full hover:bg-surface-muted shrink-0" title="Balas">
+                                                        <Icon name="corner-up-left" size={14} />
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
                 </div>
-            ) : (
-                <EmptyState title="Belum ada pesan" message="Kirim pesan pertama Anda." icon="message-circle" />
-            )}
+
+                <div className="border-t border-line bg-surface p-3 sm:p-4">
+                    <form onSubmit={send} className="mx-auto max-w-4xl relative">
+                        {showEmoji && (
+                            <div className="absolute bottom-full mb-2 left-0 z-10 rounded-xl border border-line bg-surface p-2 shadow-lg grid grid-cols-6 gap-1">
+                                {EMOJIS.map(e => (
+                                    <button key={e} type="button" onClick={() => { setMsg(msg + e); setShowEmoji(false); }} className="p-2 text-xl hover:bg-surface-muted rounded-lg transition-colors">{e}</button>
+                                ))}
+                            </div>
+                        )}
+                        {(pesanan || file || replyTo) && (
+                            <div className="absolute -top-12 left-0 flex flex-wrap items-center gap-2 rounded-t-lg bg-surface/90 backdrop-blur px-3 py-1.5 text-xs">
+                                {pesanan && (
+                                    <span className="flex items-center gap-1.5 rounded-full bg-brand-500/15 px-2 py-1 font-semibold text-brand-700 dark:text-brand-400">
+                                        <Icon name="tag" size={12} /> PSN-{pesanan}
+                                        <button type="button" onClick={removeTag} className="ml-1 hover:text-brand-900"><Icon name="x" size={12} /></button>
+                                    </span>
+                                )}
+                                {file && (
+                                    <span className="flex items-center gap-1.5 rounded-full bg-blue-500/15 px-2 py-1 font-semibold text-blue-700 dark:text-blue-400">
+                                        <Icon name="paperclip" size={12} /> {file.name}
+                                        <button type="button" onClick={() => setFile(null)} className="ml-1 hover:text-blue-900"><Icon name="x" size={12} /></button>
+                                    </span>
+                                )}
+                                {replyTo && (
+                                    <span className="flex items-center gap-1.5 rounded-full bg-zinc-500/15 px-2 py-1 font-semibold text-zinc-700 dark:text-zinc-300">
+                                        <Icon name="corner-up-left" size={12} /> Balas: {replyTo.sender_type === 'admin' ? 'Admin' : 'Anda'}
+                                        <button type="button" onClick={() => setReplyTo(null)} className="ml-1 hover:text-zinc-900"><Icon name="x" size={12} /></button>
+                                    </span>
+                                )}
+                            </div>
+                        )}
+                        <div className="flex items-end gap-1.5">
+                            <button type="button" onClick={() => setShowEmoji(!showEmoji)} className="shrink-0 p-3 text-ink-muted hover:text-brand-600 transition-colors rounded-full hover:bg-brand-500/10">
+                                <Icon name="smile" size={20} />
+                            </button>
+                            <label className="shrink-0 p-3 text-ink-muted hover:text-brand-600 transition-colors rounded-full hover:bg-brand-500/10 cursor-pointer">
+                                <Icon name="paperclip" size={20} />
+                                <input type="file" className="hidden" ref={fileInputRef} onChange={(e) => setFile(e.target.files[0])} />
+                            </label>
+                            <textarea
+                                className="input min-h-[44px] flex-1 resize-none py-3"
+                                rows="1"
+                                value={msg}
+                                onChange={(e) => {
+                                    setMsg(e.target.value);
+                                    e.target.style.height = 'auto';
+                                    e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px';
+                                }}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter' && !e.shiftKey) {
+                                        e.preventDefault();
+                                        send(e);
+                                    }
+                                }}
+                                placeholder="Ketik pesan..."
+                            />
+                            <button type="submit" className="btn-primary shrink-0 !px-4 !py-3" disabled={sending || !msg.trim()}>
+                                <Icon name="send" size={18} />
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
             {node}
-        </>
+        </div>
     );
 }

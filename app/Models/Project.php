@@ -365,4 +365,9 @@ class Project extends Model implements HasMedia
             ->filter(fn (self $p) => $p->isPaid())
             ->each(fn (self $p) => $p->advanceStep('completed'));
     }
+
+    public function resolveRouteBinding($value, $field = null)
+    {
+        return $this->where('id', $value)->orWhere('order_no', $value)->firstOrFail();
+    }
 }

@@ -179,9 +179,9 @@ class DatabaseSeeder extends Seeder
     private function seedSampleReviews(): void
     {
         $reviews = [
-            ['name' => 'Ayu & Rian', 'service' => 'Wedding Package', 'rating' => 5, 'content' => 'Hasil foto dan video pernikahan kami luar biasa. Tim yang sabar dan profesional sepanjang acara.', 'status' => 'approved'],
-            ['name' => 'Sinta Maharani', 'service' => 'PreWedding', 'rating' => 5, 'content' => 'Prewedding kami jadi momen paling menyenangkan, hasilnya estetik dan sesuai ekspektasi.', 'status' => 'approved'],
-            ['name' => 'Budi Santoso', 'service' => 'Event', 'rating' => 4, 'content' => 'Dokumentasi acara kantor berjalan lancar, foto yang dihasilkan berkualitas.', 'status' => 'approved'],
+            ['name' => 'Ayu & Rian', 'service' => 'Wedding Package', 'rating' => 5, 'content' => 'Hasil foto dan video pernikahan kami luar biasa. Tim yang sabar dan profesional sepanjang acara.', 'is_published' => true],
+            ['name' => 'Sinta Maharani', 'service' => 'PreWedding', 'rating' => 5, 'content' => 'Prewedding kami jadi momen paling menyenangkan, hasilnya estetik dan sesuai ekspektasi.', 'is_published' => true],
+            ['name' => 'Budi Santoso', 'service' => 'Event', 'rating' => 4, 'content' => 'Dokumentasi acara kantor berjalan lancar, foto yang dihasilkan berkualitas.', 'is_published' => true],
         ];
 
         foreach ($reviews as $i => $review) {
@@ -190,7 +190,7 @@ class DatabaseSeeder extends Seeder
                 [
                     'service' => $review['service'],
                     'rating' => $review['rating'],
-                    'status' => $review['status'],
+                    'is_published' => $review['is_published'],
                     'order' => $i + 1,
                 ]
             );

@@ -2,7 +2,7 @@ import Icon from '../../../../components/Icon';
 import { formatDate, formatRupiah } from '../../../../components/ui';
 
 export default function ArchivedStep({ ctx }) {
-    const { PanelHeader, PanelFooter, project, isAdmin, previewLink, copyPreviewLink, setShareOpen, feeMap, setFeeMap, reviewRedelivery, setRerequestOpen, restore, saving } = ctx;
+    const { PanelHeader, project, isAdmin, previewLink, copyPreviewLink, setShareOpen, feeMap, setFeeMap, reviewRedelivery, setRerequestOpen, saving } = ctx;
 
     return (
         <div className="card overflow-hidden">
@@ -13,7 +13,7 @@ export default function ArchivedStep({ ctx }) {
                 subtitle="Pesanan ini telah diarsipkan."
             />
             <div className="p-5">
-                <p className="text-sm text-ink-muted">File proyek telah diarsipkan karena masa retensi berakhir atau atas permintaan admin. Hubungi admin bila Anda masih membutuhkan akses.</p>
+                <p className="text-sm text-ink-muted">Proyek ini telah diarsipkan. Kelola permintaan unduh ulang dari klien dan berikan link akses bila disetujui.</p>
 
                 {isAdmin && (
                     <div className="mt-5 rounded-xl border border-line bg-surface-muted/30 p-4">
@@ -57,11 +57,6 @@ export default function ArchivedStep({ ctx }) {
                     </div>
                 )}
             </div>
-            {isAdmin && project.status === 'archived' && (
-                <PanelFooter>
-                    <button className="btn-primary" onClick={restore} disabled={saving}><Icon name="refresh" size={16} /> Pulihkan Pesanan</button>
-                </PanelFooter>
-            )}
         </div>
     );
 }

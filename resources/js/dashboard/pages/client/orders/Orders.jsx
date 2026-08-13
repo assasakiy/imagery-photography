@@ -52,25 +52,53 @@ export default function Orders() {
             {items.length ? (
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     {items.map((item) => (
-                        <Link key={item.id} to={`/dashboard/pesanan/${item.id}`} className="card group p-5">
+                        <div key={item.id} className="card flex flex-col p-5">
                             <div className="flex items-start justify-between gap-2">
-                                <h3 className="font-bold text-ink group-hover:text-brand-600 dark:group-hover:text-brand-400">
-                                    {item.name}
-                                </h3>
+                                <div>
+                                    <p className="font-mono text-xs font-semibold text-ink-muted">PSN-{item.order_no}</p>
+                                    <h3 className="mt-1 font-bold text-ink">{item.name}</h3>
+                                </div>
                                 <StatusBadge value={item.status} />
                             </div>
                             {item.description && <p className="mt-2 line-clamp-2 text-sm text-ink-muted">{item.description}</p>}
                             <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-ink-muted">
-                                <span className="flex items-center gap-1.5 font-mono">PSN-{item.order_no}</span>
                                 <span className="flex items-center gap-1.5">
                                     <Icon name="calendar" size={14} />
                                     {item.event_date ? formatDate(item.event_date) : 'Segera'}
                                 </span>
-                                {item.price !== null && item.price !== undefined && (
-                                    <span className="font-semibold text-ink">{formatRupiah(item.price)}</span>
+                            </div>
+                            <div className="mt-4 flex items-center justify-between gap-3">
+                                <div>
+                                    <p className="text-xs text-ink-muted">Sisa Pembayaran</p>
+                                    <p className={`font-bold ${Number(item.remaining || 0) > 0 ? 'text-red-600' : 'text-emerald-600'}`}>
+                                        {formatRupiah(item.remaining)}
+                                    </p>
+                                </div>
+                                <div className="text-right">
+                                    <p className="text-xs text-ink-muted">Total Tagihan</p>
+                                    <p className="font-semibold text-ink">{formatRupiah(item.price)}</p>
+                                </div>
+                            </div>
+                            <div className="mt-4 flex flex-1 items-end gap-2">
+                                {item.has_preview ? (
+                                    <>
+                                        <Link
+                                            to={`/dashboard/preview/${item.order_no || item.id}`}
+                                            className="btn-primary flex-1 justify-center py-2"
+                                        >
+                                            <Icon name="eye" size={14} /> Lihat Preview
+                                        </Link>
+                                        <Link to={`/dashboard/pesanan/${item.order_no || item.id}`} className="btn-outline justify-center py-2" title="Detail Pesanan">
+                                            <Icon name="folder-open" size={14} />
+                                        </Link>
+                                    </>
+                                ) : (
+                                    <Link to={`/dashboard/pesanan/${item.order_no || item.id}`} className="btn-outline flex-1 justify-center py-2">
+                                        <Icon name="folder-open" size={14} /> Detail Pesanan
+                                    </Link>
                                 )}
                             </div>
-                        </Link>
+                        </div>
                     ))}
                 </div>
             ) : (

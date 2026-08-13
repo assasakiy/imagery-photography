@@ -17,8 +17,7 @@ class NotificationService
     public const EVENTS = [
         'booking.new' => 'Booking baru',
         'message.new' => 'Pesan kontak / booking baru',
-        'review.new' => 'Review baru menunggu persetujuan',
-        'review.approved' => 'Review disetujui',
+        'review.new' => 'Review baru masuk',
         'project.created' => 'Proyek baru dibuat',
         'project.updated' => 'Proyek diperbarui',
         'project.status_changed' => 'Status proyek berubah',
@@ -46,13 +45,13 @@ class NotificationService
      */
     public const CHANNEL_EVENTS = [
         'inapp' => [
-            'booking.new', 'message.new', 'review.new', 'review.approved',
+            'booking.new', 'message.new', 'review.new',
             'project.created', 'project.updated', 'project.status_changed',
             'project.credentials_regenerated', 'payment.submitted', 'payment.confirmed',
             'payment.rejected', 'team.invited', 'auth.login',
         ],
         'email' => [
-            'booking.new', 'message.new', 'review.new', 'review.approved',
+            'booking.new', 'message.new', 'review.new',
             'project.created', 'project.updated', 'project.status_changed',
             'project.credentials_regenerated', 'payment.submitted', 'payment.confirmed',
             'payment.rejected', 'team.invited', 'auth.otp', 'auth.login',
@@ -65,7 +64,7 @@ class NotificationService
             'auth.invite', 'auth.magic_link', 'order.gallery_ready', 'billing.invoice',
         ],
         'webhook' => [
-            'booking.new', 'message.new', 'review.new', 'review.approved',
+            'booking.new', 'message.new', 'review.new',
             'project.created', 'project.updated', 'project.status_changed',
             'project.credentials_regenerated', 'payment.submitted', 'payment.confirmed',
             'payment.rejected', 'team.invited',

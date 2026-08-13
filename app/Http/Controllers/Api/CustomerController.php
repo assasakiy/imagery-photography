@@ -155,6 +155,7 @@ class CustomerController extends Controller
                 'remaining' => $inv->remaining(),
                 'status' => $inv->status,
                 'issued_at' => $inv->issued_at,
+                'due_at' => $inv->due_at,
             ]);
 
         return response()->json($invoices);
@@ -203,6 +204,7 @@ class CustomerController extends Controller
                 'name' => $p->name,
                 'event_date' => $p->event_date,
                 'status' => $p->status,
+                'client_name' => $p->user?->name,
                 'is_paid' => $p->isPaid(),
                 'preview_expired' => (bool) $p->preview_expired_at,
                 'archived' => (bool) $p->isArchived(),
@@ -238,25 +240,28 @@ class CustomerController extends Controller
     public function messages(Request $request)
     {
         $user = $request->user();
-        $query = \App\Models\ContactMessage::with('project')->where('type', 'message')
-            ->where(fn ($q) => $q->where('email', $user->email)->orWhere('phone', $user->phone));
-            
-        if ($request->filled('project_id')) {
-            $projectId = $request->input('project_id');
-            $query->whereHas('project', function ($q) use ($projectId) {
-                $q->where('id', $projectId)->orWhere('order_no', $projectId);
+        $query = \App\Models\ContactMessage::with(['project', 'replyTo.user'])
+            ->where(function($q) use ($user) {
+                $q->where('user_id', $user->id)
+                  ->orWhere('email', $user->email)
+                  ->orWhere('phone', $user->phone);
             });
-        }
 
-        return response()->json($query->orderByDesc('created_at')->get());
+        return response()->json($query->orderBy('created_at', 'asc')->get());
     }
 
     public function sendMessage(Request $request)
     {
         $data = $request->validate([
-            'message' => 'required|string|max:2000',
+            'message' => 'nullable|string|max:2000',
             'project_id' => 'nullable',
+            'reply_to_id' => 'nullable|exists:contact_messages,id',
+            'file' => 'nullable|file|max:51200'
         ]);
+
+        if (empty($data['message']) && !$request->hasFile('file')) {
+            abort(422, 'Pesan atau file harus diisi.');
+        }
 
         $user = $request->user();
         $projectId = null;
@@ -268,15 +273,38 @@ class CustomerController extends Controller
             $projectId = $project->id;
         }
 
-        \App\Models\ContactMessage::create([
-            'type' => 'message',
+        $url = null;
+        if ($request->hasFile('file')) {
+            $file = $request->file('file');
+            $path = $file->storeAs('messages/' . now()->format('Y/m'), \Illuminate\Support\Str::random(10) . '_' . $file->getClientOriginalName(), 'public');
+            $url = \Illuminate\Support\Facades\Storage::disk('public')->url($path);
+        }
+
+        $messageRecord = \App\Models\ContactMessage::create([
+            'user_id' => $user->id,
+            'sender_type' => 'client',
+            'type' => 'text',
             'name' => $user->name,
             'email' => $user->email,
             'phone' => $user->phone,
-            'message' => $data['message'],
+            'message' => $data['message'] ?: '',
+            'attachment_url' => $url,
             'project_id' => $projectId,
+            'reply_to_id' => $data['reply_to_id'] ?? null,
         ]);
 
+        return response()->json($messageRecord->load(['project', 'replyTo.user']));
+    }
+
+    public function deleteMessage(Request $request, \App\Models\ContactMessage $message)
+    {
+        $user = $request->user();
+        // Client can only delete their own messages
+        if ($message->user_id !== $user->id || $message->sender_type !== 'client') {
+            abort(403, 'Tidak diizinkan.');
+        }
+
+        $message->delete();
         return response()->json(['ok' => true]);
     }
 }

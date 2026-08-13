@@ -1,9 +1,8 @@
 import Icon from '../../../../components/Icon';
 import { formatDate, formatRupiah } from '../../../../components/ui';
-import { Link } from 'react-router-dom';
 
 export default function CompletedStep({ ctx }) {
-    const { PanelHeader, PanelFooter, project, isAdmin, isPaid, paidAt, previewHref, setReviewOpen, archive, saving } = ctx;
+    const { PanelHeader, PanelFooter, project, isPaid, paidAt, archive, saving } = ctx;
 
     return (
         <div className="card overflow-hidden">
@@ -31,9 +30,6 @@ export default function CompletedStep({ ctx }) {
                 </div>
             </div>
             <PanelFooter>
-                <Link to={previewHref} className="btn-outline">
-                    <Icon name="download" size={16} /> Unduh File
-                </Link>
                 <button className="btn-outline" onClick={archive} disabled={saving}>
                     <Icon name="folder-open" size={16} /> Arsipkan Proyek
                 </button>

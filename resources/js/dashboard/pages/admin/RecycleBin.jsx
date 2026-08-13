@@ -73,7 +73,15 @@ export default function RecycleBin() {
                         <tbody>
                             {items.map((it) => (
                                 <tr key={`${it.type}-${it.id}`}>
-                                    <td className="font-medium text-ink">{it.name}</td>
+                                    <td>
+                                        <div className="font-medium text-ink">{it.name}</div>
+                                        <div className="mt-0.5 flex flex-wrap gap-x-2 gap-y-0.5 text-[11px] text-ink-muted">
+                                            <span>{it.projects_count ?? 0} proyek</span>
+                                            <span>· {it.bookings_count ?? 0} booking</span>
+                                            <span>· {it.payments_count ?? 0} pembayaran</span>
+                                            {(it.messages_count ?? 0) > 0 && <span>· {it.messages_count} pesan</span>}
+                                        </div>
+                                    </td>
                                     <td><span className="badge bg-brand-500/15 text-brand-600 dark:text-brand-400">{TYPE_LABEL[it.type] || it.type}</span></td>
                                     <td className="text-sm text-ink-muted">{it.deleted_by_name || '-'}</td>
                                     <td className="whitespace-nowrap text-xs text-ink-muted">{it.deleted_at ? formatDate(it.deleted_at) : '-'}</td>
@@ -104,8 +112,8 @@ export default function RecycleBin() {
                 title={action === 'restore' ? 'Pulihkan item?' : 'Hapus permanen?'}
                 message={
                     action === 'restore'
-                        ? 'Item akan dikembalikan ke daftar aktif.'
-                        : 'Item akan dihapus permanen dan tidak bisa dikembalikan.'
+                        ? `Klien beserta ${target?.projects_count ?? 0} proyek dan seluruh data terkaitnya akan dikembalikan ke daftar aktif.`
+                        : 'Klien, semua proyek, booking, dan file (foto/video) terkait akan dihapus permanen dan tidak bisa dikembalikan.'
                 }
             />
             {node}

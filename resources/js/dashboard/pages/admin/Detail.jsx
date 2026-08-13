@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import api from '../../api';
 import Icon from '../../components/Icon';
 import { useAuth } from '../../context/AuthContext';
-import { Spinner, EmptyState, Modal, Confirm, Field, ButtonSpinner, useToast } from '../../components/ui';
+import { Spinner, EmptyState, Modal, Confirm, Field, ButtonSpinner, useToast, formatDate, formatRupiah } from '../../components/ui';
 
 function formatBytes(bytes) {
     if (bytes === null || bytes === undefined) return '-';
@@ -28,6 +28,8 @@ export default function PreviewDetail() {
     const [requestNote, setRequestNote] = useState('');
     const [requesting, setRequesting] = useState(false);
     const [downloading, setDownloading] = useState(false);
+    const [feeMap, setFeeMap] = useState({});
+    const [saving, setSaving] = useState(false);
     const { show, node } = useToast();
 
     const load = () => {
@@ -48,6 +50,7 @@ export default function PreviewDetail() {
     const previewExpired = !!project.preview_expired;
     const phased = archived || previewExpired;
     const activeRedelivery = (project.redeliveries || []).some((r) => r.status === 'approved' && (!r.expires_at || new Date(r.expires_at) > new Date()));
+    const pendingRedelivery = (project.redeliveries || []).some((r) => r.status === 'pending');
     const photoCount = (project.files || []).filter((f) => f.category === 'photo').length;
     const videoCount = (project.files || []).filter((f) => f.category === 'video').length;
     const allSelected = files.length > 0 && files.every((f) => selected.has(f.id));
@@ -171,6 +174,19 @@ export default function PreviewDetail() {
         }
     };
 
+    const reviewRedelivery = async (red, status) => {
+        setSaving(true);
+        try {
+            await api.patch(`/redeliveries/${red.id}`, { status, fee: status === 'approved' ? Number(feeMap[red.id] || 0) : undefined });
+            show(status === 'approved' ? 'Permintaan disetujui — link akses dikirim.' : 'Permintaan ditolak.', 'success');
+            load();
+        } catch (err) {
+            show(err.response?.data?.message || 'Gagal mengubah permintaan.', 'error');
+        } finally {
+            setSaving(false);
+        }
+    };
+
     return (
         <>
             <Link to="/dashboard/preview" className="mb-4 inline-flex items-center gap-1.5 text-sm font-medium text-ink-muted hover:text-brand-600">
@@ -232,14 +248,16 @@ export default function PreviewDetail() {
                     </p>
                     <div className="mt-6 flex flex-wrap justify-center gap-2">
                         {archived ? (
-                            activeRedelivery || isAdmin ? (
+                            isAdmin ? null : activeRedelivery ? (
                                 <button className="btn-primary" onClick={startDownloadZip} disabled={downloading}>
                                     {downloading ? (<><ButtonSpinner /> Sedang menyiapkan file Anda…</>) : (<><Icon name="download" size={16} /> Unduh Semua (ZIP)</>)}
                                 </button>
+                            ) : pendingRedelivery ? (
+                                <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-amber-600"><Icon name="clock" size={16} /> Menunggu persetujuan admin</span>
                             ) : (
                                 <button className="btn-primary" onClick={() => setRequestOpen(true)}><Icon name="download" size={16} /> Ajukan Permintaan Unduh Ulang</button>
                             )
-                        ) : project.is_paid || isAdmin ? (
+                        ) : project.is_paid ? (
                             <button className="btn-primary" onClick={startDownloadZip} disabled={downloading}>
                                 {downloading ? (<><ButtonSpinner /> Sedang menyiapkan file Anda…</>) : (<><Icon name="download" size={16} /> Unduh Semua (ZIP)</>)}
                             </button>
@@ -249,6 +267,29 @@ export default function PreviewDetail() {
                     </div>
                     {activeRedelivery && (
                         <p className="mt-4 inline-flex items-center gap-1.5 text-xs text-emerald-600"><Icon name="check" size={14} /> Permintaan unduh ulang disetujui — link aktif.</p>
+                    )}
+                    {isAdmin && archived && (project.redeliveries || []).length > 0 && (
+                        <div className="mt-6 rounded-xl border border-line bg-surface-muted/30 p-4 text-left">
+                            <p className="mb-3 text-sm font-semibold text-ink">Permintaan Unduh Ulang</p>
+                            <div className="space-y-2">
+                                {project.redeliveries.map((rd) => (
+                                    <div key={rd.id} className="flex flex-wrap items-center gap-2 rounded-lg border border-line bg-surface px-3 py-2 text-sm">
+                                        <span className={`badge ${rd.status === 'approved' ? 'bg-emerald-500/15 text-emerald-600' : rd.status === 'rejected' ? 'bg-red-500/15 text-red-600' : 'bg-amber-500/15 text-amber-600'}`}>
+                                            {rd.status}
+                                        </span>
+                                        <span className="min-w-0 flex-1 truncate text-xs text-ink-muted">{rd.note || (rd.user?.name ?? 'Klien')}{rd.fee ? ` · Biaya ${formatRupiah(rd.fee)}` : ''}</span>
+                                        {rd.expires_at && <span className="font-mono text-xs text-ink-muted">s/d {formatDate(rd.expires_at)}</span>}
+                                        {isAdmin && rd.status === 'pending' && (
+                                            <>
+                                                <input type="number" min="0" className="input !w-28 !py-1 text-xs" value={feeMap[rd.id] ?? ''} onChange={(e) => setFeeMap({ ...feeMap, [rd.id]: e.target.value })} placeholder="Biaya (0)" />
+                                                <button className="btn-outline !px-2 !py-1 text-xs" onClick={() => reviewRedelivery(rd, 'approved')} disabled={saving}>Setujui</button>
+                                                <button className="btn-outline !px-2 !py-1 text-xs text-red-600" onClick={() => reviewRedelivery(rd, 'rejected')} disabled={saving}>Tolak</button>
+                                            </>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
                     )}
                 </div>
             ) : (

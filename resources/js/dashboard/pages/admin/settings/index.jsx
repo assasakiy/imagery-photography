@@ -5,9 +5,9 @@ import MediaPicker from '../../../components/MediaPicker';
 import { PageHeader, Spinner, useToast } from '../../../components/ui';
 import BrandingTab from './BrandingTab';
 import IntegrasiTab from './IntegrasiTab';
-import SocialTab from './SocialTab';
 import WebhookTab from './WebhookTab';
 import NotificationsTab from './NotificationsTab';
+import PaymentTab from './PaymentTab';
 import SecurityTab from './SecurityTab';
 import MaintenanceTab from './MaintenanceTab';
 import { TABS, TAB_FIELDS, emptyForm, normalize, applyBrandColor, pickValue } from './constants';
@@ -21,10 +21,14 @@ export default function Settings() {
     const [saving, setSaving] = useState(false);
     const [testingEmail, setTestingEmail] = useState(false);
     const [testingWhatsapp, setTestingWhatsapp] = useState(false);
+    const [testingTripay, setTestingTripay] = useState(false);
     const [errors, setErrors] = useState({});
     const [mediaFor, setMediaFor] = useState(null);
     const [openEmail, setOpenEmail] = useState(false);
     const [openWa, setOpenWa] = useState(false);
+    const [openTripay, setOpenTripay] = useState(false);
+    const [openGoogle, setOpenGoogle] = useState(false);
+    const [openManual, setOpenManual] = useState(false);
     const { show, node } = useToast();
 
     useEffect(() => {
@@ -154,13 +158,51 @@ export default function Settings() {
         }
     };
 
+    const testGateway = async () => {
+        setTestingTripay(true);
+        try {
+            const { data } = await api.post('/settings/test-payment-gateway');
+            show(data.message || 'Koneksi sukses.');
+        } catch (err) {
+            show(err.response?.data?.message || 'Gagal terhubung ke TriPay.', 'error');
+        } finally {
+            setTestingTripay(false);
+        }
+    };
+
+    const toggleManualPayment = async (v) => {
+        set('payment_manual_enabled', v);
+        await save(['payment_manual_enabled'], { payment_manual_enabled: v });
+    };
+
+    const toggleGatewayPayment = async (v) => {
+        if (v && !meta.payment_gateway_configured) {
+            show('Lengkapi konfigurasi TriPay terlebih dahulu.', 'error');
+            return;
+        }
+        set('payment_gateway_enabled', v);
+        await save(['payment_gateway_enabled'], { payment_gateway_enabled: v });
+    };
+
+    const toggleGoogleAuth = async (v) => {
+        if (v && !(form.google_client_id || '').trim()) {
+            show('Lengkapi konfigurasi Google (Client ID) terlebih dahulu.', 'error');
+            return;
+        }
+        set('google_auth_enabled', v);
+        await save(['google_auth_enabled'], { google_auth_enabled: v });
+    };
+
     if (loading) return <Spinner />;
 
     const ctx = {
         form, meta, errors, saving, set, setChecked, save, dirty, dirtyColor, show,
         openEmail, setOpenEmail, openWa, setOpenWa,
+        openTripay, setOpenTripay, openGoogle, setOpenGoogle, openManual, setOpenManual,
         toggleEmailChannel, toggleWaChannel, toggleEvent,
         testEmail, testWhatsapp, testingEmail, testingWhatsapp,
+        testGateway, testingTripay,
+        toggleManualPayment, toggleGatewayPayment, toggleGoogleAuth,
         waDrivers, waDriver, waFields, waConfig, setWaDriver,
         mediaFor, setMediaFor,
     };
@@ -190,7 +232,7 @@ export default function Settings() {
 
             {tab === 'branding' && <BrandingTab {...ctx} />}
             {tab === 'integrasi' && <IntegrasiTab {...ctx} />}
-            {tab === 'social' && <SocialTab {...ctx} />}
+            {tab === 'pembayaran' && <PaymentTab {...ctx} />}
             {tab === 'webhook' && <WebhookTab {...ctx} />}
             {tab === 'notifications' && <NotificationsTab {...ctx} />}
             {tab === 'security' && <SecurityTab {...ctx} />}

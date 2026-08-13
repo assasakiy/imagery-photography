@@ -175,6 +175,11 @@ class User extends Authenticatable
         return $this->hasMany(Project::class, 'user_id');
     }
 
+    public function bookings(): HasMany
+    {
+        return $this->hasMany(Booking::class, 'user_id');
+    }
+
     public function accessTokens(): HasMany
     {
         return $this->hasMany(ClientAccessToken::class);

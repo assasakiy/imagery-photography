@@ -38,7 +38,7 @@ class ProjectController extends Controller
             return response()->json($query->latest()->paginate(15));
         }
 
-        $query = $user->projects();
+        $query = $user->projects()->with(['files:id,project_id,category,variant,media_id']);
         if ($request->filled('status')) {
             $query->where('status', $request->input('status'));
         }
@@ -105,6 +105,16 @@ class ProjectController extends Controller
             'media_types' => collect($p->pricing_snapshot['items'] ?? [])->pluck('media')->filter()->unique()->values()->all(),
             'access_url' => $p->accessTokens()->valid()->latest('id')->first()?->url,
             'user' => ['id' => $p->user_id, 'name' => $p->user?->name, 'username' => $p->user?->username],
+            'review_allowed' => $p->isPaid() && (bool) $p->completed_at,
+            'review' => $p->reviews->first() ? [
+                'id' => $p->reviews->first()->id,
+                'rating' => $p->reviews->first()->rating,
+                'recommend_score' => $p->reviews->first()->recommend_score,
+                'title' => $p->reviews->first()->title,
+                'content' => $p->reviews->first()->content,
+                'is_published' => $p->reviews->first()->is_published,
+                'created_at' => $p->reviews->first()->created_at,
+            ] : null,
             'invoice' => $p->invoice ? [
                 'number' => $p->invoice->number,
                 'base_amount' => $p->invoice->base_amount,
@@ -166,6 +176,7 @@ class ProjectController extends Controller
             'total_paid' => $p->totalPaid(),
             'remaining' => $p->remainingBalance(),
             'is_paid' => $p->isPaid(),
+            'has_preview' => in_array($p->status, ['awaiting_payment', 'completed', 'archived'], true) && $p->files->contains(fn ($f) => in_array($f->category, ['photo', 'video'], true) && ($f->media_id || $f->variant === 'original')),
             'thumb_url' => $p->getMedia('thumbnail')->first()?->getUrl(),
             'preview_expired' => (bool) $p->preview_expired_at,
             'archived' => (bool) $p->isArchived(),

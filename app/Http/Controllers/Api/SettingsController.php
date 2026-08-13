@@ -60,7 +60,26 @@ class SettingsController extends Controller
             'email_events' => app(NotificationService::class)->channelEvents('email'),
             'whatsapp_events' => app(NotificationService::class)->channelEvents('whatsapp'),
             'inapp_events' => app(NotificationService::class)->channelEvents('inapp'),
+            'payment_manual_enabled' => $settings->paymentManualEnabled(),
+            'payment_gateway_enabled' => $settings->paymentGatewayEnabled(),
+            'payment_gateway_configured' => $settings->paymentGatewayConfigured(),
+            'payment_manual_accounts' => $settings->paymentManualAccounts(),
+            'payment_active_manuals' => $settings->paymentActiveManuals(),
+            'payment_active_qris' => $settings->paymentActiveQris(),
+            'payment_active_channels' => $settings->paymentActiveChannels(),
+            'payment_tripay_config' => $this->maskedTripayConfig(),
         ]);
+    }
+
+    private function maskedTripayConfig(): array
+    {
+        $cfg = app(RuntimeSettings::class)->paymentTripayConfig();
+        return [
+            'mode' => $cfg['mode'] ?? 'sandbox',
+            'api_key' => !empty($cfg['api_key']) ? self::MASK : '',
+            'private_key' => !empty($cfg['private_key']) ? self::MASK : '',
+            'merchant_code' => $cfg['merchant_code'] ?? '',
+        ];
     }
 
     public function update(Request $request)
@@ -110,6 +129,13 @@ class SettingsController extends Controller
             'notification_events' => 'nullable|array',
             'notification_events.*.key' => ['nullable', 'string', Rule::in(array_keys(NotificationService::EVENTS))],
             'notification_events.*.enabled' => 'nullable|boolean',
+            'payment_manual_enabled' => 'boolean',
+            'payment_gateway_enabled' => 'boolean',
+            'payment_manual_accounts' => 'nullable|array',
+            'payment_active_manuals' => 'nullable|array',
+            'payment_active_qris' => 'nullable|string',
+            'payment_active_channels' => 'nullable|array',
+            'payment_tripay_config' => 'nullable|array',
         ]);
 
         $masked = ['mail_password', 'whatsapp_token', 'google_client_secret'];
@@ -167,6 +193,26 @@ class SettingsController extends Controller
 
             if ($key === 'login_methods_global') {
                 Setting::setValue('login_methods_global', json_encode($value ?? []));
+                continue;
+            }
+
+            if (in_array($key, ['payment_manual_accounts', 'payment_active_manuals', 'payment_active_channels'])) {
+                Setting::setValue($key, json_encode($value ?? []));
+                continue;
+            }
+
+            if ($key === 'payment_tripay_config') {
+                $current = app(RuntimeSettings::class)->paymentTripayConfig();
+                $incoming = $value ?? [];
+                
+                if (($incoming['api_key'] ?? '') === self::MASK) {
+                    $incoming['api_key'] = $current['api_key'] ?? '';
+                }
+                if (($incoming['private_key'] ?? '') === self::MASK) {
+                    $incoming['private_key'] = $current['private_key'] ?? '';
+                }
+                
+                Setting::setValue('payment_tripay_config', json_encode($incoming));
                 continue;
             }
 
@@ -331,5 +377,20 @@ class SettingsController extends Controller
             'google' => in_array('google', $active, true),
             'token' => in_array('token', $active, true),
         ];
+    }
+
+    public function testPaymentGateway()
+    {
+        $client = app(\App\Services\TriPayClient::class);
+        if (!$client->isConfigured()) {
+            return response()->json(['message' => 'Kredensial belum lengkap.'], 422);
+        }
+
+        $channels = $client->paymentChannels();
+        if (empty($channels)) {
+            return response()->json(['message' => 'Koneksi gagal. Periksa API Key Anda.'], 422);
+        }
+
+        return response()->json(['message' => 'Koneksi sukses! Ditemukan ' . count($channels) . ' channel pembayaran.']);
     }
 }

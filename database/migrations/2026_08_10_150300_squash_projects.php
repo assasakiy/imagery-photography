@@ -89,6 +89,10 @@ return new class extends Migration
             $table->unsignedBigInteger('project_id');
             $table->decimal('amount', 15, 2);
             $table->string('method')->default('manual_transfer');
+            $table->string('gateway')->nullable();
+            $table->string('gateway_ref')->nullable();
+            $table->string('gateway_method')->nullable();
+            $table->text('checkout_url')->nullable();
             $table->string('status')->default('pending');
             $table->string('proof_file')->nullable();
             $table->text('notes')->nullable();
@@ -155,11 +159,15 @@ return new class extends Migration
 
         Schema::create('contact_messages', function (Blueprint $table) {
             $table->id();
+            $table->unsignedBigInteger('user_id')->nullable();
             $table->unsignedBigInteger('project_id')->nullable();
-            $table->string('name');
+            $table->unsignedBigInteger('reply_to_id')->nullable();
+            $table->string('name')->nullable();
             $table->string('email')->nullable();
             $table->string('phone')->nullable();
             $table->text('message');
+            $table->string('attachment_url')->nullable();
+            $table->string('sender_type')->default('client');
             $table->string('type')->default('contact');
             $table->string('event_date')->nullable();
             $table->string('package')->nullable();
@@ -167,7 +175,9 @@ return new class extends Migration
             $table->string('status')->default('new');
             $table->timestamps();
 
-            $table->foreign('project_id')->references('id')->on('projects')->onDelete('set null');
+            $table->foreign('user_id')->references('id')->on('users')->nullOnDelete();
+            $table->foreign('project_id')->references('id')->on('projects')->nullOnDelete();
+            $table->foreign('reply_to_id')->references('id')->on('contact_messages')->nullOnDelete();
         });
 
         Schema::create('client_access_tokens', function (Blueprint $table) {

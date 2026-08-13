@@ -1,48 +1,105 @@
-import { useEffect, useState } from 'react';
-import { useParams, useSearchParams } from 'react-router-dom';
+import { useEffect, useState, useRef } from 'react';
+import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import api from '../../api';
 import Icon from '../../components/Icon';
-import { PageHeader, Spinner, EmptyState, Confirm, useToast, formatDate } from '../../components/ui';
+import { Spinner, EmptyState, Confirm, useToast, formatDate } from '../../components/ui';
 
 export default function Messages() {
     const { id: paramId } = useParams();
     const [searchParams] = useSearchParams();
+    const navigate = useNavigate();
     const pesanan = searchParams.get('pesanan') || '';
 
     const [items, setItems] = useState([]);
     const [meta, setMeta] = useState({});
     const [unreadOnly, setUnreadOnly] = useState(false);
-    const [selected, setSelected] = useState(null);
+    const [selectedConv, setSelectedConv] = useState(null);
+    const [thread, setThread] = useState([]);
+    const [loadingThread, setLoadingThread] = useState(false);
     const [deleting, setDeleting] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [replyMsg, setReplyMsg] = useState('');
+    const [file, setFile] = useState(null);
+    const [replyTo, setReplyTo] = useState(null);
+    const [showEmoji, setShowEmoji] = useState(false);
+    const [sending, setSending] = useState(false);
+    
     const { show, node } = useToast();
+    const scrollRef = useRef(null);
+    const fileInputRef = useRef(null);
+
+    const EMOJIS = ['😀','😂','🥰','😎','🤔','👍','🙏','🔥','🎉','📷','✨','💡'];
+
+    const [searchQuery, setSearchQuery] = useState('');
 
     const load = (page = 1) => {
         setLoading(true);
-        api.get('/messages', { params: { page, per_page: 15, unread_only: unreadOnly || undefined, project_id: pesanan || undefined } })
+        api.get('/messages', { params: { page, per_page: 25, unread_only: unreadOnly || undefined, project_id: pesanan || undefined, q: searchQuery || undefined } })
             .then(({ data }) => {
                 setItems(data.data);
                 setMeta(data);
+                
+                // Jika dari query string pesanan, otomatis pilih percakapan pertama (jika ada)
+                if (pesanan && data.data.length > 0 && !selectedConv) {
+                    openConversation(data.data[0]);
+                }
             })
             .finally(() => setLoading(false));
     };
 
     useEffect(() => {
         load();
-    }, [unreadOnly, pesanan]);
+    }, [unreadOnly, pesanan, searchQuery]);
 
-    useEffect(() => {
-        if (!paramId) return;
-        api.get(`/messages/${paramId}`)
-            .then(({ data }) => setSelected(data))
-            .catch(() => {});
-    }, [paramId]);
+    const openConversation = async (conv) => {
+        setSelectedConv(conv);
+        setLoadingThread(true);
+        try {
+            const { data } = await api.get(`/messages/${conv.id}/thread`);
+            setThread(data);
+            setTimeout(() => {
+                if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+            }, 100);
+            
+            // Perbarui daftar di kiri agar tanda "unread" hilang
+            setItems(items.map(item => item.id === conv.id ? { ...item, read_at: item.read_at || new Date().toISOString() } : item));
+        } catch (err) {
+            show('Gagal memuat percakapan.', 'error');
+        } finally {
+            setLoadingThread(false);
+        }
+    };
 
-    const openMessage = async (message) => {
-        setSelected(message);
-        if (!message.read_at) {
-            await api.get(`/messages/${message.id}`);
-            load(meta.current_page);
+    const sendReply = async (e) => {
+        e.preventDefault();
+        if ((!replyMsg.trim() && !file) || !selectedConv) return;
+        
+        setSending(true);
+        try {
+            const formData = new FormData();
+            if (replyMsg.trim()) formData.append('message', replyMsg.trim());
+            if (file) formData.append('file', file);
+            if (replyTo) formData.append('reply_to_id', replyTo.id);
+            if (selectedConv.project_id) formData.append('project_id', selectedConv.project_id);
+            
+            const { data } = await api.post(`/messages/${selectedConv.id}/reply`, formData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
+            setThread([...thread, data]);
+            setReplyMsg('');
+            setFile(null);
+            setReplyTo(null);
+            setShowEmoji(false);
+            if (fileInputRef.current) fileInputRef.current.value = '';
+            
+            setTimeout(() => {
+                if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+            }, 100);
+            load(meta.current_page); // segarkan list kiri
+        } catch (err) {
+            show('Gagal mengirim balasan.', 'error');
+        } finally {
+            setSending(false);
         }
     };
 
@@ -50,116 +107,252 @@ export default function Messages() {
         await api.delete(`/messages/${deleting.id}`);
         show('Pesan dihapus.');
         setDeleting(null);
-        if (selected?.id === deleting.id) setSelected(null);
+        if (selectedConv?.id === deleting.id) {
+            setSelectedConv(null);
+            setThread([]);
+        } else if (selectedConv) {
+            // refresh thread
+            openConversation(selectedConv);
+        }
         load(meta.current_page);
     };
 
     return (
-        <>
-            <PageHeader title="Pesan" subtitle="Pesan dari klien & pengunjung." />
-
-            <div className="mb-4 flex flex-wrap gap-2 items-center">
-                <button className={`chip ${!unreadOnly ? 'chip-active' : ''}`} onClick={() => setUnreadOnly(false)}>Semua</button>
-                <button className={`chip ${unreadOnly ? 'chip-active' : ''}`} onClick={() => setUnreadOnly(true)}>Belum dibaca</button>
-                {pesanan && <span className="badge bg-brand-500/15 text-brand-600 font-mono">Pesanan: PSN-{pesanan}</span>}
-            </div>
-
-            {loading ? (
-                <Spinner />
-            ) : items.length ? (
-                <div className="grid grid-cols-1 gap-4 lg:grid-cols-5">
-                    <div className="card lg:col-span-2">
-                        <ul className="divide-y divide-line">
-                            {items.map((m) => (
-                                <li key={m.id}>
-                                    <button
-                                        onClick={() => openMessage(m)}
-                                        className={`flex w-full items-start gap-3 p-4 text-left transition-colors hover:bg-surface-muted ${selected?.id === m.id ? 'bg-surface-muted' : ''}`}
-                                    >
-                                        <span className={`mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full ${m.read_at ? 'bg-surface-muted ring-1 ring-line' : 'bg-brand-500'}`} />
-                                        <div className="min-w-0 flex-1">
-                                            <div className="flex items-center justify-between gap-2">
-                                                <p className="truncate text-sm font-semibold text-ink">{m.name}</p>
-                                                <span className="shrink-0 text-xs text-ink-muted">{formatDate(m.created_at)}</span>
-                                            </div>
-                                            <p className="truncate text-xs text-ink-muted">{m.email || m.phone || '-'}</p>
-                                            <p className="mt-1 line-clamp-2 text-sm text-ink-muted">{m.message}</p>
-                                        </div>
-                                    </button>
-                                </li>
-                            ))}
-                        </ul>
-                        {meta.last_page > 1 && (
-                            <div className="flex items-center justify-between border-t border-line px-4 py-3">
-                                <button className="btn-outline disabled:opacity-40" disabled={!meta.prev_page_url} onClick={() => load(meta.current_page - 1)}>
-                                    Sebelumnya
-                                </button>
-                                <span className="text-xs text-ink-muted">{meta.current_page}/{meta.last_page}</span>
-                                <button className="btn-outline disabled:opacity-40" disabled={!meta.next_page_url} onClick={() => load(meta.current_page + 1)}>
-                                    Berikutnya
-                                </button>
-                            </div>
-                        )}
+        <div className="flex h-[calc(100vh-64px)] flex-col -mx-4 sm:-mx-6 lg:-mx-8 -my-6">
+            <div className="flex-1 overflow-hidden grid grid-cols-1 lg:grid-cols-3">
+                <div className={`flex flex-col overflow-hidden border-r border-line bg-surface ${selectedConv ? 'hidden lg:flex' : 'flex'}`}>
+                    <div className="p-4 border-b border-line">
+                        <h1 className="text-xl font-bold text-ink mb-4">Pesan</h1>
+                        
+                        <div className="relative mb-4">
+                            <Icon name="search" size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" />
+                            <input 
+                                type="text" 
+                                className="input !pl-9" 
+                                placeholder="Cari nama atau email..." 
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                            />
+                        </div>
+                        
+                        <div className="flex flex-wrap gap-2 items-center">
+                            <button className={`chip ${!unreadOnly ? 'chip-active' : ''}`} onClick={() => setUnreadOnly(false)}>Semua</button>
+                            <button className={`chip ${unreadOnly ? 'chip-active' : ''}`} onClick={() => setUnreadOnly(true)}>Belum dibaca</button>
+                            {pesanan && (
+                                <span className="badge bg-brand-500/15 text-brand-600 font-mono flex items-center gap-1.5">
+                                    PSN-{pesanan}
+                                    <button className="hover:text-brand-800" onClick={() => navigate('/dashboard/messages', { replace: true })}><Icon name="x" size={12} /></button>
+                                </span>
+                            )}
+                        </div>
                     </div>
 
-                    <div className="card lg:col-span-3">
-                        {selected ? (
-                            <div className="p-6">
-                                <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
-                                    <div>
-                                        <h2 className="text-lg font-bold text-ink">{selected.name}</h2>
-                                        {selected.project && <span className="badge bg-surface-muted text-ink-muted mb-2 font-mono">PSN-{selected.project.order_no}</span>}
-                                        <div className="mt-1 flex flex-wrap gap-3 text-sm text-ink-muted">
-                                            {selected.email && (
-                                                <a className="flex items-center gap-1.5 hover:text-brand-600" href={`mailto:${selected.email}`}>
-                                                    <Icon name="mail" size={14} /> {selected.email}
-                                                </a>
-                                            )}
-                                            {selected.phone && (
-                                                <a className="flex items-center gap-1.5 hover:text-brand-600" href={`https://wa.me/${selected.phone.replace(/\D/g, '')}`} target="_blank" rel="noreferrer">
-                                                    <Icon name="phone" size={14} /> {selected.phone}
-                                                </a>
-                                            )}
-                                        </div>
-                                        <p className="mt-1 text-xs text-ink-muted">{formatDate(selected.created_at)}</p>
-                                    </div>
-                                    <button onClick={() => setDeleting(selected)} className="icon-btn hover:!text-red-500" aria-label="Hapus pesan">
-                                        <Icon name="trash" size={18} />
+                    {loading ? (
+                        <Spinner />
+                    ) : items.length ? (
+                        <>
+                            <ul className="divide-y divide-line flex-1 overflow-y-auto">
+                                {items.map((m) => {
+                                    const isUnread = !m.read_at && m.sender_type !== 'admin';
+                                    return (
+                                        <li key={m.id}>
+                                            <button
+                                                onClick={() => openConversation(m)}
+                                                className={`flex w-full items-start gap-3 p-4 text-left transition-colors hover:bg-surface-muted ${selectedConv?.id === m.id ? 'bg-surface-muted' : ''}`}
+                                            >
+                                                <span className={`mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full ${!isUnread ? 'bg-surface-muted ring-1 ring-line' : 'bg-brand-500'}`} />
+                                                <div className="min-w-0 flex-1">
+                                                    <div className="flex items-center justify-between gap-2">
+                                                        <p className="truncate text-sm font-semibold text-ink">{m.user?.name || m.name}</p>
+                                                        <span className="shrink-0 text-[10px] text-ink-muted">{formatDate(m.created_at)}</span>
+                                                    </div>
+                                                    {m.project && (
+                                                        <p className="mt-0.5 text-[10px] font-mono text-brand-600 dark:text-brand-400">PSN-{m.project.order_no}</p>
+                                                    )}
+                                                    <p className="mt-1 line-clamp-2 text-xs text-ink-muted">
+                                                        {m.sender_type === 'admin' ? 'Anda: ' : ''}{m.message || (m.attachment_url ? 'Mengirim file' : '')}
+                                                    </p>
+                                                </div>
+                                            </button>
+                                        </li>
+                                    );
+                                })}
+                            </ul>
+                            {meta.last_page > 1 && (
+                                <div className="flex items-center justify-between border-t border-line px-4 py-3">
+                                    <button className="btn-outline !py-1 text-xs disabled:opacity-40" disabled={!meta.prev_page_url} onClick={() => load(meta.current_page - 1)}>
+                                        Sebelumnya
+                                    </button>
+                                    <span className="text-xs text-ink-muted">{meta.current_page}/{meta.last_page}</span>
+                                    <button className="btn-outline !py-1 text-xs disabled:opacity-40" disabled={!meta.next_page_url} onClick={() => load(meta.current_page + 1)}>
+                                        Berikutnya
                                     </button>
                                 </div>
-                                <div className="rounded-2xl bg-surface-muted p-5">
-                                    <p className="whitespace-pre-wrap leading-relaxed text-ink">{selected.message}</p>
-                                </div>
-                                <div className="mt-5 flex flex-wrap gap-2">
-                                    {selected.email && (
-                                        <a className="btn-primary" href={`mailto:${selected.email}?subject=Re: Pesan dari Sopian Lalu Imagery`}>
-                                            <Icon name="mail" size={16} /> Balas Email
-                                        </a>
-                                    )}
-                                    {selected.phone && (
-                                        <a className="btn-outline" href={`https://wa.me/${selected.phone.replace(/\D/g, '')}`} target="_blank" rel="noreferrer">
-                                            <Icon name="message-circle" size={16} /> Balas WhatsApp
-                                        </a>
-                                    )}
-                                </div>
-                            </div>
-                        ) : (
-                            <div className="flex h-full min-h-[300px] flex-col items-center justify-center p-10 text-center">
-                                <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-surface-muted text-ink-muted">
-                                    <Icon name="message-circle" size={28} />
-                                </div>
-                                <p className="font-semibold text-ink">Pilih pesan</p>
-                                <p className="mt-1 text-sm text-ink-muted">Klik pesan di kiri untuk membacanya.</p>
-                            </div>
-                        )}
-                    </div>
+                            )}
+                        </>
+                    ) : (
+                        <div className="p-10 text-center">
+                            <p className="text-sm text-ink-muted">Tidak ada percakapan.</p>
+                        </div>
+                    )}
                 </div>
-            ) : (
-                <EmptyState title="Tidak ada pesan" message={unreadOnly ? 'Semua pesan sudah dibaca.' : 'Pesan dari halaman Kontak akan muncul di sini.'} />
-            )}
+
+                <div className={`flex flex-col overflow-hidden bg-surface lg:col-span-2 ${!selectedConv ? 'hidden lg:flex' : 'flex'}`}>
+                    {selectedConv ? (
+                        <>
+                            <div className="border-b border-line p-4 flex items-center justify-between bg-surface">
+                                <div className="flex items-center gap-3">
+                                    <button className="lg:hidden p-1.5 -ml-1.5 text-ink-muted hover:text-ink" onClick={() => setSelectedConv(null)}>
+                                        <Icon name="arrow-left" size={20} />
+                                    </button>
+                                    <div>
+                                        <h2 className="text-sm font-bold text-ink">{selectedConv.user?.name || selectedConv.name}</h2>
+                                        <p className="text-xs text-ink-muted">{selectedConv.user?.email || selectedConv.email || selectedConv.phone || '-'}</p>
+                                    </div>
+                                </div>
+                                <div className="flex gap-2">
+                                    {selectedConv.phone && (
+                                        <a className="btn-outline !px-2 !py-1.5 text-xs" href={`https://wa.me/${selectedConv.phone.replace(/\D/g, '')}`} target="_blank" rel="noreferrer" title="Chat via WhatsApp">
+                                            <Icon name="message-circle" size={14} />
+                                        </a>
+                                    )}
+                                </div>
+                            </div>
+
+                            <div className="flex-1 overflow-y-auto p-4 sm:p-6" ref={scrollRef}>
+                                {loadingThread ? (
+                                    <Spinner />
+                                ) : (
+                                    <div className="space-y-4">
+                                        {thread.map((m) => {
+                                            const isAdmin = m.sender_type === 'admin';
+                                            return (
+                                                <div key={m.id} className={`flex ${isAdmin ? 'justify-end' : 'justify-start'}`}>
+                                                    <div className={`max-w-[85%] sm:max-w-[75%] ${isAdmin ? 'flex flex-col items-end' : ''}`}>
+                                                        <div className="mb-1 flex items-center gap-2 px-1 text-[11px] text-ink-muted">
+                                                            <span>{isAdmin ? 'Anda' : (m.user?.name || m.name)}</span>
+                                                            <span>•</span>
+                                                            <span>{formatDate(m.created_at)}</span>
+                                                        </div>
+                                                        
+                                                        <div className="group relative flex items-center gap-2">
+                                                            {isAdmin && (
+                                                                <div className="opacity-0 group-hover:opacity-100 flex items-center gap-1 shrink-0 transition-opacity">
+                                                                    <button onClick={() => setDeleting(m)} className="p-1 text-red-500 hover:bg-red-500/10 rounded-full" title="Hapus">
+                                                                        <Icon name="trash" size={14} />
+                                                                    </button>
+                                                                    <button onClick={() => setReplyTo(m)} className="p-1 text-ink-muted hover:text-ink hover:bg-surface-muted rounded-full" title="Balas">
+                                                                        <Icon name="corner-up-left" size={14} />
+                                                                    </button>
+                                                                </div>
+                                                            )}
+                                                            <div className={`relative rounded-2xl px-4 py-3 text-sm ${isAdmin ? 'rounded-tr-sm bg-brand-600 text-white' : 'rounded-tl-sm bg-surface-muted text-ink'}`}>
+                                                                {m.reply_to_id && m.reply_to && (
+                                                                    <div className={`mb-2 rounded-lg p-2 text-xs border-l-2 ${isAdmin ? 'bg-black/10 border-white/30 text-white/80' : 'bg-white/50 border-ink-muted/30 text-ink-muted'}`}>
+                                                                        <p className="font-semibold">{m.reply_to.sender_type === 'admin' ? 'Anda' : (m.reply_to.user?.name || m.reply_to.name)}</p>
+                                                                        <p className="line-clamp-1 truncate">{m.reply_to.message || 'Mengirim file'}</p>
+                                                                    </div>
+                                                                )}
+                                                                {m.project && (
+                                                                    <a
+                                                                        href={`/dashboard/projects/${m.project.order_no || m.project.id}`}
+                                                                        className={`mb-2 inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs font-semibold no-underline transition-colors ${isAdmin ? 'bg-black/20 text-white hover:bg-black/30' : 'bg-white/60 text-brand-700 hover:bg-white'}`}
+                                                                    >
+                                                                        <Icon name="tag" size={12} /> PSN-{m.project.order_no || m.project.id}
+                                                                    </a>
+                                                                )}
+                                                                {m.message && <p className="whitespace-pre-wrap leading-relaxed">{m.message}</p>}
+                                                                {m.attachment_url && (
+                                                                    <a href={m.attachment_url} target="_blank" rel="noreferrer" className={`mt-2 flex items-center gap-2 rounded-lg p-2 text-xs no-underline ${isAdmin ? 'bg-black/20 text-white hover:bg-black/30' : 'bg-white text-ink hover:bg-white/80'}`}>
+                                                                        <Icon name="paperclip" size={14} /> <span>Lihat Lampiran</span>
+                                                                    </a>
+                                                                )}
+                                                            </div>
+                                                            {!isAdmin && (
+                                                                <button onClick={() => setReplyTo(m)} className="opacity-0 group-hover:opacity-100 p-1 text-ink-muted hover:text-ink transition-opacity rounded-full hover:bg-surface-muted shrink-0" title="Balas">
+                                                                    <Icon name="corner-up-left" size={14} />
+                                                                </button>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="border-t border-line bg-surface p-3 sm:p-4">
+                                <form onSubmit={sendReply} className="mx-auto max-w-4xl relative">
+                                    {showEmoji && (
+                                        <div className="absolute bottom-full mb-2 left-0 z-10 rounded-xl border border-line bg-surface p-2 shadow-lg grid grid-cols-6 gap-1">
+                                            {EMOJIS.map(e => (
+                                                <button key={e} type="button" onClick={() => { setReplyMsg(replyMsg + e); setShowEmoji(false); }} className="p-2 text-xl hover:bg-surface-muted rounded-lg transition-colors">{e}</button>
+                                            ))}
+                                        </div>
+                                    )}
+                                    {(file || replyTo) && (
+                                        <div className="absolute -top-12 left-0 flex flex-wrap items-center gap-2 rounded-t-lg bg-surface/90 backdrop-blur px-3 py-1.5 text-xs">
+                                            {file && (
+                                                <span className="flex items-center gap-1.5 rounded-full bg-blue-500/15 px-2 py-1 font-semibold text-blue-700 dark:text-blue-400">
+                                                    <Icon name="paperclip" size={12} /> {file.name}
+                                                    <button type="button" onClick={() => setFile(null)} className="ml-1 hover:text-blue-900"><Icon name="x" size={12} /></button>
+                                                </span>
+                                            )}
+                                            {replyTo && (
+                                                <span className="flex items-center gap-1.5 rounded-full bg-zinc-500/15 px-2 py-1 font-semibold text-zinc-700 dark:text-zinc-300">
+                                                    <Icon name="corner-up-left" size={12} /> Balas: {replyTo.sender_type === 'admin' ? 'Anda' : (replyTo.user?.name || replyTo.name)}
+                                                    <button type="button" onClick={() => setReplyTo(null)} className="ml-1 hover:text-zinc-900"><Icon name="x" size={12} /></button>
+                                                </span>
+                                            )}
+                                        </div>
+                                    )}
+                                    <div className="flex items-end gap-1.5">
+                                        <button type="button" onClick={() => setShowEmoji(!showEmoji)} className="shrink-0 p-3 text-ink-muted hover:text-brand-600 transition-colors rounded-full hover:bg-brand-500/10">
+                                            <Icon name="smile" size={20} />
+                                        </button>
+                                        <label className="shrink-0 p-3 text-ink-muted hover:text-brand-600 transition-colors rounded-full hover:bg-brand-500/10 cursor-pointer">
+                                            <Icon name="paperclip" size={20} />
+                                            <input type="file" className="hidden" ref={fileInputRef} onChange={(e) => setFile(e.target.files[0])} />
+                                        </label>
+                                        <textarea
+                                            className="input min-h-[44px] flex-1 resize-none py-3"
+                                            rows="1"
+                                            value={replyMsg}
+                                            onChange={(e) => {
+                                                setReplyMsg(e.target.value);
+                                                e.target.style.height = 'auto';
+                                                e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px';
+                                            }}
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Enter' && !e.shiftKey) {
+                                                    e.preventDefault();
+                                                    sendReply(e);
+                                                }
+                                            }}
+                                            placeholder="Ketik balasan..."
+                                        />
+                                        <button type="submit" className="btn-primary shrink-0 !px-4 !py-3" disabled={sending || (!replyMsg.trim() && !file)}>
+                                            <Icon name="send" size={18} />
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </>
+                    ) : (
+                        <div className="flex h-full flex-col items-center justify-center p-10 text-center bg-surface-muted/30">
+                            <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-surface text-ink-muted shadow-sm">
+                                <Icon name="message-circle" size={28} />
+                            </div>
+                            <p className="font-semibold text-ink">Pilih percakapan</p>
+                            <p className="mt-1 text-sm text-ink-muted">Klik pesan di kiri untuk membalas.</p>
+                        </div>
+                    )}
+                </div>
+            </div>
 
             <Confirm open={!!deleting} onClose={() => setDeleting(null)} onConfirm={handleDelete} />
             {node}
-        </>
+        </div>
     );
 }

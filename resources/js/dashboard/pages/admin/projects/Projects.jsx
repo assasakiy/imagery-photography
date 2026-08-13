@@ -196,31 +196,63 @@ export default function Projects() {
                 <Spinner />
             ) : items.length ? (
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-                    {items.map((item) => (
-                        <Link key={item.id} to={`/dashboard/projects/${item.id}`} className="card group p-5">
-                            <div className="flex items-start justify-between gap-2">
-                                <h3 className="font-bold text-ink group-hover:text-brand-600 dark:group-hover:text-brand-400">
-                                    {item.name}
-                                </h3>
-                                <StatusBadge value={item.status} />
-                            </div>
-                            {item.description && <p className="mt-2 line-clamp-2 text-sm text-ink-muted">{item.description}</p>}
-                            <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-ink-muted">
-                                {isAdmin && (
+                    {items.map((item) => {
+                        const price = item.price ?? null;
+                        const totalPaid = (item.payments || []).filter((p) => p.status === 'confirmed').reduce((s, p) => s + Number(p.amount || 0), 0);
+                        const remaining = price === null ? null : Number(price) - totalPaid;
+                        const hasPreview = (item.files || []).some((f) => (f.category === 'photo' || f.category === 'video') && (f.media_id || f.variant === 'original'));
+                        return (
+                            <div key={item.id} className="card flex flex-col p-5">
+                                <div className="flex items-start justify-between gap-2">
+                                    <div>
+                                        <p className="font-mono text-xs font-semibold text-ink-muted">PSN-{item.order_no}</p>
+                                        <h3 className="mt-1 font-bold text-ink">{item.name}</h3>
+                                    </div>
+                                    <StatusBadge value={item.status} />
+                                </div>
+                                {item.description && <p className="mt-2 line-clamp-2 text-sm text-ink-muted">{item.description}</p>}
+                                <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-ink-muted">
+                                    {isAdmin && (
+                                        <span className="flex items-center gap-1.5">
+                                            <Icon name="user" size={14} /> {item.user?.name || '-'}
+                                        </span>
+                                    )}
                                     <span className="flex items-center gap-1.5">
-                                        <Icon name="user" size={14} /> {item.user?.name || '-'}
+                                        <Icon name="calendar" size={14} />
+                                        {item.event_start ? formatDate(item.event_start) : (item.event_date ? formatDate(item.event_date) : 'Segera')}
                                     </span>
-                                )}
-                                <span className="flex items-center gap-1.5">
-                                    <Icon name="calendar" size={14} />
-                                    {item.event_start ? formatDate(item.event_start) : (item.event_date ? formatDate(item.event_date) : 'Segera')}
-                                </span>
-                                {item.price !== null && item.price !== undefined && (
-                                <span className="font-semibold text-ink">{formatRupiah(item.price)}</span>
-                            )}
+                                </div>
+                                <div className="mt-4 flex items-center justify-between gap-3">
+                                    <div>
+                                        <p className="text-xs text-ink-muted">Sisa Pembayaran</p>
+                                        <p className={`font-bold ${remaining !== null && remaining > 0 ? 'text-red-600' : 'text-emerald-600'}`}>
+                                            {formatRupiah(remaining)}
+                                        </p>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="text-xs text-ink-muted">Total Tagihan</p>
+                                        <p className="font-semibold text-ink">{formatRupiah(price)}</p>
+                                    </div>
+                                </div>
+                                <div className="mt-4 flex flex-1 items-end gap-2">
+                                    {hasPreview ? (
+                                        <>
+                                            <Link to={`/dashboard/preview/${item.order_no || item.id}`} className="btn-primary flex-1 justify-center py-2">
+                                                <Icon name="eye" size={14} /> Lihat Preview
+                                            </Link>
+                                            <Link to={`/dashboard/projects/${item.order_no || item.id}`} className="btn-outline justify-center py-2" title="Detail Pesanan">
+                                                <Icon name="folder-open" size={14} />
+                                            </Link>
+                                        </>
+                                    ) : (
+                                        <Link to={`/dashboard/projects/${item.order_no || item.id}`} className="btn-outline flex-1 justify-center py-2">
+                                            <Icon name="folder-open" size={14} /> Detail Pesanan
+                                        </Link>
+                                    )}
+                                </div>
                             </div>
-                        </Link>
-                    ))}
+                        );
+                    })}
                 </div>
             ) : (
                 <EmptyState title={isAdmin ? 'Belum ada project' : 'Anda belum memiliki project'} />

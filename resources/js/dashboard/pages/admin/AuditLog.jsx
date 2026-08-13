@@ -26,6 +26,9 @@ function AccountStateBadge({ state }) {
     if (!state || state === 'registered') return null;
     const meta = ACCOUNT_STATE_META[state];
     if (!meta) return null;
+    if (state === 'deleted' || state === 'unknown') {
+        return <span className={`italic ${meta.cls.replace('bg-zinc-500/15 ', '')}`}>{meta.label}</span>;
+    }
     return <span className={`badge ${meta.cls}`}>{meta.label}</span>;
 }
 

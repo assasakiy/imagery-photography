@@ -19,6 +19,9 @@ class BookingApiController extends Controller
     {
         $query = Booking::with(['user.profile', 'package'])->latest('id');
 
+        // Data klien yang sudah di-trash tidak ditampilkan.
+        $query->where(fn ($w) => $w->whereNull('user_id')->orWhereHas('user', fn ($u) => $u->whereNull('deleted_at')));
+
         if ($request->filled('status')) {
             $query->where('status', $request->input('status'));
         }

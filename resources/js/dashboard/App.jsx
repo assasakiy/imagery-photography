@@ -22,6 +22,7 @@ const PAGE_TITLES = {
     '/dashboard/history': 'Riwayat',
     '/dashboard/landing': 'Halaman Depan',
     '/dashboard/blog': 'Blog',
+    '/dashboard/blog/create': 'Tulis Artikel',
     '/dashboard/blog/categories': 'Kategori Blog',
     '/dashboard/blog/tags': 'Tag Blog',
     '/dashboard/faq': 'FAQ',
@@ -74,12 +75,13 @@ const Notifications = lazy(() => import('./pages/admin/Notifications'));
 const Landing = lazy(() => import('./pages/admin/Landing'));
 const Settings = lazy(() => import('./pages/admin/Settings'));
 const Blog = lazy(() => import('./pages/admin/blog/Blog'));
+const CreateEditBlog = lazy(() => import('./pages/admin/blog/CreateEditBlog'));
 const BlogCategories = lazy(() => import('./pages/admin/blog/BlogCategories'));
 const BlogTags = lazy(() => import('./pages/admin/blog/BlogTags'));
 const Faq = lazy(() => import('./pages/admin/Faq'));
 const Pages = lazy(() => import('./pages/admin/Pages'));
 const Team = lazy(() => import('./pages/admin/Team'));
-const Reviews = lazy(() => import('./pages/client/Reviews'));
+const Reviews = lazy(() => import('./pages/admin/Reviews'));
 const AuditLog = lazy(() => import('./pages/admin/AuditLog'));
 const RecycleBin = lazy(() => import('./pages/admin/RecycleBin'));
 const ProfileSettings = lazy(() => import('./pages/admin/ProfileSettings'));
@@ -165,10 +167,12 @@ function AppRoutes() {
                 <Route path="messages" element={withSuspense(<Protected adminOnly><Messages /></Protected>)} />
                 <Route path="messages/:id" element={withSuspense(<Protected adminOnly><Messages /></Protected>)} />
                 <Route path="notifications" element={withSuspense(<Notifications />)} />
-                <Route path="reviews" element={withSuspense(<Reviews />)} />
+                <Route path="reviews" element={withSuspense(<Protected adminOnly><Reviews /></Protected>)} />
                 <Route path="profile" element={withSuspense(<ProfileSettings />)} />
                 <Route path="landing" element={withSuspense(<Protected ownerOnly><Landing /></Protected>)} />
                 <Route path="blog" element={withSuspense(<Protected adminOnly><Blog /></Protected>)} />
+                <Route path="blog/create" element={withSuspense(<Protected adminOnly><CreateEditBlog /></Protected>)} />
+                <Route path="blog/:id/edit" element={withSuspense(<Protected adminOnly><CreateEditBlog /></Protected>)} />
                 <Route path="blog/categories" element={withSuspense(<Protected adminOnly><BlogCategories /></Protected>)} />
                 <Route path="blog/tags" element={withSuspense(<Protected adminOnly><BlogTags /></Protected>)} />
                 <Route path="faq" element={withSuspense(<Protected adminOnly><Faq /></Protected>)} />

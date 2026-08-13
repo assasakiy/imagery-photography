@@ -23,12 +23,12 @@ class NotificationController extends Controller
                         $sub->where('data->type', 'booking.new');
                         break;
                     case 'review':
-                        $sub->whereIn('data->type', ['review.new', 'review.approved']);
+                        $sub->where('data->type', 'review.new');
                         break;
                     case 'sistem':
                         $sub->where(function ($q2) {
                             $q2->whereNull('data->type')
-                                ->orWhereNotIn('data->type', ['message.new', 'booking.new', 'review.new', 'review.approved']);
+                                ->orWhereNotIn('data->type', ['message.new', 'booking.new', 'review.new']);
                         });
                         break;
                 }
@@ -94,7 +94,7 @@ class NotificationController extends Controller
         if ($type === 'booking.new' || str_contains($url, '/bookings') || str_contains($title, 'Booking')) {
             return 'booking';
         }
-        if (in_array($type, ['review.new', 'review.approved'], true) || str_contains($url, '/reviews') || str_contains($title, 'Review')) {
+        if ($type === 'review.new' || str_contains($url, '/reviews') || str_contains($title, 'Review')) {
             return 'review';
         }
 

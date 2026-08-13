@@ -19,12 +19,12 @@ return new class extends Migration
             $table->unsignedTinyInteger('recommend_score')->nullable();
             $table->text('content');
             $table->string('title')->nullable();
-            $table->string('status')->default('pending');
+            $table->boolean('is_published')->default(false);
             $table->timestamp('published_at')->nullable();
             $table->unsignedInteger('order')->default(0);
             $table->timestamps();
 
-            $table->index('status');
+            $table->index('is_published');
             $table->foreign('client_id')->references('id')->on('users')->onDelete('set null');
             $table->foreign('project_id')->references('id')->on('projects')->onDelete('set null');
         });

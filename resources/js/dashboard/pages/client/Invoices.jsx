@@ -1,8 +1,9 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../../api';
 import Icon from '../../components/Icon';
-import { PageHeader, Spinner, EmptyState, Modal, Field, useToast, formatRupiah, formatDate } from '../../components/ui';
+import PaymentModal from '../../components/PaymentModal';
+import { PageHeader, Spinner, EmptyState, useToast, formatRupiah, formatDate } from '../../components/ui';
 
 const STATUS_META = {
     unpaid: { label: 'Belum Bayar', cls: 'bg-red-500/15 text-red-600 dark:text-red-400' },
@@ -17,9 +18,6 @@ export default function ClientInvoices() {
     const [selected, setSelected] = useState(null);
     const [payments, setPayments] = useState([]);
     const [paymentsLoading, setPaymentsLoading] = useState(false);
-    const [form, setForm] = useState({ amount: '', notes: '', proof: null });
-    const [saving, setSaving] = useState(false);
-    const proofRef = useRef(null);
     const { show, node } = useToast();
 
     useEffect(() => {
@@ -30,7 +28,6 @@ export default function ClientInvoices() {
 
     const openDetail = (it) => {
         setSelected(it);
-        setForm({ amount: String(it.remaining), notes: '', proof: null });
         setPayments([]);
         if (it.project_id) {
             setPaymentsLoading(true);
@@ -48,25 +45,15 @@ export default function ClientInvoices() {
             .catch(() => {});
     };
 
-    const submitPayment = async (e) => {
-        e.preventDefault();
-        if (!selected) return;
-        setSaving(true);
-        try {
-            const data = new FormData();
-            data.append('amount', form.amount);
-            data.append('method', 'manual_transfer');
-            data.append('notes', form.notes || '');
-            if (form.proof) data.append('proof_file', form.proof);
-            await api.post(`/projects/${selected.project_id}/payments`, data);
-            show('Pembayaran dikirim untuk dikonfirmasi.');
-            setForm({ amount: String(selected.remaining), notes: '', proof: null });
-            refreshPayments();
-        } catch (err) {
-            show(err.response?.data?.message || 'Gagal mengirim pembayaran.', 'error');
-        } finally {
-            setSaving(false);
-        }
+    const reloadInvoices = () => {
+        api.get('/customer/invoices')
+            .then(({ data }) => setItems(data))
+            .catch(() => {});
+        refreshPayments();
+    };
+
+    const onPaid = () => {
+        reloadInvoices();
     };
 
     if (loading) return <Spinner />;
@@ -147,90 +134,39 @@ export default function ClientInvoices() {
                 <EmptyState title="Belum ada tagihan" message="Tagihan akan muncul setelah Anda memiliki pesanan." icon="credit-card" />
             )}
 
-            <Modal open={!!selected} onClose={() => setSelected(null)} title={selected ? `Invoice INV-${selected.number}` : 'Tagihan'} wide>
-                {selected && (
-                    <div className="space-y-5">
-                        <div className="grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-line bg-line sm:grid-cols-4">
-                            <div className="bg-surface p-4">
-                                <p className="text-xs text-ink-muted">Pesanan</p>
-                                <p className="mt-1 font-semibold text-ink">{selected.project}</p>
-                            </div>
-                            <div className="bg-surface p-4">
-                                <p className="text-xs text-ink-muted">Diterbitkan</p>
-                                <p className="mt-1 font-semibold text-ink">{selected.issued_at ? formatDate(selected.issued_at) : '-'}</p>
-                            </div>
-                            <div className="bg-surface p-4">
-                                <p className="text-xs text-ink-muted">Total Tagihan</p>
-                                <p className="mt-1 font-semibold text-ink">{formatRupiah(selected.price)}</p>
-                            </div>
-                            <div className="bg-surface p-4">
-                                <p className="text-xs text-ink-muted">Sisa Pembayaran</p>
-                                <p className={`mt-1 font-semibold ${selected.remaining > 0 ? 'text-red-600' : 'text-emerald-600'}`}>{formatRupiah(selected.remaining)}</p>
-                            </div>
-                        </div>
+            <PaymentModal
+                open={!!selected}
+                onClose={() => setSelected(null)}
+                invoice={selected}
+                projectId={selected?.project_id}
+                onPaid={onPaid}
+            />
 
-                        <div>
-                            <p className="text-xs text-ink-muted">Status</p>
-                            <span className={`badge mt-1 ${STATUS_META[selected.status]?.cls}`}>{STATUS_META[selected.status]?.label}</span>
-                        </div>
-
-                        <Link to={`/dashboard/pesanan/${selected.project_id}`} className="btn-outline w-full justify-center">
-                            <Icon name="folder-open" size={16} /> Buka Detail Pesanan
-                        </Link>
-
-                        {selected.remaining > 0 && (
-                            <form onSubmit={submitPayment} className="rounded-xl border border-line p-5">
-                                <h4 className="mb-4 font-semibold text-ink">Form Pembayaran Manual</h4>
-                                <div className="grid gap-4 sm:grid-cols-2">
-                                    <Field label="Jumlah Transfer (Rp)" required>
-                                        <input className="input" type="number" min="0" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} required />
-                                    </Field>
-                                    <Field label="Bukti Transfer (opsional)">
-                                        <button type="button" className="input flex items-center gap-2 text-left text-ink-muted" onClick={() => proofRef.current?.click()}>
-                                            <Icon name="upload" size={16} /> {form.proof ? form.proof.name : 'Upload bukti...'}
-                                        </button>
-                                        <input ref={proofRef} type="file" className="hidden" onChange={(e) => setForm({ ...form, proof: e.target.files[0] })} />
-                                    </Field>
-                                    <div className="sm:col-span-2">
-                                        <Field label="Catatan" hint="opsional">
-                                            <input className="input" value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="mis. Transfer via BCA" />
-                                        </Field>
-                                    </div>
-                                </div>
-                                <button className="btn-primary mt-4 w-full" disabled={saving}>
-                                    {saving ? 'Mengirim...' : 'Konfirmasi Transfer'}
-                                </button>
-                            </form>
-                        )}
-
-                        {paymentsLoading ? (
-                            <Spinner className="h-6 w-6" />
-                        ) : payments.length > 0 ? (
-                            <div>
-                                <h4 className="mb-3 text-sm font-semibold text-ink">Riwayat Pembayaran</h4>
-                                <div className="overflow-x-auto rounded-xl border border-line">
-                                    <table className="table mb-0">
-                                        <thead><tr><th>Tanggal</th><th>Jumlah</th><th>Status</th></tr></thead>
-                                        <tbody>
-                                            {payments.map((p) => (
-                                                <tr key={p.id}>
-                                                    <td className="text-sm text-ink-muted">{formatDate(p.created_at)}</td>
-                                                    <td className="font-semibold text-ink">{formatRupiah(p.amount)}</td>
-                                                    <td>
-                                                        <span className={`badge ${p.status === 'confirmed' ? 'bg-emerald-500/15 text-emerald-600' : p.status === 'pending' ? 'bg-amber-500/15 text-amber-600' : 'bg-red-500/15 text-red-600'}`}>
-                                                            {p.status === 'confirmed' ? 'Terkonfirmasi' : p.status === 'pending' ? 'Menunggu' : 'Ditolak'}
-                                                        </span>
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        ) : null}
-                    </div>
+            <div className="card overflow-x-auto">
+                <h4 className="mb-3 text-sm font-semibold text-ink">Riwayat Pembayaran</h4>
+                {paymentsLoading ? (
+                    <Spinner className="h-6 w-6" />
+                ) : payments.length > 0 ? (
+                    <table className="table">
+                        <thead><tr><th>Tanggal</th><th>Jumlah</th><th>Status</th></tr></thead>
+                        <tbody>
+                            {payments.map((p) => (
+                                <tr key={p.id}>
+                                    <td className="text-sm text-ink-muted">{formatDate(p.created_at)}</td>
+                                    <td className="font-semibold text-ink">{formatRupiah(p.amount)}</td>
+                                    <td>
+                                        <span className={`badge ${p.status === 'confirmed' ? 'bg-emerald-500/15 text-emerald-600' : p.status === 'pending' ? 'bg-amber-500/15 text-amber-600' : p.status === 'expired' ? 'bg-zinc-500/15 text-ink-muted' : 'bg-red-500/15 text-red-600'}`}>
+                                            {p.status === 'confirmed' ? 'Terkonfirmasi' : p.status === 'pending' ? 'Menunggu' : p.status === 'expired' ? 'Kadaluarsa' : 'Ditolak'}
+                                        </span>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                ) : (
+                    <p className="text-sm text-ink-muted">Belum ada pembayaran tercatat.</p>
                 )}
-            </Modal>
+            </div>
             {node}
         </>
     );

@@ -132,7 +132,7 @@ export default function EditingStep({ ctx }) {
             </div>
             {isAdmin && !pastEditing && (
                 <PanelFooter>
-                    <button className="btn-outline mr-auto" onClick={openChat}><Icon name="message-circle" size={16} /> Kirim Pesan</button>
+                    
                     <button className="btn-primary" onClick={advance} disabled={formLocked || saving || !editAllDone}>
                         Konfirmasi
                     </button>

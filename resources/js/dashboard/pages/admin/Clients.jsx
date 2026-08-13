@@ -314,7 +314,7 @@ export default function Clients() {
                 title="Hapus Klien"
                 message={
                     <div className="space-y-2">
-                        <p className="text-sm text-ink-muted">Klien akan dipindah ke Recycle Bin (soft delete). Data historis tetap tersimpan.</p>
+                        <p className="text-sm text-ink-muted">Klien akan dipindah ke Recycle Bin. Semua proyek & data terkait ikut disembunyikan, dan akan pulih kembali saat klien dipulihkan.</p>
                         <input className="input" placeholder="Alasan (opsional)" value={deleteReason} onChange={(e) => setDeleteReason(e.target.value)} autoFocus />
                     </div>
                 }

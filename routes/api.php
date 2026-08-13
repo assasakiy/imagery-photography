@@ -41,6 +41,8 @@ Route::middleware('web')->group(function () {
     Route::post('/reset-password', [AuthController::class, 'resetPassword']);
 });
 
+Route::post('/webhook/tripay', [PaymentController::class, 'webhook']);
+
 Route::middleware(['web', 'auth:sanctum', 'maintenance'])->group(function () {
     Route::get('/user', [AuthController::class, 'user']);
     Route::post('/logout', [AuthController::class, 'logout']);
@@ -62,6 +64,7 @@ Route::middleware(['web', 'auth:sanctum', 'maintenance'])->group(function () {
     Route::middleware('permission:submit-reviews')->group(function () {
         Route::get('/reviews/my', [ReviewController::class, 'myReview']);
         Route::post('/reviews', [ReviewController::class, 'store']);
+        Route::put('/reviews/my', [ReviewController::class, 'updateMyReview']);
     });
 
     Route::middleware('permission:view-projects')->group(function () {
@@ -72,6 +75,8 @@ Route::middleware(['web', 'auth:sanctum', 'maintenance'])->group(function () {
         Route::get('/projects/{project}/download-zip', [ProjectController::class, 'downloadZip'])->name('api.project.download-zip');
         Route::get('/projects/{project}/download-status', [ProjectController::class, 'downloadStatus']);
         Route::post('/projects/{project}/payments', [PaymentController::class, 'store']);
+        Route::post('/projects/{project}/payments/gateway', [PaymentController::class, 'createGateway']);
+        Route::get('/payments/{payment}/gateway-status', [PaymentController::class, 'gatewayStatus']);
         Route::post('/projects/{project}/redelivery-requests', [ProjectController::class, 'storeRedeliveryRequest']);
     });
 
@@ -83,9 +88,11 @@ Route::middleware(['web', 'auth:sanctum', 'maintenance'])->group(function () {
     Route::post('/customer/bookings/{booking}/cancel', [CustomerController::class, 'cancelBooking']);
     Route::get('/customer/invoices', [CustomerController::class, 'invoices']);
     Route::get('/customer/payments', [CustomerController::class, 'payments']);
+    Route::get('/customer/payment-methods', [PaymentController::class, 'methods']);
     Route::get('/customer/gallery', [CustomerController::class, 'gallery']);
     Route::get('/customer/messages', [CustomerController::class, 'messages']);
     Route::post('/customer/messages', [CustomerController::class, 'sendMessage']);
+    Route::delete('/customer/messages/{message}', [CustomerController::class, 'deleteMessage']);
 
     Route::get('/bookmarks', [BookmarkController::class, 'index']);
     Route::post('/bookmarks', [BookmarkController::class, 'store']);
@@ -154,12 +161,14 @@ Route::middleware(['web', 'auth:sanctum', 'maintenance'])->group(function () {
 
         Route::get('/messages', [MessageController::class, 'index']);
         Route::get('/messages/{message}', [MessageController::class, 'show']);
+        Route::get('/messages/{message}/thread', [MessageController::class, 'thread']);
+        Route::post('/messages/{message}/reply', [MessageController::class, 'reply']);
         Route::delete('/messages/{message}', [MessageController::class, 'destroy']);
         Route::get('/messages-unread/count', [MessageController::class, 'unreadCount']);
 
         Route::middleware('permission:manage-reviews')->group(function () {
             Route::get('/reviews', [ReviewController::class, 'index']);
-            Route::patch('/reviews/{review}/status', [ReviewController::class, 'updateStatus']);
+            Route::patch('/reviews/{review}/toggle-publish', [ReviewController::class, 'togglePublish']);
             Route::put('/reviews/{review}', [ReviewController::class, 'update']);
             Route::delete('/reviews/{review}', [ReviewController::class, 'destroy']);
         });
@@ -200,5 +209,6 @@ Route::middleware(['web', 'auth:sanctum', 'maintenance'])->group(function () {
         Route::put('/settings', [SettingsController::class, 'update']);
         Route::post('/settings/test-email', [SettingsController::class, 'testEmail']);
         Route::post('/settings/test-whatsapp', [SettingsController::class, 'testWhatsapp']);
+        Route::post('/settings/test-payment-gateway', [SettingsController::class, 'testPaymentGateway']);
     });
 });

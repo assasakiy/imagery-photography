@@ -1,8 +1,11 @@
 import Icon from '../../../../components/Icon';
 import { formatDate, formatRupiah } from '../../../../components/ui';
+import { Link } from 'react-router-dom';
 
 export default function ArchivedStep({ ctx }) {
-    const { PanelHeader, PanelFooter, project, setRerequestOpen, saving } = ctx;
+    const { PanelHeader, PanelFooter, project, setRerequestOpen, saving, previewHref } = ctx;
+    const activeRedelivery = (project.redeliveries || []).some((r) => r.status === 'approved' && (!r.expires_at || new Date(r.expires_at) > new Date()));
+    const pendingRedelivery = (project.redeliveries || []).some((r) => r.status === 'pending');
 
     return (
         <div className="card overflow-hidden">
@@ -31,12 +34,18 @@ export default function ArchivedStep({ ctx }) {
                         </div>
                     </div>
                 )}
-
-                <button className="btn-primary mt-5" onClick={() => setRerequestOpen(true)} disabled={saving}><Icon name="download" size={16} /> Ajukan Permintaan Unduh Ulang</button>
             </div>
             <PanelFooter>
                 <Icon name="folder-open" size={16} className="text-ink-muted" />
                 <span className="text-xs text-ink-muted">Hubungi admin bila membutuhkan bantuan.</span>
+                <span className="flex-1" />
+                {activeRedelivery ? (
+                    <Link to={previewHref} className="btn-primary"><Icon name="download" size={16} /> Unduh File</Link>
+                ) : pendingRedelivery ? (
+                    <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-amber-600"><Icon name="clock" size={14} /> Menunggu persetujuan admin</span>
+                ) : (
+                    <button className="btn-primary" onClick={() => setRerequestOpen(true)} disabled={saving}><Icon name="download" size={16} /> Ajukan Permintaan</button>
+                )}
             </PanelFooter>
         </div>
     );

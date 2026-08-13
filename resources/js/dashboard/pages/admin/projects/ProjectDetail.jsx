@@ -523,6 +523,11 @@ const ctx = {
                             <span className="flex items-center gap-1.5"><Icon name="calendar" size={14} /> {project.event_date ? formatDate(project.event_date) : 'Tanpa jadwal'}</span>
                         </div>
                     </div>
+                    <div className="flex shrink-0 items-center gap-2">
+                        <button className="btn-primary" onClick={openChat}>
+                            <Icon name="message-circle" size={16} /> Kirim Pesan
+                        </button>
+                    </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-px bg-line sm:grid-cols-4">

@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class ContactMessage extends Model
 {
-    protected $fillable = ['name', 'email', 'phone', 'message', 'read_at', 'type', 'event_date', 'package', 'project_id', 'status'];
+    protected $fillable = ['user_id', 'project_id', 'reply_to_id', 'name', 'email', 'phone', 'message', 'attachment_url', 'sender_type', 'type', 'event_date', 'package', 'read_at', 'status'];
 
     protected function casts(): array
     {
@@ -15,8 +15,18 @@ class ContactMessage extends Model
         ];
     }
 
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
     public function project()
     {
         return $this->belongsTo(Project::class);
+    }
+
+    public function replyTo()
+    {
+        return $this->belongsTo(ContactMessage::class, 'reply_to_id');
     }
 }
