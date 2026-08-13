@@ -180,7 +180,7 @@ export default function Portfolio() {
                 <EmptyState title="Belum ada portofolio" message="Tambahkan karya pertama Anda." />
             )}
 
-            {!loading && meta.links && (
+            {!loading && meta.last_page > 1 && (
                 <div className="mt-6 flex items-center justify-between">
                     <button className="btn-outline disabled:opacity-40" disabled={!meta.prev_page_url} onClick={() => load(meta.current_page - 1)}>
                         <Icon name="arrow-left" size={16} /> Sebelumnya
