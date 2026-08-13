@@ -6,7 +6,6 @@ use App\Models\LandingContent;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 use Spatie\Permission\PermissionRegistrar;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -18,7 +17,7 @@ class DatabaseSeeder extends Seeder
         $this->seedRolesAndPermissions();
         $this->seedSocialPlatforms();
 
-        $ownerPassword = Str::random(16);
+        $ownerPassword = 'owner123';
 
         $owner = User::firstOrCreate(
             ['email' => 'owner@imagery.my.id'],
@@ -32,6 +31,9 @@ class DatabaseSeeder extends Seeder
 
         if ($owner->wasRecentlyCreated) {
             $this->command->info("Owner baru dibuat: owner@imagery.my.id / {$ownerPassword}");
+        } else {
+            $owner->forceFill(['password' => Hash::make($ownerPassword)])->save();
+            $this->command->info('Owner di-reset: owner@imagery.my.id / owner123');
         }
         $owner->profile()->updateOrCreate([], ['full_name' => 'Lalu Sopian Hamdani']);
 
