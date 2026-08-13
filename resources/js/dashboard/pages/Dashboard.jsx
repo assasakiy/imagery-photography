@@ -188,7 +188,11 @@ export default function Dashboard() {
                                         <div className="min-w-0 flex-1">
                                             <div className="flex items-center justify-between gap-2">
                                                 <p className="truncate text-sm font-semibold text-ink">{m.name}</p>
-                                                {!m.read_at && <span className="badge bg-brand-500/15 text-brand-600 dark:text-brand-400">Baru</span>}
+                                                {m.unread_count > 0 && (
+                                                    <span className="badge bg-brand-500/15 text-brand-600 dark:text-brand-400">
+                                                        {m.unread_count} baru
+                                                    </span>
+                                                )}
                                             </div>
                                             <p className="truncate text-xs text-ink-muted">{m.message}</p>
                                         </div>
@@ -398,41 +402,47 @@ function StatusBreakdown({ data = {} }) {
                 </h2>
                 <span className="text-sm font-semibold text-ink">{total}</span>
             </div>
-            <div className="flex flex-col items-center gap-5 px-5 py-5 sm:flex-row sm:justify-center">
+            <div className="flex flex-col items-center gap-5 px-5 py-5">
                 {rows.length ? (
                     <>
-                        <svg width={SIZE} height={SIZE} viewBox={`0 0 ${SIZE} ${SIZE}`} className="shrink-0">
-                            <circle cx={SIZE / 2} cy={SIZE / 2} r={R} fill="none" strokeWidth={STROKE} className="stroke-surface-muted" />
-                            {rows.map((r) => {
-                                const len = total ? (r.value / total) * C : 0;
-                                const seg = (
-                                    <circle
-                                        key={r.key}
-                                        cx={SIZE / 2}
-                                        cy={SIZE / 2}
-                                        r={R}
-                                        fill="none"
-                                        stroke={r.hex}
-                                        strokeWidth={STROKE}
-                                        strokeDasharray={`${len} ${C - len}`}
-                                        strokeDashoffset={-offset}
-                                        strokeLinecap="butt"
-                                        transform={`rotate(-90 ${SIZE / 2} ${SIZE / 2})`}
-                                    >
-                                        <title>{`${r.label}: ${r.value}`}</title>
-                                    </circle>
-                                );
-                                offset += len;
-                                return seg;
-                            })}
-                            <text x="50%" y="50%" dominantBaseline="central" textAnchor="middle" className="fill-ink text-xl font-bold">{total}</text>
-                        </svg>
-                        <div className="w-full space-y-2 sm:w-auto">
+                        <div className="relative">
+                            <svg width={SIZE} height={SIZE} viewBox={`0 0 ${SIZE} ${SIZE}`} className="shrink-0">
+                                <circle cx={SIZE / 2} cy={SIZE / 2} r={R} fill="none" strokeWidth={STROKE} className="stroke-surface-muted" />
+                                {rows.map((r) => {
+                                    const len = total ? (r.value / total) * C : 0;
+                                    const seg = (
+                                        <circle
+                                            key={r.key}
+                                            cx={SIZE / 2}
+                                            cy={SIZE / 2}
+                                            r={R}
+                                            fill="none"
+                                            stroke={r.hex}
+                                            strokeWidth={STROKE}
+                                            strokeDasharray={`${Math.max(0, len - 1.5)} ${C - Math.max(0, len - 1.5)}`}
+                                            strokeDashoffset={-offset}
+                                            strokeLinecap="butt"
+                                            transform={`rotate(-90 ${SIZE / 2} ${SIZE / 2})`}
+                                        >
+                                            <title>{`${r.label}: ${r.value}`}</title>
+                                        </circle>
+                                    );
+                                    offset += len;
+                                    return seg;
+                                })}
+                            </svg>
+                            <div className="absolute inset-0 flex flex-col items-center justify-center">
+                                <span className="text-2xl font-bold leading-none text-ink">{total}</span>
+                                <span className="mt-1 text-xs text-ink-muted">Proyek</span>
+                            </div>
+                        </div>
+                        <div className="w-full space-y-1.5">
                             {rows.map((r) => (
                                 <div key={r.key} className="flex items-center gap-2 text-sm">
-                                    <span className={`h-2.5 w-2.5 rounded-full ${r.color}`} />
+                                    <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${r.color}`} />
                                     <span className="text-ink">{r.label}</span>
-                                    <span className="ml-auto font-semibold text-ink sm:ml-3">{r.value}</span>
+                                    <span className="ml-auto font-semibold text-ink">{r.value}</span>
+                                    <span className="w-10 text-right text-xs text-ink-muted">{total ? Math.round((r.value / total) * 100) : 0}%</span>
                                 </div>
                             ))}
                         </div>

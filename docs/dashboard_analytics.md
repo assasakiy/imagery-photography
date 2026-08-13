@@ -16,8 +16,9 @@ Untuk admin (`isStaff()`), endpoint mengembalikan:
 | `avg_per_project` | `total_revenue / jumlah proyek` (2 desimal) |
 | `projects_this_month`, `projects_last_month` | proyek dibuat bulan ini / bulan lalu (untuk badge tren) |
 | `clients_this_month` | klien baru bulan ini (untuk badge tren "Baru") |
-| `upcoming_schedule` | 4 proyek ber-`event_date` ≥ hari ini, belum selesai/arsip, urut tanggal terdekat |
+| `upcoming_schedule` | 4 proyek ber-`event_date` ≥ **hari ini** (`whereDate('event_date', '>=', now()->toDateString())`), belum selesai/arsip, urut tanggal terdekat |
 | `pending_payments` | banyak `Payment` `status=pending` yang punya proyek |
+| `recent_messages` | **percakapan** (bukan per-pesan): satu baris per pengirim (`user_id` atau email/phone bila belum login), pesan terakhir milik **pengirim** (`sender_type != 'admin'` → balasan admin sendiri TIDAK ditampilkan), plus `unread_count` = jumlah pesan belum dibaca dari pengirim itu (lihat `recentConversations()`) |
 | `portfolios` | `Portfolio::count()` |
 | `unread_messages` | `ContactMessage` `read_at` null (dengan proyek atau non-proyek) |
 | `revenue_by_month` | 6 bulan terakhir, `groupBy(paid_at->format('Y-m'))`, hanya `confirmed` — `{"2026-08": 1500000, …}` |
@@ -31,7 +32,7 @@ Untuk klien, endpoint mengembalikan data pesanan milik user sendiri (`projects`,
 - **Panel Tren Pendapatan 6 Bulan**: strip KPI (Bulan Ini, Bulan Lalu, Rata-rata/Proyek, Menunggu Bayar) + badge growth % + **line chart SVG murni** (`<svg>` polyline + area fill + titik data) — TANPA library chart. Growth dihitung frontend dari `revenue_this_month` vs `revenue_last_month`. Ikuti pola ini bila menambah grafik lain.
 - **Distribusi Status Proyek**: **donut chart SVG** (circle `stroke-dasharray` per segmen) + legenda per status. Warna/hex didefinisikan di `STATUS_META` (baris dalam file Dashboard).
 - **Tautan Cepat**: panel kartu terpisah (di bawah grafik, **bukan** di header/title) berisi 6 link navigasi cepat (Proyek, Media, Blog, Booking, Klien, Landing).
-- **3 panel terbaru**: Pembayaran (badge Lunas/Menunggu), **Jadwal Terdekat** (tanggal acara format blok + lokasi + status), Pesan (avatar inisial + badge Baru) — masing-masing `Link` "Lihat semua".
+- **3 panel terbaru**: Pembayaran (badge Lunas/Menunggu), **Jadwal Terdekat** (tanggal acara ≥ hari ini, format blok + lokasi + status), Pesan (**satu percakapan per pengirim**, pesan terakhir dari klien bukan balasan admin, badge "N baru" bila ada pesan belum dibaca) — masing-masing `Link` "Lihat semua".
 
 ## Konvensi
 - **Jangan menambah dependency chart** (mis. Recharts/Chart.js) — gunakan CSS/inline SVG agar bundle tetap kecil (lihat target bundle < 300 kB di `docs/progressive_loading.md`).

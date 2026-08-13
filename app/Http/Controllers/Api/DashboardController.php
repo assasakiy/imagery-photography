@@ -51,11 +51,11 @@ class DashboardController extends Controller
                 'revenue_by_month' => $revenueByMonth,
                 'status_breakdown' => $statusBreakdown,
                 'recent_projects' => Project::with('user.profile')->latest()->take(5)->get(),
-                'recent_messages' => ContactMessage::with('project')->where(fn ($q) => $q->whereNull('project_id')->orWhereHas('project'))->latest()->take(5)->get(),
+                'recent_messages' => $this->recentConversations(5),
                 'recent_payments' => Payment::with('project')->whereHas('project')->latest()->take(5)->get(),
                 'upcoming_schedule' => Project::with('user')
                     ->whereNotNull('event_date')
-                    ->where('event_date', '>=', now()->startOfDay())
+                    ->whereDate('event_date', '>=', now()->toDateString())
                     ->whereNotIn('status', ['completed', 'archived'])
                     ->orderBy('event_date')
                     ->take(4)
@@ -84,6 +84,48 @@ class DashboardController extends Controller
             'total_spent' => Payment::whereHas('project', fn ($q) => $q->where('user_id', $user->id))->where('status', 'confirmed')->sum('amount'),
             'recent_projects' => $user->projects()->with('user.profile')->latest()->take(5)->get(),
         ]);
+    }
+
+    /**
+     * Percakapan terbaru utk dashboard: SATU baris per pengirim (user_id atau
+     * email/phone bila belum login), menampilkan pesan terakhir milik PENGIRIM
+     * (bukan balasan admin) beserta jumlah pesan baru (belum dibaca) dari dia.
+     */
+    private function recentConversations(int $limit = 5): array
+    {
+        $senderExpr = 'IFNULL(user_id, COALESCE(email, phone))';
+
+        $latest = ContactMessage::selectRaw('MAX(id) as id')
+            ->where('sender_type', '!=', 'admin')
+            ->groupByRaw($senderExpr)
+            ->pluck('id');
+
+        $rows = ContactMessage::with(['project', 'user'])
+            ->whereIn('id', $latest)
+            ->where('sender_type', '!=', 'admin')
+            ->where(fn ($q) => $q->whereNull('project_id')->orWhereHas('project'))
+            ->latest('id')
+            ->take($limit)
+            ->get();
+
+        $senders = $rows->map(fn ($m) => $m->user_id ?: $m->email ?: $m->phone)->filter()->all();
+
+        $unreadCounts = ContactMessage::query()
+            ->selectRaw("{$senderExpr} as sender, COUNT(*) as total")
+            ->whereIn(\DB::raw($senderExpr), $senders)
+            ->where('sender_type', '!=', 'admin')
+            ->whereNull('read_at')
+            ->groupByRaw($senderExpr)
+            ->pluck('total', 'sender');
+
+        return $rows->map(fn ($m) => [
+            'id' => $m->id,
+            'name' => $m->name,
+            'message' => $m->message,
+            'sender_type' => $m->sender_type,
+            'unread_count' => (int) ($unreadCounts[$m->user_id ?: ($m->email ?: $m->phone)] ?? 0),
+            'created_at' => $m->created_at,
+        ])->values()->all();
     }
 
     /** Ringkas angka utk badge notifikasi (1 request menggantikan 3 polling terpisah). */
