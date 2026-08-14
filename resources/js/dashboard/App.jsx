@@ -54,6 +54,7 @@ function TitleSync() {
 }
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
+import { BadgeProvider } from './context/BadgeContext';
 import Layout from './components/Layout';
 import PageFallback from './components/PageFallback';
 import RouteErrorBoundary from './components/RouteErrorBoundary';
@@ -139,7 +140,9 @@ function AppRoutes() {
                 path="/dashboard"
                 element={
                     <Protected>
-                        <Layout />
+                        <BadgeProvider>
+                            <Layout />
+                        </BadgeProvider>
                     </Protected>
                 }
             >

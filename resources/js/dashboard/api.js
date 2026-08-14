@@ -11,8 +11,17 @@ const api = axios.create({
 
 const authUrls = ['/login', '/user'];
 
+const MUTATION_METHODS = ['post', 'put', 'patch', 'delete'];
+
 api.interceptors.response.use(
-    (response) => response,
+    (response) => {
+        const method = (response.config?.method ?? 'get').toLowerCase();
+        const url = response.config?.url ?? '';
+        if (MUTATION_METHODS.includes(method) && !url.includes('dashboard/summary') && response.config?.url !== '/login') {
+            window.dispatchEvent(new CustomEvent('badges:refresh'));
+        }
+        return response;
+    },
     async (error) => {
         const url = error.config?.url ?? '';
         const config = error.config;

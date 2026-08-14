@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
-import { NavLink, Outlet, useNavigate, Link } from 'react-router-dom';
+import { NavLink, Outlet, useNavigate, Link, useLocation } from 'react-router-dom';
 import Icon from './Icon';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
-import api from '../api';
+import { useBadges } from '../context/BadgeContext';
 import { preloadRoute } from '../routes/preloadRoute';
 
 function NavGroup({ item, setSidebarOpen, unreadMessages, unreadBookings }) {
@@ -144,9 +144,10 @@ export default function Layout() {
     const { user, logout } = useAuth();
     const { theme, toggle } = useTheme();
     const navigate = useNavigate();
+    const location = useLocation();
+    const { unread, unreadMessages, unreadBookings, refresh } = useBadges();
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [profileOpen, setProfileOpen] = useState(false);
-    const [unread, setUnread] = useState(0);
     const profileRef = useRef(null);
 
     const role = user?.role;
@@ -159,9 +160,6 @@ export default function Layout() {
     const siteName = appConfig.siteName || 'Sopian Lalu Imagery';
     const siteFavicon = appConfig.favicon || '';
 
-    const [unreadMessages, setUnreadMessages] = useState(0);
-    const [unreadBookings, setUnreadBookings] = useState(0);
-
     useEffect(() => {
         document.title = `${siteName} — Dashboard`;
         if (siteFavicon) {
@@ -172,21 +170,8 @@ export default function Layout() {
 
     useEffect(() => {
         if (!user) return;
-        const load = () => {
-            api.get('/dashboard/summary')
-                .then(({ data }) => {
-                    setUnread(data.notifications_unread ?? 0);
-                    if (['admin', 'owner'].includes(user.role)) {
-                        setUnreadMessages(data.messages_unread ?? 0);
-                        setUnreadBookings(data.bookings_pending ?? 0);
-                    }
-                })
-                .catch(() => {});
-        };
-        load();
-        const timer = setInterval(load, 45000);
-        return () => clearInterval(timer);
-    }, [user]);
+        refresh();
+    }, [user, location.pathname, refresh]);
 
     useEffect(() => {
         const onClick = (e) => {
