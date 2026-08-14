@@ -47,7 +47,8 @@ Route::middleware(['web', 'auth:sanctum', 'maintenance'])->group(function () {
     Route::get('/user', [AuthController::class, 'user']);
     Route::post('/logout', [AuthController::class, 'logout']);
 
-    Route::get('/dashboard/stats', [DashboardController::class, 'stats']);
+        Route::get('/dashboard/stats', [DashboardController::class, 'stats']);
+        Route::get('/dashboard/unread-count', [DashboardController::class, 'unreadCount']);
     Route::get('/dashboard/summary', [DashboardController::class, 'summary']);
 
     Route::get('/notifications', [NotificationController::class, 'index']);

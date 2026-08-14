@@ -12,7 +12,16 @@ use Illuminate\Http\Request;
 
 class DashboardController extends Controller
 {
-    public function stats()
+    public function unreadCount(Request $request)
+    {
+        $count = ContactMessage::whereNull('read_at')
+            ->where('sender_type', '!=', 'admin')
+            ->count();
+
+        return response()->json(['unread_count' => $count]);
+    }
+
+    public function stats(Request $request)
     {
         if ($this->isAdmin()) {
             $revenueByMonth = Payment::query()

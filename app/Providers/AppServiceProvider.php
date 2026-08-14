@@ -5,7 +5,6 @@ namespace App\Providers;
 use App\Services\RuntimeSettings;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Support\Facades\RateLimiter;
-use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
@@ -25,9 +24,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        Event::listen(
-        );
-
         $settings = app(RuntimeSettings::class);
 
         View::share([
