@@ -470,6 +470,7 @@ class ProjectController extends Controller
         // Saat melaju ke "Preview Tersedia", pastikan invoice tersedia.
         if ($newStatus === 'awaiting_payment' && !$project->invoice) {
             $this->createInvoice($project);
+            app(NotificationService::class)->notifyGalleryReady($project);
         }
 
         app(AuditLogger::class)->log('project.updated', 'Project diperbarui: "' . $project->name . '"', $project);

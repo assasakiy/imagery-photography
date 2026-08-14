@@ -257,21 +257,38 @@ class NotificationService
     }
 
     /**
-     * Notifikasi pembayaran berhasil.
+     * Notifikasi pembayaran ditolak.
      */
-    public function notifyPaymentConfirmed(\App\Models\Payment $payment): void
+    public function notifyPaymentRejected(\App\Models\Payment $payment): void
     {
         $project = $payment->project;
         if (!$project || !$project->user) return;
 
-        $msg = "Pembayaran Anda sebesar *Rp " . number_format($payment->amount, 0, ',', '.') . "* untuk pesanan *{$project->name}* telah kami terima. Terima kasih!";
+        $msg = "Mohon maaf, pembayaran Anda sebesar *Rp " . number_format($payment->amount, 0, ',', '.') . "* untuk pesanan *{$project->name}* ditolak.";
         $html = "Halo <strong>{$project->user->name}</strong>,<br><br>" .
-                "Pembayaran sebesar <strong>Rp " . number_format($payment->amount, 0, ',', '.') . "</strong> untuk pesanan <strong>{$project->name}</strong> telah kami terima.<br><br>" .
-                "Terima kasih telah melakukan pembayaran.";
+                "Mohon maaf, pembayaran sebesar <strong>Rp " . number_format($payment->amount, 0, ',', '.') . "</strong> untuk pesanan <strong>{$project->name}</strong> telah ditolak oleh admin.<br><br>" .
+                "Silakan periksa kembali detail pembayaran atau hubungi admin.";
 
-        $this->whatsapp($project->user->phone, $msg, null, $project->user, 'payment.confirmed');
-        $this->email(new \App\Mail\AlertMail($project->user->name, 'Pembayaran Diterima', $html), $project->user->email, 'payment.confirmed');
-        $this->inApp($project->user, 'Pembayaran Diterima', $msg, '/dashboard/pesanan/' . $project->id, 'payment.confirmed');
+        $this->whatsapp($project->user->phone, $msg, null, $project->user, 'payment.rejected');
+        $this->email(new \App\Mail\AlertMail($project->user->name, 'Pembayaran Ditolak', $html), $project->user->email, 'payment.rejected');
+        $this->inApp($project->user, 'Pembayaran Ditolak', $msg, '/dashboard/pesanan/' . $project->id, 'payment.rejected');
+    }
+
+    /**
+     * Notifikasi galeri siap (Preview).
+     */
+    public function notifyGalleryReady(\App\Models\Project $project): void
+    {
+        if (!$project->user) return;
+
+        $msg = "Hasil pekerjaan untuk pesanan *{$project->name}* sudah siap! Silakan cek pratinjau di dashboard.";
+        $html = "Halo <strong>{$project->user->name}</strong>,<br><br>" .
+                "Hasil pekerjaan untuk pesanan <strong>{$project->name}</strong> sudah siap!.<br><br>" .
+                "<a href='" . url('/dashboard/pesanan/' . $project->id) . "' style='background: #7c3aed; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;'>Lihat Pratinjau</a>";
+
+        $this->whatsapp($project->user->phone, $msg, null, $project->user, 'order.gallery_ready');
+        $this->email(new \App\Mail\AlertMail($project->user->name, 'Hasil Pesanan Siap', $html), $project->user->email, 'order.gallery_ready');
+        $this->inApp($project->user, 'Hasil Pesanan Siap', $msg, '/dashboard/pesanan/' . $project->id, 'order.gallery_ready');
     }
 
     /**
@@ -353,15 +370,14 @@ class NotificationService
     public function sendOtp(User $user, string $phone, string $code): bool
     {
         $channel = $this->otpChannel($user);
-        $message = "Kode OTP masuk Sopian Lalu Imagery: {$code}. Berlaku 5 menit. Jangan bagikan kode ini kepada siapa pun.";
+        $message = "Kode OTP login Sopian Lalu Imagery Anda: *{$code}*. Berlaku 5 menit. Jangan bagikan kode ini.";
+        $html = "Halo <strong>{$user->name}</strong>,<br><br>" .
+                "Kode OTP login Anda adalah: <strong>{$code}</strong>.<br><br>" .
+                "Kode ini berlaku selama 5 menit. Jangan bagikan kode ini kepada siapa pun.";
 
         if ($channel === 'email') {
-            if (empty($user->email)) {
-                return false;
-            }
-
-            $this->email(new AlertMail($user->name, 'Kode OTP Login — Sopian Lalu Imagery', $message, $code), $user->email, 'auth.otp');
-
+            if (empty($user->email)) return false;
+            $this->email(new \App\Mail\AlertMail($user->name, 'Kode OTP Login', $html, $code), $user->email, 'auth.otp');
             return true;
         }
 
@@ -380,16 +396,19 @@ class NotificationService
         $ip = request()->ip() ?: 'tidak diketahui';
         $ua = (string) request()->userAgent();
         $time = now()->format('d/m/Y H:i');
-        $message = "Terjadi login ke akun Anda pada {$time}.\nIP: {$ip}\nBrowser/Perangkat: {$ua}\n\nJika ini bukan Anda, segera ganti kata sandi dan hubungi admin.";
+        
+        $msg = "Terjadi login ke akun Anda pada {$time}.\nIP: {$ip}\nPerangkat: {$ua}\n\nJika ini bukan Anda, segera ganti kata sandi.";
+        $html = "Halo <strong>{$user->name}</strong>,<br><br>" .
+                "Terjadi aktivitas login ke akun Anda pada <strong>{$time}</strong>.<br><br>" .
+                "<strong>Detail:</strong><br>IP: {$ip}<br>Perangkat: {$ua}<br><br>" .
+                "Jika ini bukan Anda, segera ganti kata sandi dan hubungi admin.";
 
         if ($this->settings->emailConfigured() && $user->email) {
-            $this->email(new AlertMail($user->name, 'Login Mencurigakan — Sopian Lalu Imagery', $message), $user->email, 'auth.login');
-
-            return;
+            $this->email(new \App\Mail\AlertMail($user->name, 'Login Mencurigakan — Sopian Lalu Imagery', $html), $user->email, 'auth.login');
         }
 
         if ($this->settings->whatsappConfigured() && $user->phone) {
-            $this->whatsapp($user->phone, $message, null, $user, 'auth.login');
+            $this->whatsapp($user->phone, $msg, null, $user, 'auth.login');
         }
     }
 
@@ -402,7 +421,7 @@ class NotificationService
         $channelOrder = $type->channelOrder();
         $emailCopy = $type->emailAsCopy();
         $message = $data['message'] ?? $type->waShortMessage($data);
-        $url = $data['url'] ?? null;
+        $html = $data['html'] ?? $message; // Gunakan html yang disediakan atau fallback ke plain message
         $event = $this->typeEvent($type);
 
         $waSent = false;
@@ -416,15 +435,13 @@ class NotificationService
             }
 
             if ($channel === 'email' && !empty($user->email)) {
-                $emailBody = $message . ($url ? "\n\n$url" : '');
-                $this->email(new AlertMail($user->name, $type->subject(), $emailBody, null), $user->email, $event);
+                $this->email(new \App\Mail\AlertMail($user->name, $type->subject(), $html), $user->email, $event);
             }
         }
 
         // Email salinan utk jenis operasional penting setelah WA sukses.
         if ($waSent && $emailCopy && !empty($user->email)) {
-            $emailBody = $message . ($url ? "\n\n$url" : '');
-            $this->email(new AlertMail($user->name, $type->subject(), $emailBody, null), $user->email, $event);
+            $this->email(new \App\Mail\AlertMail($user->name, $type->subject(), $html), $user->email, $event);
         }
     }
 
