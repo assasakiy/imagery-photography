@@ -55,6 +55,7 @@ class Project extends Model implements HasMedia
             'preview_ends_at' => 'datetime',
             'preview_expired_at' => 'datetime',
             'reminded_at' => 'datetime',
+            'can_download_archive' => 'boolean',
         ];
     }
 

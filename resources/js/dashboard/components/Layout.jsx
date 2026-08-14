@@ -6,7 +6,7 @@ import { useTheme } from '../context/ThemeContext';
 import api from '../api';
 import { preloadRoute } from '../routes/preloadRoute';
 
-function NavGroup({ item, setSidebarOpen, unreadCount }) {
+function NavGroup({ item, setSidebarOpen, unreadMessages, unreadBookings }) {
     const [open, setOpen] = useState(true);
 
     return (
@@ -24,30 +24,35 @@ function NavGroup({ item, setSidebarOpen, unreadCount }) {
             {open && (
                 <div className="space-y-0.5 mt-1">
                     {item.sub.map(subItem => (
-                        <NavLink
-                            key={subItem.to}
-                            to={subItem.to}
-                            end={subItem.end}
-                            onClick={() => setSidebarOpen(false)}
-                            onMouseEnter={() => preloadRoute(subItem.to)}
-                            onFocus={() => preloadRoute(subItem.to)}
-                            onTouchStart={() => preloadRoute(subItem.to)}
-                            className={({ isActive }) =>
-                                `flex items-center justify-between rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${
-                                    isActive
-                                        ? 'bg-brand-600/10 text-brand-600'
-                                        : 'text-ink-muted hover:bg-surface-muted hover:text-ink'
-                                }`
-                            }
-                        >
-                            <Icon name={subItem.icon} size={18} className="shrink-0" />
-                            <span>{subItem.label}</span>
-                            {subItem.to === "/dashboard/messages" && unreadCount > 0 && (
-                                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-brand-600 text-[10px] font-bold text-white shadow-sm">
-                                    {unreadCount > 9 ? "9+" : unreadCount}
-                                </span>
-                            )}
-                        </NavLink>
+                            <NavLink
+                                key={subItem.to}
+                                to={subItem.to}
+                                end={subItem.end}
+                                onClick={() => setSidebarOpen(false)}
+                                onMouseEnter={() => preloadRoute(subItem.to)}
+                                onFocus={() => preloadRoute(subItem.to)}
+                                onTouchStart={() => preloadRoute(subItem.to)}
+                                className={({ isActive }) =>
+                                    `flex items-center rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${
+                                        isActive
+                                            ? 'bg-brand-600/10 text-brand-600'
+                                            : 'text-ink-muted hover:bg-surface-muted hover:text-ink'
+                                    }`
+                                }
+                            >
+                                <Icon name={subItem.icon} size={18} className="shrink-0" />
+                                <span className="ml-3">{subItem.label}</span>
+                                {subItem.to === '/dashboard/messages' && unreadMessages > 0 && (
+                                    <span className="ml-auto flex h-5 w-5 items-center justify-center rounded-full bg-brand-600 text-[10px] font-bold text-white shadow-sm">
+                                        {unreadMessages > 9 ? '9+' : unreadMessages}
+                                    </span>
+                                )}
+                                {subItem.to === '/dashboard/bookings' && unreadBookings > 0 && (
+                                    <span className="ml-auto flex h-5 w-5 items-center justify-center rounded-full bg-amber-500 text-[10px] font-bold text-white shadow-sm">
+                                        {unreadBookings > 9 ? '9+' : unreadBookings}
+                                    </span>
+                                )}
+                            </NavLink>
                     ))}
                 </div>
             )}
@@ -240,24 +245,22 @@ export default function Layout() {
                                     onFocus={() => preloadRoute(item.to)}
                                     onTouchStart={() => preloadRoute(item.to)}
                                     className={({ isActive }) =>
-                                        `flex items-center justify-between rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${
+                                        `flex items-center rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${
                                             isActive
                                                 ? 'bg-brand-600 text-white shadow-lg shadow-brand-600/20'
                                                 : 'text-ink-muted hover:bg-surface-muted hover:text-ink'
                                         }`
                                     }
                                 >
-                                    <span className="flex items-center gap-3">
-                                        <Icon name={item.icon} size={18} className="shrink-0" />
-                                        <span>{item.label}</span>
-                                    </span>
+                                    <Icon name={item.icon} size={18} className="shrink-0" />
+                                    <span className="ml-3">{item.label}</span>
                                     {item.to === '/dashboard/messages' && unreadMessages > 0 && (
-                                        <span className="flex h-5 w-5 items-center justify-center rounded-full bg-brand-600 text-[10px] font-bold text-white shadow-sm">
+                                        <span className="ml-auto flex h-5 w-5 items-center justify-center rounded-full bg-brand-600 text-[10px] font-bold text-white shadow-sm">
                                             {unreadMessages > 9 ? '9+' : unreadMessages}
                                         </span>
                                     )}
                                     {item.to === '/dashboard/bookings' && unreadBookings > 0 && (
-                                        <span className="flex h-5 w-5 items-center justify-center rounded-full bg-amber-500 text-[10px] font-bold text-white shadow-sm">
+                                        <span className="ml-auto flex h-5 w-5 items-center justify-center rounded-full bg-amber-500 text-[10px] font-bold text-white shadow-sm">
                                             {unreadBookings > 9 ? '9+' : unreadBookings}
                                         </span>
                                     )}

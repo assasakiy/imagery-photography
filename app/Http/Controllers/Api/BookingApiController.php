@@ -150,17 +150,6 @@ class BookingApiController extends Controller
         // Hubungkan booking → project (histori tetap).
         $booking->update(['status' => 'converted', 'project_id' => $project->id]);
 
-        // Token akses publik (link pratinjau) utk klien.
-        \App\Models\ClientAccessToken::firstOrCreate(
-            ['project_id' => $project->id],
-            [
-                'project_id' => $project->id,
-                'user_id' => $user->id,
-                'token' => \App\Models\ClientAccessToken::generateToken(),
-                'expires_at' => now()->addYear(),
-            ]
-        );
-
         // Invoice dibuat bila DP di muka ditentukan (selainnya ditunda ke tahap Preview Tersedia).
         if ((float) ($data['dp_amount'] ?? 0) > 0) {
             $invoice = \App\Models\Invoice::create([

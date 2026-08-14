@@ -267,15 +267,12 @@ class ProjectController extends Controller
             'status' => $data['status'] ?? 'scheduled',
         ]);
 
-        $accessToken = ClientAccessToken::create([
-            'project_id' => $project->id,
             'user_id' => $user->id,
             'token' => ClientAccessToken::generateToken(),
             'expires_at' => now()->addYear(),
         ]);
 
         ProjectUpdate::create([
-            'project_id' => $project->id,
             'user_id' => Auth::id(),
             'message' => 'Pesanan "' . $project->name . '" telah dibuat dan dijadwalkan untuk pelaksanaan acara.',
             'type' => 'milestone',
@@ -292,7 +289,6 @@ class ProjectController extends Controller
         }
 
         $notifications = app(NotificationService::class);
-        $notifications->webhook('project.created', ['project_id' => $project->id, 'name' => $project->name]);
         $notifications->toAdmins(
             'Project baru: ' . $project->name,
             'Project untuk ' . $user->name . ' dengan nilai ' . ($project->price ? 'Rp ' . number_format((float) $project->price, 0, ',', '.') : 'belum ditentukan') . '.',
@@ -328,15 +324,12 @@ class ProjectController extends Controller
             $user->update(['password' => Hash::make($password)]);
         }
 
-        $accessToken = ClientAccessToken::create([
-            'project_id' => $project->id,
             'user_id' => $user->id,
             'token' => ClientAccessToken::generateToken(),
             'expires_at' => now()->addYear(),
         ]);
 
         app(NotificationService::class)->webhook('project.credentials_regenerated', [
-            'project_id' => $project->id,
             'name' => $project->name,
         ]);
 
@@ -372,8 +365,6 @@ class ProjectController extends Controller
         $last = $project->accessTokens()->orderByDesc('id')->first();
         $expires = !empty($data['expires_in_days']) ? now()->addDays((int) $data['expires_in_days']) : now()->addYear();
 
-        $token = $last ?? ClientAccessToken::create([
-            'project_id' => $project->id,
             'user_id' => $project->user_id,
             'token' => ClientAccessToken::generateToken(),
             'expires_at' => $expires,
@@ -482,7 +473,6 @@ class ProjectController extends Controller
         }
 
         $notifications = app(NotificationService::class);
-        $notifications->webhook('project.updated', ['project_id' => $project->id, 'status' => $newStatus]);
 
         $this->syncInvoiceAmount($project);
 
@@ -502,7 +492,6 @@ class ProjectController extends Controller
         }
 
         app(NotificationService::class)->webhook('project.status_changed', [
-            'project_id' => $project->id,
             'status' => $request->status,
         ]);
 
@@ -532,7 +521,6 @@ class ProjectController extends Controller
         app(AuditLogger::class)->log('project.advanced', 'Alur project "' . $project->name . '" melaju ke ' . $target, $project);
 
         $notifications = app(NotificationService::class);
-        $notifications->webhook('project.advanced', ['project_id' => $project->id, 'status' => $target]);
 
         if ($project->user) {
             $notifications->inApp(
@@ -576,7 +564,6 @@ class ProjectController extends Controller
         $media->save();
 
         ProjectFile::create([
-            'project_id' => $project->id,
             'media_id' => $media->id,
             'variant' => 'record',
             'category' => 'proof',
@@ -589,7 +576,6 @@ class ProjectController extends Controller
         ]);
 
         ProjectUpdate::create([
-            'project_id' => $project->id,
             'user_id' => Auth::id(),
             'message' => match ($request->input('stage')) {
                 'start' => 'Tim sudah berada di lokasi acara — lihat foto bukti.',
@@ -639,7 +625,6 @@ class ProjectController extends Controller
             app(\App\Services\ThumbnailService::class)->ensureAuto($project, $media->getPath());
 
             $created->push(ProjectFile::create([
-                'project_id' => $project->id,
                 'media_id' => $media->id,
                 'asset_key' => (string) Str::uuid(),
                 'variant' => 'original',
@@ -655,7 +640,6 @@ class ProjectController extends Controller
         }
 
         ProjectUpdate::create([
-            'project_id' => $project->id,
             'user_id' => Auth::id(),
             'message' => $created->count() . ' foto final telah diupload.',
             'type' => 'update',
@@ -707,7 +691,6 @@ class ProjectController extends Controller
         $originalMedia->save();
 
         ProjectFile::create([
-            'project_id' => $project->id,
             'media_id' => $previewMedia->id,
             'asset_key' => $assetKey,
             'variant' => 'preview',
@@ -722,7 +705,6 @@ class ProjectController extends Controller
         ]);
 
         ProjectFile::create([
-            'project_id' => $project->id,
             'media_id' => $originalMedia->id,
             'asset_key' => $assetKey,
             'variant' => 'original',
@@ -736,7 +718,6 @@ class ProjectController extends Controller
         ]);
 
         ProjectUpdate::create([
-            'project_id' => $project->id,
             'user_id' => Auth::id(),
             'message' => 'Video "' . $previewName . '" diupload (preview + original).',
             'type' => 'update',
@@ -799,7 +780,6 @@ class ProjectController extends Controller
         $request->validate(['message' => 'required|string']);
 
         ProjectUpdate::create([
-            'project_id' => $project->id,
             'user_id' => Auth::id(),
             'message' => $request->message,
             'type' => 'note',
@@ -875,7 +855,12 @@ class ProjectController extends Controller
 
         // Klien: wajib lunas; arsip hanya boleh lewat permintaan unduh ulang (redelivery aktif).
         if ($user->isClient()) {
-            if ($project->archived_at && !$project->hasActiveRedelivery()) {
+            $hasActiveRedelivery = $project->redeliveries()
+                ->where('status', 'approved')
+                ->where('expires_at', '>=', now())
+                ->exists();
+
+            if ($project->archived_at && !$hasActiveRedelivery) {
                 abort(403, 'Proyek diarsipkan. Ajukan permintaan unduhan ulang.');
             }
             if (!$project->isPaid()) {
@@ -1015,24 +1000,14 @@ class ProjectController extends Controller
         $user = $project->user;
 
         if ($data['status'] === 'approved') {
-            $expires = now()->addDays(7);
-            $token = $project->accessTokens()->orderByDesc('id')->first()
-                ?? ClientAccessToken::create([
-                    'project_id' => $project->id,
-                    'user_id' => $user?->id,
-                    'token' => ClientAccessToken::generateToken(),
-                    'expires_at' => $expires,
-                ]);
-            $token->expires_at = $expires;
-            $token->save();
-
-            $redelivery->update(['status' => 'approved', 'fee' => $data['fee'] ?? null, 'expires_at' => $expires]);
-            $project->addSystemUpdate('Permintaan unduh ulang disetujui — link akses aktif sampai ' . $expires->format('d/m/Y') . '.');
+            $redelivery->update(['status' => 'approved', 'fee' => $data['fee'] ?? null]);
+            $project->update(['can_download_archive' => true]);
+            $project->addSystemUpdate('Permintaan unduh ulang disetujui — Anda kini memiliki akses unduh arsip.');
 
             if ($user) {
                 $notifications = app(NotificationService::class);
-                $notifications->inApp($user, 'Unduh ulang disetujui', 'Link akses galeri "' . $project->name . '" aktif 7 hari.', $token->url, 'order.gallery_ready');
-                $notifications->send(\App\Services\NotificationType::DOWNLOAD_LINK, $user, ['name' => $user->name, 'link' => $token->url]);
+                $notifications->inApp($user, 'Unduh ulang disetujui', 'Anda sekarang memiliki akses unduh arsip proyek "' . $project->name . '".', '/dashboard/pesanan/' . $project->id, 'order.gallery_ready');
+                $notifications->send(\App\Services\NotificationType::DOWNLOAD_LINK, $user, ['message' => 'Permintaan unduh ulang disetujui. Silakan cek dashboard untuk mengunduh arsip.', 'url' => url('/dashboard/pesanan/' . $project->id)]);
             }
 
             app(AuditLogger::class)->log('project.redelivery_approved', 'Unduh ulang disetujui utk "' . $project->name . '"', $project);
