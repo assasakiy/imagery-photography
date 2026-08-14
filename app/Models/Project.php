@@ -286,7 +286,8 @@ class Project extends Model implements HasMedia
                     $this->awaiting_payment_at = now();
                 }
                 if (!$this->preview_ends_at && $this->awaiting_payment_at) {
-                    $this->preview_ends_at = $this->awaiting_payment_at->copy()->addDays(30);
+                    $days = app(\App\Services\RuntimeSettings::class)->previewExpiryDays();
+                    $this->preview_ends_at = $this->awaiting_payment_at->copy()->addDays($days);
                 }
                 break;
             case 'completed':

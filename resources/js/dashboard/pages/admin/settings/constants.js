@@ -41,7 +41,7 @@ export const TAB_FIELDS = {
     webhook: ['webhook_urls'],
     notifications: ['notif_email_enabled', 'notif_wa_enabled'],
     security_login: ['login_remember_enabled', 'login_remember_days', 'login_methods_global'],
-    security_file: ['file_retention_days', 'invite_expiry_hours'],
+    security_file: ['file_retention_days', 'invite_expiry_hours', 'preview_expiry_days', 'archive_delay_days'],
     maintenance: ['maintenance_enabled', 'maintenance_message'],
 };
 
@@ -119,9 +119,11 @@ export const emptyForm = {
     login_remember_enabled: true,
     login_remember_days: 30,
     login_methods_global: { password: true, otp: true, google: true, token: true },
-    file_retention_days: 0,
-    invite_expiry_hours: 24,
-    maintenance_enabled: false,
+        file_retention_days: 0,
+        invite_expiry_hours: 24,
+        preview_expiry_days: 30,
+        archive_delay_days: 60,
+        maintenance_enabled: false,
     maintenance_message: '',
     notif_email_enabled: true,
     notif_wa_enabled: true,

@@ -42,15 +42,17 @@ class ProcessProjectDeliveries extends Command
                 $reminded++;
             });
 
-        // Arsip otomatis day-90 (30 preview + 60 masa tenang).
+        // Arsip otomatis (Preview + Masa Tenang).
+        $delay = app(\App\Services\RuntimeSettings::class)->archiveDelayDays();
+        
         Project::where('status', '!=', 'archived')
             ->whereNotNull('preview_ends_at')
             ->whereNull('archived_at')
-            ->where('preview_ends_at', '<=', $now->copy()->subDays(60))
+            ->where('preview_ends_at', '<=', $now->copy()->subDays($delay))
             ->get()
-            ->each(function (Project $p) use (&$archived) {
+            ->each(function (Project $p) use (&$archived, $delay) {
                 $p->update(['archived_at' => now(), 'status' => 'archived']);
-                $p->addSystemUpdate('Pesanan diarsipkan otomatis (90 hari sejak preview).');
+                $p->addSystemUpdate("Pesanan diarsipkan otomatis (setelah masa tunggu {$delay} hari).");
                 $archived++;
             });
 

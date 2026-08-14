@@ -140,6 +140,8 @@ class SettingsController extends Controller
             'login_methods_global.*' => 'nullable|boolean',
             'file_retention_days' => 'nullable|integer|min:0|max:3650',
             'invite_expiry_hours' => 'nullable|integer|in:6,12,24,48,72',
+            'preview_expiry_days' => 'nullable|integer|min:1|max:365',
+            'archive_delay_days' => 'nullable|integer|min:0|max:365',
             'maintenance_enabled' => 'boolean',
             'maintenance_message' => 'nullable|string',
             'notif_email_enabled' => 'boolean',

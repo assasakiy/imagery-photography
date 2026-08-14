@@ -208,6 +208,12 @@ export default function SecurityTab({ form, meta, errors, saving, set, save, dir
                         <option value="72">72 jam</option>
                     </select>
                 </Field>
+                <Field label="Masa aktif preview (hari)" hint="durasi link preview aktif">
+                    <input type="number" className="input" value={form.preview_expiry_days} onChange={(e) => set('preview_expiry_days', e.target.value)} />
+                </Field>
+                <Field label="Masa tunggu arsip (hari)" hint="durasi sebelum arsip otomatis">
+                    <input type="number" className="input" value={form.archive_delay_days} onChange={(e) => set('archive_delay_days', e.target.value)} />
+                </Field>
                 <div className="mt-6 flex justify-end border-t border-line pt-5">
                     <Button icon="check" loading={saving} disabled={!dirty(TAB_FIELDS.security_file)} onClick={() => save(TAB_FIELDS.security_file)}>
                         Simpan Retensi File

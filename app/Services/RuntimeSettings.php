@@ -245,6 +245,22 @@ class RuntimeSettings
         return !empty($db) ? $db : (env('APP_BUSINESS_TIMEZONE') ?: 'Asia/Makassar');
     }
 
+    public function inviteExpiryHours(): int
+    {
+        $hours = (int) $this->get('invite_expiry_hours', '24');
+        return in_array($hours, [6, 12, 24, 48, 72], true) ? $hours : 24;
+    }
+
+    public function previewExpiryDays(): int
+    {
+        return (int) $this->get('preview_expiry_days', '30');
+    }
+
+    public function archiveDelayDays(): int
+    {
+        return (int) $this->get('archive_delay_days', '60');
+    }
+
     public function siteTagline(): ?string
     {
         return $this->get('site_tagline') ?: null;
@@ -280,11 +296,14 @@ class RuntimeSettings
         return $this->get('login_remember_enabled') === '1';
     }
 
-    public function inviteExpiryHours(): int
+    public function previewExpiryDays(): int
     {
-        $hours = (int) $this->get('invite_expiry_hours', '24');
+        return (int) $this->get('preview_expiry_days', '30');
+    }
 
-        return in_array($hours, [6, 12, 24, 48, 72], true) ? $hours : 24;
+    public function archiveDelayDays(): int
+    {
+        return (int) $this->get('archive_delay_days', '60');
     }
 
     public function globalLoginMethods(): array
