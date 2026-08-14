@@ -477,29 +477,11 @@ class ProjectController extends Controller
         // Satu pesan timeline saja saat status berganti (hindari duplikat dgn advance).
         if ($statusChanged) {
             $project->addSystemUpdate(\App\Models\Project::transitionMessage($newStatus));
+            app(NotificationService::class)->notifyProjectStatusChanged($project, $newStatus);
         }
 
         $notifications = app(NotificationService::class);
         $notifications->webhook('project.updated', ['project_id' => $project->id, 'status' => $newStatus]);
-
-        if ($project->user) {
-            if ($project->user->phone) {
-                $notifications->whatsapp(
-                    $project->user->phone,
-                    "Halo {$project->user->name}, status pesanan *{$project->name}* Anda: *" . strtoupper(str_replace('_', ' ', $newStatus)) . '*',
-                    null,
-                    $project->user,
-                    'project.updated'
-                );
-            }
-            $notifications->inApp(
-                $project->user,
-                'Status pesanan diperbarui',
-                "Project \"{$project->name}\" kini berstatus: " . strtoupper(str_replace('_', ' ', $newStatus)) . '.',
-                '/dashboard/projects/' . $project->id,
-                'project.updated'
-            );
-        }
 
         $this->syncInvoiceAmount($project);
 

@@ -187,6 +187,8 @@ class PaymentController extends Controller
     private function markConfirmed(Payment $payment)
     {
         $payment->update(['status' => 'confirmed', 'paid_at' => now()]);
+        
+        app(NotificationService::class)->notifyPaymentConfirmed($payment);
 
         app(AuditLogger::class)->log('payment.confirmed', 'Pembayaran gateway dikonfirmasi otomatis: Rp ' . number_format((float) $payment->amount, 0, ',', '.') . ' (project ' . $payment->project->name . ')', $payment);
 

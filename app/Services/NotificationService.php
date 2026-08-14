@@ -257,25 +257,60 @@ class NotificationService
     }
 
     /**
-     * Send an in-app database notification to one or more users.
+     * Notifikasi pembayaran berhasil.
      */
-    public function inApp(iterable|User $users, string $title, string $message, ?string $url = null, ?string $event = null): void
+    public function notifyPaymentConfirmed(\App\Models\Payment $payment): void
     {
-        if ($event && !$this->eventEnabled($event, 'inapp')) {
-            return;
-        }
+        $project = $payment->project;
+        if (!$project || !$project->user) return;
 
-        if ($users instanceof User) {
-            $users = collect([$users]);
-        }
+        $msg = "Pembayaran Anda sebesar *Rp " . number_format($payment->amount, 0, ',', '.') . "* untuk pesanan *{$project->name}* telah kami terima. Terima kasih!";
+        $html = "Halo <strong>{$project->user->name}</strong>,<br><br>" .
+                "Pembayaran sebesar <strong>Rp " . number_format($payment->amount, 0, ',', '.') . "</strong> untuk pesanan <strong>{$project->name}</strong> telah kami terima.<br><br>" .
+                "Terima kasih telah melakukan pembayaran.";
 
-        foreach ($users as $user) {
-            if (!$user->notif_inapp) {
-                continue;
-            }
+        $this->whatsapp($project->user->phone, $msg, null, $project->user, 'payment.confirmed');
+        $this->email(new \App\Mail\AlertMail($project->user->name, 'Pembayaran Diterima', $html), $project->user->email, 'payment.confirmed');
+        $this->inApp($project->user, 'Pembayaran Diterima', $msg, '/dashboard/pesanan/' . $project->id, 'payment.confirmed');
+    }
 
-            $user->notify(new InAppNotification($title, $message, $url, $event));
-        }
+    /**
+     * Notifikasi invoice baru.
+     */
+    public function notifyInvoiceCreated(\App\Models\Invoice $invoice): void
+    {
+        $project = $invoice->project;
+        if (!$project || !$project->user) return;
+
+        $msg = "Invoice baru *{$invoice->number}* telah diterbitkan untuk pesanan *{$project->name}*. Segera lakukan pembayaran.";
+        $html = "Halo <strong>{$project->user->name}</strong>,<br><br>" .
+                "Invoice <strong>{$invoice->number}</strong> telah diterbitkan untuk pesanan <strong>{$project->name}</strong>.<br><br>" .
+                "Silakan cek dashboard untuk detail pembayaran.";
+
+        $this->whatsapp($project->user->phone, $msg, null, $project->user, 'billing.invoice');
+        $this->email(new \App\Mail\AlertMail($project->user->name, 'Invoice Baru', $html), $project->user->email, 'billing.invoice');
+        $this->inApp($project->user, 'Invoice Baru', $msg, '/dashboard/pesanan/' . $project->id, 'billing.invoice');
+    }
+
+    /**
+     * Notifikasi update status proyek.
+     */
+    public function notifyProjectStatusChanged(\App\Models\Project $project, string $newStatus): void
+    {
+        if (!$project->user) return;
+
+        $statusLabel = strtoupper(str_replace('_', ' ', $newStatus));
+        $message = \App\Models\Project::transitionMessage($newStatus);
+        
+        $waMsg = "Halo {$project->user->name}, status pesanan *{$project->name}* Anda diperbarui: *{$statusLabel}*.\n\n{$message}";
+        $emailHtml = "Halo <strong>{$project->user->name}</strong>,<br><br>" .
+                     "Status pesanan <strong>{$project->name}</strong> Anda diperbarui: <strong>{$statusLabel}</strong>.<br><br>" .
+                     "<i>{$message}</i><br><br>" .
+                     "<a href='" . url('/dashboard/pesanan/' . $project->id) . "' style='background: #7c3aed; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;'>Lihat Detail</a>";
+
+        $this->whatsapp($project->user->phone, $waMsg, null, $project->user, 'project.status_changed');
+        $this->email(new \App\Mail\AlertMail($project->user->name, 'Status Proyek Diperbarui', $emailHtml), $project->user->email, 'project.status_changed');
+        $this->inApp($project->user, 'Status Proyek Diperbarui', $message, '/dashboard/pesanan/' . $project->id, 'project.status_changed');
     }
 
     /**
