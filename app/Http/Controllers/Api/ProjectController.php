@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\ClientAccessToken;
 use App\Models\Project;
 use App\Models\ProjectFile;
 use App\Models\ProjectUpdate;
@@ -267,11 +266,6 @@ class ProjectController extends Controller
             'status' => $data['status'] ?? 'scheduled',
         ]);
 
-            'user_id' => $user->id,
-            'token' => ClientAccessToken::generateToken(),
-            'expires_at' => now()->addYear(),
-        ]);
-
         ProjectUpdate::create([
             'user_id' => Auth::id(),
             'message' => 'Pesanan "' . $project->name . '" telah dibuat dan dijadwalkan untuk pelaksanaan acara.',
@@ -299,12 +293,12 @@ class ProjectController extends Controller
         app(AuditLogger::class)->log('project.created', 'Project dibuat: "' . $project->name . '" untuk ' . $user->name, $project);
 
         return response()->json([
-            'project' => $project->load('user.profile', 'accessTokens'),
+            'project' => $project->load('user.profile'),
             'credentials' => [
                 'login_url' => url('/login'),
                 'email' => $user->email,
                 'password' => null,
-                'access_url' => $accessToken->url,
+                'access_url' => url('/dashboard/preview/' . $project->order_no),
             ],
         ], 201);
     }
@@ -313,21 +307,12 @@ class ProjectController extends Controller
     {
         $request->validate(['reset_password' => 'boolean']);
 
-        ClientAccessToken::where('project_id', $project->id)
-            ->valid()
-            ->update(['expires_at' => now()]);
-
         $user = $project->user;
 
         $password = Str::random(10);
         if ($request->boolean('reset_password') && $user) {
             $user->update(['password' => Hash::make($password)]);
         }
-
-            'user_id' => $user->id,
-            'token' => ClientAccessToken::generateToken(),
-            'expires_at' => now()->addYear(),
-        ]);
 
         app(NotificationService::class)->webhook('project.credentials_regenerated', [
             'name' => $project->name,
@@ -336,12 +321,11 @@ class ProjectController extends Controller
         app(AuditLogger::class)->log('project.credentials_regenerated', 'Kredensial project "' . $project->name . '" direset', $project);
 
         return response()->json([
-            'token' => $accessToken,
             'credentials' => [
                 'login_url' => url('/login'),
                 'email' => $user?->email,
                 'password' => $password,
-                'access_url' => $accessToken->url,
+                'access_url' => url('/dashboard/preview/' . $project->order_no),
             ],
         ]);
     }
@@ -354,23 +338,17 @@ class ProjectController extends Controller
             'expires_in_days' => 'nullable|integer|min:1|max:365',
         ]);
 
+        $url = url('/dashboard/preview/' . $project->order_no);
+
         if (!$data['enabled']) {
-            ClientAccessToken::where('project_id', $project->id)->valid()->update(['expires_at' => now()]);
             $project->addSystemUpdate('Link akses dinonaktifkan.');
             app(AuditLogger::class)->log('project.access_link_disabled', 'Link akses dinonaktifkan utk "' . $project->name . '"', $project);
 
             return response()->json(['ok' => true, 'enabled' => false, 'url' => null]);
         }
 
-        $last = $project->accessTokens()->orderByDesc('id')->first();
         $expires = !empty($data['expires_in_days']) ? now()->addDays((int) $data['expires_in_days']) : now()->addYear();
-
-            'user_id' => $project->user_id,
-            'token' => ClientAccessToken::generateToken(),
-            'expires_at' => $expires,
-        ]);
-        $token->expires_at = $expires;
-        $token->save();
+        $project->update(['preview_ends_at' => $expires]);
 
         $project->addSystemUpdate('Link akses aktif sampai ' . $expires->format('d/m/Y') . '.');
 
@@ -381,15 +359,15 @@ class ProjectController extends Controller
                 $user,
                 'Link akses tersedia',
                 'Link akses galeri "' . $project->name . '" tersedia. Buka link untuk mengakses file.',
-                $token->url,
+                $url,
                 'order.gallery_ready'
             );
-            $notifications->send(\App\Services\NotificationType::DOWNLOAD_LINK, $user, ['name' => $user->name, 'link' => $token->url]);
+            $notifications->send(\App\Services\NotificationType::DOWNLOAD_LINK, $user, ['name' => $user->name, 'link' => $url]);
         }
 
         app(AuditLogger::class)->log('project.access_link_sent', 'Link akses dikirim utk "' . $project->name . '" (s/d ' . $expires->toDateString() . ')', $project);
 
-        return response()->json(['ok' => true, 'enabled' => true, 'url' => $token->url, 'expires_at' => $expires->toISOString()]);
+        return response()->json(['ok' => true, 'enabled' => true, 'url' => $url, 'expires_at' => $expires->toISOString()]);
     }
 
     public function update(Request $request, Project $project)

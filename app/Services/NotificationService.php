@@ -257,6 +257,26 @@ class NotificationService
     }
 
     /**
+     * Notifikasi pembayaran dikonfirmasi/diterima.
+     */
+    public function notifyPaymentConfirmed(\App\Models\Payment $payment): void
+    {
+        $project = $payment->project;
+        if (!$project || !$project->user) return;
+
+        $msg = "Pembayaran Anda sebesar *Rp " . number_format($payment->amount, 0, ',', '.') . "* untuk pesanan *{$project->name}* telah kami terima. Terima kasih!";
+        $html = "Halo <strong>{$project->user->name}</strong>,<br><br>" .
+                "Pembayaran sebesar <strong>Rp " . number_format($payment->amount, 0, ',', '.') . "</strong> untuk pesanan <strong>{$project->name}</strong> telah kami terima.<br><br>" .
+                "Terima kasih telah melakukan pembayaran.";
+
+        if (!empty($project->user->phone)) {
+            $this->whatsapp($project->user->phone, $msg, null, $project->user, 'payment.confirmed');
+        }
+        $this->email(new \App\Mail\AlertMail($project->user->name, 'Pembayaran Diterima', $html), $project->user->email, 'payment.confirmed');
+        $this->inApp($project->user, 'Pembayaran Diterima', $msg, '/dashboard/pesanan/' . $project->id, 'payment.confirmed');
+    }
+
+    /**
      * Notifikasi pembayaran ditolak.
      */
     public function notifyPaymentRejected(\App\Models\Payment $payment): void
@@ -269,7 +289,9 @@ class NotificationService
                 "Mohon maaf, pembayaran sebesar <strong>Rp " . number_format($payment->amount, 0, ',', '.') . "</strong> untuk pesanan <strong>{$project->name}</strong> telah ditolak oleh admin.<br><br>" .
                 "Silakan periksa kembali detail pembayaran atau hubungi admin.";
 
-        $this->whatsapp($project->user->phone, $msg, null, $project->user, 'payment.rejected');
+        if (!empty($project->user->phone)) {
+            $this->whatsapp($project->user->phone, $msg, null, $project->user, 'payment.rejected');
+        }
         $this->email(new \App\Mail\AlertMail($project->user->name, 'Pembayaran Ditolak', $html), $project->user->email, 'payment.rejected');
         $this->inApp($project->user, 'Pembayaran Ditolak', $msg, '/dashboard/pesanan/' . $project->id, 'payment.rejected');
     }
@@ -286,7 +308,9 @@ class NotificationService
                 "Hasil pekerjaan untuk pesanan <strong>{$project->name}</strong> sudah siap!.<br><br>" .
                 "<a href='" . url('/dashboard/pesanan/' . $project->id) . "' style='background: #7c3aed; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;'>Lihat Pratinjau</a>";
 
-        $this->whatsapp($project->user->phone, $msg, null, $project->user, 'order.gallery_ready');
+        if (!empty($project->user->phone)) {
+            $this->whatsapp($project->user->phone, $msg, null, $project->user, 'order.gallery_ready');
+        }
         $this->email(new \App\Mail\AlertMail($project->user->name, 'Hasil Pesanan Siap', $html), $project->user->email, 'order.gallery_ready');
         $this->inApp($project->user, 'Hasil Pesanan Siap', $msg, '/dashboard/pesanan/' . $project->id, 'order.gallery_ready');
     }
@@ -304,7 +328,9 @@ class NotificationService
                 "Invoice <strong>{$invoice->number}</strong> telah diterbitkan untuk pesanan <strong>{$project->name}</strong>.<br><br>" .
                 "Silakan cek dashboard untuk detail pembayaran.";
 
-        $this->whatsapp($project->user->phone, $msg, null, $project->user, 'billing.invoice');
+        if (!empty($project->user->phone)) {
+            $this->whatsapp($project->user->phone, $msg, null, $project->user, 'billing.invoice');
+        }
         $this->email(new \App\Mail\AlertMail($project->user->name, 'Invoice Baru', $html), $project->user->email, 'billing.invoice');
         $this->inApp($project->user, 'Invoice Baru', $msg, '/dashboard/pesanan/' . $project->id, 'billing.invoice');
     }
@@ -325,9 +351,33 @@ class NotificationService
                      "<i>{$message}</i><br><br>" .
                      "<a href='" . url('/dashboard/pesanan/' . $project->id) . "' style='background: #7c3aed; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;'>Lihat Detail</a>";
 
-        $this->whatsapp($project->user->phone, $waMsg, null, $project->user, 'project.status_changed');
+        if (!empty($project->user->phone)) {
+            $this->whatsapp($project->user->phone, $waMsg, null, $project->user, 'project.status_changed');
+        }
         $this->email(new \App\Mail\AlertMail($project->user->name, 'Status Proyek Diperbarui', $emailHtml), $project->user->email, 'project.status_changed');
         $this->inApp($project->user, 'Status Proyek Diperbarui', $message, '/dashboard/pesanan/' . $project->id, 'project.status_changed');
+    }
+
+    /**
+     * Kirim notifikasi in-app (database) ke satu atau banyak user.
+     */
+    public function inApp(iterable|User $users, string $title, string $message, ?string $url = null, ?string $event = null): void
+    {
+        if ($event && !$this->eventEnabled($event, 'inapp')) {
+            return;
+        }
+
+        if ($users instanceof User) {
+            $users = collect([$users]);
+        }
+
+        foreach ($users as $user) {
+            if (!$user->notif_inapp) {
+                continue;
+            }
+
+            $user->notify(new InAppNotification($title, $message, $url, $event));
+        }
     }
 
     /**

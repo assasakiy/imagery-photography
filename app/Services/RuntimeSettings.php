@@ -296,16 +296,6 @@ class RuntimeSettings
         return $this->get('login_remember_enabled') === '1';
     }
 
-    public function previewExpiryDays(): int
-    {
-        return (int) $this->get('preview_expiry_days', '30');
-    }
-
-    public function archiveDelayDays(): int
-    {
-        return (int) $this->get('archive_delay_days', '60');
-    }
-
     public function globalLoginMethods(): array
     {
         $raw = $this->get('login_methods_global');
