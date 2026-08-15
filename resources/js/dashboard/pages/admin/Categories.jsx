@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
-import api from '../../../api';
-import Icon from '../../../components/Icon';
-import { PageHeader, EmptyState, Modal, Confirm, Field, useToast } from '../../../components/ui';
-import Skeleton from '../../../components/Skeleton';
+import api from '../../api';
+import Icon from '../../components/Icon';
+import { PageHeader, EmptyState, Modal, Confirm, Field, useToast } from '../../components/ui';
+import Skeleton from '../../components/Skeleton';
 
 const emptyForm = { name: '', description: '' };
 
-export default function BlogCategories() {
+export default function Categories() {
     const [items, setItems] = useState([]);
     const [loading, setLoading] = useState(true);
     const [open, setOpen] = useState(false);
@@ -71,8 +71,8 @@ export default function BlogCategories() {
     return (
         <>
             <PageHeader
-                title="Kategori Blog"
-                subtitle="Kelompokkan artikel berdasarkan kategori."
+                title="Kategori"
+                subtitle="Kelompokkan konten (artikel & portofolio) berdasarkan kategori."
                 action={
                     <button className="btn-primary" onClick={openCreate}>
                         <Icon name="plus" size={18} /> Tambah Kategori

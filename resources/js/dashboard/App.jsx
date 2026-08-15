@@ -81,7 +81,7 @@ const Landing = lazy(pageImports['/dashboard/landing']);
 const Settings = lazy(pageImports['/dashboard/settings']);
 const Blog = lazy(pageImports['/dashboard/blog']);
 const CreateEditBlog = lazy(pageImports['/dashboard/blog/create']);
-const BlogCategories = lazy(pageImports['/dashboard/kategori']);
+const Categories = lazy(pageImports['/dashboard/kategori']);
 const BlogTags = lazy(pageImports['/dashboard/blog/tags']);
 const Faq = lazy(pageImports['/dashboard/faq']);
 const Pages = lazy(pageImports['/dashboard/pages']);
@@ -173,7 +173,7 @@ function AppRoutes() {
                 <Route path="blog" element={withSuspense(<Protected adminOnly><Blog /></Protected>, 'table')} />
                 <Route path="blog/create" element={withSuspense(<Protected adminOnly><CreateEditBlog /></Protected>, 'form')} />
                 <Route path="blog/:id/edit" element={withSuspense(<Protected adminOnly><CreateEditBlog /></Protected>, 'form')} />
-                <Route path="kategori" element={withSuspense(<Protected adminOnly><BlogCategories /></Protected>, 'table')} />
+                <Route path="kategori" element={withSuspense(<Protected adminOnly><Categories /></Protected>, 'table')} />
                 <Route path="blog/tags" element={withSuspense(<Protected adminOnly><BlogTags /></Protected>, 'table')} />
                 <Route path="faq" element={withSuspense(<Protected adminOnly><Faq /></Protected>, 'table')} />
                 <Route path="pages" element={withSuspense(<Protected adminOnly><Pages /></Protected>, 'table')} />
