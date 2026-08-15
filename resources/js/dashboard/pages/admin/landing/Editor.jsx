@@ -180,11 +180,7 @@ export default function Editor() {
                     { type: 'blog', ...form.sections.blog },
                     { type: 'cta', ...form.sections.cta },
                 ];
-                sections.forEach((sec, i) => {
-                    Object.entries(sec).forEach(([k, v]) => {
-                        formData.append(`sections[${i}][${k}]`, v);
-                    });
-                });
+                formData.append('sections', JSON.stringify(sections));
 
                 if (form.images) {
                     ['hero_image', 'about_image'].forEach((key) => {
@@ -377,7 +373,7 @@ export default function Editor() {
                                     </Field>
                                     <Field label="Stats (ikon + angka)">
                                         <div className="space-y-3">
-                                            {(about.stats || []).map((stat, idx) => (
+                                            {(Array.isArray(about.stats) ? about.stats : []).map((stat, idx) => (
                                                 <div key={idx} className="flex gap-2 items-center">
                                                     <input className="input w-24" placeholder="Nilai (misal: 500+)" value={stat.value || ''} onChange={(e) => updateStat(idx, 'value', e.target.value)} />
                                                     <input className="input flex-1" placeholder="Label (misal: Momen Terabadikan)" value={stat.label || ''} onChange={(e) => updateStat(idx, 'label', e.target.value)} />

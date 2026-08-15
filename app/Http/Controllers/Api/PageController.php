@@ -37,6 +37,11 @@ class PageController extends Controller
 
     protected function save(Request $request, ?Page $page = null)
     {
+        if ($request->has('sections') && is_string($request->input('sections'))) {
+            $decoded = json_decode($request->input('sections'), true);
+            $request->merge(['sections' => is_array($decoded) ? $decoded : null]);
+        }
+
         $data = Validator::make($request->all(), [
             'title' => 'required|string|max:255',
             'description' => 'nullable|string|max:500',
