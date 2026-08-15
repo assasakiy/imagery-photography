@@ -82,6 +82,8 @@ export default function Editor() {
                     badge: data.badge || '',
                     button_text: data.button_text || '',
                     button_link: data.button_link || '',
+                    button2_text: data.button2_text || '',
+                    button2_link: data.button2_link || '',
                     content: data.content || '',
                     published: !!data.published,
                 };
@@ -166,6 +168,8 @@ export default function Editor() {
                 formData.append('badge', form.badge || '');
                 formData.append('button_text', form.button_text || '');
                 formData.append('button_link', form.button_link || '');
+                formData.append('button2_text', form.button2_text || '');
+                formData.append('button2_link', form.button2_link || '');
                 formData.append('published', form.published ? '1' : '0');
                 formData.append('content', form.content || '');
 
@@ -212,6 +216,8 @@ export default function Editor() {
                     badge: form.badge || null,
                     button_text: form.button_text || null,
                     button_link: form.button_link || null,
+                    button2_text: form.button2_text || null,
+                    button2_link: form.button2_link || null,
                     content: form.content,
                     published: form.published,
                 };
@@ -309,13 +315,28 @@ export default function Editor() {
                         )}
                     </Field>
 
-                    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                        <Field label="Teks Tombol" hint="Kosongkan untuk tanpa tombol">
-                            <input className="input" value={form.button_text || ''} onChange={(e) => setForm({ ...form, button_text: e.target.value })} placeholder="Lihat Galeri" />
-                        </Field>
-                        <Field label="Link Tombol">
-                            <input className="input" value={form.button_link || ''} onChange={(e) => setForm({ ...form, button_link: e.target.value })} placeholder="/gallery" />
-                        </Field>
+                    <div className="rounded-xl border border-line bg-surface-muted/50 p-4 space-y-3">
+                        <p className="text-sm font-semibold text-ink">Tombol Utama</p>
+                        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                            <Field label="Teks Tombol" hint="Kosongkan untuk tanpa tombol">
+                                <input className="input" value={form.button_text || ''} onChange={(e) => setForm({ ...form, button_text: e.target.value })} placeholder="Lihat Galeri" />
+                            </Field>
+                            <Field label="Link Tombol">
+                                <input className="input" value={form.button_link || ''} onChange={(e) => setForm({ ...form, button_link: e.target.value })} placeholder="/gallery" />
+                            </Field>
+                        </div>
+                    </div>
+
+                    <div className="rounded-xl border border-line bg-surface-muted/50 p-4 space-y-3">
+                        <p className="text-sm font-semibold text-ink">Tombol Kedua</p>
+                        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                            <Field label="Teks Tombol" hint="Kosongkan untuk tanpa tombol">
+                                <input className="input" value={form.button2_text || ''} onChange={(e) => setForm({ ...form, button2_text: e.target.value })} placeholder="Lihat Layanan" />
+                            </Field>
+                            <Field label="Link Tombol">
+                                <input className="input" value={form.button2_link || ''} onChange={(e) => setForm({ ...form, button2_link: e.target.value })} placeholder="/services" />
+                            </Field>
+                        </div>
                     </div>
 
                     {isHome && (

@@ -26,8 +26,15 @@
         @if ($resolvedSubtitle)
             <p class="mt-4 max-w-2xl text-ink-muted {{ $align === 'center' ? 'mx-auto' : '' }}">{{ $resolvedSubtitle }}</p>
         @endif
-        @if ($ctaText && $ctaLink)
-            <a href="{{ $ctaLink }}" class="btn-primary mt-8 inline-flex">{{ $ctaText }}</a>
+        @if (($ctaText && $ctaLink) || (($page->button2_text ?? '') && ($page->button2_link ?? '')))
+            <div class="mt-8 flex flex-wrap gap-3 {{ $align === 'center' ? 'justify-center' : '' }}">
+                @if ($ctaText && $ctaLink)
+                    <a href="{{ $ctaLink }}" class="btn-primary inline-flex">{{ $ctaText }}</a>
+                @endif
+                @if (($page->button2_text ?? '') && ($page->button2_link ?? ''))
+                    <a href="{{ $page->button2_link }}" class="btn-outline inline-flex">{{ $page->button2_text }}</a>
+                @endif
+            </div>
         @endif
     </div>
 </section>

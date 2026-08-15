@@ -45,6 +45,8 @@ class PageController extends Controller
             'badge' => 'nullable|string|max:100',
             'button_text' => 'nullable|string|max:100',
             'button_link' => 'nullable|string|max:255',
+            'button2_text' => 'nullable|string|max:100',
+            'button2_link' => 'nullable|string|max:255',
             'content' => 'nullable|string',
             'published' => 'boolean',
             'sections' => 'nullable|array',
@@ -59,6 +61,8 @@ class PageController extends Controller
             'badge' => $data['badge'] ?? null,
             'button_text' => $data['button_text'] ?? null,
             'button_link' => $data['button_link'] ?? null,
+            'button2_text' => $data['button2_text'] ?? null,
+            'button2_link' => $data['button2_link'] ?? null,
             'content' => ContentSanitizer::clean($data['content'] ?? ''),
             'published' => (bool) ($data['published'] ?? true),
         ];

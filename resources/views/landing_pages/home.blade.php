@@ -12,6 +12,8 @@
         $homeSubtitle = $page->hero_subtitle ?: ($contents['hero_subtitle'] ?? 'Mengabadikan momen berharga Anda menjadi warisan visual.');
         $homeBtnText = $page->button_text ?: 'Lihat Galeri';
         $homeBtnLink = $page->button_link ?: route('gallery');
+        $homeBtn2Text = $page->button2_text ?: 'Lihat Layanan';
+        $homeBtn2Link = $page->button2_link ?: route('services');
     @endphp
 
     {{-- Hero --}}
@@ -40,7 +42,9 @@
                         {{ $homeBtnText }}
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14m-7-7 7 7-7 7"/></svg>
                     </a>
-                    <a href="{{ route('services') }}" class="btn border border-white/25 bg-white/10 text-white backdrop-blur hover:bg-white/20">Lihat Layanan</a>
+                    @if ($homeBtn2Text)
+                        <a href="{{ $homeBtn2Link }}" class="btn border border-white/25 bg-white/10 text-white backdrop-blur hover:bg-white/20">{{ $homeBtn2Text }}</a>
+                    @endif
                 </div>
             </div>
         </div>
