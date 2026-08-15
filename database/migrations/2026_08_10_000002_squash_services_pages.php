@@ -73,6 +73,11 @@ return new class extends Migration
             $table->string('description', 500)->nullable();
             $table->string('hero_title')->nullable();
             $table->string('hero_subtitle')->nullable();
+            $table->string('badge', 100)->nullable();
+            $table->string('button_text', 100)->nullable();
+            $table->string('button_link', 255)->nullable();
+            $table->string('button2_text', 100)->nullable();
+            $table->string('button2_link', 255)->nullable();
             $table->json('sections')->nullable();
             $table->json('images')->nullable();
             $table->longText('content');
@@ -212,6 +217,11 @@ return new class extends Migration
                 'description' => 'Sopian Lalu Imagery - Photography & Videography profesional. Mengabadikan momen berharga Anda di Lombok.',
                 'hero_title' => 'Sopian Lalu Imagery',
                 'hero_subtitle' => 'Mengabadikan momen berharga Anda menjadi warisan visual.',
+                'badge' => 'Photography & Videography',
+                'button_text' => 'Lihat Galeri',
+                'button_link' => '/gallery',
+                'button2_text' => 'Lihat Layanan',
+                'button2_link' => '/services',
                 'content' => '',
                 'sections' => $homeSections,
                 'images' => json_encode([
