@@ -34,7 +34,7 @@
                 <h1 class="text-4xl font-bold leading-tight tracking-tight text-white sm:text-5xl md:text-6xl">
                     {{ $homeTitle }}
                 </h1>
-                <p class="mt-5 max-w-xl text-base leading-relaxed text-zinc-200 sm:text-lg">
+                <p class="hero-content mt-5 max-w-xl text-base leading-relaxed text-zinc-200 sm:text-lg">
                     {!! content_html($homeSubtitle) !!}
                 </p>
                 <div class="mt-8 flex flex-wrap gap-3">
