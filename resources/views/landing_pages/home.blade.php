@@ -20,7 +20,7 @@
     <section class="relative flex min-h-[88vh] items-center overflow-hidden">
         <div class="absolute inset-0">
             <img src="{{ $heroImage }}" alt="Hero Sopian Lalu Imagery" class="h-full w-full object-cover object-center">
-            <div class="absolute inset-0 bg-zinc-950/95 dark:bg-black/95"></div>
+            <div class="absolute inset-0 bg-zinc-950/70 dark:bg-black/70"></div>
         </div>
 
         <div class="container-site relative py-24">
