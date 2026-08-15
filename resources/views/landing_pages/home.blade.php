@@ -17,13 +17,11 @@
     @endphp
 
     {{-- Hero --}}
-    <section class="relative -mt-16 flex min-h-screen items-center justify-center overflow-hidden">
-        <div class="absolute inset-0 z-0">
-            <img src="{{ $heroImage }}" alt="Hero Sopian Lalu Imagery" class="h-full w-full object-cover object-center">
-            <div class="absolute inset-0 bg-zinc-950/70 dark:bg-black/70"></div>
-        </div>
+    <section class="relative flex min-h-[100vh] -mt-16 items-center overflow-hidden">
+        <img src="{{ $heroImage }}" alt="Hero Sopian Lalu Imagery" class="absolute inset-0 h-full w-full object-cover object-center">
+        <div class="absolute inset-0 bg-zinc-950/70 dark:bg-black/70"></div>
 
-        <div class="container-site relative z-10 w-full pt-32 pb-24">
+        <div class="container-site relative pt-32 pb-24">
             <div class="max-w-2xl">
                 <p class="mb-4 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-white backdrop-blur">
                     <span class="h-2 w-2 rounded-full bg-brand-400"></span>
