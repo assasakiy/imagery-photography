@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 class Blog extends Model implements HasMedia
 {
@@ -31,9 +32,9 @@ class Blog extends Model implements HasMedia
         return $this->belongsTo(User::class, 'author_id');
     }
 
-    public function category()
+    public function categories()
     {
-        return $this->belongsTo(BlogCategory::class, 'category_id');
+        return $this->morphToMany(Category::class, 'categorizable');
     }
 
     public function tags()
@@ -50,6 +51,19 @@ class Blog extends Model implements HasMedia
     {
         $this->addMediaCollection('cover')->singleFile();
         $this->addMediaCollection('content_images');
+    }
+
+    public function registerMediaConversions(?Media $media = null): void
+    {
+        $this->addMediaConversion('thumbnail')
+            ->width(400)
+            ->format('webp')
+            ->nonQueued();
+
+        $this->addMediaConversion('medium')
+            ->width(1200)
+            ->format('webp')
+            ->nonQueued();
     }
 
     public function scopePublished($query)
@@ -70,17 +84,30 @@ class Blog extends Model implements HasMedia
         return $query->orderByDesc('views_count')->orderByDesc('published_at')->take($limit);
     }
 
-    public function resolveCoverUrl(): string
+    public function resolveCoverUrl(): ?string
     {
-        if ($media = $this->coverMedia()) {
-            return $media->getUrl();
-        }
+        try {
+            if ($media = $this->coverMedia()) {
+                return $media->getUrl();
+            }
+        } catch (\Throwable $e) {}
 
         if (!empty($this->image_url)) {
             return $this->image_url;
         }
 
-        return asset('storage/placeholders/portfolio-placeholder.svg');
+        return null;
+    }
+
+    public function getThumbnailUrlAttribute(): ?string
+    {
+        try {
+            if ($media = $this->coverMedia()) {
+                return $media->getUrl('medium');
+            }
+        } catch (\Throwable $e) {}
+
+        return $this->resolveCoverUrl();
     }
 
     public static function uniqueSlug(string $title, ?int $ignoreId = null): string

@@ -15,6 +15,7 @@ export default function MediaPicker({ open, onClose, onSelect, title = 'Pilih Me
     const [meta, setMeta] = useState({});
     const [loading, setLoading] = useState(false);
     const [uploading, setUploading] = useState(false);
+    const [importing, setImporting] = useState(false);
     const [search, setSearch] = useState('');
     const [dragOver, setDragOver] = useState(false);
     const [urlText, setUrlText] = useState('');
@@ -65,6 +66,22 @@ export default function MediaPicker({ open, onClose, onSelect, title = 'Pilih Me
         if (!selected) return;
         onSelect?.(selected);
         onClose();
+    };
+
+    const importUrl = async () => {
+        if (!urlText.trim()) return;
+        setImporting(true);
+        try {
+            const { data: media } = await api.post('/media/import', { url: urlText.trim() });
+            setSelected({ source: 'url', mediaId: media.id, url: media.url });
+            loadLibrary(1);
+            show('Media diimpor ke Library.');
+        } catch (e) {
+            const msg = e?.response?.data?.message || 'Gagal mengimpor URL.';
+            show(msg, 'error');
+        } finally {
+            setImporting(false);
+        }
     };
 
     const previewUrl = selected?.url || (tab === 'url' && urlText.trim());
@@ -196,11 +213,12 @@ export default function MediaPicker({ open, onClose, onSelect, title = 'Pilih Me
                     )}
                     <button
                         type="button"
-                        className="btn-primary w-full"
-                        disabled={!urlText.trim()}
-                        onClick={() => setSelected({ source: 'url', url: urlText.trim() })}
+                        className="btn-primary w-full disabled:opacity-40"
+                        disabled={!urlText.trim() || importing}
+                        onClick={importUrl}
                     >
-                        Pakai URL ini
+                        {importing ? <ButtonSpinner /> : 'Impor & Gunakan'}
+                        {!importing && <Icon name="link" size={16} className="ml-2" />}
                     </button>
                 </div>
             )}

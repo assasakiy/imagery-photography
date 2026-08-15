@@ -133,7 +133,7 @@
                     @foreach ($featured as $item)
                         <a href="{{ route('gallery') }}" class="group overflow-hidden rounded-xl border border-line">
                             <div class="aspect-square overflow-hidden">
-                                <img src="{{ watermark_url($item->cover_url) }}" alt="{{ $item->title }}" loading="lazy" class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105">
+                                <img src="{{ $item->thumbnail_url }}" alt="{{ $item->title }}" loading="lazy" class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105">
                             </div>
                         </a>
                     @endforeach

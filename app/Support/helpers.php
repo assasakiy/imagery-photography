@@ -18,8 +18,11 @@ if (! function_exists('content_plain')) {
 }
 
 if (! function_exists('watermark_url')) {
-    function watermark_url(string $source): string
+    function watermark_url(?string $source): string
     {
+        if ($source === null || $source === '') {
+            return '';
+        }
         return app(\App\Services\WatermarkService::class)->publicUrl($source);
     }
 }

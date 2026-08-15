@@ -99,6 +99,8 @@ Route::middleware(['web', 'auth:sanctum', 'maintenance'])->group(function () {
     Route::post('/bookmarks', [BookmarkController::class, 'store']);
     Route::delete('/bookmarks/{type}/{id}', [BookmarkController::class, 'destroy'])->where(['type' => 'blog|portfolio|package']);
 
+    Route::apiResource('categories', \App\Http\Controllers\Api\CategoryController::class)->names('api.categories')->except(['create', 'edit']);
+
     Route::get('/history', [HistoryController::class, 'index']);
 
     Route::middleware('role:owner|admin')->group(function () {
@@ -141,6 +143,7 @@ Route::middleware(['web', 'auth:sanctum', 'maintenance'])->group(function () {
         Route::apiResource('media', MediaController::class)
             ->parameters(['media' => 'media'])
             ->only(['index', 'store', 'update', 'destroy']);
+        Route::post('/media/import', [MediaController::class, 'importFromUrl']);
         Route::apiResource('services', ServiceController::class)->except(['create', 'edit']);
         Route::apiResource('packages', PackageController::class)->except(['create', 'edit']);
         Route::apiResource('service-categories', ServiceCategoryController::class)->except(['create', 'edit']);
@@ -176,7 +179,6 @@ Route::middleware(['web', 'auth:sanctum', 'maintenance'])->group(function () {
 
         Route::middleware('permission:manage-blog')->group(function () {
             Route::apiResource('blog', BlogController::class)->names('api.blog')->except(['create', 'edit']);
-            Route::apiResource('blog-categories', BlogCategoryController::class)->except(['create', 'edit']);
             Route::apiResource('blog-tags', BlogTagController::class)->except(['create', 'edit']);
         });
 

@@ -45,23 +45,6 @@ document.addEventListener('DOMContentLoaded', () => {
         revealEls.forEach((el) => el.classList.add('is-visible'));
     }
 
-    // ---- Gallery filter ----
-    const filterButtons = document.querySelectorAll('[data-filter]');
-    const galleryItems = document.querySelectorAll('[data-gallery-item]');
-    filterButtons.forEach((btn) => {
-        btn.addEventListener('click', () => {
-            const filter = btn.dataset.filter;
-            filterButtons.forEach((b) => {
-                b.classList.toggle('active-filter', b === btn);
-                b.setAttribute('aria-pressed', b === btn ? 'true' : 'false');
-            });
-            galleryItems.forEach((item) => {
-                const match = filter === 'all' || item.dataset.category === filter;
-                item.classList.toggle('hidden', !match);
-            });
-        });
-    });
-
     // ---- Lightbox ----
     const lightbox = document.querySelector('[data-lightbox]');
     const lightboxImg = lightbox?.querySelector('img');

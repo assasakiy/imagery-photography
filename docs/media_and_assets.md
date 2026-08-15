@@ -1,5 +1,50 @@
 # Manajemen Media & Aset
 
+## Pipeline Media Publik (Portfolio & Blog)
+
+Sejak 2026-08-15, alur media publik di-desain agar **URL eksternal hanya menjadi sumber import** (satu kali), lalu Spatie Media Library menjadi *source of truth*:
+
+```text
+External URL (WordPress/manual)
+     │
+     │ import 1× (MediaController / media:import-covers)
+     ▼
+Spatie Media Library
+     ├── original (koleksi `cover`)
+     │      ├── thumbnail.webp  (conversion, ≤800px / Blog ≤400px)  → card/grid + admin
+     │      └── medium.webp     (Blog saja, ≤1200px)                → card blog
+     │
+     └── original ─→ WatermarkService (GD) ─→ cache watermarked ─→ lightbox/detail publik
+```
+
+- **Card publik** pakai `thumbnail_url` (conversion, bersih/tanpa watermark) untuk Portfolio (`home`, `about`, `gallery/` index+category+related) dan Blog (`partials/blog-card`, related).
+- **Lightbox/detail** Portfolio pakai `watermark_url($portfolio->cover_url)` — `WatermarkService::publicUrl()` mendaftar aset di tabel `watermarked_assets`, file cache di `storage/app/watermarked`, `serve()` meng-generate on-demand via GD (teks miring diagonal, font `Noto Sans`/`RedHat`).
+- **Admin/editor** selalu melihat original (`cover_url`).
+- **Blog** tanpa watermark: hero/content pakai media original/conversion biasa, tidak diliput WatermarkService.
+
+### Conversion Spatie
+```php
+// Portfolio
+$this->addMediaConversion('thumbnail')->width(800)->format('webp')->nonQueued();
+// Blog
+$this->addMediaConversion('thumbnail')->width(400)->format('webp')->nonQueued();
+$this->addMediaConversion('medium')->width(1200)->format('webp')->nonQueued();
+```
+Semua conversion `nonQueued()` → diproses sinkron saat media di-import (tidak menunggu queue worker). Media lama yang dibuat sebelum conversion ada perlu `FileManipulator::createDerivedFiles()` / `media-library:regenerate`.
+
+### Aksesor & URL
+- `Portfolio::thumbnail_url` / `Blog::thumbnail_url` → URL conversion; fallback ke `cover_url`/`image_url`.
+- `Portfolio::cover_url` → original media; fallback `image_url`.
+- API `/api/portfolios` & `/api/blog` mengekspor `thumbnail_url` + `cover_url` + `media_id` (+ `image_url` lama).
+
+### Import URL
+- `POST /api/media/import {url}` → unduh URL → koleksi `library` Media Library global, kembalikan `mediaId` (tab URL di `MediaPicker.jsx`).
+- Command backfill `php artisan media:import-covers` mengimpor `image_url` lama ke koleksi `cover` lalu menghapus `image_url`.
+
+### Catatan Operasional
+- php-fpm berjalan sebagai `apache` (SELinux Enforcing); CLI `opc` tidak bisa tulis `storage/app/public`. Seeder/command media jalankan `sudo -u apache` dengan `HOME=/tmp XDG_CONFIG_HOME=/tmp XDG_CACHE_HOME=/tmp`.
+- Generate watermark massal: `php artisan media:watermark --fresh`.
+
 ## Spatie Media Library
 Sistem file menggunakan `spatie/laravel-medialibrary` sebagai mesin utamanya. Semua unggahan terkait portofolio, user, dan proyek diubah menjadi *Media Collection*.
 

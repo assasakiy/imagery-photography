@@ -14,14 +14,14 @@ class BlogController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Blog::with(['author:id,username', 'author.profile', 'category:id,name', 'tags:id,name']);
+        $query = Blog::with(['author:id,username', 'author.profile', 'categories:id,name,slug', 'tags:id,name']);
 
         if ($status = $request->input('status')) {
             $query->where('status', $status);
         }
 
         if ($categoryId = $request->integer('category_id')) {
-            $query->where('category_id', $categoryId);
+            $query->whereHas('categories', fn ($q) => $q->where('categories.id', $categoryId));
         }
 
         if ($q = trim((string) $request->input('q'))) {
@@ -42,7 +42,7 @@ class BlogController extends Controller
 
     public function show(Blog $blog)
     {
-        return response()->json($this->serialize($blog->load(['author:id,username', 'author.profile', 'category:id,name', 'tags:id,name'])));
+        return response()->json($this->serialize($blog->load(['author:id,username', 'author.profile', 'categories:id,name,slug', 'tags:id,name'])));
     }
 
     public function store(Request $request)
@@ -67,7 +67,9 @@ class BlogController extends Controller
 
         $this->syncTags($blog, $request->input('tags', []));
 
-        return response()->json($this->serialize($blog->load(['author:id,username', 'author.profile', 'category:id,name', 'tags:id,name'])), 201);
+        $this->syncCategories($blog, $request);
+
+        return response()->json($this->serialize($blog->load(['author:id,username', 'author.profile', 'categories:id,name,slug', 'tags:id,name'])), 201);
     }
 
     public function update(Request $request, Blog $blog)
@@ -94,7 +96,9 @@ class BlogController extends Controller
 
         $this->syncTags($blog, $request->input('tags', []));
 
-        return response()->json($this->serialize($blog->load(['author:id,username', 'author.profile', 'category:id,name', 'tags:id,name'])));
+        $this->syncCategories($blog, $request);
+
+        return response()->json($this->serialize($blog->load(['author:id,username', 'author.profile', 'categories:id,name,slug', 'tags:id,name'])));
     }
 
     private function syncInlineImages(Blog $blog): void
@@ -155,6 +159,12 @@ class BlogController extends Controller
         $blog->tags()->sync($ids);
     }
 
+    private function syncCategories(Blog $blog, Request $request): void
+    {
+        $ids = collect($request->input('category_ids', []))->filter()->map(fn ($id) => (int) $id)->unique()->values();
+        $blog->categories()->sync($ids);
+    }
+
     private function applyPublishing(array &$data, ?Blog $blog = null): void
     {
         if (($data['status'] ?? 'draft') === 'published') {
@@ -170,7 +180,8 @@ class BlogController extends Controller
     {
         $data = Validator::make($request->all(), [
             'title' => 'required|string|max:255',
-            'category_id' => 'nullable|integer|exists:blog_categories,id',
+            'category_ids' => 'nullable|array',
+            'category_ids.*' => 'integer|exists:categories,id',
             'excerpt' => 'nullable|string|max:500',
             'content' => 'required|string',
             'image_url' => 'nullable|url|max:2048',
@@ -199,9 +210,15 @@ class BlogController extends Controller
             'content' => $blog->content,
             'status' => $blog->status,
             'author' => $blog->author ? ['id' => $blog->author->id, 'name' => $blog->author->name] : null,
-            'category' => $blog->category ? ['id' => $blog->category->id, 'name' => $blog->category->name] : null,
+            'category' => $blog->categories->isNotEmpty() ? [
+                'id' => $blog->categories->first()->id,
+                'name' => $blog->categories->first()->name,
+                'slug' => $blog->categories->first()->slug,
+            ] : null,
+            'categories' => $blog->categories->map(fn ($cat) => ['id' => $cat->id, 'name' => $cat->name, 'slug' => $cat->slug])->values(),
             'tags' => $blog->tags->map(fn ($tag) => ['id' => $tag->id, 'name' => $tag->name])->values(),
             'cover_url' => $blog->resolveCoverUrl(),
+            'thumbnail_url' => $blog->thumbnail_url,
             'has_local_media' => (bool) $cover,
             'media_id' => $cover?->id,
             'image_url' => $blog->image_url,

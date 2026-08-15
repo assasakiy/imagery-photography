@@ -76,6 +76,40 @@ class MediaController extends Controller
         return response()->json($this->serialize($media), 201);
     }
 
+    public function importFromUrl(Request $request)
+    {
+        $request->validate([
+            'url' => 'required|url|max:2048',
+            'name' => 'nullable|string|max:255',
+        ]);
+
+        $library = MediaLibrary::singleton();
+
+        try {
+            $url = $request->input('url');
+
+            $media = $library->addMediaFromUrl($url)
+                ->usingFileName(basename(parse_url($url, PHP_URL_PATH)) ?: 'import.jpg')
+                ->toMediaCollection('library');
+
+            $media->uploaded_by = $request->user()->id;
+            $media->is_public = $request->boolean('is_public', true);
+            $media->save();
+
+            if ($request->filled('name')) {
+                $media->update(['name' => $request->input('name')]);
+            }
+
+            app(\App\Services\AuditLogger::class)->log('media.created', 'Media diimpor dari URL: ' . $media->file_name, $media);
+
+            return response()->json($this->serialize($media), 201);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'message' => 'Gagal mengimpor URL. Pastikan link menunjuk ke file gambar yang dapat diunduh.',
+            ], 422);
+        }
+    }
+
     public function destroy(Media $media)
     {
         $media->delete();

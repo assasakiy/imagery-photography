@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Blog;
-use App\Models\BlogCategory;
+use App\Models\Category;
 use App\Models\BlogTag;
 use App\Models\User;
 
@@ -11,13 +11,13 @@ class BlogController extends Controller
 {
     public function index()
     {
-        $query = Blog::with(['author', 'category', 'tags'])->published()->latest('published_at');
+        $query = Blog::with(['author', 'categories', 'tags'])->published()->latest('published_at');
 
         if ($slug = request('category')) {
-            $category = BlogCategory::where('slug', $slug)->first();
+            $category = Category::where('slug', $slug)->first();
 
             if ($category) {
-                $query->where('category_id', $category->id);
+                $query->whereHas('categories', fn ($q) => $q->where('categories.id', $category->id));
             }
         }
 
@@ -37,18 +37,18 @@ class BlogController extends Controller
 
         $posts = $query->paginate(9)->withQueryString();
 
-        $categories = BlogCategory::withCount('publishedPosts')->get();
+        $categories = $this->activeCategories();
         $tags = BlogTag::withCount('posts')->get();
 
-        $featured = Blog::with(['author', 'category', 'tags'])->published()->featured()
+        $featured = Blog::with(['author', 'categories', 'tags'])->published()->featured()
             ->latest('published_at')->take(5)->get();
 
         if ($featured->isEmpty()) {
-            $featured = Blog::with(['author', 'category', 'tags'])->published()
+            $featured = Blog::with(['author', 'categories', 'tags'])->published()
                 ->latest('published_at')->take(5)->get();
         }
 
-        $popular = Blog::with(['author', 'category', 'tags'])->published()
+        $popular = Blog::with(['author', 'categories', 'tags'])->published()
             ->orderByDesc('views_count')->orderByDesc('published_at')->take(5)->get();
 
         return view('landing_pages.blog.index', compact('posts', 'categories', 'tags', 'featured', 'popular'));
@@ -56,7 +56,7 @@ class BlogController extends Controller
 
     public function show(string $slug)
     {
-        $post = Blog::with(['author', 'category', 'tags'])
+        $post = Blog::with(['author', 'categories', 'tags'])
             ->published()
             ->where('slug', $slug)
             ->firstOrFail();
@@ -67,9 +67,10 @@ class BlogController extends Controller
             app(\App\Services\HistoryService::class)->read($user, Blog::class, $post->id, ['title' => $post->title]);
         }
 
-        $related = Blog::published()
+        $related = Blog::with(['author', 'categories', 'tags'])->published()
             ->where('id', '!=', $post->id)
-            ->when($post->category_id, fn ($q) => $q->where('category_id', $post->category_id))
+            ->when($post->categories->isNotEmpty(), fn ($q) => $q
+                ->whereHas('categories', fn ($w) => $w->whereIn('categories.id', $post->categories->pluck('id'))))
             ->latest('published_at')
             ->take(3)
             ->get();
@@ -81,13 +82,13 @@ class BlogController extends Controller
     {
         $author = User::where('id', (int) $identifier)->firstOrFail();
 
-        $posts = Blog::with(['author', 'category', 'tags'])->published()
+        $posts = Blog::with(['author', 'categories', 'tags'])->published()
             ->where('author_id', $author->id)
             ->latest('published_at')
             ->paginate(9)
             ->withQueryString();
 
-        $categories = BlogCategory::withCount('publishedPosts')->get();
+        $categories = $this->activeCategories();
         $tags = BlogTag::withCount('posts')->get();
 
         return view('landing_pages.blog.author', compact('author', 'posts', 'categories', 'tags'));
@@ -95,15 +96,15 @@ class BlogController extends Controller
 
     public function category(string $slug)
     {
-        $category = BlogCategory::where('slug', $slug)->firstOrFail();
+        $category = Category::where('slug', $slug)->firstOrFail();
 
-        $posts = Blog::with(['author', 'category', 'tags'])->published()
-            ->where('category_id', $category->id)
+        $posts = Blog::with(['author', 'categories', 'tags'])->published()
+            ->whereHas('categories', fn ($q) => $q->where('categories.id', $category->id))
             ->latest('published_at')
             ->paginate(9)
             ->withQueryString();
 
-        $categories = BlogCategory::withCount('publishedPosts')->get();
+        $categories = $this->activeCategories();
 
         return view('landing_pages.blog.category', compact('category', 'posts', 'categories'));
     }
@@ -112,14 +113,22 @@ class BlogController extends Controller
     {
         $tag = BlogTag::where('slug', $slug)->firstOrFail();
 
-        $posts = Blog::with(['author', 'category', 'tags'])->published()
+        $posts = Blog::with(['author', 'categories', 'tags'])->published()
             ->whereHas('tags', fn ($q) => $q->where('blog_tags.id', $tag->id))
             ->latest('published_at')
             ->paginate(9)
             ->withQueryString();
 
-        $categories = BlogCategory::withCount('publishedPosts')->get();
+        $categories = $this->activeCategories();
 
         return view('landing_pages.blog.tag', compact('tag', 'posts', 'categories'));
+    }
+
+    protected function activeCategories()
+    {
+        return Category::withCount(['blogs' => fn ($q) => $q->published()])
+            ->having('blogs_count', '>', 0)
+            ->orderBy('name')
+            ->get();
     }
 }

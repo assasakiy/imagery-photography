@@ -3,11 +3,13 @@ import api from '../../api';
 import Icon from '../../components/Icon';
 import MediaPicker from '../../components/MediaPicker';
 import { PageHeader, EmptyState, Modal, Confirm, Field, useToast, formatDate } from '../../components/ui';
-import Skeleton from '../../components/Skeleton';
+import { SkeletonCard, SkeletonGrid } from '../../components/ui/skeleton';
+import SearchableMultiSelect from '../../components/SearchableMultiSelect';
+import CustomSelect from '../../components/CustomSelect';
 
 const emptyForm = {
     title: '',
-    category: '',
+    category_ids: [],
     description: '',
     is_featured: false,
     order: 0,
@@ -28,6 +30,8 @@ export default function Portfolio() {
     const [errors, setErrors] = useState({});
     const [saving, setSaving] = useState(false);
     const [deleting, setDeleting] = useState(null);
+    const [catSearch, setCatSearch] = useState('');
+    const [categories, setCategories] = useState([]);
     const [preview, setPreview] = useState('');
     const [mediaOpen, setMediaOpen] = useState(false);
     const { show, node } = useToast();
@@ -42,7 +46,10 @@ export default function Portfolio() {
             .finally(() => setLoading(false));
     };
 
-    useEffect(() => load(), []);
+    useEffect(() => {
+        load();
+        api.get('/categories').then(({ data }) => setCategories(data.data || data));
+    }, []);
 
     const openCreate = () => {
         setEditing(null);
@@ -52,20 +59,37 @@ export default function Portfolio() {
         setOpen(true);
     };
 
-    const openEdit = (item) => {
+    const openEdit = async (item) => {
         setEditing(item);
-        setForm({
-            title: item.title,
-            category: item.category || '',
-            description: item.description || '',
-            is_featured: Boolean(item.is_featured),
-            order: item.order || 0,
-            image_mode: item.has_local_media ? 'upload' : 'url',
-            image: null,
-            media_id: item.media_id || '',
-            image_url: item.image_url || '',
-            use_image_url: false,
-        });
+        try {
+            const currentCategoryIds = item.categories?.map(c => c.id) || [];
+            const checkedIds = new Set(currentCategoryIds);
+            setForm({
+                title: item.title,
+                category_ids: categories.filter(c => checkedIds.has(c.id)).map(c => c.id),
+                description: item.description || '',
+                is_featured: Boolean(item.is_featured),
+                order: item.order || 0,
+                image_mode: item.has_local_media ? 'upload' : 'url',
+                image: null,
+                media_id: item.media_id || '',
+                image_url: item.image_url || '',
+                use_image_url: false,
+            });
+        } catch (err) {
+            setForm({
+                title: item.title,
+                category_ids: [],
+                description: item.description || '',
+                is_featured: Boolean(item.is_featured),
+                order: item.order || 0,
+                image_mode: 'upload',
+                image: null,
+                media_id: item.media_id || '',
+                image_url: item.image_url || '',
+                use_image_url: false,
+            });
+        }
         setPreview(item.cover_url);
         setErrors({});
         setOpen(true);
@@ -88,7 +112,9 @@ export default function Portfolio() {
         try {
             const data = new FormData();
             data.append('title', form.title);
-            data.append('category', form.category);
+            if (form.category_ids && form.category_ids.length > 0) {
+                form.category_ids.forEach(id => data.append('category_ids[]', id));
+            }
             data.append('description', form.description);
             data.append('is_featured', form.is_featured ? '1' : '0');
             data.append('order', String(form.order || 0));
@@ -141,7 +167,9 @@ export default function Portfolio() {
             />
 
             {loading ? (
-                <Skeleton variant="card" />
+                <SkeletonGrid count={8} columns="sm:grid-cols-2 lg:grid-cols-4">
+                    <SkeletonCard image />
+                </SkeletonGrid>
             ) : items.length ? (
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                     {items.map((item) => (
@@ -162,7 +190,12 @@ export default function Portfolio() {
                             <div className="flex items-center justify-between gap-2 p-4">
                                 <div className="min-w-0">
                                     <p className="truncate text-sm font-semibold text-ink">{item.title}</p>
-                                    <p className="text-xs text-ink-muted">{item.category || 'Tanpa kategori'}</p>
+                                    <p className="text-xs text-ink-muted">{item.categories?.length > 0 ? (
+                                        <span>
+                                            <span className="font-medium text-brand-600">{item.categories[0].name}</span> &nbsp;•&nbsp; 
+                                            <span className="text-[10px]">{item.categories.length} kategori</span>
+                                        </span>
+                                    ) : 'Tanpa kategori'}</p>
                                 </div>
                                 <div className="flex shrink-0 gap-1">
                                     <button onClick={() => openEdit(item)} className="rounded-lg p-1.5 text-ink-muted hover:bg-surface-muted hover:text-brand-600" aria-label="Edit">
@@ -220,13 +253,43 @@ export default function Portfolio() {
 
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label className="label">Kategori</label>
-                            <input className="input" value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} placeholder="Wedding & Event" />
-                        </div>
-                        <div>
                             <label className="label">Urutan</label>
                             <input className="input" type="number" min="0" value={form.order} onChange={(e) => setForm({ ...form, order: e.target.value })} />
                         </div>
+                        <div className="pt-8">
+                            <label className="flex items-center gap-2 text-sm text-ink-muted cursor-pointer">
+                                <input type="checkbox" className="rounded text-brand-600 focus:ring-brand-500" checked={form.is_featured} onChange={(e) => setForm({ ...form, is_featured: e.target.checked })} />
+                                Tandai sebagai Karya Unggulan
+                            </label>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label className="label">Kategori</label>
+                        <SearchableMultiSelect 
+                            options={categories.map(c => ({ label: c.name, value: c.id }))}
+                            value={form.category_ids}
+                            onChange={ids => setForm({ ...form, category_ids: ids })}
+                            placeholder="Pilih kategori..."
+                            searchPlaceholder="Cari kategori..."
+                            emptyMessage="Kategori tidak ditemukan."
+                        />
+                        {form.category_ids?.length > 0 && (
+                            <div className="mt-3 p-3 bg-surface-muted border border-line rounded-md">
+                                <p className="text-xs font-semibold text-ink-muted mb-2">Pilih Kategori Utama</p>
+                                <CustomSelect
+                                    options={form.category_ids.map(id => {
+                                        const cat = categories.find(c => c.id === id);
+                                        return cat ? { label: cat.name, value: id } : null;
+                                    }).filter(Boolean)}
+                                    value={form.category_ids[0]}
+                                    onChange={(primaryId) => {
+                                        const otherIds = form.category_ids.filter(id => id !== primaryId);
+                                        setForm({ ...form, category_ids: [primaryId, ...otherIds] });
+                                    }}
+                                />
+                            </div>
+                        )}
                     </div>
 
                     <div>

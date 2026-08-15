@@ -14,8 +14,8 @@
         </nav>
 
         <header class="border-b border-line pb-8">
-            @if ($post->category)
-                <a href="{{ route('blog.category', $post->category->slug) }}" class="chip">{{ $post->category->name }}</a>
+            @if ($post->categories->isNotEmpty())
+                <a href="{{ route('blog.category', $post->categories->first()->slug) }}" class="chip">{{ $post->categories->first()->name }}</a>
             @endif
             <h1 class="mt-4 text-3xl font-extrabold leading-tight tracking-tight text-ink md:text-4xl">{{ $post->title }}</h1>
 
@@ -110,7 +110,7 @@
                     @foreach ($related as $item)
                         <a href="{{ route('blog.show', $item->slug) }}" class="group overflow-hidden rounded-2xl border border-line bg-surface transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
                             <div class="aspect-[16/9] overflow-hidden">
-                                <img src="{{ $item->resolveCoverUrl() }}" alt="{{ $item->title }}" loading="lazy" class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105">
+                                <img src="{{ $item->thumbnail_url }}" alt="{{ $item->title }}" loading="lazy" class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105">
                             </div>
                             <div class="p-4">
                                 <h3 class="line-clamp-2 font-bold leading-snug text-ink transition-colors group-hover:text-brand-600 dark:group-hover:text-brand-400">{{ $item->title }}</h3>

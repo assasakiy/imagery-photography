@@ -95,11 +95,11 @@
 
                 <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
                     @foreach ($portfolios as $portfolio)
-                        <a href="{{ route('gallery.show', $portfolio->slug) }}" class="reveal group relative overflow-hidden rounded-2xl ring-1 ring-line" data-lightbox-trigger data-title="{{ $portfolio->title }}" data-caption="{{ $portfolio->description }}">
-                            <img src="{{ watermark_url($portfolio->cover_url) }}" alt="{{ $portfolio->title }}" loading="lazy" class="aspect-[4/5] w-full object-cover transition-transform duration-500 group-hover:scale-105">
+                        <a href="{{ route('gallery.show', $portfolio->slug) }}" class="reveal group relative overflow-hidden rounded-2xl ring-1 ring-line">
+                            <img src="{{ $portfolio->thumbnail_url }}" alt="{{ $portfolio->title }}" loading="lazy" class="aspect-[4/5] w-full object-cover transition-transform duration-500 group-hover:scale-105">
                             <div class="absolute inset-0 bg-gradient-to-t from-zinc-950/80 via-zinc-950/10 to-transparent opacity-80 transition-opacity duration-300 group-hover:opacity-100"></div>
                             <div class="absolute inset-x-0 bottom-0 translate-y-2 p-5 opacity-90 transition-transform duration-300 group-hover:translate-y-0">
-                                <p class="text-xs font-semibold uppercase tracking-widest text-brand-300">{{ $portfolio->category }}</p>
+                                <p class="text-xs font-semibold uppercase tracking-widest text-brand-300">{{ $portfolio->categories->isNotEmpty() ? $portfolio->categories->pluck('name')->join(', ') : '' }}</p>
                                 <h3 class="mt-1 text-lg font-bold text-white">{{ $portfolio->title }}</h3>
                             </div>
                         </a>
@@ -248,11 +248,11 @@
                     @foreach ($blogs as $post)
                         <a href="{{ route('blog.show', $post->slug) }}" class="reveal card group flex flex-col overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-brand-600/10">
                             <div class="aspect-[16/9] overflow-hidden">
-                                <img src="{{ $post->resolveCoverUrl() }}" alt="{{ $post->title }}" loading="lazy" class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105">
+                                <img src="{{ $post->thumbnail_url }}" alt="{{ $post->title }}" loading="lazy" class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105">
                             </div>
                             <div class="flex flex-1 flex-col p-5">
-                                @if ($post->category)
-                                    <p class="text-xs font-semibold uppercase tracking-widest text-brand-600 dark:text-brand-400">{{ $post->category->name }}</p>
+                                @if ($post->categories->isNotEmpty())
+                                    <p class="text-xs font-semibold uppercase tracking-widest text-brand-600 dark:text-brand-400">{{ $post->categories->first()->name }}</p>
                                 @endif
                                 <h3 class="mt-2 line-clamp-2 text-lg font-bold text-ink transition-colors group-hover:text-brand-600 dark:group-hover:text-brand-400">{{ $post->title }}</h3>
                                 @if ($post->excerpt)

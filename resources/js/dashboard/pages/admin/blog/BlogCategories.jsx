@@ -19,7 +19,7 @@ export default function BlogCategories() {
 
     const load = () => {
         setLoading(true);
-        api.get('/blog-categories')
+        api.get('/categories')
             .then(({ data }) => setItems(data))
             .finally(() => setLoading(false));
     };
@@ -46,10 +46,10 @@ export default function BlogCategories() {
         setErrors({});
         try {
             if (editing) {
-                await api.put(`/blog-categories/${editing.id}`, form);
+                await api.put(`/categories/${editing.id}`, form);
                 show('Kategori diperbarui.');
             } else {
-                await api.post('/blog-categories', form);
+                await api.post('/categories', form);
                 show('Kategori ditambahkan.');
             }
             load();
@@ -62,7 +62,7 @@ export default function BlogCategories() {
     };
 
     const handleDelete = async () => {
-        await api.delete(`/blog-categories/${deleting.id}`);
+        await api.delete(`/categories/${deleting.id}`);
         show('Kategori dihapus.');
         setDeleting(null);
         load();

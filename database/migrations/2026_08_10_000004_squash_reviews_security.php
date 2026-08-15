@@ -8,7 +8,6 @@ return new class extends Migration
 {
     public function up(): void
     {
-        // ===== Review =====
         Schema::create('reviews', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('project_id')->nullable();
@@ -29,7 +28,6 @@ return new class extends Migration
             $table->foreign('project_id')->references('id')->on('projects')->onDelete('set null');
         });
 
-        // ===== Security & audit =====
         Schema::create('login_histories', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('user_id')->nullable();

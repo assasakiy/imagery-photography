@@ -5,7 +5,9 @@ import Icon from '../../../components/Icon';
 import RichEditor from '../../../components/RichEditor';
 import MediaPicker from '../../../components/MediaPicker';
 import { useToast, ButtonSpinner } from '../../../components/ui';
-import Skeleton from '../../../components/Skeleton';
+import { SkeletonForm } from '../../../components/ui/skeleton';
+import SearchableMultiSelect from '../../../components/SearchableMultiSelect';
+import CustomSelect from '../../../components/CustomSelect';
 
 export default function CreateEditBlog() {
     const { id } = useParams();
@@ -18,11 +20,11 @@ export default function CreateEditBlog() {
     const [errors, setErrors] = useState({});
     const { show, node } = useToast();
 
-    const [form, setForm] = useState({
+const [form, setForm] = useState({
         title: '',
         content: '',
         excerpt: '',
-        category_id: '',
+        category_ids: [],
         status: 'draft',
         is_featured: false,
         tags: [],
@@ -30,11 +32,15 @@ export default function CreateEditBlog() {
     });
     
     const [tagInput, setTagInput] = useState('');
+    const [catSearch, setCatSearch] = useState('');
+    const [tagSearch, setTagSearch] = useState('');
+    const [availableTags, setAvailableTags] = useState([]);
     const [coverPreview, setCoverPreview] = useState('');
     const [mediaOpen, setMediaOpen] = useState(false);
 
     useEffect(() => {
-        api.get('/blog-categories').then(({ data }) => setCategories(data));
+        api.get('/categories').then(({ data }) => setCategories(data));
+        api.get('/blog-tags').then(({ data }) => setAvailableTags(data));
 
         if (isEdit) {
             api.get(`/blog/${id}`).then(({ data }) => {
@@ -42,7 +48,7 @@ export default function CreateEditBlog() {
                     title: data.title || '',
                     content: data.content || '',
                     excerpt: data.excerpt || '',
-                    category_id: data.category?.id || '',
+                    category_ids: data.categories?.map(c => c.id) || [],
                     status: data.status || 'draft',
                     is_featured: data.is_featured || false,
                     tags: data.tags?.map(t => t.name) || [],
@@ -127,7 +133,7 @@ export default function CreateEditBlog() {
         setMediaOpen(false);
     };
 
-    if (loading) return <Skeleton variant="form" />;
+    if (loading) return <SkeletonForm />;
 
     return (
         <div className="flex-1 overflow-y-auto bg-surface/50 scroll-smooth relative h-[calc(100vh-64px)] -mx-4 sm:-mx-6 lg:-mx-8 -my-6">
@@ -303,43 +309,47 @@ export default function CreateEditBlog() {
                                         </h3>
                                     </div>
                                     <div className="p-4 space-y-4">
-                                        <div className="space-y-2">
-                                            <p className="text-xs font-semibold text-ink-muted">Kategori Utama</p>
-                                            <select
-                                                className={`flex w-full items-center justify-between rounded-md border ${errors.category_id ? 'border-red-500' : 'border-line'} bg-surface px-3 py-1.5 transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-brand-500 hover:border-brand-500 h-9 text-sm`}
-                                                value={form.category_id}
-                                                onChange={(e) => setForm({ ...form, category_id: e.target.value })}
-                                            >
-                                                <option value="">Pilih Kategori...</option>
-                                                {categories.map((c) => (
-                                                    <option key={c.id} value={c.id}>{c.name}</option>
-                                                ))}
-                                            </select>
-                                            {errors.category_id && <p className="text-xs text-red-500">{errors.category_id[0]}</p>}
+                                        <div className="space-y-3">
+                                            <p className="text-xs font-semibold text-ink-muted">Pilih Kategori</p>
+                                            <SearchableMultiSelect 
+                                                options={categories.map(c => ({ label: c.name, value: c.id }))}
+                                                value={form.category_ids}
+                                                onChange={ids => setForm({ ...form, category_ids: ids })}
+                                                placeholder="Pilih kategori..."
+                                                searchPlaceholder="Cari kategori..."
+                                                emptyMessage="Kategori tidak ditemukan."
+                                            />
+                                            {form.category_ids && form.category_ids.length > 0 && (
+                                                <div className="mt-3 p-3 bg-surface-muted border border-line rounded-md">
+                                                    <p className="text-xs font-semibold text-ink-muted mb-2">Pilih Kategori Utama</p>
+                                                    <CustomSelect
+                                                        options={form.category_ids.map(id => {
+                                                            const cat = categories.find(c => c.id === id);
+                                                            return cat ? { label: cat.name, value: id } : null;
+                                                        }).filter(Boolean)}
+                                                        value={form.category_ids[0]}
+                                                        onChange={(primaryId) => {
+                                                            const otherIds = form.category_ids.filter(id => id !== primaryId);
+                                                            setForm({ ...form, category_ids: [primaryId, ...otherIds] });
+                                                        }}
+                                                    />
+                                                </div>
+                                            )}
                                         </div>
-                                        
+
                                         <div className="h-px bg-line my-3"></div>
 
-                                        <div className="space-y-2">
+                                        <div className="space-y-3">
                                             <p className="text-xs font-semibold text-ink-muted">Topik (Tag)</p>
-                                            <div className="flex flex-wrap gap-1.5 mb-2">
-                                                {form.tags.map((t) => (
-                                                    <div key={t} className="inline-flex items-center gap-1.5 px-2 py-1 bg-brand-600/10 text-brand-600 border border-brand-600/20 rounded-md text-xs">
-                                                        <span className="font-medium">{t}</span>
-                                                        <button type="button" onClick={() => removeTag(t)} className="text-brand-600 hover:text-brand-700 hover:bg-brand-600/20 rounded-full p-0.5 transition-colors">
-                                                            <Icon name="x" size={12} />
-                                                        </button>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                            <input
-                                                className={`flex h-9 w-full rounded-md border ${errors['tags.0'] ? 'border-red-500' : 'border-line'} bg-surface px-3 py-1 text-sm transition-colors placeholder:text-ink-muted focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-brand-500 hover:border-brand-500`}
-                                                placeholder="Ketik topik lalu tekan Enter..."
-                                                value={tagInput}
-                                                onChange={(e) => setTagInput(e.target.value)}
-                                                onKeyDown={addTag}
+                                            <SearchableMultiSelect 
+                                                options={availableTags.map(t => ({ label: t.name, value: t.name }))}
+                                                value={form.tags}
+                                                onChange={tags => setForm({ ...form, tags: tags })}
+                                                placeholder="Pilih atau tambah tag..."
+                                                searchPlaceholder="Cari / Enter untuk tambah..."
+                                                emptyMessage="Tidak ada tag terkait."
+                                                allowCreate={true}
                                             />
-                                            {errors['tags.0'] && <p className="text-xs text-red-500">Format tag tidak valid.</p>}
                                         </div>
                                     </div>
                                 </div>

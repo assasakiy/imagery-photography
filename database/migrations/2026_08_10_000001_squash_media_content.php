@@ -8,7 +8,6 @@ return new class extends Migration
 {
     public function up(): void
     {
-        // ===== Media =====
         Schema::create('media', function (Blueprint $table) {
             $table->id();
             $table->morphs('model');
@@ -43,13 +42,21 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        // ===== Blog =====
-        Schema::create('blog_categories', function (Blueprint $table) {
+        Schema::create('categories', function (Blueprint $table) {
             $table->id();
             $table->string('name');
             $table->string('slug')->unique();
             $table->string('description')->nullable();
             $table->timestamps();
+        });
+
+        Schema::create('categorizables', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger('category_id');
+            $table->morphs('categorizable');
+            $table->timestamps();
+            $table->unique(['category_id', 'categorizable_type', 'categorizable_id'], 'categorizables_unique');
+            $table->foreign('category_id')->references('id')->on('categories')->onDelete('cascade');
         });
 
         Schema::create('blog_tags', function (Blueprint $table) {
@@ -62,7 +69,6 @@ return new class extends Migration
         Schema::create('blogs', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('author_id')->nullable();
-            $table->unsignedBigInteger('category_id')->nullable();
             $table->string('title');
             $table->string('slug')->unique();
             $table->string('excerpt')->nullable();
@@ -76,7 +82,6 @@ return new class extends Migration
             $table->boolean('is_featured')->default(false)->index();
 
             $table->foreign('author_id')->references('id')->on('users')->onDelete('set null');
-            $table->foreign('category_id')->references('id')->on('blog_categories')->onDelete('set null');
         });
 
         Schema::create('blog_post_tag', function (Blueprint $table) {
@@ -88,25 +93,14 @@ return new class extends Migration
             $table->foreign('tag_id')->references('id')->on('blog_tags')->onDelete('cascade');
         });
 
-        // ===== Content =====
         Schema::create('portfolios', function (Blueprint $table) {
             $table->id();
             $table->string('title');
             $table->string('slug')->unique();
             $table->text('description')->nullable();
-            $table->string('category')->nullable();
             $table->string('image_url')->nullable();
             $table->boolean('is_featured')->default(false);
             $table->unsignedInteger('order')->default(0);
-            $table->timestamps();
-        });
-
-        Schema::create('pages', function (Blueprint $table) {
-            $table->id();
-            $table->string('slug')->unique();
-            $table->string('title');
-            $table->longText('content');
-            $table->boolean('published')->default(true);
             $table->timestamps();
         });
 
@@ -123,12 +117,12 @@ return new class extends Migration
     public function down(): void
     {
         Schema::dropIfExists('faqs');
-        Schema::dropIfExists('pages');
         Schema::dropIfExists('portfolios');
         Schema::dropIfExists('blog_post_tag');
         Schema::dropIfExists('blogs');
         Schema::dropIfExists('blog_tags');
-        Schema::dropIfExists('blog_categories');
+        Schema::dropIfExists('categorizables');
+        Schema::dropIfExists('categories');
         Schema::dropIfExists('watermarked_assets');
         Schema::dropIfExists('media_libraries');
         Schema::dropIfExists('media');

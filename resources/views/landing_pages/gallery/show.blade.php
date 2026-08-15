@@ -26,7 +26,7 @@
 
             <div class="lg:col-span-2">
                 <div class="reveal sticky top-24">
-                    <p class="mb-3 text-sm font-semibold uppercase tracking-widest text-brand-600 dark:text-brand-400">{{ $portfolio->category }}</p>
+                    <p class="mb-3 text-sm font-semibold uppercase tracking-widest text-brand-600 dark:text-brand-400">{{ $portfolio->categories->isNotEmpty() ? $portfolio->categories->pluck('name')->join(', ') : '' }}</p>
                     <h1 class="text-3xl font-bold leading-tight text-ink sm:text-4xl">{{ $portfolio->title }}</h1>
                     <p class="mt-5 leading-relaxed text-ink-muted">{{ $portfolio->description }}</p>
 
@@ -58,7 +58,7 @@
                 <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
                     @foreach ($related as $item)
                         <a href="{{ route('gallery.show', $item->slug) }}" class="group relative block overflow-hidden rounded-2xl ring-1 ring-line">
-                            <img src="{{ watermark_url($item->cover_url) }}" alt="{{ $item->title }}" loading="lazy" class="aspect-[4/3] w-full object-cover transition-transform duration-500 group-hover:scale-105">
+                            <img src="{{ $item->thumbnail_url }}" alt="{{ $item->title }}" loading="lazy" class="aspect-[4/3] w-full object-cover transition-transform duration-500 group-hover:scale-105">
                             <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-zinc-950/80 to-transparent p-4">
                                 <h3 class="text-sm font-bold text-white">{{ $item->title }}</h3>
                             </div>

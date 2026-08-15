@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('maintenance')->group(function () {
     Route::get('/', [LandingPageController::class, 'index'])->name('home');
     Route::get('/gallery', [GalleryController::class, 'index'])->name('gallery');
+    Route::get('/gallery/kategori/{slug}', [GalleryController::class, 'category'])->name('gallery.category');
     Route::get('/gallery/{slug}', [GalleryController::class, 'show'])->name('gallery.show');
     Route::get('/services', [ContactController::class, 'services'])->name('services');
     Route::get('/contact', [ContactController::class, 'index'])->name('contact');

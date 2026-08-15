@@ -89,6 +89,11 @@ class DatabaseSeeder extends Seeder
 
         $this->seedSampleReviews();
 
+        if ($this->command?->confirm('Seed data dummy (portofolio, paket, artikel blog)?', true)) {
+            $this->call(DummyDataSeeder::class);
+            $this->call(BlogSeeder::class);
+        }
+
         $this->call(BookingAndProjectSeeder::class);
 
         $this->command->info('Seeded: roles, permissions, owner, admin, landing contents, team, reviews, bookings');

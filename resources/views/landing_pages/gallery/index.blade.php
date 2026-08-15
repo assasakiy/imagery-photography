@@ -19,22 +19,17 @@
         </div>
     </section>
 
-    <section class="container-site py-16">
-        <div class="mb-10 flex flex-wrap gap-2" role="group" aria-label="Filter kategori">
-            <button type="button" data-filter="all" aria-pressed="true" class="chip chip-active">Semua</button>
-            @foreach ($categories as $category)
-                <button type="button" data-filter="{{ $category }}" aria-pressed="false" class="chip">{{ $category }}</button>
-            @endforeach
-        </div>
+    @include('partials.gallery-filters', ['activeCategory' => null])
 
+    <section class="container-site py-16">
         <div class="masonry">
             @foreach ($portfolios as $portfolio)
-                <div class="reveal mb-5 break-inside-avoid" data-gallery-item data-category="{{ $portfolio->category }}">
-                    <a href="{{ route('gallery.show', $portfolio->slug) }}" class="group relative block overflow-hidden rounded-2xl ring-1 ring-line" data-lightbox-trigger data-title="{{ $portfolio->title }}" data-caption="{{ $portfolio->description }}">
-                        <img src="{{ watermark_url($portfolio->cover_url) }}" alt="{{ $portfolio->title }}" loading="lazy" class="w-full transition-transform duration-500 group-hover:scale-105">
-                        <div class="absolute inset-0 bg-gradient-to-t from-zinc-950/70 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
-                        <div class="absolute inset-x-0 bottom-0 p-4 opacity-0 transition-all duration-300 group-hover:opacity-100">
-                            <p class="text-[10px] font-semibold uppercase tracking-widest text-brand-300">{{ $portfolio->category }}</p>
+<div class="reveal mb-5 break-inside-avoid" data-gallery-item data-category="{{ $portfolio->categories->first()?->slug ?? '' }}">
+                        <a href="{{ route('gallery.show', $portfolio->slug) }}" class="group relative block overflow-hidden rounded-2xl ring-1 ring-line">
+                            <img src="{{ $portfolio->thumbnail_url }}" alt="{{ $portfolio->title }}" loading="lazy" class="w-full transition-transform duration-500 group-hover:scale-105">
+                            <div class="absolute inset-0 bg-gradient-to-t from-zinc-950/70 via-transparent to-transparent sm:opacity-0 sm:transition-opacity sm:duration-300 sm:group-hover:opacity-100"></div>
+                            <div class="absolute inset-x-0 bottom-0 p-4 sm:opacity-0 sm:transition-all sm:duration-300 sm:group-hover:opacity-100">
+                                <p class="text-[10px] font-semibold uppercase tracking-widest text-brand-300">{{ $portfolio->categories->isNotEmpty() ? $portfolio->categories->pluck('name')->join(', ') : '' }}</p>
                             <h3 class="text-sm font-bold text-white">{{ $portfolio->title }}</h3>
                         </div>
                         @if ($portfolio->is_featured)

@@ -8,7 +8,6 @@ return new class extends Migration
 {
     public function up(): void
     {
-        // ===== Proyek & pesanan =====
         Schema::create('projects', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('user_id')->nullable();
@@ -39,6 +38,7 @@ return new class extends Migration
             $table->string('status')->default('pending');
             $table->unsignedInteger('retention_days')->nullable();
             $table->timestamp('archived_at')->nullable();
+            $table->boolean('can_download_archive')->default(false);
             $table->softDeletes();
             $table->unsignedBigInteger('deleted_by_id')->nullable();
             $table->string('deleted_by_name')->nullable();

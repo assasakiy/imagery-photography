@@ -11,7 +11,7 @@
             ->map(fn ($w) => strtoupper(mb_substr($w, 0, 1)))
             ->join('')
     ) ?: '?';
-    $cover = $post->resolveCoverUrl();
+    $cover = $post->thumbnail_url;
 @endphp
 
 <article class="group flex h-full flex-col gap-3">
@@ -31,8 +31,8 @@
     </a>
 
     <div class="flex items-center gap-2">
-        @if ($post->category)
-            <a href="{{ route('blog.category', $post->category->slug) }}" class="chip px-2.5 py-0.5 text-xs no-underline">{{ $post->category->name }}</a>
+        @if ($post->categories->isNotEmpty())
+            <a href="{{ route('blog.category', $post->categories->first()->slug) }}" class="chip px-2.5 py-0.5 text-xs no-underline">{{ $post->categories->first()->name }}</a>
         @endif
         @if ($post->published_at)
             <span class="text-xs text-ink-muted">{{ $post->published_at->locale('id')->diffForHumans(['parts' => 1]) }}</span>

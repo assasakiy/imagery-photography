@@ -25,7 +25,7 @@ export default function Blog() {
     useEffect(load, [q, status]);
 
     useEffect(() => {
-        api.get('/blog-categories').then(({ data }) => setCategories(data)).catch(() => {});
+        api.get('/categories').then(({ data }) => setCategories(data)).catch(() => {});
     }, []);
 
     const performDelete = async () => {

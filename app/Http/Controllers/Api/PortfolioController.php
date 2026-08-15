@@ -15,8 +15,8 @@ class PortfolioController extends Controller
     {
         $query = Portfolio::query();
 
-        if ($request->filled('category')) {
-            $query->where('category', $request->input('category'));
+        if ($request->filled('category_id')) {
+            $query->whereHas('categories', fn ($q) => $q->where('categories.id', $request->integer('category_id')));
         }
 
         $perPage = $request->integer('per_page', 12);
@@ -39,13 +39,15 @@ class PortfolioController extends Controller
         $portfolio = Portfolio::create($data);
         app(\App\Services\AuditLogger::class)->log('portfolio.created', 'Portofolio dibuat', $portfolio);
 
+        $this->syncCategories($portfolio, $request);
+
         if ($request->hasFile('image')) {
             $this->attachImage($portfolio, $request);
         } elseif ($request->filled('media_id')) {
             $this->attachMedia($portfolio, (int) $request->input('media_id'));
         }
 
-        return response()->json($this->serialize($portfolio), 201);
+        return response()->json($this->serialize($portfolio->load('categories')), 201);
     }
 
     public function update(Request $request, Portfolio $portfolio)
@@ -60,13 +62,15 @@ class PortfolioController extends Controller
 
         $portfolio->update($data);
 
+        $this->syncCategories($portfolio, $request);
+
         if ($request->hasFile('image')) {
             $this->attachImage($portfolio, $request);
         } elseif ($request->filled('media_id')) {
             $this->attachMedia($portfolio, (int) $request->input('media_id'));
         }
 
-        return response()->json($this->serialize($portfolio));
+        return response()->json($this->serialize($portfolio->load('categories')));
     }
 
     public function destroy(Portfolio $portfolio)
@@ -103,12 +107,19 @@ class PortfolioController extends Controller
         $portfolio->update(['image_url' => null]);
     }
 
+    private function syncCategories(Portfolio $portfolio, Request $request): void
+    {
+        $ids = collect($request->input('category_ids', []))->filter()->map(fn ($id) => (int) $id)->unique()->values();
+        $portfolio->categories()->sync($ids);
+    }
+
     private function validateData(Request $request, ?Portfolio $portfolio = null): array
     {
         $data = Validator::make($request->all(), [
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'category' => 'nullable|string|max:100',
+            'category_ids' => 'nullable|array',
+            'category_ids.*' => 'integer|exists:categories,id',
             'image_url' => 'nullable|url|max:2048',
             'is_featured' => 'boolean',
             'order' => 'integer|min:0',
@@ -128,11 +139,13 @@ class PortfolioController extends Controller
             'title' => $portfolio->title,
             'slug' => $portfolio->slug,
             'description' => $portfolio->description,
-            'category' => $portfolio->category,
+            'category' => $portfolio->categories->isNotEmpty() ? $portfolio->categories->first()->name : null,
+            'categories' => $portfolio->categories->map(fn ($cat) => ['id' => $cat->id, 'name' => $cat->name, 'slug' => $cat->slug])->values(),
             'is_featured' => (bool) $portfolio->is_featured,
             'order' => $portfolio->order,
             'image_url' => $portfolio->image_url,
             'cover_url' => $portfolio->cover_url,
+            'thumbnail_url' => $portfolio->thumbnail_url,
             'has_local_media' => (bool) $cover,
             'media_id' => $cover?->id,
             'created_at' => $portfolio->created_at,

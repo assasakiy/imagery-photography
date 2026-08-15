@@ -13,7 +13,7 @@ class Portfolio extends Model implements HasMedia
 {
     use Bookmarkable, InteractsWithMedia;
 
-    protected $fillable = ['title', 'slug', 'description', 'category', 'image_url', 'is_featured', 'order'];
+    protected $fillable = ['title', 'slug', 'description', 'image_url', 'is_featured', 'order'];
 
     protected function casts(): array
     {
@@ -31,9 +31,22 @@ class Portfolio extends Model implements HasMedia
         });
     }
 
+    public function categories()
+    {
+        return $this->morphToMany(Category::class, 'categorizable');
+    }
+
     public function registerMediaCollections(): void
     {
         $this->addMediaCollection('cover')->singleFile();
+    }
+
+    public function registerMediaConversions(?Media $media = null): void
+    {
+        $this->addMediaConversion('thumbnail')
+            ->width(800)
+            ->format('webp')
+            ->nonQueued();
     }
 
     public function coverMedia(): ?Media
@@ -41,16 +54,29 @@ class Portfolio extends Model implements HasMedia
         return $this->getMedia('cover')->first();
     }
 
-    public function getCoverUrlAttribute(): string
+    public function getCoverUrlAttribute(): ?string
     {
-        if ($cover = $this->coverMedia()) {
-            return $cover->getUrl();
-        }
+        try {
+            if ($cover = $this->coverMedia()) {
+                return $cover->getUrl();
+            }
+        } catch (\Throwable $e) {}
 
         if ($this->image_url) {
             return $this->image_url;
         }
 
-        return asset('storage/placeholders/portfolio-placeholder.svg');
+        return null;
+    }
+
+    public function getThumbnailUrlAttribute(): ?string
+    {
+        try {
+            if ($cover = $this->coverMedia()) {
+                return $cover->getUrl('thumbnail');
+            }
+        } catch (\Throwable $e) {}
+
+        return $this->cover_url;
     }
 }

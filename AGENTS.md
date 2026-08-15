@@ -38,10 +38,10 @@ Membangun ulang website portofolio fotografi/videografi "Sopian Lalu Imagery" me
 - Bahasa UI: **Indonesia**. Mata uang: IDR.
 
 ## 6. Aturan Asset
-- `portfolios.image_url` = URL default (di-seed dari WordPress).
-- Upload → simpan via Spatie Media (koleksi `cover`), kosongkan `image_url`.
-- Tempel URL manual → set `image_url`, kosongkan media.
-- Prioritas tampil: **Spatie media → `image_url` → placeholder**. Tanpa tombol reset otomatis.
+- `portfolios.image_url` / `blogs.image_url` = URL default (di-seed dari WordPress) atau tempel manual.
+- Upload / impor URL → simpan via Spatie Media (koleksi `cover`), kosongkan `image_url`. URL eksternal hanya sumber import 1×.
+- Prioritas tampil: **Spatie media (original/thumbnail conversion) → `image_url` → null**. Card publik pakai `thumbnail_url`; hero/detail/lightbox publik pakai `watermark_url(cover_url)`; admin/editor pakai `cover_url` (original). Blog tanpa watermark.
+- Command backfill: `php artisan media:import-covers` (media Spatie dari `image_url` lama); jika storage tak writable oleh CLI, pakai `sudo -u apache ...`.
 - Hero/logo/about: `landing_contents` bernilai `media:{id}` / URL / kosong (→ default WP atau placeholder).
 
 ## 7. RBAC (Spatie Permission)
@@ -59,7 +59,7 @@ Membangun ulang website portofolio fotografi/videografi "Sopian Lalu Imagery" me
 ## 9. Alur Kerja (Plan → Design → Build)
 1. **Plan**: baca AGENTS.md, eksplorasi kode & DB, ambil konten dari WordPress, susun rencana, konfirmasi ke user.
 2. **Design**: siapkan design tokens & komponen dasar sebelum fitur.
-3. **Backend**: composer deps, migrations, seeders (`WordPressContentSeeder`), services.
+3. **Backend**: composer deps, migrations, seeders (`DummyDataSeeder`, `BlogSeeder`), services.
 4. **Dashboard React**: auth + layout + halaman CRUD + pengaturan.
 5. **Publik Blade**: redesign dark, gallery masonry+lightbox+filter, tabel harga layanan, `gallery/show` baru.
 6. **Notifikasi**: in-app, email, WhatsApp, webhook.
@@ -75,7 +75,9 @@ composer require laravel/sanctum spatie/laravel-permission spatie/laravel-medial
 npm i react react-dom react-router-dom axios @vitejs/plugin-react
 npm run build        # produksi
 php artisan migrate --force
-php artisan db:seed --class=WordPressContentSeeder
+php artisan db:seed --force
+php artisan media:watermark --fresh                  # generate watermark cache utk portfolio
+php artisan media:import-covers                      # backfill image_url -> media Spatie (jalankan sudo -u apache)
 composer test        # phpunit
 ```
 
@@ -105,13 +107,14 @@ Halaman dashboard yang punya beberapa tab **WAJIB** dipisah ke folder `pages/<na
 - **Media Library**: model butuh `$fillable=['id']`; `LandingContent::setValue` pertahankan `group`; reset landing images meninggalkan media orphan (TODO).
 - **Test**: skrip di `/home/opc` (`spa_test.py`, `final_test.py`, `access_test.py`); `/etc/hosts` berisi `127.0.0.1 imagery.assasakiy.my.id`; `/tmp/opencode` TIDAK writable.
 
-## 13. Sesi Terbaru (2026-08-13) — Timezone Bisnis Global
-- **Notifikasi Status Proyek Otomatis**: Logika notifikasi (Email/WA/In-App) dipusatkan di `NotificationService::notifyProjectStatusChanged` yang terpicu via Controller saat status berubah ke tahap utama. Tidak lagi manual di controller. Redudansi notifikasi dihilangkan; notifikasi hanya muncul pada perubahan status yang valid.
-- **Sistem Redelivery Tanpa Token**: Menghapus sistem `ClientAccessToken` untuk akses proyek (kini akses unduh sepenuhnya berbasis login klien). Fitur Redelivery (unduh arsip) kini menggunakan tabel `redeliveries` (status `approved` + `expires_at`) untuk verifikasi akses download, menghapus ketergantungan pada tabel `client_access_tokens` dan kolom proyek yang tidak perlu.
-- **Pembersihan**: Kolom `can_download_archive` di `projects` dihapus. Logika notifikasi dibersihkan dari Controller.
-- **Backend**: jadwal acara (`event_start`/`event_end`) selalu disimpan UTC (config `app.timezone` tak berubah). Input wall-clock lokal (timezone bisnis) dikonversi ke UTC di `BookingController::store`, `Api\ProjectController` (store+update), `Api\BookingApiController` (confirm/accept), dan `Api\CustomerController`. Helper `App\Support\BusinessTime` (`toUtc`/`parseToUtc`/`fromUtc`) dengan tiang-3 lapis timezone: DB setting `timezone` → `.env APP_BUSINESS_TIMEZONE` → `Asia/Makassar`. `Api\SettingsController` mengekspor & memvalidasi `timezone`.
-- **Frontend**: utilitas `resources/js/dashboard/utils/date.js` berbasis `Intl.DateTimeFormat` (timezone business, date-only diperlakukan UTC). Semua `.slice(11,16)` dan `new Date(event_start)` diganti `formatTime`/`formatTimeInput`/`isEventPassed`; `formatLongDate` dipusatkan. `window.APP_CONFIG.businessTimezone` di-set di layout Blade agar apply langsung setelah ganti timezone.
-- **Settings UI**: dropdown timezone di tab **Regional** (BrandingTab).
+## 13. Sesi Terbaru (2026-08-15) — Squash Migrasi + Kategori Unified + Pipeline Media Thumb/Watermark
+- **Migrasi jadi 5 squash**: 14 migrasi lama dihapus → `2026_08_10_000000..000004` (`squash_auth_platform`, `squash_media_content`, `squash_services_pages`, `squash_projects_orders`, `squash_reviews_security`). Schema-final langsung — tanpa bolak-balik create/drop. `landing_contents` TETAP ada (kode masih pakai). `db:wipe` + `migrate --force` + `db:seed --force` jalan bersih.
+- **Kategori unified**: `categories` + `categorizables` (morphToMany) menggantikan `blog_categories` & kolom `blogs.category_id`/`portfolios.category`. Model `Blog`/`Portfolio` pakai `categories()`; admin pakai `CategoryController`; route publik `/blog/kategori/{slug}` & `/gallery/kategori/{slug}`. Seeder lama yang refer struktur lama dihapus (`WordPressContentSeeder`, `StaticContentSeeder`, `ServiceSeeder`).
+- **Seeder dummy**: `DummyDataSeeder` (35 portfolio dari gambar WP + 15 paket dari tabel Layanan: satuan/premium/ultimate) dan `BlogSeeder` (10 artikel + 10 kategori shared + 10 tag). Idempoten (match by `name`, bukan `uniqueSlug`). DatabaseSeeder tanya konfirmasi saat `db:seed` untuk pakai kedua seeder.
+- **Pipeline media**: cover dari URL eksternal di-import 1× jadi media Spatie lokal. `Portfolio`/`Blog` punya conversion `thumbnail`/`medium` (webp, nonQueued). Accessor `thumbnail_url` = conversion; `cover_url` = original; hero/lightbox publik = `watermark_url(cover_url)` (WatermarkService GD, cache di `storage/app/watermarked`). Command `media:import-covers` (parameter `--dry`) backfill `image_url` lama → media. `POST /api/media/import` + tab URL di `MediaPicker.jsx` mengimpor URL → Library → `mediaId`.
+- **Card publik pakai thumb**: `home`/`about`/`gallery index+category+related`/`blog-card` → `thumbnail_url` (bersih, tanpa watermark).
+- **Storage ownership**: php-fpm = `apache:apache` (SELinux Enforcing). Seeder yang tulis media/watermark harus `sudo -u apache` dengan `HOME=/tmp XDG_CONFIG_HOME=/tmp XDG_CACHE_HOME=/tmp` (psysh butuh HOME writable). CLI `opc` TIDAK bisa tulis `storage/app/public`.
+- **Bug fix**: `/gallery/kategori/{slug}` 500 `Undefined variable $page` → ambil `Page::where('slug','gallery')`. Menu kategori galeri hanya tampil kategori `portfolios_count > 0` (partial `gallery-filters`), filter JS client-side lama dihapus.
 
 ## 14. Perintah Verifikasi
 ```bash
