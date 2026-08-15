@@ -231,9 +231,9 @@ export default function Media() {
                                     className={`card group overflow-hidden ${selecting ? (isSelected ? 'ring-2 ring-brand-600' : '') : ''}`}
                                     onClick={selecting ? () => toggleSelect(item.id) : undefined}
                                 >
-                                    <div className="relative aspect-square overflow-hidden">
+                                    <div className="relative aspect-square cursor-pointer overflow-hidden" onClick={selecting ? undefined : () => setViewing(item)}>
                                         {item.type === 'image' ? (
-                                            <img src={item.url} alt={item.name} loading="lazy" className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
+                                            <img src={item.thumbnail_url || item.url} alt={item.name} loading="lazy" className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
                                         ) : item.type === 'video' ? (
                                             <div className="h-full w-full">
                                                 <video src={item.url} muted preload="metadata" className="h-full w-full object-cover" />

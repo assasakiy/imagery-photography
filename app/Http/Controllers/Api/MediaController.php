@@ -160,6 +160,7 @@ class MediaController extends Controller
             'type' => $type,
             'size' => $media->size,
             'url' => $media->getUrl(),
+            'thumbnail_url' => $type === 'image' ? ($media->getUrl('thumbnail') ?: $media->getUrl()) : null,
             'collection_name' => $media->collection_name,
             'created_at' => $media->created_at,
             'uploaded_by' => $media->uploaded_by,
