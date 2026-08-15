@@ -34,6 +34,7 @@ export default function Portfolio() {
     const [categories, setCategories] = useState([]);
     const [preview, setPreview] = useState('');
     const [mediaOpen, setMediaOpen] = useState(false);
+    const [viewing, setViewing] = useState(null);
     const { show, node } = useToast();
 
     const load = (page = 1) => {
@@ -174,8 +175,8 @@ export default function Portfolio() {
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                     {items.map((item) => (
                         <div key={item.id} className="card group overflow-hidden">
-                            <div className="relative aspect-[4/3] overflow-hidden">
-                                <img src={item.cover_url} alt={item.title} loading="lazy" className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
+                            <div className="relative aspect-[4/3] cursor-pointer overflow-hidden" onClick={() => setViewing(item)}>
+                                <img src={item.thumbnail_url || item.cover_url} alt={item.title} loading="lazy" className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
                                 {item.is_featured && (
                                     <span className="badge absolute left-3 top-3 bg-amber-400 text-amber-950 shadow">
                                         <Icon name="star" size={12} /> Unggulan
@@ -227,9 +228,15 @@ export default function Portfolio() {
                 </div>
             )}
 
-            <Modal
-                open={open}
-                onClose={() => setOpen(false)}
+            {viewing && (
+                <Modal open onClose={() => setViewing(null)} title={viewing.title} fullscreen bodyClassName="p-[2px]">
+                    <div className="flex h-full min-h-0 items-center justify-center bg-black/40">
+                        <img src={viewing.cover_url} alt={viewing.title} className="h-full w-full object-contain" />
+                    </div>
+                </Modal>
+            )}
+
+            <Modal open={open} onClose={() => setOpen(false)}
                 title={editing ? 'Edit Portofolio' : 'Tambah Portofolio'}
                 footer={
                     <div className="flex justify-end gap-2">
