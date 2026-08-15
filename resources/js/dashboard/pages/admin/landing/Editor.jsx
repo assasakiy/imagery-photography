@@ -293,11 +293,11 @@ export default function Editor() {
                     </div>
 
                     <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                        <Field label="Judul Besar" error={errors.hero_title?.[0]}>
-                            <input className="input" value={form.hero_title || ''} onChange={(e) => setForm({ ...form, hero_title: e.target.value })} placeholder={isHome ? 'Judul situs (default)' : 'Judul halaman ini'} />
-                        </Field>
                         <Field label="Judul Kecil (badge)" hint={form.slug === 'home' ? 'Default dari tagline situs' : 'Kunci halaman (mis. Galeri, Layanan)'}>
                             <input className="input" value={form.badge || ''} onChange={(e) => setForm({ ...form, badge: e.target.value })} placeholder={isHome ? 'Photography & Videography' : (form.title || '')} disabled={!isHome} />
+                        </Field>
+                        <Field label="Judul Besar" error={errors.hero_title?.[0]}>
+                            <input className="input" value={form.hero_title || ''} onChange={(e) => setForm({ ...form, hero_title: e.target.value })} placeholder={isHome ? 'Judul situs (default)' : 'Judul halaman ini'} />
                         </Field>
                     </div>
 
