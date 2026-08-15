@@ -134,7 +134,7 @@ export default function MediaPicker({ open, onClose, onSelect, title = 'Pilih Me
                                             selected?.mediaId === item.id ? 'border-brand-500 ring-2 ring-brand-500/30' : 'border-line'
                                         }`}
                                     >
-                                        <img src={item.url} alt={item.name} loading="lazy" className="h-full w-full object-cover" />
+                                        <img src={item.thumbnail_url || item.url} alt={item.name} loading="lazy" className="h-full w-full object-cover" />
                                         {selected?.mediaId === item.id && (
                                             <span className="absolute right-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-brand-600 text-white">
                                                 <Icon name="check" size={14} />
