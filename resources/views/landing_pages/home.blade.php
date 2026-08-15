@@ -20,7 +20,7 @@
     <section class="relative flex min-h-[88vh] items-center overflow-hidden">
         <div class="absolute inset-0">
             <img src="{{ $heroImage }}" alt="Hero Sopian Lalu Imagery" class="h-full w-full object-cover">
-            <div class="absolute inset-0 bg-gradient-to-b from-zinc-950/70 via-zinc-950/50 to-zinc-950 dark:from-black/80 dark:via-black/60 dark:to-zinc-950"></div>
+            <div class="absolute inset-0 bg-gradient-to-b from-zinc-950/85 via-zinc-950/70 to-zinc-950 dark:from-black/90 dark:via-black/75 dark:to-zinc-950"></div>
             <div class="absolute -left-32 -top-32 h-96 w-96 rounded-full bg-brand-600/30 blur-3xl"></div>
             <div class="absolute -bottom-24 -right-24 h-96 w-96 rounded-full bg-brand-500/20 blur-3xl"></div>
         </div>
