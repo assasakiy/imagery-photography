@@ -11,8 +11,9 @@ class GalleryController extends Controller
     {
         $portfolios = Portfolio::with('categories')->orderBy('order')->paginate(12);
         $categories = $this->activeCategories();
+        $page = \App\Models\Page::where('slug', 'gallery')->first();
 
-        return view('landing_pages.gallery.index', compact('portfolios', 'categories'));
+        return view('landing_pages.gallery.index', compact('portfolios', 'categories', 'page'));
     }
 
     public function show(string $slug)

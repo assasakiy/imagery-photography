@@ -36,7 +36,9 @@ class BookingController extends Controller
             ];
         });
 
-        return view('landing_pages.booking', compact('contents', 'services', 'packages'));
+        $page = \App\Models\Page::where('slug', 'booking')->first();
+
+        return view('landing_pages.booking', compact('contents', 'services', 'packages', 'page'));
     }
 
     public function store(Request $request)

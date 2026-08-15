@@ -4,13 +4,11 @@
 @section('meta_description', 'Kenali Sopian Lalu Imagery - photographer dan videographer di Lombok yang mendokumentasikan momen dan narasi.')
 
 @section('content')
-    <section class="relative overflow-hidden border-b border-line bg-zinc-100/60 dark:bg-zinc-900/40">
-        <div class="absolute -right-32 -top-32 h-96 w-96 rounded-full bg-brand-600/10 blur-3xl"></div>
-        <div class="container-site py-20">
-            <p class="mb-3 text-sm font-semibold uppercase tracking-widest text-brand-600 dark:text-brand-400">Tentang Kami</p>
-            <h1 class="section-heading text-ink">{{ $contents['about_title'] ?? 'Tentang Kami' }}</h1>
-        </div>
-    </section>
+    @include('partials.page-hero', [
+        'page' => $page,
+        'badge' => 'Tentang Kami',
+        'title' => $contents['about_title'] ?? 'Tentang Kami',
+    ])
 
     <section class="container-site py-16 md:py-20">
         <div class="grid grid-cols-1 items-center gap-10 lg:grid-cols-2">

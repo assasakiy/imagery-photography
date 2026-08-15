@@ -16,7 +16,9 @@ class ContactController extends Controller
             'social_facebook', 'social_instagram', 'social_tiktok', 'social_whatsapp',
         ])->pluck('value', 'key')->toArray();
 
-        return view('landing_pages.contact', compact('contents'));
+        $page = \App\Models\Page::where('slug', 'contact')->first();
+
+        return view('landing_pages.contact', compact('contents', 'page'));
     }
 
     public function store(Request $request)
@@ -51,6 +53,7 @@ class ContactController extends Controller
     public function services()
     {
         $services = \App\Models\Service::active()->orderBy('order')->get();
-        return view('landing_pages.services', compact('services'));
+        $page = \App\Models\Page::where('slug', 'services')->first();
+        return view('landing_pages.services', compact('services', 'page'));
     }
 }

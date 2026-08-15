@@ -51,7 +51,9 @@ class BlogController extends Controller
         $popular = Blog::with(['author', 'categories', 'tags'])->published()
             ->orderByDesc('views_count')->orderByDesc('published_at')->take(5)->get();
 
-        return view('landing_pages.blog.index', compact('posts', 'categories', 'tags', 'featured', 'popular'));
+        $page = \App\Models\Page::where('slug', 'blog')->first();
+
+        return view('landing_pages.blog.index', compact('posts', 'categories', 'tags', 'featured', 'popular', 'page'));
     }
 
     public function show(string $slug)

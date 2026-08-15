@@ -40,6 +40,11 @@ class PageController extends Controller
         $data = Validator::make($request->all(), [
             'title' => 'required|string|max:255',
             'description' => 'nullable|string|max:500',
+            'hero_title' => 'nullable|string|max:255',
+            'hero_subtitle' => 'nullable|string',
+            'badge' => 'nullable|string|max:100',
+            'button_text' => 'nullable|string|max:100',
+            'button_link' => 'nullable|string|max:255',
             'content' => 'nullable|string',
             'published' => 'boolean',
             'sections' => 'nullable|array',
@@ -49,6 +54,11 @@ class PageController extends Controller
             'name' => null,
             'title' => $data['title'],
             'description' => $data['description'] ?? null,
+            'hero_title' => $data['hero_title'] ?? null,
+            'hero_subtitle' => $data['hero_subtitle'] ?? null,
+            'badge' => $data['badge'] ?? null,
+            'button_text' => $data['button_text'] ?? null,
+            'button_link' => $data['button_link'] ?? null,
             'content' => ContentSanitizer::clean($data['content'] ?? ''),
             'published' => (bool) ($data['published'] ?? true),
         ];

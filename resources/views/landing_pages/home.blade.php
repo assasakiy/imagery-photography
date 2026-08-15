@@ -7,6 +7,11 @@
     @php
         $heroImage = \App\Services\AssetResolver::landingImage('hero_image', \App\Services\AssetResolver::DEFAULT_HERO_IMAGE);
         $aboutImage = \App\Services\AssetResolver::landingImage('about_image', \App\Services\AssetResolver::DEFAULT_ABOUT_IMAGE);
+        $homeBadge = $page->badge ?: ($contents['hero_badge'] ?? 'Photography & Videography');
+        $homeTitle = $page->hero_title ?: ($contents['hero_title'] ?? 'Sopian Lalu Imagery');
+        $homeSubtitle = $page->hero_subtitle ?: ($contents['hero_subtitle'] ?? 'Mengabadikan momen berharga Anda menjadi warisan visual.');
+        $homeBtnText = $page->button_text ?: 'Lihat Galeri';
+        $homeBtnLink = $page->button_link ?: route('gallery');
     @endphp
 
     {{-- Hero --}}
@@ -22,17 +27,17 @@
             <div class="max-w-2xl">
                 <p class="mb-4 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-white backdrop-blur">
                     <span class="h-2 w-2 rounded-full bg-brand-400"></span>
-                    Photography & Videography
+                    {{ $homeBadge }}
                 </p>
                 <h1 class="text-4xl font-bold leading-tight tracking-tight text-white sm:text-5xl md:text-6xl">
-                    {{ $contents['hero_title'] ?? 'Sopian Lalu Imagery' }}
+                    {{ $homeTitle }}
                 </h1>
                 <p class="mt-5 max-w-xl text-base leading-relaxed text-zinc-200 sm:text-lg">
-                    {!! content_html($contents['hero_subtitle'] ?? 'Mengabadikan momen berharga Anda menjadi warisan visual.') !!}
+                    {!! content_html($homeSubtitle) !!}
                 </p>
                 <div class="mt-8 flex flex-wrap gap-3">
-                    <a href="{{ route('gallery') }}" class="btn-primary">
-                        Lihat Galeri
+                    <a href="{{ $homeBtnLink }}" class="btn-primary">
+                        {{ $homeBtnText }}
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14m-7-7 7 7-7 7"/></svg>
                     </a>
                     <a href="{{ route('services') }}" class="btn border border-white/25 bg-white/10 text-white backdrop-blur hover:bg-white/20">Lihat Layanan</a>

@@ -4,16 +4,12 @@
 @section('meta_description', 'Pertanyaan yang sering ditanyakan tentang layanan Sopian Lalu Imagery.')
 
 @section('content')
-    <section class="relative overflow-hidden border-b border-line bg-zinc-100/60 dark:bg-zinc-900/40">
-        <div class="absolute -right-32 -top-32 h-96 w-96 rounded-full bg-brand-600/10 blur-3xl"></div>
-        <div class="container-site py-20">
-            <p class="mb-3 text-sm font-semibold uppercase tracking-widest text-brand-600 dark:text-brand-400">FAQ</p>
-            <h1 class="section-heading text-ink">Pertanyaan yang Sering Diajukan</h1>
-            <p class="mt-4 max-w-2xl text-ink-muted">
-                Temukan jawaban atas pertanyaan umum seputar layanan dan proses booking.
-            </p>
-        </div>
-    </section>
+    @include('partials.page-hero', [
+        'page' => $page,
+        'badge' => 'FAQ',
+        'title' => 'Pertanyaan yang Sering Diajukan',
+        'subtitle' => 'Temukan jawaban atas pertanyaan umum seputar layanan dan proses booking.',
+    ])
 
     <section class="container-site max-w-3xl py-16">
         @if ($faqs->isEmpty())

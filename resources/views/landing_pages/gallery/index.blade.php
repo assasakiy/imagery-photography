@@ -8,16 +8,12 @@
         $galleryIntro = \App\Models\LandingContent::getValue('gallery_intro', '');
     @endphp
 
-    <section class="relative overflow-hidden border-b border-line bg-zinc-100/60 dark:bg-zinc-900/40">
-        <div class="absolute -right-32 -top-32 h-96 w-96 rounded-full bg-brand-600/10 blur-3xl"></div>
-        <div class="container-site py-20">
-            <p class="mb-3 text-sm font-semibold uppercase tracking-widest text-brand-600 dark:text-brand-400">Galeri</p>
-            <h1 class="section-heading text-ink">Karya Kami</h1>
-            @if ($galleryIntro)
-                <p class="mt-4 max-w-2xl text-ink-muted">{{ $galleryIntro }}</p>
-            @endif
-        </div>
-    </section>
+    @include('partials.page-hero', [
+        'page' => $page,
+        'badge' => 'Galeri',
+        'title' => 'Karya Kami',
+        'subtitle' => $galleryIntro,
+    ])
 
     @include('partials.gallery-filters', ['activeCategory' => null])
 

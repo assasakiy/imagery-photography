@@ -4,15 +4,12 @@
 @section('meta_description', 'Blog Sopian Lalu Imagery - tips fotografi, cerita di balik lensa, dan update terbaru.')
 
 @section('content')
-    <section class="border-b border-line bg-zinc-100/60 dark:bg-zinc-900/40">
-        <div class="container-site py-20">
-            <p class="mb-3 text-sm font-semibold uppercase tracking-widest text-brand-600 dark:text-brand-400">Blog</p>
-            <h1 class="section-heading text-ink">Catatan &amp; Cerita di Balik Lensa</h1>
-            <p class="mt-4 max-w-2xl text-ink-muted">
-                Tips, pengalaman, dan kisah di balik setiap sesi pemotretan.
-            </p>
-        </div>
-    </section>
+    @include('partials.page-hero', [
+        'page' => $page,
+        'badge' => 'Blog',
+        'title' => 'Catatan & Cerita di Balik Lensa',
+        'subtitle' => 'Tips, pengalaman, dan kisah di balik setiap sesi pemotretan.',
+    ])
 
     @include('partials.blog-filters')
 

@@ -24,16 +24,13 @@
         $priceCategories = \App\Models\ServiceCategory::where('published', true)->orderBy('order')->get();
     @endphp
 
-    <section class="relative overflow-hidden border-b border-line bg-zinc-100/60 dark:bg-zinc-900/40">
-        <div class="absolute -left-32 -top-32 h-96 w-96 rounded-full bg-brand-600/10 blur-3xl"></div>
-        <div class="container-site py-20 text-center sm:py-24">
-            <p class="mb-3 text-sm font-semibold uppercase tracking-widest text-brand-600 dark:text-brand-400">Layanan</p>
-            <h1 class="section-heading text-ink">Paket & Harga</h1>
-            @if ($servicesIntro)
-                <p class="mx-auto mt-4 max-w-2xl text-ink-muted">{{ $servicesIntro }}</p>
-            @endif
-        </div>
-    </section>
+    @include('partials.page-hero', [
+        'page' => $page,
+        'badge' => 'Layanan',
+        'title' => 'Paket & Harga',
+        'subtitle' => $servicesIntro,
+        'align' => 'center',
+    ])
 
     {{-- Widget kartu utama (dihitung otomatis) --}}
     <section class="container-site py-20">

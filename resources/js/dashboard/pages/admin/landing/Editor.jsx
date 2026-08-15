@@ -77,6 +77,11 @@ export default function Editor() {
                     slug: data.slug,
                     title: data.title || '',
                     description: data.description || '',
+                    hero_title: data.hero_title || '',
+                    hero_subtitle: data.hero_subtitle || '',
+                    badge: data.badge || '',
+                    button_text: data.button_text || '',
+                    button_link: data.button_link || '',
                     content: data.content || '',
                     published: !!data.published,
                 };
@@ -156,6 +161,11 @@ export default function Editor() {
                 formData.append('_method', 'PUT');
                 formData.append('title', form.title || '');
                 formData.append('description', form.description || '');
+                formData.append('hero_title', form.hero_title || '');
+                formData.append('hero_subtitle', form.hero_subtitle || '');
+                formData.append('badge', form.badge || '');
+                formData.append('button_text', form.button_text || '');
+                formData.append('button_link', form.button_link || '');
                 formData.append('published', form.published ? '1' : '0');
                 formData.append('content', form.content || '');
 
@@ -197,6 +207,11 @@ export default function Editor() {
                 const payload = {
                     title: form.title,
                     description: form.description,
+                    hero_title: form.hero_title || null,
+                    hero_subtitle: form.hero_subtitle || null,
+                    badge: form.badge || null,
+                    button_text: form.button_text || null,
+                    button_link: form.button_link || null,
                     content: form.content,
                     published: form.published,
                 };
@@ -272,14 +287,37 @@ export default function Editor() {
 
             <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="card p-5 space-y-6">
+                    <div>
+                        <h3 className="font-bold text-xl text-ink border-b border-line pb-3">Section Pertama (Header Halaman)</h3>
+                        <p className="mt-2 text-sm text-ink-muted">Judul kecil (badge/kategori halaman) tidak dapat diubah. SEO di-generate otomatis dari judul & deskripsi di bawah ini.</p>
+                    </div>
+
                     <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                        <Field label="Judul Section Halaman" required error={errors.title?.[0]}>
-                            <input className="input" value={form.title || ''} onChange={(e) => setForm({ ...form, title: e.target.value })} required />
+                        <Field label="Judul Besar" error={errors.hero_title?.[0]}>
+                            <input className="input" value={form.hero_title || ''} onChange={(e) => setForm({ ...form, hero_title: e.target.value })} placeholder={isHome ? 'Judul situs (default)' : 'Judul halaman ini'} />
                         </Field>
-                        <Field label="Deskripsi (SEO & Sub-judul)" error={errors.description?.[0]}>
-                            <input className="input" value={form.description || ''} onChange={(e) => setForm({ ...form, description: e.target.value })} />
+                        <Field label="Judul Kecil (badge)" hint={form.slug === 'home' ? 'Default dari tagline situs' : 'Kunci halaman (mis. Galeri, Layanan)'}>
+                            <input className="input" value={form.badge || ''} onChange={(e) => setForm({ ...form, badge: e.target.value })} placeholder={isHome ? 'Photography & Videography' : (form.title || '')} disabled={!isHome} />
                         </Field>
                     </div>
+
+                    <Field label={isHome ? 'Subjudul / Deskripsi' : 'Deskripsi'} error={errors.description?.[0]}>
+                        {isHome ? (
+                            <RichEditor variant="mini" value={form.hero_subtitle || ''} onChange={(val) => setForm({ ...form, hero_subtitle: val })} minHeight={100} maxHeight={200} />
+                        ) : (
+                            <textarea className="input min-h-[80px]" value={form.description || ''} onChange={(e) => setForm({ ...form, description: e.target.value })} />
+                        )}
+                    </Field>
+
+                    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                        <Field label="Teks Tombol" hint="Kosongkan untuk tanpa tombol">
+                            <input className="input" value={form.button_text || ''} onChange={(e) => setForm({ ...form, button_text: e.target.value })} placeholder="Lihat Galeri" />
+                        </Field>
+                        <Field label="Link Tombol">
+                            <input className="input" value={form.button_link || ''} onChange={(e) => setForm({ ...form, button_link: e.target.value })} placeholder="/gallery" />
+                        </Field>
+                    </div>
+                </div>
 
                     {isHome && (() => {
                         const hero = form.sections.hero || {};
@@ -294,22 +332,6 @@ export default function Editor() {
                                     <h3 className="font-bold text-xl text-ink border-b border-line pb-3">Section Hero</h3>
                                 </div>
                                 <div className="card p-5 space-y-6">
-                                    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                                        <Field label="Judul Utama (H1)" required error={errors.hero_title?.[0]}>
-                                            <input className="input" value={hero.title || ''} onChange={(e) => updateSection('hero', 'title', e.target.value)} />
-                                        </Field>
-                                        <Field label="Subjudul">
-                                            <RichEditor variant="mini" value={hero.subtitle || ''} onChange={val => updateSection('hero', 'subtitle', val)} minHeight={100} maxHeight={200} />
-                                        </Field>
-                                    </div>
-                                    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                                        <Field label="Teks Tombol">
-                                            <input className="input" value={hero.button_text || ''} onChange={(e) => updateSection('hero', 'button_text', e.target.value)} />
-                                        </Field>
-                                        <Field label="Link Tombol">
-                                            <input className="input" value={hero.button_link || ''} onChange={(e) => updateSection('hero', 'button_link', e.target.value)} />
-                                        </Field>
-                                    </div>
                                     <Field label="Gambar Hero">
                                         {renderImageUploader('hero_image', 'Gambar Hero')}
                                     </Field>
@@ -532,29 +554,32 @@ export default function Editor() {
                         );
                     })()}
 
-                    {!isHome && !isBlog && !isGallery && (
-                        <Field label="Isi Konten Utama" error={errors.content?.[0]}>
-                            <RichEditor variant="full" value={form.content || ''} onChange={val => setForm({ ...form, content: val })} minHeight={400} maxHeight={800} />
-                        </Field>
+                    {!isHome && !isBlog && !isGallery && !isTentang && (
+                        <div className="card p-5 space-y-4">
+                            <Field label="Isi Konten Utama" error={errors.content?.[0]}>
+                                <RichEditor variant="full" value={form.content || ''} onChange={val => setForm({ ...form, content: val })} minHeight={400} maxHeight={800} />
+                            </Field>
+                        </div>
                     )}
 
-                    <Field label="Visibilitas">
-                        <label className="flex cursor-pointer items-center gap-2 text-sm text-ink">
-                            <input
-                                type="checkbox"
-                                checked={form.published}
-                                onChange={(e) => setForm({ ...form, published: e.target.checked })}
-                                className="h-4 w-4 rounded border-line text-brand-600"
-                            />
-                            Tampilkan halaman ini untuk publik
-                        </label>
-                    </Field>
+                    <div className="card p-5 space-y-4">
+                        <Field label="Visibilitas">
+                            <label className="flex cursor-pointer items-center gap-2 text-sm text-ink">
+                                <input
+                                    type="checkbox"
+                                    checked={form.published}
+                                    onChange={(e) => setForm({ ...form, published: e.target.checked })}
+                                    className="h-4 w-4 rounded border-line text-brand-600"
+                                />
+                                Tampilkan halaman ini untuk publik
+                            </label>
+                        </Field>
 
-                    <div className="flex justify-end gap-3 pt-4 border-t border-line">
-                        <button type="button" className="btn-outline" onClick={() => navigate('/dashboard/pages')}>Kembali</button>
-                        <button type="submit" className="btn-primary" disabled={saving}>{saving ? 'Menyimpan...' : 'Simpan Perubahan'}</button>
+                        <div className="flex justify-end gap-3 pt-4 border-t border-line">
+                            <button type="button" className="btn-outline" onClick={() => navigate('/dashboard/pages')}>Kembali</button>
+                            <button type="submit" className="btn-primary" disabled={saving}>{saving ? 'Menyimpan...' : 'Simpan Perubahan'}</button>
+                        </div>
                     </div>
-                </div>
             </form>
 
             <MediaPicker
