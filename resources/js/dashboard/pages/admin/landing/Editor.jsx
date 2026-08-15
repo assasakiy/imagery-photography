@@ -288,7 +288,7 @@ export default function Editor() {
             <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="card p-5 space-y-6">
                     <div>
-                        <h3 className="font-bold text-xl text-ink border-b border-line pb-3">Section Pertama (Header Halaman)</h3>
+                        <h3 className="font-bold text-xl text-ink border-b border-line pb-3">Section Hero / Title</h3>
                         <p className="mt-2 text-sm text-ink-muted">Judul kecil (badge/kategori halaman) tidak dapat diubah. SEO di-generate otomatis dari judul & deskripsi di bawah ini.</p>
                     </div>
 
@@ -317,10 +317,15 @@ export default function Editor() {
                             <input className="input" value={form.button_link || ''} onChange={(e) => setForm({ ...form, button_link: e.target.value })} placeholder="/gallery" />
                         </Field>
                     </div>
+
+                    {isHome && (
+                        <Field label="Gambar Latar / BG Hero">
+                            {renderImageUploader('hero_image', 'Gambar Hero')}
+                        </Field>
+                    )}
                 </div>
 
                     {isHome && (() => {
-                        const hero = form.sections.hero || {};
                         const about = form.sections.about || {};
                         const reviews = form.sections.reviews || {};
                         const blog = form.sections.blog || {};
@@ -328,15 +333,6 @@ export default function Editor() {
 
                         return (
                             <>
-                                <div className="space-y-4 pt-2">
-                                    <h3 className="font-bold text-xl text-ink border-b border-line pb-3">Section Hero</h3>
-                                </div>
-                                <div className="card p-5 space-y-6">
-                                    <Field label="Gambar Hero">
-                                        {renderImageUploader('hero_image', 'Gambar Hero')}
-                                    </Field>
-                                </div>
-
                                 <div className="space-y-4 pt-4">
                                     <h3 className="font-bold text-xl text-ink border-b border-line pb-3">Section Tentang Kami</h3>
                                 </div>
