@@ -206,7 +206,7 @@ export default function Editor() {
                     });
                 }
 
-                await api.put(`/pages/${form.slug}`, formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+                await api.post(`/pages/${form.slug}`, formData, { headers: { 'Content-Type': 'multipart/form-data' } });
             } else {
                 const payload = {
                     title: form.title,
