@@ -7,7 +7,7 @@ import RichEditor from '../../../components/RichEditor';
 import { PageHeader, Field, useToast } from '../../../components/ui';
 
 export default function Editor() {
-    const { id: slug } = useParams();
+    const { slug } = useParams();
     const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
     const [form, setForm] = useState({});
