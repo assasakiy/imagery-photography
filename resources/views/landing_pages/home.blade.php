@@ -18,10 +18,8 @@
 
     {{-- Hero --}}
     <section class="relative flex min-h-[88vh] items-center overflow-hidden">
-        <div class="absolute inset-0">
-            <img src="{{ $heroImage }}" alt="Hero Sopian Lalu Imagery" class="h-full w-full object-cover object-center">
-            <div class="absolute inset-0 bg-zinc-950/70 dark:bg-black/70"></div>
-        </div>
+        <img src="{{ $heroImage }}" alt="Hero Sopian Lalu Imagery" class="absolute inset-0 h-full w-full object-cover object-center">
+        <div class="absolute inset-0 bg-zinc-950/70 dark:bg-black/70"></div>
 
         <div class="container-site relative py-24">
             <div class="max-w-2xl">
