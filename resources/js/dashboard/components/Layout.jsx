@@ -91,10 +91,10 @@ const adminNav = [
         label: 'Konten Website',
         sub: [
             { to: '/dashboard/blog', icon: 'file-text', label: 'Semua Artikel', end: true },
-            { to: '/dashboard/blog/categories', icon: 'folder', label: 'Kategori Blog' },
+            { to: '/dashboard/kategori', icon: 'folder', label: 'Kategori' },
             { to: '/dashboard/blog/tags', icon: 'tag', label: 'Tag Blog' },
             { to: '/dashboard/faq', icon: 'message-circle', label: 'FAQ' },
-            { to: '/dashboard/pages', icon: 'file', label: 'Halaman Statis' },
+            { to: '/dashboard/pages', icon: 'file', label: 'Halaman' },
         ]
     },
     {
@@ -115,7 +115,6 @@ const ownerNav = [
             { to: '/dashboard/audit', icon: 'clock', label: 'Audit & Log' },
             { to: '/dashboard/recycle-bin', icon: 'trash', label: 'Recycle Bin' },
             { to: '/dashboard/team', icon: 'users', label: 'Tim & Admin' },
-            { to: '/dashboard/landing', icon: 'palette', label: 'Landing Page' },
             { to: '/dashboard/settings', icon: 'settings', label: 'Pengaturan' },
         ]
     }
