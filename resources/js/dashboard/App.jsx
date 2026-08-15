@@ -20,13 +20,13 @@ const PAGE_TITLES = {
     '/dashboard/client-messages': 'Pesan',
     '/dashboard/bookmarks': 'Bookmark',
     '/dashboard/history': 'Riwayat',
-    '/dashboard/landing': 'Halaman Depan',
     '/dashboard/blog': 'Blog',
     '/dashboard/blog/create': 'Tulis Artikel',
     '/dashboard/kategori': 'Kategori',
     '/dashboard/blog/tags': 'Tag Blog',
     '/dashboard/faq': 'FAQ',
     '/dashboard/pages': 'Halaman',
+    '/dashboard/pages/:slug/edit': 'Edit Halaman',
     '/dashboard/settings': 'Pengaturan',
     '/dashboard/team': 'Tim & Admin',
     '/dashboard/reviews': 'Review',
@@ -77,14 +77,14 @@ const ProjectDetail = lazy(pageImports['/dashboard/projects/:id']);
 const Payments = lazy(pageImports['/dashboard/payments']);
 const Messages = lazy(pageImports['/dashboard/messages']);
 const Notifications = lazy(pageImports['/dashboard/notifications']);
-const Landing = lazy(pageImports['/dashboard/landing']);
 const Settings = lazy(pageImports['/dashboard/settings']);
 const Blog = lazy(pageImports['/dashboard/blog']);
 const CreateEditBlog = lazy(pageImports['/dashboard/blog/create']);
 const Categories = lazy(pageImports['/dashboard/kategori']);
 const BlogTags = lazy(pageImports['/dashboard/blog/tags']);
 const Faq = lazy(pageImports['/dashboard/faq']);
-const Pages = lazy(pageImports['/dashboard/pages']);
+const PageIndex = lazy(pageImports['/dashboard/pages']);
+const PageEditor = lazy(pageImports['/dashboard/pages/:slug/edit']);
 const Team = lazy(pageImports['/dashboard/team']);
 const Reviews = lazy(pageImports['/dashboard/reviews']);
 const AuditLog = lazy(pageImports['/dashboard/audit']);
@@ -169,14 +169,14 @@ function AppRoutes() {
                 <Route path="notifications" element={withSuspense(<Notifications />, 'table')} />
                 <Route path="reviews" element={withSuspense(<Protected adminOnly><Reviews /></Protected>, 'table')} />
                 <Route path="profile" element={withSuspense(<ProfileSettings />, 'form')} />
-                <Route path="landing" element={withSuspense(<Protected ownerOnly><Landing /></Protected>, 'form')} />
                 <Route path="blog" element={withSuspense(<Protected adminOnly><Blog /></Protected>, 'table')} />
                 <Route path="blog/create" element={withSuspense(<Protected adminOnly><CreateEditBlog /></Protected>, 'form')} />
                 <Route path="blog/:id/edit" element={withSuspense(<Protected adminOnly><CreateEditBlog /></Protected>, 'form')} />
                 <Route path="kategori" element={withSuspense(<Protected adminOnly><Categories /></Protected>, 'table')} />
                 <Route path="blog/tags" element={withSuspense(<Protected adminOnly><BlogTags /></Protected>, 'table')} />
                 <Route path="faq" element={withSuspense(<Protected adminOnly><Faq /></Protected>, 'table')} />
-                <Route path="pages" element={withSuspense(<Protected adminOnly><Pages /></Protected>, 'table')} />
+                <Route path="pages" element={withSuspense(<Protected adminOnly><PageIndex /></Protected>, 'table')} />
+                <Route path="pages/:slug/edit" element={withSuspense(<Protected adminOnly><PageEditor /></Protected>, 'form')} />
                 <Route path="team" element={withSuspense(<Protected ownerOnly><Team /></Protected>, 'table')} />
                 <Route path="audit" element={withSuspense(<Protected adminOnly><AuditLog /></Protected>, 'table')} />
                 <Route path="recycle-bin" element={withSuspense(<Protected adminOnly><RecycleBin /></Protected>, 'table')} />

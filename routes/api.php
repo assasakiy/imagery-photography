@@ -187,7 +187,9 @@ Route::middleware(['web', 'auth:sanctum', 'maintenance'])->group(function () {
         });
 
         Route::middleware('permission:manage-pages')->group(function () {
-            Route::apiResource('pages', PageController::class)->except(['create', 'edit']);
+            Route::get('/pages', [PageController::class, 'index']);
+            Route::get('/pages/{slug}', [PageController::class, 'show'])->where('slug', '.*');
+            Route::put('/pages/{slug}', [PageController::class, 'update'])->where('slug', '.*');
         });
     });
 

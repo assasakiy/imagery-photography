@@ -13,48 +13,101 @@ class PageController extends Controller
 {
     public function index()
     {
-        return response()->json(Page::orderBy('slug')->get());
+        return response()->json(Page::orderBy('slug')->get()->makeHidden([]));
     }
 
-    public function store(Request $request)
+    public function show(string $slug)
     {
-        $data = $this->validateData($request);
-
-        $page = Page::create($data);
-        app(\App\Services\AuditLogger::class)->log('page.created', 'Halaman dibuat', $page);
-
-        return response()->json($page, 201);
-    }
-
-    public function update(Request $request, Page $page)
-    {
-        $data = $this->validateData($request, $page->id);
-
-        $page->update($data);
-        app(\App\Services\AuditLogger::class)->log('page.updated', 'Halaman diperbarui', $page);
+        $page = Page::where('slug', $slug)->firstOrFail();
 
         return response()->json($page);
     }
 
-    public function destroy(Page $page)
+    public function store(Request $request)
     {
-        $page->delete();
-        app(\App\Services\AuditLogger::class)->log('page.deleted', 'Halaman dihapus');
-
-        return response()->json(['ok' => true]);
+        return $this->save($request, null);
     }
 
-    private function validateData(Request $request, ?int $ignoreId = null): array
+    public function update(string $slug, Request $request)
+    {
+        $page = Page::where('slug', $slug)->firstOrFail();
+
+        return $this->save($request, $page);
+    }
+
+    protected function save(Request $request, ?Page $page = null)
     {
         $data = Validator::make($request->all(), [
-            'slug' => ['required', 'string', 'max:255', 'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/', 'unique:pages,slug' . ($ignoreId ? ',' . $ignoreId : '')],
             'title' => 'required|string|max:255',
-            'content' => 'required|string',
+            'description' => 'nullable|string|max:500',
+            'content' => 'nullable|string',
             'published' => 'boolean',
+            'sections' => 'nullable|array',
         ])->validate();
 
-        $data['content'] = ContentSanitizer::plainText($data['content']);
+        $payload = [
+            'name' => null,
+            'title' => $data['title'],
+            'description' => $data['description'] ?? null,
+            'content' => ContentSanitizer::clean($data['content'] ?? ''),
+            'published' => (bool) ($data['published'] ?? true),
+        ];
 
-        return $data;
+        if (array_key_exists('sections', $data)) {
+            $payload['sections'] = $data['sections'];
+        }
+
+        if ($page) {
+            $page->update($payload);
+            app(AuditLogger::class)->log('page.updated', 'Halaman diperbarui: ' . $page->slug, $page);
+        } else {
+            if (empty($request->input('slug'))) {
+                return response()->json(['message' => 'Kolom slug wajib diisi.'], 422);
+            }
+            $existing = Page::where('slug', $request->input('slug'))->first();
+            if ($existing) {
+                return response()->json(['errors' => ['slug' => ['Slug sudah dipakai.']]], 422);
+            }
+            $payload['slug'] = $request->input('slug');
+            $page = Page::create($payload);
+            app(AuditLogger::class)->log('page.created', 'Halaman dibuat: ' . $page->slug, $page);
+        }
+
+        // Home: kelola images (hero_image/about_image) & sections dari FormData editor.
+        if ($request->hasFile('new_images') || $request->has('images') || $request->boolean('reset_images')) {
+            $this->processImages($page, $request);
+        }
+
+        return response()->json($page->fresh(), $page->wasRecentlyCreated ? 201 : 200);
+    }
+
+    private function processImages(Page $page, Request $request): void
+    {
+        $images = is_array($page->images) ? $page->images : [];
+
+        if ($request->has('reset_images')) {
+            foreach (array_keys($request->input('reset_images')) as $key) {
+                unset($images[$key]);
+            }
+        }
+
+        if ($request->has('images')) {
+            foreach ($request->input('images') as $key => $value) {
+                if (is_string($value) && $value !== '') {
+                    $images[$key] = $value;
+                }
+            }
+        }
+
+        if ($request->hasFile('new_images')) {
+            foreach ($request->file('new_images') as $key => $file) {
+                if ($file && $file->isValid()) {
+                    $media = $page->addMedia($file)->toMediaCollection('page_images');
+                    $images[$key] = 'media:' . $media->id;
+                }
+            }
+        }
+
+        $page->update(['images' => $images]);
     }
 }

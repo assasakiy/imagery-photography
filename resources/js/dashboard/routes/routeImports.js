@@ -17,9 +17,10 @@ export const pageImports = {
     '/dashboard/kategori': () => import('../pages/admin/Categories'),
     '/dashboard/blog/tags': () => import('../pages/admin/blog/BlogTags'),
     '/dashboard/faq': () => import('../pages/admin/Faq'),
-    '/dashboard/pages': () => import('../pages/admin/Pages'),
+    '/dashboard/pages': () => import('../pages/admin/landing/Index'),
+    '/dashboard/pages/:slug/edit': () => import('../pages/admin/landing/Editor'),
     '/dashboard/reviews': () => import('../pages/admin/Reviews'),
-    '/dashboard/landing': () => import('../pages/admin/Landing'),
+
     '/dashboard/settings': () => import('../pages/admin/Settings'),
     '/dashboard/team': () => import('../pages/admin/Team'),
     '/dashboard/profile': () => import('../pages/admin/ProfileSettings'),

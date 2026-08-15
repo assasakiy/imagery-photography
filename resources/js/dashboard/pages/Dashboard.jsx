@@ -343,7 +343,7 @@ function QuickLinks() {
         { to: '/dashboard/blog/create', icon: 'edit', label: 'Tulis Artikel', desc: 'Buat postingan blog baru' },
         { to: '/dashboard/bookings', icon: 'calendar', label: 'Lihat Booking', desc: 'Cek daftar booking masuk' },
         { to: '/dashboard/clients', icon: 'users', label: 'Kelola Klien', desc: 'Daftar klien terdaftar' },
-        { to: '/dashboard/landing', icon: 'sparkles', label: 'Atur Landing Page', desc: 'Konten halaman depan' },
+        { to: '/dashboard/pages', icon: 'sparkles', label: 'Atur Halaman', desc: 'Konten halaman depan & statis' },
     ];
 
     return (
