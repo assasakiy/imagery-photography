@@ -42,7 +42,7 @@ function Divider() {
     return <span className="mx-1 h-5 w-px bg-line" />;
 }
 
-export default function RichEditor({ value = '', onChange, variant = 'full', placeholder = 'Tulis di sini…', minHeight = 200, maxHeight = 420 }) {
+export default function RichEditor({ value = '', onChange, variant = 'full', placeholder = 'Tulis di sini…', minHeight = 400, maxHeight = 640 }) {
     const [pickerOpen, setPickerOpen] = useState(false);
     const editor = useEditor({
         extensions: [
