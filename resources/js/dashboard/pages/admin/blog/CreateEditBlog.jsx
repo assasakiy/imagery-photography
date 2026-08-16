@@ -54,7 +54,7 @@ const [form, setForm] = useState({
                     tags: data.tags?.map(t => t.name) || [],
                     media_id: data.media_id || null,
                 });
-                setCoverPreview(data.cover_url || data.image_url || '');
+                setCoverPreview(data.thumbnail_url || data.cover_url || data.image_url || '');
             }).catch(() => {
                 show('Gagal memuat artikel', 'error');
                 navigate('/dashboard/blog');
