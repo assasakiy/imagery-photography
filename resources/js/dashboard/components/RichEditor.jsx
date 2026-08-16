@@ -42,7 +42,7 @@ function Divider() {
     return <span className="mx-1 h-5 w-px bg-line" />;
 }
 
-export default function RichEditor({ value = '', onChange, variant = 'full', placeholder = 'Tulis di sini…', minHeight = 200, maxHeight = 420 }) {
+export default function RichEditor({ value = '', onChange, variant = 'full', placeholder = 'Tulis di sini…', minHeight = 400, maxHeight = 420 }) {
     const [pickerOpen, setPickerOpen] = useState(false);
     const editor = useEditor({
         extensions: [
@@ -118,7 +118,7 @@ export default function RichEditor({ value = '', onChange, variant = 'full', pla
 
     return (
         <div className="overflow-hidden rounded-xl border border-line bg-surface focus-within:border-brand-500 focus-within:ring-2 focus-within:ring-brand-500/20">
-            <div className="sticky top-0 z-10 flex flex-wrap items-center gap-0.5 border-b border-line bg-surface-muted/90 px-2 py-1.5 backdrop-blur">
+            <div className="sticky top-0 z-30 flex flex-wrap items-center gap-0.5 border-b border-line bg-surface-muted/90 px-2 py-1.5 backdrop-blur">
                 <ToolbarButton icon="bold" label="Tebal" active={editorState.bold} onClick={run('toggleBold')} />
                 <ToolbarButton icon="italic" label="Miring" active={editorState.italic} onClick={run('toggleItalic')} />
                 <ToolbarButton icon="underline" label="Garis bawah" active={editorState.underline} onClick={run('toggleUnderline')} />

@@ -292,7 +292,7 @@
     }
 
     .ProseMirror {
-        @apply px-4 py-3 text-sm leading-relaxed text-ink outline-none;
+        @apply max-w-none px-4 py-4 text-sm leading-relaxed text-ink outline-none;
     }
 
     .ProseMirror > * + * {
