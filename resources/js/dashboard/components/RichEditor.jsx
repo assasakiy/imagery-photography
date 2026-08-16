@@ -42,7 +42,7 @@ function Divider() {
     return <span className="mx-1 h-5 w-px bg-line" />;
 }
 
-export default function RichEditor({ value = '', onChange, variant = 'full', placeholder = 'Tulis di sini…', minHeight = 400, maxHeight = 640 }) {
+export default function RichEditor({ value = '', onChange, variant = 'full', placeholder = 'Tulis di sini…', minHeight = 400, maxHeight = 640, className = '' }) {
     const [pickerOpen, setPickerOpen] = useState(false);
     const editor = useEditor({
         extensions: [
@@ -117,7 +117,7 @@ export default function RichEditor({ value = '', onChange, variant = 'full', pla
     };
 
     return (
-        <div className="overflow-hidden rounded-xl border border-line bg-surface focus-within:border-brand-500 focus-within:ring-2 focus-within:ring-brand-500/20">
+        <div className={`flex flex-col overflow-hidden rounded-xl border border-line bg-surface focus-within:border-brand-500 focus-within:ring-2 focus-within:ring-brand-500/20 ${className}`}>
             <div className="sticky top-0 z-10 flex flex-wrap items-center gap-0.5 border-b border-line bg-surface-muted/90 px-2 py-1.5 backdrop-blur">
                 <ToolbarButton icon="bold" label="Tebal" active={editorState.bold} onClick={run('toggleBold')} />
                 <ToolbarButton icon="italic" label="Miring" active={editorState.italic} onClick={run('toggleItalic')} />
@@ -142,11 +142,12 @@ export default function RichEditor({ value = '', onChange, variant = 'full', pla
                     <ToolbarButton icon="remove-formatting" label="Hapus format" onClick={run('unsetAllMarks')} />
                 </div>
             </div>
-            <EditorContent
-                editor={editor}
-                className="rich-editor-scroll"
-                style={{ minHeight, maxHeight }}
-            />
+            <div className="rich-editor-scroll flex-1">
+                <EditorContent
+                    editor={editor}
+                    style={{ minHeight, maxHeight }}
+                />
+            </div>
             <MediaPicker open={pickerOpen} onClose={() => setPickerOpen(false)} onSelect={insertImage} title="Sisipkan Gambar" />
         </div>
     );

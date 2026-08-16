@@ -172,8 +172,8 @@ const [form, setForm] = useState({
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
                             
                             {/* Kiri: Konten Utama (Col-Span 2) */}
-                            <div className="lg:col-span-2 space-y-5">
-                                <div className="bg-surface border border-line rounded-md">
+                            <div className="lg:col-span-2 space-y-5 flex flex-col">
+                                <div className="flex flex-1 flex-col bg-surface border border-line rounded-md">
                                     <div className="flex flex-col space-y-1.5 p-4 border-b border-line">
                                         <h3 className="font-semibold flex items-center gap-2 text-sm">
                                             <span className="w-5 h-5 rounded bg-surface-muted flex items-center justify-center">
@@ -182,7 +182,7 @@ const [form, setForm] = useState({
                                             Konten
                                         </h3>
                                     </div>
-                                    <div className="p-4 space-y-4">
+                                    <div className="p-4 space-y-4 flex flex-1 flex-col">
                                         <div className="space-y-1.5">
                                             <label htmlFor="judul" className="text-sm font-medium">Judul</label>
                                             <input
@@ -211,12 +211,12 @@ const [form, setForm] = useState({
                                             </div>
                                             <p className="text-xs text-ink-muted mt-1.5">Kosongkan untuk menghasilkan otomatis dari konten artikel.</p>
                                         </div>
-                                        <div>
+                                        <div className="flex flex-1 flex-col">
                                             <label className="text-sm font-medium mb-1.5 block">Isi</label>
                                             <RichEditor
                                                 value={form.content}
                                                 onChange={(v) => setForm({ ...form, content: v })}
-                                                minHeight={400}
+                                                className="flex-1"
                                             />
                                             {errors.content && <p className="mt-1 text-xs text-red-500">{errors.content[0]}</p>}
                                         </div>
