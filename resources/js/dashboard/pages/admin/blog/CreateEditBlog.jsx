@@ -351,7 +351,7 @@ const [form, setForm] = useState({
                                     </div>
                                 </div>
 
-                                <div className="flex gap-2 sticky bottom-0 pt-2">
+                                <div className="flex gap-2 pt-2">
                                     <button
                                         type="button"
                                         onClick={() => navigate('/dashboard/blog')}
