@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -47,8 +48,15 @@ return new class extends Migration
             $table->string('name');
             $table->string('slug')->unique();
             $table->string('description')->nullable();
+            $table->boolean('is_system')->default(false);
             $table->timestamps();
         });
+
+        \Illuminate\Support\Facades\DB::table('categories')->insertOrIgnore([
+            ['name' => 'Artikel Unggulan', 'slug' => 'featured', 'description' => 'Pilihan redaksi kami.', 'is_system' => 1, 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'Artikel Populer', 'slug' => 'populer', 'description' => 'Paling banyak dibaca.', 'is_system' => 1, 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'Artikel Terbaru', 'slug' => 'latest', 'description' => 'Update terbaru dari kami.', 'is_system' => 1, 'created_at' => now(), 'updated_at' => now()],
+        ]);
 
         Schema::create('categorizables', function (Blueprint $table) {
             $table->id();

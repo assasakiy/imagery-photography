@@ -81,12 +81,19 @@ class BlogController extends Controller
 
         $posts = $query->paginate(12)->withQueryString();
 
-        $title = $cfg['title'] ?? match ($sectionType) {
+        $systemSlug = match ($sectionType) {
+            'featured' => 'featured',
+            'popular' => 'populer',
+            default => 'latest',
+        };
+        $systemCategory = \App\Models\Category::where('slug', $systemSlug)->where('is_system', true)->first();
+
+        $title = $systemCategory?->name ?? ($cfg['title'] ?? match ($sectionType) {
             'featured' => 'Artikel Unggulan',
             'popular' => 'Artikel Populer',
             default => 'Artikel Terbaru',
-        };
-        $subtitle = $cfg['subtitle'] ?? ($page?->description ?? '');
+        });
+        $subtitle = $systemCategory?->description ?? ($cfg['subtitle'] ?? ($page?->description ?? ''));
 
         $categories = $this->activeCategories();
         $tags = BlogTag::withCount('posts')->get();
@@ -181,7 +188,8 @@ class BlogController extends Controller
 
     protected function activeCategories()
     {
-        return Category::withCount(['blogs' => fn ($q) => $q->published()])
+        return Category::where('is_system', false)
+            ->withCount(['blogs' => fn ($q) => $q->published()])
             ->having('blogs_count', '>', 0)
             ->orderBy('name')
             ->get();

@@ -7,7 +7,12 @@ use Illuminate\Support\Str;
 
 class Category extends Model
 {
-    protected $fillable = ['name', 'slug', 'description'];
+    protected $fillable = ['name', 'slug', 'description', 'is_system'];
+
+    protected function casts(): array
+    {
+        return ['is_system' => 'boolean'];
+    }
 
     public function blogs()
     {

@@ -39,7 +39,7 @@ const [form, setForm] = useState({
     const [mediaOpen, setMediaOpen] = useState(false);
 
     useEffect(() => {
-        api.get('/categories').then(({ data }) => setCategories(data));
+        api.get('/categories').then(({ data }) => setCategories(data.filter((c) => !c.is_system)));
         api.get('/blog-tags').then(({ data }) => setAvailableTags(data));
 
         if (isEdit) {
