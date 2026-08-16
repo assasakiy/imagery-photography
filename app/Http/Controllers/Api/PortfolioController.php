@@ -99,6 +99,12 @@ class PortfolioController extends Controller
             return;
         }
 
+        if (! is_file($media->getPath())) {
+            $portfolio->update(['image_url' => $media->getUrl()]);
+
+            return;
+        }
+
         $portfolio->clearMediaCollection('cover');
         $portfolio->addMedia($media->getPath())
             ->usingFileName($media->file_name)

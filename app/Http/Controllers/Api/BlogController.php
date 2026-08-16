@@ -154,6 +154,12 @@ class BlogController extends Controller
             return;
         }
 
+        if (! is_file($media->getPath())) {
+            $blog->update(['image_url' => $media->getUrl()]);
+
+            return;
+        }
+
         $blog->clearMediaCollection('cover');
         $blog->addMedia($media->getPath())
             ->usingFileName($media->file_name)

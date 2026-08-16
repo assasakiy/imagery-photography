@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useEditor, EditorContent } from '@tiptap/react';
+import { useEditor, EditorContent, useEditorState } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
 import Link from '@tiptap/extension-link';
@@ -90,9 +90,25 @@ export default function RichEditor({ value = '', onChange, variant = 'full', pla
         editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
     };
 
+    const editorState = useEditorState({
+        editor,
+        selector: ({ editor: e }) => ({
+            bold: e?.isActive('bold') ?? false,
+            italic: e?.isActive('italic') ?? false,
+            underline: e?.isActive('underline') ?? false,
+            strike: e?.isActive('strike') ?? false,
+            heading: e?.isActive('heading', { level: 2 }) ?? false,
+            bulletList: e?.isActive('bulletList') ?? false,
+            orderedList: e?.isActive('orderedList') ?? false,
+            blockquote: e?.isActive('blockquote') ?? false,
+            codeBlock: e?.isActive('codeBlock') ?? false,
+            link: e?.isActive('link') ?? false,
+            image: e?.isActive('image') ?? false,
+        }),
+    });
+
     if (!editor) return null;
 
-    const is = (name, attrs) => editor.isActive(name, attrs);
     const run = (fn) => () => editor.chain().focus()[fn]().run();
 
     const insertImage = (sel) => {
@@ -102,22 +118,22 @@ export default function RichEditor({ value = '', onChange, variant = 'full', pla
 
     return (
         <div className="overflow-hidden rounded-xl border border-line bg-surface focus-within:border-brand-500 focus-within:ring-2 focus-within:ring-brand-500/20">
-            <div className="flex flex-wrap items-center gap-0.5 border-b border-line bg-surface-muted/50 px-2 py-1.5">
-                <ToolbarButton icon="bold" label="Tebal" active={is('bold')} onClick={run('toggleBold')} />
-                <ToolbarButton icon="italic" label="Miring" active={is('italic')} onClick={run('toggleItalic')} />
-                <ToolbarButton icon="underline" label="Garis bawah" active={is('underline')} onClick={run('toggleUnderline')} />
-                <ToolbarButton icon="strikethrough" label="Coret" active={is('strike')} onClick={run('toggleStrike')} />
+            <div className="sticky top-0 z-10 flex flex-wrap items-center gap-0.5 border-b border-line bg-surface-muted/90 px-2 py-1.5 backdrop-blur">
+                <ToolbarButton icon="bold" label="Tebal" active={editorState.bold} onClick={run('toggleBold')} />
+                <ToolbarButton icon="italic" label="Miring" active={editorState.italic} onClick={run('toggleItalic')} />
+                <ToolbarButton icon="underline" label="Garis bawah" active={editorState.underline} onClick={run('toggleUnderline')} />
+                <ToolbarButton icon="strikethrough" label="Coret" active={editorState.strike} onClick={run('toggleStrike')} />
                 {variant === 'full' && (
                     <>
                         <Divider />
-                        <ToolbarButton icon="heading" label="Subjudul" active={is('heading', { level: 2 })} onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()} />
-                        <ToolbarButton icon="list" label="Daftar" active={is('bulletList')} onClick={run('toggleBulletList')} />
-                        <ToolbarButton icon="list-ordered" label="Daftar bernomor" active={is('orderedList')} onClick={run('toggleOrderedList')} />
-                        <ToolbarButton icon="quote" label="Kutipan" active={is('blockquote')} onClick={run('toggleBlockquote')} />
-                        <ToolbarButton icon="code" label="Kode" active={is('codeBlock')} onClick={run('toggleCodeBlock')} />
+                        <ToolbarButton icon="heading" label="Subjudul" active={editorState.heading} onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()} />
+                        <ToolbarButton icon="list" label="Daftar" active={editorState.bulletList} onClick={run('toggleBulletList')} />
+                        <ToolbarButton icon="list-ordered" label="Daftar bernomor" active={editorState.orderedList} onClick={run('toggleOrderedList')} />
+                        <ToolbarButton icon="quote" label="Kutipan" active={editorState.blockquote} onClick={run('toggleBlockquote')} />
+                        <ToolbarButton icon="code" label="Kode" active={editorState.codeBlock} onClick={run('toggleCodeBlock')} />
                         <Divider />
-                        <ToolbarButton icon="link" label="Tautan" active={is('link')} onClick={toggleLink} />
-                        <ToolbarButton icon="image" label="Sisipkan gambar" active={is('image')} onClick={() => setPickerOpen(true)} />
+                        <ToolbarButton icon="link" label="Tautan" active={editorState.link} onClick={toggleLink} />
+                        <ToolbarButton icon="image" label="Sisipkan gambar" active={editorState.image} onClick={() => setPickerOpen(true)} />
                     </>
                 )}
                 <div className="ml-auto flex items-center gap-0.5">
