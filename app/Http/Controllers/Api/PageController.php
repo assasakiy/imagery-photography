@@ -106,7 +106,7 @@ class PageController extends Controller
 
         if ($request->has('reset_images')) {
             foreach (array_keys($request->input('reset_images')) as $key) {
-                unset($images[$key]);
+                $images[$key] = '';
             }
         }
 

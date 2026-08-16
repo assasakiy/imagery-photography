@@ -5,8 +5,13 @@
 
 @section('content')
     @php
-        $heroImage = \App\Services\AssetResolver::landingImage('hero_image', \App\Services\AssetResolver::DEFAULT_HERO_IMAGE);
-        $aboutImage = \App\Services\AssetResolver::landingImage('about_image', \App\Services\AssetResolver::DEFAULT_ABOUT_IMAGE);
+        $pageImages = is_array($page->images) ? $page->images : (is_string($page->images) ? json_decode($page->images, true) : []);
+        $heroImage = array_key_exists('hero_image', $pageImages)
+            ? ($pageImages['hero_image'] ?: '')
+            : \App\Services\AssetResolver::landingImage('hero_image', \App\Services\AssetResolver::DEFAULT_HERO_IMAGE);
+        $aboutImage = array_key_exists('about_image', $pageImages)
+            ? ($pageImages['about_image'] ?: '')
+            : \App\Services\AssetResolver::landingImage('about_image', \App\Services\AssetResolver::DEFAULT_ABOUT_IMAGE);
         $homeBadge = $page->badge ?: ($contents['hero_badge'] ?? 'Photography & Videography');
         $homeTitle = $page->hero_title ?: ($contents['hero_title'] ?? 'Sopian Lalu Imagery');
         $homeSubtitle = $page->hero_subtitle ?: ($contents['hero_subtitle'] ?? 'Mengabadikan momen berharga Anda menjadi warisan visual.');
