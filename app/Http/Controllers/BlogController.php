@@ -14,11 +14,6 @@ class BlogController extends Controller
         $page = \App\Models\Page::where('slug', 'blog')->first();
         $sections = is_array($page?->sections) ? $page->sections : [];
 
-        $sectionType = request('section');
-        if (in_array($sectionType, ['featured', 'latest', 'popular'], true)) {
-            return $this->sectionListing($sectionType, $page, $sections);
-        }
-
         $query = Blog::with(['author', 'categories', 'tags'])->published()->latest('published_at');
 
         if ($slug = request('category')) {
@@ -97,6 +92,21 @@ class BlogController extends Controller
         $tags = BlogTag::withCount('posts')->get();
 
         return view('landing_pages.blog.listing', compact('sectionType', 'title', 'subtitle', 'posts', 'categories', 'tags', 'page'));
+    }
+
+    public function section(string $section)
+    {
+        $page = \App\Models\Page::where('slug', 'blog')->first();
+        $sections = is_array($page?->sections) ? $page->sections : [];
+
+        $sectionType = match ($section) {
+            'featured' => 'featured',
+            'latest' => 'latest',
+            'populer' => 'popular',
+            default => 'latest',
+        };
+
+        return $this->sectionListing($sectionType, $page, $sections);
     }
 
     public function show(string $slug)
