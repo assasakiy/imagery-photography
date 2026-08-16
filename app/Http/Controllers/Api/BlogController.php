@@ -45,6 +45,15 @@ class BlogController extends Controller
         return response()->json($this->serialize($blog->load(['author:id,username', 'author.profile', 'categories:id,name,slug', 'tags:id,name'])));
     }
 
+    public function counts()
+    {
+        return response()->json([
+            'featured' => Blog::published()->featured()->count(),
+            'latest' => Blog::published()->count(),
+            'popular' => Blog::published()->count(),
+        ]);
+    }
+
     public function store(Request $request)
     {
         $this->decodeTags($request);

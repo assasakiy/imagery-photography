@@ -11,6 +11,14 @@ class BlogController extends Controller
 {
     public function index()
     {
+        $page = \App\Models\Page::where('slug', 'blog')->first();
+        $sections = is_array($page?->sections) ? $page->sections : [];
+
+        $sectionType = request('section');
+        if (in_array($sectionType, ['featured', 'latest', 'popular'], true)) {
+            return $this->sectionListing($sectionType, $page, $sections);
+        }
+
         $query = Blog::with(['author', 'categories', 'tags'])->published()->latest('published_at');
 
         if ($slug = request('category')) {
@@ -40,20 +48,55 @@ class BlogController extends Controller
         $categories = $this->activeCategories();
         $tags = BlogTag::withCount('posts')->get();
 
+        $featuredCount = (int) (collect($sections)->firstWhere('type', 'featured')['count'] ?? 5);
+        $latestCount = (int) (collect($sections)->firstWhere('type', 'latest')['count'] ?? 9);
+        $popularCount = (int) (collect($sections)->firstWhere('type', 'popular')['count'] ?? 5);
+
         $featured = Blog::with(['author', 'categories', 'tags'])->published()->featured()
-            ->latest('published_at')->take(5)->get();
+            ->latest('published_at')->take($featuredCount)->get();
 
         if ($featured->isEmpty()) {
             $featured = Blog::with(['author', 'categories', 'tags'])->published()
-                ->latest('published_at')->take(5)->get();
+                ->latest('published_at')->take($featuredCount)->get();
         }
 
         $popular = Blog::with(['author', 'categories', 'tags'])->published()
-            ->orderByDesc('views_count')->orderByDesc('published_at')->take(5)->get();
+            ->orderByDesc('views_count')->orderByDesc('published_at')->take($popularCount)->get();
 
-        $page = \App\Models\Page::where('slug', 'blog')->first();
+        $latestTotal = Blog::published()->count();
+        $featuredTotal = Blog::published()->featured()->count();
+        $popularTotal = $latestTotal;
 
-        return view('landing_pages.blog.index', compact('posts', 'categories', 'tags', 'featured', 'popular', 'page'));
+        return view('landing_pages.blog.index', compact('posts', 'categories', 'tags', 'featured', 'popular', 'page', 'featuredCount', 'latestCount', 'popularCount', 'latestTotal', 'featuredTotal', 'popularTotal'));
+    }
+
+    protected function sectionListing(string $sectionType, ?\App\Models\Page $page, array $sections)
+    {
+        $cfg = collect($sections)->firstWhere('type', $sectionType) ?? [];
+
+        $query = Blog::with(['author', 'categories', 'tags'])->published();
+
+        if ($sectionType === 'featured') {
+            $query->featured()->latest('published_at');
+        } elseif ($sectionType === 'popular') {
+            $query->orderByDesc('views_count')->orderByDesc('published_at');
+        } else {
+            $query->latest('published_at');
+        }
+
+        $posts = $query->paginate(12)->withQueryString();
+
+        $title = $cfg['title'] ?? match ($sectionType) {
+            'featured' => 'Artikel Unggulan',
+            'popular' => 'Artikel Populer',
+            default => 'Artikel Terbaru',
+        };
+        $subtitle = $cfg['subtitle'] ?? ($page?->description ?? '');
+
+        $categories = $this->activeCategories();
+        $tags = BlogTag::withCount('posts')->get();
+
+        return view('landing_pages.blog.listing', compact('sectionType', 'title', 'subtitle', 'posts', 'categories', 'tags', 'page'));
     }
 
     public function show(string $slug)

@@ -14,6 +14,7 @@ export default function Editor() {
     const [errors, setErrors] = useState({});
     const [saving, setSaving] = useState(false);
     const [mediaOpenFor, setMediaOpenFor] = useState(null);
+    const [blogCounts, setBlogCounts] = useState(null);
     const { show, node } = useToast();
 
     const updateSection = (sectionType, field, val) => {
@@ -107,6 +108,12 @@ export default function Editor() {
 
                 if (data.slug === 'gallery') {
                     initialForm.sections = normalizeGallerySections(data.sections);
+                }
+
+                if (data.slug === 'blog') {
+                    api.get('/blog/counts')
+                        .then(({ data: c }) => setBlogCounts(c))
+                        .catch(() => setBlogCounts(null));
                 }
 
                 setForm(initialForm);
@@ -519,10 +526,21 @@ export default function Editor() {
                             ];
 
                         const countOptions = (key) => {
-                            if (key === 'featured') return isB ? [2, 4, 6, 8, 10] : [3, 6, 9];
+                            if (key === 'featured') return isB ? [2, 5, 7, 10] : [3, 6, 9];
                             if (key === 'latest' || key === 'popular') return [3, 6, 9];
                             if (key === 'tags') return [6, 12, 18];
                             return [2, 4, 6, 8, 10];
+                        };
+
+                        const isCountDisabled = (key, option) => {
+                            if (key === 'tags' || !blogCounts) return false;
+                            const total = blogCounts[key] ?? 0;
+                            return total < option - 1;
+                        };
+
+                        const availableCount = (key, options) => {
+                            const valid = options.filter((o) => !isCountDisabled(key, o));
+                            return valid.length ? valid : options[0];
                         };
 
                         return (
@@ -550,10 +568,14 @@ export default function Editor() {
                                                         </Field>
                                                     )}
                                                     {sec.count && (
-                                                        <Field label="Jumlah Item yang Ditampilkan">
-                                                            <select className="input" value={countOptions(sec.key).includes(Number(v.count)) ? v.count : countOptions(sec.key)[0]} onChange={(e) => updateSection(sec.key, 'count', e.target.value)}>
+                                                        <Field label="Jumlah Item yang Ditampilkan" hint={blogCounts && sec.key !== 'tags' ? `Tersedia ${blogCounts[sec.key] ?? 0} artikel. Opsi aktif bila total ≥ pilihan − 1 (slot terakhir terisi layanan/booking).` : undefined}>
+                                                            <select
+                                                                className="input"
+                                                                value={availableCount(sec.key, countOptions(sec.key)).includes(Number(v.count)) ? v.count : availableCount(sec.key, countOptions(sec.key))[0]}
+                                                                onChange={(e) => updateSection(sec.key, 'count', e.target.value)}
+                                                            >
                                                                 {countOptions(sec.key).map((o) => (
-                                                                    <option key={o} value={o}>{o} Item</option>
+                                                                    <option key={o} value={o} disabled={isCountDisabled(sec.key, o)}>{o} Item</option>
                                                                 ))}
                                                             </select>
                                                         </Field>

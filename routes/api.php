@@ -177,6 +177,7 @@ Route::middleware(['web', 'auth:sanctum', 'maintenance'])->group(function () {
         });
 
         Route::middleware('permission:manage-blog')->group(function () {
+            Route::get('/blog/counts', [BlogController::class, 'counts']);
             Route::apiResource('blog', BlogController::class)->names('api.blog')->except(['create', 'edit']);
             Route::apiResource('blog-tags', BlogTagController::class)->except(['create', 'edit']);
         });
