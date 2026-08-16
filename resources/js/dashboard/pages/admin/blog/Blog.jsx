@@ -105,7 +105,7 @@ export default function Blog() {
                                         <div className="flex items-center gap-3">
                                             <div className="h-10 w-10 shrink-0 overflow-hidden rounded-lg bg-surface-muted">
                                                 <img
-                                                    src={item.cover_url}
+                                                    src={item.thumbnail_url || item.cover_url}
                                                     alt={item.title}
                                                     className="h-full w-full object-cover"
                                                     loading="lazy"
