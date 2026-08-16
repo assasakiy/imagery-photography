@@ -30,6 +30,8 @@ const [form, setForm] = useState({
         tags: [],
         media_id: null,
     });
+    const [initialForm, setInitialForm] = useState(null);
+    const isDirty = JSON.stringify(form) !== JSON.stringify(initialForm);
     
     const [tagInput, setTagInput] = useState('');
     const [catSearch, setCatSearch] = useState('');
@@ -44,7 +46,7 @@ const [form, setForm] = useState({
 
         if (isEdit) {
             api.get(`/blog/${id}`).then(({ data }) => {
-                setForm({
+                const loaded = {
                     title: data.title || '',
                     content: data.content || '',
                     excerpt: data.excerpt || '',
@@ -53,12 +55,16 @@ const [form, setForm] = useState({
                     is_featured: data.is_featured || false,
                     tags: data.tags?.map(t => t.name) || [],
                     media_id: data.media_id || null,
-                });
+                };
+                setForm(loaded);
+                setInitialForm(loaded);
                 setCoverPreview(data.thumbnail_url || data.cover_url || data.image_url || '');
             }).catch(() => {
                 show('Gagal memuat artikel', 'error');
                 navigate('/dashboard/blog');
             }).finally(() => setLoading(false));
+        } else {
+            setInitialForm({ title: '', content: '', excerpt: '', category_ids: [], status: 'draft', is_featured: false, tags: [], media_id: null });
         }
     }, [id, isEdit]);
 
@@ -156,15 +162,6 @@ const [form, setForm] = useState({
                                     <Icon name="eye" size={14} /> Preview
                                 </a>
                             )}
-                            <button
-                                type="button"
-                                onClick={submit}
-                                disabled={saving || !form.title.trim() || !form.content.trim()}
-                                className="inline-flex items-center justify-center font-medium rounded-md transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 disabled:opacity-50 disabled:cursor-not-allowed bg-brand-600 text-white hover:bg-brand-700 border border-transparent shadow-sm px-4 py-2 text-sm gap-2 h-9"
-                            >
-                                {saving ? <ButtonSpinner /> : <Icon name="save" size={16} />}
-                                {isEdit ? 'Perbarui Postingan' : 'Terbitkan Postingan'}
-                            </button>
                         </div>
                     </div>
 
@@ -352,6 +349,24 @@ const [form, setForm] = useState({
                                             />
                                         </div>
                                     </div>
+                                </div>
+
+                                <div className="flex gap-2 sticky bottom-0 pt-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => navigate('/dashboard/blog')}
+                                        className="inline-flex items-center justify-center gap-1.5 rounded-md border border-line bg-surface px-4 py-2 text-sm font-medium text-ink transition-colors hover:bg-surface-muted disabled:opacity-50"
+                                    >
+                                        <Icon name="arrow-left" size={16} /> Kembali
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        disabled={saving || !isDirty || !form.title.trim() || !form.content.trim()}
+                                        className="inline-flex flex-1 items-center justify-center gap-2 rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-50"
+                                    >
+                                        {saving ? <ButtonSpinner /> : <Icon name="save" size={16} />}
+                                        {isEdit ? 'Perbarui' : 'Terbitkan'}
+                                    </button>
                                 </div>
                             </div>
                         </div>
