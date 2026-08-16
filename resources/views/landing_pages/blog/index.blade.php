@@ -45,7 +45,7 @@
                         <h2 class="text-2xl font-bold tracking-tight text-ink">Artikel Unggulan</h2>
                     </div>
                     @if ($featuredTotal > $featuredCount)
-                        <a href="{{ route('blog') }}?section=featured" class="btn-ghost shrink-0">Lihat Semua</a>
+                        <a href="{{ route('blog') }}?section=featured" class="btn-link shrink-0">Lihat Semua <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 5l7 7-7 7"/><path d="M6 5l7 7-7 7"/></svg></a>
                     @endif
                 </div>
                 <div class="space-y-px overflow-hidden rounded-xl border border-line bg-line">
@@ -95,9 +95,9 @@
                     <h2 class="text-2xl font-bold tracking-tight text-ink">Artikel Terbaru</h2>
                 </div>
                 @if (request()->hasAny(['category', 'tag', 'q']))
-                    <a href="{{ route('blog') }}" class="btn-ghost shrink-0">Semua Artikel</a>
+                    <a href="{{ route('blog') }}" class="btn-link shrink-0">Semua Artikel <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 5l7 7-7 7"/><path d="M6 5l7 7-7 7"/></svg></a>
                 @elseif ($latestTotal > $latestCount)
-                    <a href="{{ route('blog') }}?section=latest" class="btn-ghost shrink-0">Lihat Semua</a>
+                    <a href="{{ route('blog') }}?section=latest" class="btn-link shrink-0">Lihat Semua <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 5l7 7-7 7"/><path d="M6 5l7 7-7 7"/></svg></a>
                 @endif
             </div>
             <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -106,11 +106,7 @@
                 @endforeach
             </div>
 
-            @if (! request()->hasAny(['category', 'tag', 'q']) && $latestTotal > $latestCount)
-                <div class="mt-10 text-center">
-                    <a href="{{ route('blog') }}?section=latest" class="btn-outline">Lihat Semua Artikel Terbaru</a>
-                </div>
-            @else
+            @if (request()->hasAny(['category', 'tag', 'q']))
                 <div class="mt-10">
                     {{ $posts->links() }}
                 </div>
@@ -126,7 +122,7 @@
                             <h2 class="text-2xl font-bold tracking-tight text-ink">Artikel Populer</h2>
                         </div>
                         @if ($popularTotal > $popularCount)
-                            <a href="{{ route('blog') }}?section=popular" class="btn-ghost shrink-0">Lihat Semua</a>
+                            <a href="{{ route('blog') }}?section=popular" class="btn-link shrink-0">Lihat Semua <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 5l7 7-7 7"/><path d="M6 5l7 7-7 7"/></svg></a>
                         @endif
                     </div>
                     <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
