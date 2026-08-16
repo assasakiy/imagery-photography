@@ -9,7 +9,6 @@ use App\Http\Controllers\Api\BlogTagController;
 use App\Http\Controllers\Api\ClientController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\FaqController;
-use App\Http\Controllers\Api\LandingController;
 use App\Http\Controllers\Api\MediaController;
 use App\Http\Controllers\Api\MessageController;
 use App\Http\Controllers\Api\NotificationController;
@@ -206,9 +205,6 @@ Route::middleware(['web', 'auth:sanctum', 'maintenance'])->group(function () {
         Route::post('/team-members/import', [TeamMemberController::class, 'import']);
         Route::put('/team-members/{member}', [TeamMemberController::class, 'update']);
         Route::delete('/team-members/{member}', [TeamMemberController::class, 'destroy']);
-
-        Route::get('/landing', [LandingController::class, 'show']);
-        Route::post('/landing', [LandingController::class, 'update']);
 
         Route::get('/settings', [SettingsController::class, 'index']);
         Route::put('/settings', [SettingsController::class, 'update']);

@@ -222,10 +222,10 @@
                     {!! content_html($siteDescription) !!}
                 </p>
                 <div class="mt-5 flex items-center gap-2">
-                    @include('partials.social-icon', ['type' => 'instagram', 'url' => \App\Models\LandingContent::getValue('social_instagram')])
-                    @include('partials.social-icon', ['type' => 'facebook', 'url' => \App\Models\LandingContent::getValue('social_facebook')])
-                    @include('partials.social-icon', ['type' => 'tiktok', 'url' => \App\Models\LandingContent::getValue('social_tiktok')])
-                    @include('partials.social-icon', ['type' => 'whatsapp', 'url' => \App\Models\LandingContent::getValue('social_whatsapp')])
+                    @include('partials.social-icon', ['type' => 'instagram', 'url' => \App\Models\Setting::getValue('social_instagram')])
+                    @include('partials.social-icon', ['type' => 'facebook', 'url' => \App\Models\Setting::getValue('social_facebook')])
+                    @include('partials.social-icon', ['type' => 'tiktok', 'url' => \App\Models\Setting::getValue('social_tiktok')])
+                    @include('partials.social-icon', ['type' => 'whatsapp', 'url' => \App\Models\Setting::getValue('social_whatsapp')])
                 </div>
             </div>
 

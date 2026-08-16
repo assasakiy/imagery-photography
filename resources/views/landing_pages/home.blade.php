@@ -5,20 +5,20 @@
 
 @section('content')
     @php
-        $pageImages = is_array($page->images) ? $page->images : (is_string($page->images) ? json_decode($page->images, true) : []);
-        $heroImage = array_key_exists('hero_image', $pageImages)
-            ? ($pageImages['hero_image'] ?: '')
-            : \App\Services\AssetResolver::landingImage('hero_image', \App\Services\AssetResolver::DEFAULT_HERO_IMAGE);
-        $aboutImage = array_key_exists('about_image', $pageImages)
-            ? ($pageImages['about_image'] ?: '')
-            : \App\Services\AssetResolver::landingImage('about_image', \App\Services\AssetResolver::DEFAULT_ABOUT_IMAGE);
-        $homeBadge = $page->badge ?: ($contents['hero_badge'] ?? 'Photography & Videography');
-        $homeTitle = $page->hero_title ?: ($contents['hero_title'] ?? 'Sopian Lalu Imagery');
-        $homeSubtitle = $page->hero_subtitle ?: ($contents['hero_subtitle'] ?? 'Mengabadikan momen berharga Anda menjadi warisan visual.');
+        $heroImage = \App\Services\AssetResolver::pageImage($page, 'hero_image', \App\Services\AssetResolver::DEFAULT_HERO_IMAGE);
+        $aboutImage = \App\Services\AssetResolver::pageImage($page, 'about_image', \App\Services\AssetResolver::DEFAULT_ABOUT_IMAGE);
+        $homeBadge = $page->badge ?: 'Photography & Videography';
+        $homeTitle = $page->hero_title ?: 'Sopian Lalu Imagery';
+        $homeSubtitle = $page->hero_subtitle ?: 'Mengabadikan momen berharga Anda menjadi warisan visual.';
         $homeBtnText = $page->button_text ?: 'Lihat Galeri';
         $homeBtnLink = $page->button_link ?: route('gallery');
         $homeBtn2Text = $page->button2_text ?: 'Lihat Layanan';
         $homeBtn2Link = $page->button2_link ?: route('services');
+        $homeSections = is_array($page->sections) ? $page->sections : [];
+        $homeAbout = collect($homeSections)->firstWhere('type', 'about') ?? [];
+        $homeAboutTitle = $homeAbout['title'] ?? 'Tentang Kami';
+        $homeAboutContent = $homeAbout['content'] ?? ($homeAbout['description'] ?? '');
+        $servicesIntro = \App\Models\Page::where('slug', 'services')->value('description') ?: 'Paket dokumentasi untuk momen spesial Anda.';
     @endphp
 
     {{-- Hero --}}
@@ -61,14 +61,14 @@
         <div class="container-site grid grid-cols-1 items-center gap-12 lg:grid-cols-2">
             <div class="reveal order-2 lg:order-1">
                 <div class="relative overflow-hidden rounded-3xl ring-1 ring-line">
-                    <img src="{{ $aboutImage }}" alt="{{ $contents['about_title'] ?? 'Tentang Kami' }}" class="aspect-[4/5] w-full object-cover lg:aspect-square">
+                    <img src="{{ $aboutImage }}" alt="{{ $homeAboutTitle }}" class="aspect-[4/5] w-full object-cover lg:aspect-square">
                     <div class="absolute inset-0 bg-gradient-to-t from-zinc-950/30 to-transparent"></div>
                 </div>
             </div>
             <div class="reveal order-1 lg:order-2">
                 <p class="mb-3 text-sm font-semibold uppercase tracking-widest text-brand-600 dark:text-brand-400">Tentang Kami</p>
-                <h2 class="section-heading text-ink">{{ $contents['about_title'] ?? 'Tentang Kami' }}</h2>
-                <p class="mt-6 leading-relaxed text-ink-muted">{{ Str::limit(content_plain($contents['about_content'] ?? ''), 300) }}</p>
+                <h2 class="section-heading text-ink">{{ $homeAboutTitle }}</h2>
+                <p class="mt-6 leading-relaxed text-ink-muted">{{ Str::limit(content_plain($homeAboutContent), 300) }}</p>
                 <div class="mt-8 grid grid-cols-3 gap-4">
                     <div class="card p-4 text-center">
                         <p class="text-2xl font-bold text-brand-600 dark:text-brand-400">500+</p>
@@ -126,7 +126,7 @@
                 <div class="reveal mb-12 max-w-2xl">
                     <p class="mb-3 text-sm font-semibold uppercase tracking-widest text-brand-600 dark:text-brand-400">Layanan</p>
                     <h2 class="section-heading text-ink">Layanan Kami</h2>
-                    <p class="mt-4 text-ink-muted">{{ $contents['services_intro'] ?? 'Paket dokumentasi untuk momen spesial Anda.' }}</p>
+                    <p class="mt-4 text-ink-muted">{{ $servicesIntro }}</p>
                 </div>
 
                 <div class="grid grid-cols-1 gap-6 md:grid-cols-3">

@@ -4,15 +4,10 @@
 @section('meta_description', 'Kumpulan karya foto dan video Sopian Lalu Imagery - dokumentasi wedding, prewedding, event, dan portrait.')
 
 @section('content')
-    @php
-        $galleryIntro = \App\Models\LandingContent::getValue('gallery_intro', '');
-    @endphp
-
     @include('partials.page-hero', [
         'page' => $page,
         'badge' => 'Galeri',
         'title' => 'Karya Kami',
-        'subtitle' => $galleryIntro,
     ])
 
     @include('partials.gallery-filters', ['activeCategory' => null])

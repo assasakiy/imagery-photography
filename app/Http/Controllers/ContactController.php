@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\ContactMessage;
-use App\Models\LandingContent;
+use App\Models\Setting;
 use App\Services\NotificationService;
 use Illuminate\Http\Request;
 
@@ -11,10 +11,15 @@ class ContactController extends Controller
 {
     public function index()
     {
-        $contents = LandingContent::whereIn('key', [
-            'contact_phone', 'contact_email', 'contact_address',
-            'social_facebook', 'social_instagram', 'social_tiktok', 'social_whatsapp',
-        ])->pluck('value', 'key')->toArray();
+        $contents = [
+            'contact_phone' => Setting::getValue('contact_phone'),
+            'contact_email' => Setting::getValue('contact_email'),
+            'contact_address' => Setting::getValue('contact_address'),
+            'social_facebook' => Setting::getValue('social_facebook'),
+            'social_instagram' => Setting::getValue('social_instagram'),
+            'social_tiktok' => Setting::getValue('social_tiktok'),
+            'social_whatsapp' => Setting::getValue('social_whatsapp'),
+        ];
 
         $page = \App\Models\Page::where('slug', 'contact')->first();
 

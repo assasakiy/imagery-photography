@@ -122,14 +122,6 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        Schema::create('landing_contents', function (Blueprint $table) {
-            $table->id();
-            $table->string('group')->default('general');
-            $table->string('key')->unique();
-            $table->text('value')->nullable();
-            $table->timestamps();
-        });
-
         Schema::create('roles', function (Blueprint $table) {
             $table->id();
             $table->string('name');
@@ -180,7 +172,6 @@ return new class extends Migration
         Schema::dropIfExists('model_has_roles');
         Schema::dropIfExists('permissions');
         Schema::dropIfExists('roles');
-        Schema::dropIfExists('landing_contents');
         Schema::dropIfExists('settings');
         Schema::dropIfExists('notifications');
         Schema::dropIfExists('personal_access_tokens');

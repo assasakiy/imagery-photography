@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Blog;
 use App\Models\Faq;
-use App\Models\LandingContent;
 use App\Models\Package;
 use App\Models\Portfolio;
 use App\Models\Review;
@@ -14,7 +13,6 @@ class LandingPageController extends Controller
 {
     public function index()
     {
-        $contents = LandingContent::all()->pluck('value', 'key')->toArray();
         $portfolios = Portfolio::where('is_featured', true)->orderBy('order')->take(6)->get();
         $services = Service::active()->orderBy('order')->get();
         $packages = Package::with('services')->active()->orderBy('display_order')->take(3)->get();
@@ -24,6 +22,6 @@ class LandingPageController extends Controller
 
         $page = \App\Models\Page::where('slug', 'home')->first();
 
-        return view('landing_pages.home', compact('contents', 'portfolios', 'services', 'packages', 'blogs', 'faqs', 'reviews', 'page'));
+        return view('landing_pages.home', compact('portfolios', 'services', 'packages', 'blogs', 'faqs', 'reviews', 'page'));
     }
 }

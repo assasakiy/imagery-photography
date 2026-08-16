@@ -5,8 +5,7 @@
 
 @section('content')
     @php
-        $servicesIntro = \App\Models\LandingContent::getValue('services_intro', '');
-        $whatsappUrl = \App\Models\LandingContent::getValue('social_whatsapp', 'https://wa.me/6287764426909');
+        $whatsappUrl = \App\Models\Setting::getValue('social_whatsapp', 'https://wa.me/6287764426909');
 
         $allServices = $services; // master satuan
         $minPhoto = $allServices->where('media', 'photo')->min('price');
@@ -28,7 +27,6 @@
         'page' => $page,
         'badge' => 'Layanan',
         'title' => 'Paket & Harga',
-        'subtitle' => $servicesIntro,
         'align' => 'center',
     ])
 

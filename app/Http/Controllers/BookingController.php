@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Booking;
-use App\Models\LandingContent;
 use App\Models\Package;
 use App\Models\Service;
 use App\Services\AuditLogger;
@@ -16,10 +15,12 @@ class BookingController extends Controller
 {
     public function index()
     {
-        $contents = LandingContent::whereIn('key', [
-            'contact_phone', 'contact_email', 'contact_address',
-            'social_whatsapp',
-        ])->pluck('value', 'key')->toArray();
+        $contents = [
+            'contact_phone' => \App\Models\Setting::getValue('contact_phone'),
+            'contact_email' => \App\Models\Setting::getValue('contact_email'),
+            'contact_address' => \App\Models\Setting::getValue('contact_address'),
+            'social_whatsapp' => \App\Models\Setting::getValue('social_whatsapp'),
+        ];
 
         $services = Service::active()->orderBy('order')->get();
 

@@ -7,7 +7,7 @@
     @include('partials.page-hero', [
         'page' => $page,
         'badge' => 'Tentang Kami',
-        'title' => $contents['about_title'] ?? 'Tentang Kami',
+        'title' => $page?->hero_title ?: ($page?->title ?: 'Tentang Kami'),
     ])
 
     <section class="container-site py-16 md:py-20">
@@ -15,20 +15,20 @@
             <div class="relative">
                 <div class="absolute -inset-4 -z-10 rounded-3xl bg-brand-600/10 blur-2xl"></div>
                 <div class="overflow-hidden rounded-2xl border border-line">
-                    <img src="{{ $aboutImage }}" alt="{{ $contents['about_title'] ?? 'Tentang Kami' }}" class="aspect-[4/5] w-full object-cover">
+                    <img src="{{ $aboutImage }}" alt="{{ $page?->hero_title ?: 'Tentang Kami' }}" class="aspect-[4/5] w-full object-cover">
                 </div>
             </div>
 
             <div>
-                <h2 class="text-2xl font-extrabold tracking-tight text-ink md:text-3xl">{{ $contents['about_title'] ?? 'Tentang Kami' }}</h2>
+                <h2 class="text-2xl font-extrabold tracking-tight text-ink md:text-3xl">{{ $page?->hero_title ?: ($page?->title ?: 'Tentang Kami') }}</h2>
                 <div class="rich-content mt-6">
-                    {!! content_html($contents['about_content'] ?? '') !!}
+                    {!! content_html($page?->content ?? '') !!}
                 </div>
             </div>
         </div>
     </section>
 
-    @php $history = $contents['about_history'] ?? ''; @endphp
+    @php $history = $history ?? ''; @endphp
     @if ($history || count($timeline))
         <section class="border-t border-line bg-zinc-100/60 dark:bg-zinc-900/40">
             <div class="container-site py-16 md:py-20">
