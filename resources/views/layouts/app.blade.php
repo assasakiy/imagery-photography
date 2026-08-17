@@ -54,16 +54,9 @@
                         {{ $link['label'] }}
                     </a>
                 @endforeach
-                @guest
-                    <a href="{{ route('booking') }}" class="ml-2 rounded-xl bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-700">Pesan Sekarang</a>
-                @endguest
             </nav>
 
-            <div class="flex items-center gap-1">
-                @guest
-                    <a href="{{ route('booking') }}" class="mr-1 rounded-xl bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-700 md:hidden">Pesan</a>
-                @endguest
-
+            <div class="flex items-center gap-2">
                 @auth
                     <div class="relative">
                         <button type="button" data-notif-toggle aria-label="Notifikasi" class="relative rounded-lg p-2 text-ink-muted transition-colors hover:bg-surface-muted hover:text-ink">
@@ -81,11 +74,6 @@
                             <div data-notif-list class="max-h-80 overflow-y-auto"></div>
                         </div>
                     </div>
-
-                    <button type="button" data-theme-toggle aria-label="Ganti tema" class="rounded-lg p-2 text-ink-muted transition-colors hover:bg-surface-muted hover:text-ink">
-                        <svg data-icon="moon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" /></svg>
-                        <svg data-icon="sun" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden"><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" /></svg>
-                    </button>
 
                     <div class="relative hidden md:block">
                         <button type="button" data-profile-toggle aria-label="Menu profil" class="flex items-center gap-2 rounded-lg px-2 py-1.5 transition-colors hover:bg-surface-muted">
@@ -127,13 +115,18 @@
                 @endauth
 
                 @guest
-                    <a href="{{ route('login') }}" class="rounded-lg px-3 py-2 text-sm font-semibold text-brand-600 transition-colors hover:bg-brand-500/10 dark:text-brand-400">Masuk</a>
-
-                    <button type="button" data-theme-toggle aria-label="Ganti tema" class="rounded-lg p-2 text-ink-muted transition-colors hover:bg-surface-muted hover:text-ink">
-                        <svg data-icon="moon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" /></svg>
-                        <svg data-icon="sun" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden"><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" /></svg>
-                    </button>
+                    <div class="hidden md:flex items-center gap-1">
+                        <a href="{{ route('login') }}" class="rounded-lg px-3 py-2 text-sm font-semibold text-brand-600 transition-colors hover:bg-brand-500/10 dark:text-brand-400">Masuk</a>
+                        <a href="{{ route('booking') }}" class="ml-1 rounded-xl bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-700">Pesan Sekarang</a>
+                    </div>
                 @endguest
+
+                <button type="button" data-theme-toggle aria-label="Ganti tema" class="relative hidden h-8 w-14 shrink-0 items-center rounded-full bg-zinc-200 px-1 transition-colors duration-300 dark:bg-zinc-700 md:flex">
+                    <span class="flex h-6 w-6 items-center justify-center rounded-full bg-white shadow-sm transition-transform duration-300 dark:translate-x-6 dark:shadow-md">
+                        <svg data-icon="sun" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-amber-500 dark:hidden"><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" /></svg>
+                        <svg data-icon="moon" xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden text-indigo-400 dark:block"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" /></svg>
+                    </span>
+                </button>
 
                 <button type="button" data-menu-toggle aria-label="Buka menu" aria-expanded="false" class="rounded-lg p-2 text-ink-muted transition-colors hover:bg-surface-muted hover:text-ink md:hidden">
                     <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16" /></svg>
@@ -178,8 +171,23 @@
                 @endauth
 
                 @guest
-                    <a href="{{ route('login') }}" class="rounded-lg px-3 py-2.5 text-sm font-semibold text-brand-600 hover:bg-brand-500/10 dark:text-brand-400">Masuk</a>
+                    <div class="mt-2 flex flex-col gap-2 border-t border-line pt-3">
+                        <a href="{{ route('login') }}" class="rounded-lg px-3 py-2.5 text-sm font-semibold text-brand-600 transition-colors hover:bg-brand-500/10 dark:text-brand-400">Masuk</a>
+                        <a href="{{ route('booking') }}" class="rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white text-center shadow-sm transition-colors hover:bg-brand-700">Pesan Sekarang</a>
+                    </div>
                 @endguest
+                
+                <div class="mt-2 border-t border-line px-3 pt-3">
+                    <button type="button" data-theme-toggle aria-label="Ganti tema" class="flex w-full items-center justify-between rounded-lg py-2 text-sm font-medium text-ink transition-colors hover:bg-surface-muted">
+                        <span data-theme-label>Tema Light</span>
+                        <span class="pointer-events-none relative flex h-7 w-12 shrink-0 items-center rounded-full bg-zinc-200 px-1 transition-colors duration-300 dark:bg-zinc-700">
+                            <span class="flex h-5 w-5 items-center justify-center rounded-full bg-white shadow-sm transition-transform duration-300 dark:translate-x-5 dark:shadow-md">
+                                <svg data-icon="sun" xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-amber-500 dark:hidden"><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" /></svg>
+                                <svg data-icon="moon" xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden text-indigo-400 dark:block"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" /></svg>
+                            </span>
+                        </span>
+                    </button>
+                </div>
             </nav>
         </div>
     </header>
@@ -245,9 +253,10 @@
                 <h3 class="mb-4 text-sm font-semibold uppercase tracking-wider text-ink">Informasi</h3>
                 <ul class="space-y-2 text-sm text-ink-muted">
                     <li><a href="{{ route('faq') }}" class="transition-colors hover:text-brand-600 hover:underline hover:underline-offset-4 hover:decoration-brand-600 dark:hover:text-brand-400">FAQ</a></li>
-                    <li><a href="{{ route('blog') }}" class="transition-colors hover:text-brand-600 hover:underline hover:underline-offset-4 hover:decoration-brand-600 dark:hover:text-brand-400">Kategori</a></li>
-                    <li><a href="{{ route('blog') }}" class="transition-colors hover:text-brand-600 hover:underline hover:underline-offset-4 hover:decoration-brand-600 dark:hover:text-brand-400">Tag</a></li>
-                    <li><a href="{{ route('blog') }}" class="transition-colors hover:text-brand-600 hover:underline hover:underline-offset-4 hover:decoration-brand-600 dark:hover:text-brand-400">Author</a></li>
+                    <li><a href="{{ route('blog.topics') }}" class="transition-colors hover:text-brand-600 hover:underline hover:underline-offset-4 hover:decoration-brand-600 dark:hover:text-brand-400">Topik & Kategori</a></li>
+                    <li><a href="{{ route('blog.section', 'populer') }}" class="transition-colors hover:text-brand-600 hover:underline hover:underline-offset-4 hover:decoration-brand-600 dark:hover:text-brand-400">Populer</a></li>
+                    <li><a href="{{ route('blog.section', 'featured') }}" class="transition-colors hover:text-brand-600 hover:underline hover:underline-offset-4 hover:decoration-brand-600 dark:hover:text-brand-400">Unggulan</a></li>
+                    <li><a href="{{ route('blog.section', 'latest') }}" class="transition-colors hover:text-brand-600 hover:underline hover:underline-offset-4 hover:decoration-brand-600 dark:hover:text-brand-400">Terbaru</a></li>
                     <li><a href="{{ route('booking') }}" class="transition-colors hover:text-brand-600 hover:underline hover:underline-offset-4 hover:decoration-brand-600 dark:hover:text-brand-400">Booking</a></li>
                 </ul>
             </div>

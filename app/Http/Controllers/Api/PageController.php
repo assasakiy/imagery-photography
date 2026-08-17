@@ -4,7 +4,11 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Services\AuditLogger;
+use App\Models\Category;
+use App\Models\Faq;
 use App\Models\Page;
+use App\Models\Review;
+use App\Models\Stat;
 use App\Support\ContentSanitizer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -14,6 +18,24 @@ class PageController extends Controller
     public function index()
     {
         return response()->json(Page::orderBy('slug')->get()->makeHidden([]));
+    }
+
+    public function options()
+    {
+        $about = Page::where('slug', 'tentang')->first();
+        $aboutSections = collect(is_array($about?->sections) ? $about->sections : []);
+
+        return response()->json([
+            'faqs' => Faq::with('categories')->orderBy('order')->orderBy('id')->get(['id', 'question', 'order']),
+            'reviews' => Review::orderBy('order')->orderByDesc('id')->get(['id', 'name', 'service', 'rating']),
+            'stats' => Stat::orderBy('order')->orderBy('id')->get(),
+            'categories' => Category::orderBy('name')->get(['id', 'name']),
+            'about_fallbacks' => [
+                'subtitle' => $about?->hero_title ?: $about?->title ?: 'Tentang Kami',
+                'title' => 'Tentang Situs & Layanan',
+                'content' => (string) ($aboutSections->firstWhere('type', 'history')['text'] ?? ''),
+            ],
+        ]);
     }
 
     public function show(string $slug)

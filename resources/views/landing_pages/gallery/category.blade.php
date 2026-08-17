@@ -10,7 +10,7 @@
             <p class="mb-3 text-sm font-semibold uppercase tracking-widest text-brand-600 dark:text-brand-400">Kategori</p>
             <h1 class="section-heading text-ink">{{ $category['name'] }}</h1>
             @if ($page?->description)
-                <p class="mt-4 max-w-2xl text-ink-muted">{{ $page->description }}</p>
+                <div class="rich-content mt-4 max-w-2xl text-ink-muted">{!! content_html($page->description) !!}</div>
             @endif
         </div>
     </section>

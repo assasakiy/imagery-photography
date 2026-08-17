@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { NavLink, Outlet, useNavigate, Link, useLocation } from 'react-router-dom';
 import Icon from './Icon';
+import ScrollToTop from './ScrollToTop';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { useBadges } from '../context/BadgeContext';
@@ -8,6 +9,7 @@ import { preloadRoute } from '../routes/preloadRoute';
 
 function NavGroup({ item, setSidebarOpen, unreadMessages, unreadBookings }) {
     const [open, setOpen] = useState(true);
+    const location = useLocation();
 
     return (
         <div className="pt-2">
@@ -32,13 +34,14 @@ function NavGroup({ item, setSidebarOpen, unreadMessages, unreadBookings }) {
                                 onMouseEnter={() => preloadRoute(subItem.to)}
                                 onFocus={() => preloadRoute(subItem.to)}
                                 onTouchStart={() => preloadRoute(subItem.to)}
-                                className={({ isActive }) =>
-                                    `flex items-center rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${
-                                        isActive
-                                            ? 'bg-brand-600/10 text-brand-600'
-                                            : 'text-ink-muted hover:bg-surface-muted hover:text-ink'
-                                    }`
-                                }
+                                className={({ isActive }) => {
+                                        const active = subItem.activePaths ? subItem.activePaths.includes(location.pathname) : isActive;
+                                        return `flex items-center rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${
+                                            active
+                                                ? 'bg-brand-600/10 text-brand-600'
+                                                : 'text-ink-muted hover:bg-surface-muted hover:text-ink'
+                                        }`;
+                                    }}
                             >
                                 <Icon name={subItem.icon} size={18} className="shrink-0" />
                                 <span className="ml-3">{subItem.label}</span>
@@ -93,7 +96,7 @@ const adminNav = [
             { to: '/dashboard/blog', icon: 'file-text', label: 'Semua Artikel', end: true },
             { to: '/dashboard/kategori', icon: 'folder', label: 'Kategori' },
             { to: '/dashboard/blog/tags', icon: 'tag', label: 'Tag Blog' },
-            { to: '/dashboard/faq', icon: 'message-circle', label: 'FAQ' },
+            { to: '/dashboard/faq', icon: 'message-circle', label: 'FAQ & Stats', activePaths: ['/dashboard/faq', '/dashboard/stats'] },
             { to: '/dashboard/pages', icon: 'file', label: 'Halaman' },
         ]
     },
@@ -228,13 +231,14 @@ export default function Layout() {
                                     onMouseEnter={() => preloadRoute(item.to)}
                                     onFocus={() => preloadRoute(item.to)}
                                     onTouchStart={() => preloadRoute(item.to)}
-                                    className={({ isActive }) =>
-                                        `flex items-center rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${
-                                            isActive
+                                    className={({ isActive }) => {
+                                        const active = item.activePaths ? item.activePaths.includes(location.pathname) : isActive;
+                                        return `flex items-center rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${
+                                            active
                                                 ? 'bg-brand-600 text-white shadow-lg shadow-brand-600/20'
                                                 : 'text-ink-muted hover:bg-surface-muted hover:text-ink'
-                                        }`
-                                    }
+                                        }`;
+                                    }}
                                 >
                                     <Icon name={item.icon} size={18} className="shrink-0" />
                                     <span className="ml-3">{item.label}</span>
@@ -352,6 +356,8 @@ export default function Layout() {
                     <Outlet />
                 </main>
             </div>
+
+            <ScrollToTop />
         </div>
     );
 }

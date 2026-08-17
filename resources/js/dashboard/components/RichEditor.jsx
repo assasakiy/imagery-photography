@@ -48,8 +48,8 @@ export default function RichEditor({ value = '', onChange, variant = 'full', pla
         extensions: [
             StarterKit.configure({
                 heading: variant === 'full',
-                bulletList: variant === 'full',
-                orderedList: variant === 'full',
+                bulletList: variant === 'full' || variant === 'basic',
+                orderedList: variant === 'full' || variant === 'basic',
                 blockquote: variant === 'full',
                 codeBlock: variant === 'full',
                 horizontalRule: variant === 'full',
@@ -118,11 +118,27 @@ export default function RichEditor({ value = '', onChange, variant = 'full', pla
 
     return (
         <div className={`flex flex-col rounded-xl border border-line bg-surface focus-within:border-brand-500 focus-within:ring-2 focus-within:ring-brand-500/20 ${className}`}>
-            <div className="sticky top-0 z-30 flex flex-wrap items-center gap-0.5 border-b border-line bg-surface-muted/90 px-2 py-1.5 backdrop-blur">
-                <ToolbarButton icon="bold" label="Tebal" active={editorState.bold} onClick={run('toggleBold')} />
-                <ToolbarButton icon="italic" label="Miring" active={editorState.italic} onClick={run('toggleItalic')} />
-                <ToolbarButton icon="underline" label="Garis bawah" active={editorState.underline} onClick={run('toggleUnderline')} />
-                <ToolbarButton icon="strikethrough" label="Coret" active={editorState.strike} onClick={run('toggleStrike')} />
+            <div className="sticky top-16 z-10 flex flex-wrap items-center gap-0.5 rounded-t-xl border-b border-line bg-surface-muted/90 px-2 py-1.5 backdrop-blur">
+                {variant !== 'basic' && (
+                    <>
+                        <ToolbarButton icon="bold" label="Tebal" active={editorState.bold} onClick={run('toggleBold')} />
+                        <ToolbarButton icon="italic" label="Miring" active={editorState.italic} onClick={run('toggleItalic')} />
+                        <ToolbarButton icon="underline" label="Garis bawah" active={editorState.underline} onClick={run('toggleUnderline')} />
+                        <ToolbarButton icon="strikethrough" label="Coret" active={editorState.strike} onClick={run('toggleStrike')} />
+                    </>
+                )}
+                {variant === 'basic' && (
+                    <>
+                        <ToolbarButton icon="bold" label="Tebal" active={editorState.bold} onClick={run('toggleBold')} />
+                        <ToolbarButton icon="italic" label="Miring" active={editorState.italic} onClick={run('toggleItalic')} />
+                        <ToolbarButton icon="underline" label="Garis bawah" active={editorState.underline} onClick={run('toggleUnderline')} />
+                        <Divider />
+                        <ToolbarButton icon="list" label="Daftar" active={editorState.bulletList} onClick={run('toggleBulletList')} />
+                        <ToolbarButton icon="list-ordered" label="Daftar bernomor" active={editorState.orderedList} onClick={run('toggleOrderedList')} />
+                        <Divider />
+                        <ToolbarButton icon="link" label="Tautan" active={editorState.link} onClick={toggleLink} />
+                    </>
+                )}
                 {variant === 'full' && (
                     <>
                         <Divider />
@@ -136,10 +152,18 @@ export default function RichEditor({ value = '', onChange, variant = 'full', pla
                         <ToolbarButton icon="image" label="Sisipkan gambar" active={editorState.image} onClick={() => setPickerOpen(true)} />
                     </>
                 )}
+                {variant === 'mini' && (
+                    <>
+                        <Divider />
+                        <ToolbarButton icon="link" label="Tautan" active={editorState.link} onClick={toggleLink} />
+                    </>
+                )}
                 <div className="ml-auto flex items-center gap-0.5">
                     <ToolbarButton icon="undo" label="Urungkan" onClick={run('undo')} />
                     <ToolbarButton icon="redo" label="Ulangi" onClick={run('redo')} />
-                    <ToolbarButton icon="remove-formatting" label="Hapus format" onClick={run('unsetAllMarks')} />
+                    {variant !== 'basic' && (
+                        <ToolbarButton icon="remove-formatting" label="Hapus format" onClick={run('unsetAllMarks')} />
+                    )}
                 </div>
             </div>
             <div className="rich-editor-scroll flex-1">

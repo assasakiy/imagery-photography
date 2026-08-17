@@ -20,7 +20,8 @@
         ];
         $cards = array_values(array_filter($mediaMeta, fn ($m) => $m['min'] !== null));
 
-        $priceCategories = \App\Models\ServiceCategory::where('published', true)->orderBy('order')->get();
+        $priceCategories = \App\Models\ServiceCategory::where('published', true)->orderBy('order')->get()
+            ->sortBy(fn ($c) => $c->type === 'satuan' ? PHP_INT_MAX : $c->order);
     @endphp
 
     @include('partials.page-hero', [
@@ -98,7 +99,50 @@
                                 @endif
                             </div>
 
-                            @if ($isSatuan && $cat->layout === 'grid')
+                            @if ($cat->type === 'bundling')
+                                @php
+                                    $bunds = $allPackages->where('type', 'bundling')->where('is_active', true)->sortBy('display_order');
+                                    $photoGroup = $bunds->filter(fn ($p) => $p->services->contains(fn ($s) => $s->media === 'photo'));
+                                    $videoGroup = $bunds->filter(fn ($p) => $p->services->contains(fn ($s) => $s->media === 'video'));
+                                    $pairs = [];
+                                    foreach ($photoGroup as $p) {
+                                        $events = $p->services->pluck('event')->sort()->values();
+                                        $match = $videoGroup->first(fn ($v) => $v->services->pluck('event')->sort()->values()->implode(',') === $events->implode(','));
+                                        $pairs[] = ['name' => $p->name, 'photo' => $p, 'video' => $match];
+                                    }
+                                @endphp
+                                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                                    @foreach ($pairs as $pair)
+                                        <div class="card flex flex-col justify-between p-5">
+                                            <div>
+                                                <span class="font-semibold text-ink">{{ str_replace(' Foto', '', $pair['name']) }}</span>
+                                                <ul class="mt-3 space-y-2">
+                                                    <li class="flex items-center justify-between gap-3 text-sm">
+                                                        <span class="text-ink-muted">Foto (Bundling)</span>
+                                                        @if ($pair['photo'])
+                                                            <span class="font-bold text-brand-600 dark:text-brand-400">Rp {{ number_format($pair['photo']->computedPrice(), 0, ',', '.') }}</span>
+                                                        @else
+                                                            <span class="text-ink-muted">-</span>
+                                                        @endif
+                                                    </li>
+                                                    <li class="flex items-center justify-between gap-3 text-sm">
+                                                        <span class="text-ink-muted">Video (Bundling)</span>
+                                                        @if ($pair['video'])
+                                                            <span class="font-bold text-brand-600 dark:text-brand-400">Rp {{ number_format($pair['video']->computedPrice(), 0, ',', '.') }}</span>
+                                                        @else
+                                                            <span class="text-ink-muted">-</span>
+                                                        @endif
+                                                    </li>
+                                                    <li class="flex items-center justify-between gap-3 border-t border-line pt-2 text-sm">
+                                                        <span class="font-semibold text-ink">Foto + Video</span>
+                                                        <span class="font-bold text-emerald-600 dark:text-emerald-400">Rp {{ number_format($pair['photo']->computedPrice() + ($pair['video']?->computedPrice() ?? 0), 0, ',', '.') }}</span>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @elseif ($isSatuan && $cat->layout === 'grid')
                                 <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                                     @foreach ($items->groupBy('event') as $event => $rows)
                                         <div class="card p-5">

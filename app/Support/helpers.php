@@ -17,6 +17,21 @@ if (! function_exists('content_plain')) {
     }
 }
 
+if (! function_exists('content_first_sentences')) {
+    function content_first_sentences(?string $html, int $count = 2): string
+    {
+        $text = ContentSanitizer::plainText($html);
+        if ($text === '') {
+            return '';
+        }
+
+        $sentences = preg_split('/(?<=[.!?])\s+/u', trim($text));
+        $sentences = array_values(array_filter($sentences, fn ($s) => trim($s) !== ''));
+
+        return trim(implode(' ', array_slice($sentences, 0, $count)));
+    }
+}
+
 if (! function_exists('watermark_url')) {
     function watermark_url(?string $source): string
     {

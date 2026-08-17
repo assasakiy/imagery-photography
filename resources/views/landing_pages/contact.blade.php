@@ -11,64 +11,81 @@
         'subtitle' => 'Ada pertanyaan atau ingin booking? Kirim pesan melalui formulir di bawah, atau hubungi kami langsung.',
     ])
 
-    <section class="container-site py-16">
-        <div class="grid grid-cols-1 gap-10 lg:grid-cols-5">
-            <div class="space-y-4 lg:col-span-2">
-                @if (!empty($contents['contact_phone']))
-                    <a href="tel:{{ $contents['contact_phone'] }}" class="card group flex items-start gap-4 p-5 transition-colors hover:border-brand-500/50">
-                        <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-500/15 text-brand-600 dark:text-brand-400">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-                        </div>
-                        <div>
-                            <p class="text-sm font-semibold text-ink">Telepon / WhatsApp</p>
-                            <p class="mt-1 text-sm text-ink-muted">{{ $contents['contact_phone'] }}</p>
-                        </div>
-                    </a>
-                @endif
+    <section class="container-site py-16 md:py-20">
+        <div class="grid grid-cols-1 items-stretch gap-10 lg:grid-cols-5">
+            <div class="space-y-5 lg:col-span-2">
+                <div class="card flex h-full flex-col p-6 sm:p-7">
+                    <h2 class="text-lg font-bold text-ink">Informasi Kontak</h2>
+                    <p class="mt-1 text-sm text-ink-muted">Hubungi kami melalui saluran di bawah ini.</p>
 
-                @if (!empty($contents['contact_email']))
-                    <a href="mailto:{{ $contents['contact_email'] }}" class="card group flex items-start gap-4 p-5 transition-colors hover:border-brand-500/50">
-                        <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-500/15 text-brand-600 dark:text-brand-400">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 6L2 7"/></svg>
-                        </div>
-                        <div>
-                            <p class="text-sm font-semibold text-ink">Email</p>
-                            <p class="mt-1 break-all text-sm text-ink-muted">{{ $contents['contact_email'] }}</p>
-                        </div>
-                    </a>
-                @endif
+                    <div class="mt-5 divide-y divide-line">
+                        @if (!empty($contents['contact_phone']))
+                            <a href="tel:{{ $contents['contact_phone'] }}" class="group flex items-center gap-4 py-4">
+                                <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-500/15 text-brand-600 dark:text-brand-400">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                                </div>
+                                <div>
+                                    <p class="text-sm text-ink-muted">WhatsApp / Telepon</p>
+                                    <p class="mt-0.5 font-semibold text-ink transition-colors group-hover:text-brand-600 dark:group-hover:text-brand-400">{{ $contents['contact_phone'] }}</p>
+                                </div>
+                            </a>
+                        @endif
 
-                @if (!empty($contents['contact_address']))
-                    <div class="card flex items-start gap-4 p-5">
-                        <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-500/15 text-brand-600 dark:text-brand-400">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
-                        </div>
-                        <div>
-                            <p class="text-sm font-semibold text-ink">Alamat</p>
-                            <p class="mt-1 text-sm text-ink-muted">{{ $contents['contact_address'] }}</p>
-                        </div>
+                        @if (!empty($contents['contact_email']))
+                            <a href="mailto:{{ $contents['contact_email'] }}" class="group flex items-center gap-4 py-4">
+                                <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-500/15 text-brand-600 dark:text-brand-400">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 6L2 7"/></svg>
+                                </div>
+                                <div>
+                                    <p class="text-sm text-ink-muted">Email</p>
+                                    <p class="mt-0.5 break-all font-semibold text-ink transition-colors group-hover:text-brand-600 dark:group-hover:text-brand-400">{{ $contents['contact_email'] }}</p>
+                                </div>
+                            </a>
+                        @endif
+
+                        @if (!empty($contents['contact_address']))
+                            <a href="https://www.google.com/maps/search/?api=1&query={{ urlencode($contents['contact_address']) }}" target="_blank" rel="noreferrer" class="group flex items-center gap-4 py-4">
+                                <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-500/15 text-brand-600 dark:text-brand-400">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+                                </div>
+                                <div>
+                                    <p class="text-sm text-ink-muted">Studio / Base</p>
+                                    <p class="mt-0.5 font-semibold text-ink transition-colors group-hover:text-brand-600 dark:group-hover:text-brand-400">{{ $contents['contact_address'] }}</p>
+                                </div>
+                            </a>
+                        @endif
                     </div>
-                @endif
 
-                <div class="card p-5">
-                    <p class="mb-4 text-sm font-semibold text-ink">Media Sosial</p>
-                    <div class="flex flex-wrap gap-2">
-                        @foreach ([
-                            'social_instagram' => 'Instagram',
-                            'social_facebook' => 'Facebook',
-                            'social_tiktok' => 'TikTok',
-                            'social_whatsapp' => 'WhatsApp',
-                        ] as $key => $label)
-                            @if (!empty($contents[$key]))
-                                <a href="{{ $contents[$key] }}" target="_blank" rel="noreferrer" class="btn-outline !px-4 !py-2 !text-xs">{{ $label }}</a>
-                            @endif
-                        @endforeach
-                    </div>
+                    @php
+                        $socials = [
+                            'social_instagram' => 'instagram',
+                            'social_tiktok' => 'tiktok',
+                            'social_facebook' => 'facebook',
+                            'social_whatsapp' => 'whatsapp',
+                        ];
+                    @endphp
+                    @if (collect($socials)->keys()->filter(fn ($k) => !empty($contents[$k]))->isNotEmpty())
+                        <div class="mt-auto border-t border-line pt-6">
+                            <p class="mb-4 text-sm font-semibold text-ink">Temukan Kami di Sosial Media</p>
+                            <div class="flex flex-wrap gap-3">
+                                @foreach ($socials as $key => $type)
+                                    @if (!empty($contents[$key]))
+                                        @include('partials.social-icon', [
+                                            'type' => $type,
+                                            'url' => $contents[$key],
+                                            'size' => 20,
+                                            'class' => 'flex h-11 w-11 items-center justify-center rounded-full border border-line bg-zinc-50 text-ink-muted transition-all hover:-translate-y-0.5 hover:border-brand-500/50 hover:text-brand-600 dark:bg-zinc-900 dark:hover:text-brand-400',
+                                        ])
+                                    @endif
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
                 </div>
             </div>
 
             <div class="lg:col-span-3">
-                <div class="card p-6 sm:p-8">
+                <div class="card flex h-full flex-col p-6 sm:p-8">
                     <h2 class="text-xl font-bold text-ink">Kirim Pesan</h2>
                     <p class="mt-1 text-sm text-ink-muted">Kami akan membalas secepatnya.</p>
 
@@ -117,5 +134,24 @@
                 </div>
             </div>
         </div>
+
+        @if (!empty($contents['contact_address']))
+            <div class="mt-20">
+                <div class="mb-10 text-center">
+                    <p class="mb-2 text-sm font-semibold uppercase tracking-widest text-brand-600 dark:text-brand-400">Lokasi Kami</p>
+                    <h2 class="text-2xl font-bold text-ink sm:text-3xl">Kunjungi Studio Kami</h2>
+                </div>
+
+                <div class="card overflow-hidden p-2">
+                    <iframe
+                        src="https://www.google.com/maps?q={{ urlencode($contents['contact_address']) }}&output=embed"
+                        class="h-[420px] w-full rounded-xl border-0 sm:h-[500px] lg:h-[520px]"
+                        loading="lazy"
+                        referrerpolicy="no-referrer-when-downgrade"
+                        title="Lokasi Sopian Lalu Imagery"
+                    ></iframe>
+                </div>
+            </div>
+        @endif
     </section>
 @endsection

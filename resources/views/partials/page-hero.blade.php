@@ -24,7 +24,7 @@
         @endif
         <h1 class="section-heading text-ink {{ $align === 'center' ? 'mx-auto' : '' }}">{{ $resolvedTitle }}</h1>
         @if ($resolvedSubtitle)
-            <p class="mt-4 max-w-2xl text-ink-muted {{ $align === 'center' ? 'mx-auto' : '' }}">{{ $resolvedSubtitle }}</p>
+            <div class="rich-content mt-4 max-w-2xl text-ink-muted {{ $align === 'center' ? 'mx-auto' : '' }}">{!! content_html($resolvedSubtitle) !!}</div>
         @endif
         @if (($ctaText && $ctaLink) || (($page->button2_text ?? '') && ($page->button2_link ?? '')))
             <div class="mt-8 flex flex-wrap gap-3 {{ $align === 'center' ? 'justify-center' : '' }}">

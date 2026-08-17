@@ -210,6 +210,7 @@ const paths = {
     ),
     'arrow-left': <path d="m12 19-7-7 7-7M19 12H5" />,
     'arrow-right': <path d="M5 12h14m-7-7 7 7-7 7" />,
+    'arrow-up': <path d="M12 19V5m-7 7 7-7 7 7" />,
     'chevron-down': <path d="m6 9 6 6 6-6" />,
     mail: (
         <>

@@ -156,6 +156,25 @@ class BlogController extends Controller
         return view('landing_pages.blog.author', compact('author', 'posts', 'categories', 'tags'));
     }
 
+    public function topics()
+    {
+        $page = \App\Models\Page::where('slug', 'blog')->first();
+
+        $categories = Category::withCount(['blogs' => fn ($q) => $q->published()])
+            ->having('blogs_count', '>', 0)
+            ->orderBy('name')
+            ->get();
+
+        $tags = BlogTag::withCount(['posts' => fn ($q) => $q->published()])
+            ->having('posts_count', '>', 0)
+            ->orderBy('name')
+            ->get();
+
+        $latest = Blog::with(['author', 'categories'])->published()->latest('published_at')->take(6)->get();
+
+        return view('landing_pages.blog.topics', compact('categories', 'tags', 'latest', 'page'));
+    }
+
     public function category(string $slug)
     {
         $category = Category::where('slug', $slug)->firstOrFail();

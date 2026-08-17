@@ -1,21 +1,23 @@
 document.addEventListener('DOMContentLoaded', () => {
     // ---- Theme toggle ----
-    const themeBtn = document.querySelector('[data-theme-toggle]');
+    const themeBtns = document.querySelectorAll('[data-theme-toggle]');
     const applyTheme = (theme) => {
         document.documentElement.classList.toggle('dark', theme === 'dark');
-        const sun = themeBtn?.querySelector('[data-icon="sun"]');
-        const moon = themeBtn?.querySelector('[data-icon="moon"]');
-        if (sun) sun.classList.toggle('hidden', theme !== 'dark');
-        if (moon) moon.classList.toggle('hidden', theme === 'dark');
+        const label = theme === 'dark' ? 'Tema Dark' : 'Tema Light';
+        document.querySelectorAll('[data-theme-label]').forEach((el) => {
+            el.textContent = label;
+        });
     };
 
     const savedTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
     applyTheme(savedTheme);
 
-    themeBtn?.addEventListener('click', () => {
-        const next = document.documentElement.classList.contains('dark') ? 'light' : 'dark';
-        localStorage.setItem('theme', next);
-        applyTheme(next);
+    themeBtns.forEach((btn) => {
+        btn?.addEventListener('click', () => {
+            const next = document.documentElement.classList.contains('dark') ? 'light' : 'dark';
+            localStorage.setItem('theme', next);
+            applyTheme(next);
+        });
     });
 
     // ---- Mobile menu ----
@@ -294,6 +296,19 @@ document.addEventListener('DOMContentLoaded', () => {
             const target = slides[Math.min(index * perView, slides.length - 1)];
             track.scrollTo({ left: target.offsetLeft - track.offsetLeft, behavior: 'smooth' });
             updateDots();
+            updateArrows();
+        };
+
+        const updateArrows = () => {
+            if (!prevBtn || !nextBtn) return;
+            const maxI = maxIndex();
+            const hasOverflow = track.scrollWidth > track.clientWidth + 2;
+            const hidePrev = !hasOverflow || index <= 0;
+            const hideNext = !hasOverflow || index >= maxI;
+            prevBtn.classList.toggle('opacity-0', hidePrev);
+            prevBtn.classList.toggle('pointer-events-none', hidePrev);
+            nextBtn.classList.toggle('opacity-0', hideNext);
+            nextBtn.classList.toggle('pointer-events-none', hideNext);
         };
 
         const stopAuto = () => {
@@ -337,6 +352,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     index = Math.min(Math.max(0, idx), maxIndex());
                     updateDots();
                 }
+                updateArrows();
             },
             { passive: true }
         );
@@ -345,6 +361,7 @@ document.addEventListener('DOMContentLoaded', () => {
             perView = viewPer();
             buildDots();
             goTo(Math.min(index, maxIndex()));
+            updateArrows();
             startAuto();
         };
         let lastWidth = window.innerWidth;
@@ -353,6 +370,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (Math.abs(w - lastWidth) < 24) return;
             lastWidth = w;
             if (viewPer() !== perView) init();
+            else updateArrows();
         });
 
         init();

@@ -18,6 +18,7 @@ use App\Http\Controllers\Api\PortfolioController;
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\ProjectController;
 use App\Http\Controllers\Api\ReviewController;
+use App\Http\Controllers\Api\StatController;
 use App\Http\Controllers\Api\RecycleBinController;
 use App\Http\Controllers\Api\ServiceController;
 use App\Http\Controllers\Api\CustomerController;
@@ -171,7 +172,6 @@ Route::middleware(['web', 'auth:sanctum', 'maintenance'])->group(function () {
 
         Route::middleware('permission:manage-reviews')->group(function () {
             Route::get('/reviews', [ReviewController::class, 'index']);
-            Route::patch('/reviews/{review}/toggle-publish', [ReviewController::class, 'togglePublish']);
             Route::put('/reviews/{review}', [ReviewController::class, 'update']);
             Route::delete('/reviews/{review}', [ReviewController::class, 'destroy']);
         });
@@ -184,9 +184,13 @@ Route::middleware(['web', 'auth:sanctum', 'maintenance'])->group(function () {
 
         Route::middleware('permission:manage-faq')->group(function () {
             Route::apiResource('faqs', FaqController::class)->except(['create', 'edit']);
+
+            Route::get('/stats/preview', [StatController::class, 'preview']);
+            Route::apiResource('stats', StatController::class)->except(['create', 'edit']);
         });
 
         Route::middleware('permission:manage-pages')->group(function () {
+            Route::get('/landing/options', [PageController::class, 'options']);
             Route::get('/pages', [PageController::class, 'index']);
             Route::get('/pages/{slug}', [PageController::class, 'show'])->where('slug', '.*');
             Route::put('/pages/{slug}', [PageController::class, 'update'])->where('slug', '.*');

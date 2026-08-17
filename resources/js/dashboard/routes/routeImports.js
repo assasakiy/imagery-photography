@@ -17,6 +17,7 @@ export const pageImports = {
     '/dashboard/kategori': () => import('../pages/admin/Categories'),
     '/dashboard/blog/tags': () => import('../pages/admin/blog/BlogTags'),
     '/dashboard/faq': () => import('../pages/admin/Faq'),
+    '/dashboard/stats': () => import('../pages/admin/Faq'),
     '/dashboard/pages': () => import('../pages/admin/landing/Index'),
     '/dashboard/pages/:slug/edit': () => import('../pages/admin/landing/Editor'),
     '/dashboard/reviews': () => import('../pages/admin/Reviews'),

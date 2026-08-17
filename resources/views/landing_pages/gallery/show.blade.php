@@ -54,7 +54,7 @@
                         <p class="mb-2 text-sm font-semibold uppercase tracking-widest text-brand-600 dark:text-brand-400">Lainnya</p>
                         <h2 class="section-heading text-ink">Karya Terkait</h2>
                     </div>
-                    <a href="{{ route('gallery') }}" class="btn-ghost shrink-0">Semua Galeri</a>
+                    <a href="{{ route('gallery') }}" class="btn-link shrink-0">Semua Galeri <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 5l7 7-7 7"/><path d="M6 5l7 7-7 7"/></svg></a>
                 </div>
 
                 <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">

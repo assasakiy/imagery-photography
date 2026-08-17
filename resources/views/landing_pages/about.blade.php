@@ -11,17 +11,19 @@
     ])
 
     <section class="container-site py-16 md:py-20">
-        <div class="grid grid-cols-1 items-center gap-10 lg:grid-cols-2">
-            <div class="relative">
+        <div class="grid grid-cols-1 items-center gap-12 lg:grid-cols-5">
+            <div class="reveal relative mx-auto w-full max-w-md lg:order-1 lg:col-span-2 lg:mx-0 lg:max-w-none">
                 <div class="absolute -inset-4 -z-10 rounded-3xl bg-brand-600/10 blur-2xl"></div>
-                <div class="overflow-hidden rounded-2xl border border-line">
-                    <img src="{{ $aboutImage }}" alt="{{ $page?->hero_title ?: 'Tentang Kami' }}" class="aspect-[4/5] w-full object-cover">
+                <div class="relative overflow-hidden rounded-2xl border border-line shadow-lg shadow-black/5">
+                    <img src="{{ $aboutImage }}" alt="{{ $page?->hero_title ?: 'Cerita Kami' }}" class="aspect-square w-full object-cover">
+                    <div class="absolute inset-0 bg-gradient-to-t from-zinc-950/25 to-transparent"></div>
                 </div>
             </div>
 
-            <div>
-                <h2 class="text-2xl font-extrabold tracking-tight text-ink md:text-3xl">{{ $page?->hero_title ?: ($page?->title ?: 'Tentang Kami') }}</h2>
-                <div class="rich-content mt-6">
+            <div class="reveal lg:col-span-3">
+                <p class="mb-3 text-sm font-semibold uppercase tracking-widest text-brand-600 dark:text-brand-400">Cerita Kami</p>
+                <h2 class="section-heading text-ink">Cerita Kami</h2>
+                <div class="rich-content mt-5 text-ink-muted">
                     {!! content_html($page?->content ?? '') !!}
                 </div>
             </div>
@@ -37,24 +39,26 @@
                     <h2 class="section-heading text-ink">Tentang Situs & Layanan</h2>
                 </div>
 
-                <div class="mx-auto max-w-3xl">
+                <div class="mx-auto mt-12 max-w-3xl">
                     @if ($history)
-                        <div class="rich-content text-center">
+                        <div class="rich-content mb-14 text-center">
                             {!! content_html($history) !!}
                         </div>
                     @endif
 
                     @if (count($timeline))
-                        <div class="relative mt-12 pl-8">
-                            <div class="absolute bottom-2 left-[9px] top-2 w-px bg-brand-500/30"></div>
+                        <div class="relative">
+                            <div class="absolute bottom-2 left-0 top-2 w-px bg-brand-500/30"></div>
                             <ol class="space-y-8">
                                 @foreach ($timeline as $point)
-                                    <li class="reveal relative">
-                                        <span class="absolute -left-8 top-1 flex h-5 w-5 items-center justify-center rounded-full border-2 border-brand-600 bg-zinc-50 dark:bg-zinc-950">
+                                    <li class="reveal relative pl-7">
+                                        <span class="absolute left-0 top-4 flex h-5 w-5 -translate-x-1/2 items-center justify-center rounded-full border-2 border-brand-600 bg-zinc-50 dark:bg-zinc-950">
                                             <span class="h-2 w-2 rounded-full bg-brand-600"></span>
                                         </span>
-                                        <p class="text-sm font-bold text-brand-600 dark:text-brand-400">{{ $point['year'] }}</p>
-                                        <p class="mt-1 leading-relaxed text-ink-muted">{{ $point['text'] ?? '' }}</p>
+                                        <div class="card p-5">
+                                            <p class="text-sm font-bold text-brand-600 dark:text-brand-400">{{ $point['year'] }}</p>
+                                            <p class="mt-2 leading-relaxed text-ink-muted">{{ $point['text'] ?? '' }}</p>
+                                        </div>
                                     </li>
                                 @endforeach
                             </ol>
@@ -98,23 +102,18 @@
         </section>
     @endif
 
+    @if ($aboutStats->isNotEmpty())
     <section class="container-site pb-16">
         <div class="card grid grid-cols-1 gap-6 p-8 sm:grid-cols-3">
-            @php
-                $stats = [
-                    ['label' => 'Kepuasan Klien', 'value' => '100%'],
-                    ['label' => 'Pengalaman', 'value' => '5+ Tahun'],
-                    ['label' => 'Jenis Dokumentasi', 'value' => 'Foto & Video'],
-                ];
-            @endphp
-            @foreach ($stats as $stat)
+            @foreach ($aboutStats as $stat)
                 <div class="text-center">
-                    <p class="text-2xl font-extrabold text-brand-600 dark:text-brand-400">{{ $stat['value'] }}</p>
-                    <p class="mt-1 text-sm text-ink-muted">{{ $stat['label'] }}</p>
+                    <p class="text-2xl font-extrabold text-brand-600 dark:text-brand-400">{{ $stat->resolved_value }}<span class="text-lg">{{ $stat->suffix }}</span></p>
+                    <p class="mt-1 text-sm text-ink-muted">{{ $stat->label }}</p>
                 </div>
             @endforeach
         </div>
     </section>
+    @endif
 
     @if ($featured->isNotEmpty())
         <section class="border-t border-line bg-zinc-100/60 dark:bg-zinc-900/40">

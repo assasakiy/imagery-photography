@@ -25,6 +25,7 @@ const PAGE_TITLES = {
     '/dashboard/kategori': 'Kategori',
     '/dashboard/blog/tags': 'Tag Blog',
     '/dashboard/faq': 'FAQ',
+    '/dashboard/stats': 'Stats',
     '/dashboard/pages': 'Halaman',
     '/dashboard/pages/:slug/edit': 'Edit Halaman',
     '/dashboard/settings': 'Pengaturan',
@@ -83,6 +84,7 @@ const CreateEditBlog = lazy(pageImports['/dashboard/blog/create']);
 const Categories = lazy(pageImports['/dashboard/kategori']);
 const BlogTags = lazy(pageImports['/dashboard/blog/tags']);
 const Faq = lazy(pageImports['/dashboard/faq']);
+const Stats = lazy(pageImports['/dashboard/stats']);
 const PageIndex = lazy(pageImports['/dashboard/pages']);
 const PageEditor = lazy(pageImports['/dashboard/pages/:slug/edit']);
 const Team = lazy(pageImports['/dashboard/team']);
@@ -175,6 +177,7 @@ function AppRoutes() {
                 <Route path="kategori" element={withSuspense(<Protected adminOnly><Categories /></Protected>, 'table')} />
                 <Route path="blog/tags" element={withSuspense(<Protected adminOnly><BlogTags /></Protected>, 'table')} />
                 <Route path="faq" element={withSuspense(<Protected adminOnly><Faq /></Protected>, 'table')} />
+                <Route path="stats" element={withSuspense(<Protected adminOnly><Stats /></Protected>, 'table')} />
                 <Route path="pages" element={withSuspense(<Protected adminOnly><PageIndex /></Protected>, 'table')} />
                 <Route path="pages/:slug/edit" element={withSuspense(<Protected adminOnly><PageEditor /></Protected>, 'form')} />
                 <Route path="team" element={withSuspense(<Protected ownerOnly><Team /></Protected>, 'table')} />

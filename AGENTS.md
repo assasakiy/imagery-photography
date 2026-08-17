@@ -1,4 +1,4 @@
-# AGENTS.md — Sopian Lalu Imagery (imagery.assasakiy.my.id)
+# AGENTS.md — Sopian Lalu Imagery (imagery.my.id)
 
 Instruksi kerja untuk AI agent/coding agent pada proyek ini. Baca penuh sebelum mulai.
 
@@ -12,7 +12,7 @@ Membangun ulang website portofolio fotografi/videografi "Sopian Lalu Imagery" me
 - Desain dark & elegan, responsif, dark/light toggle, ikon SVG, struktur berlapis.
 
 ## 2. Arsitektur & Lokasi
-- Monolith Laravel 13 di `/var/www/imagery`, nginx host port **8081** (80/443 milik Traefik Coolify), domain `imagery.assasakiy.my.id`.
+- Monolith Laravel 13 di `/var/www/imagery`, nginx host port **8081** (80/443 milik Traefik Coolify), domain `imagery.my.id`.
 - **Layers (struktur berlapis):**
   Routes (`routes/web.php`, `routes/api.php`) → Controllers → **Services (`app/Services`)** → Models → Views.
   - `app/Services/`: `AssetResolver`, `WhatsApp/` (interface `WhatsAppDriver`, `WhatsAppManager`, `WhatsAppDriverRegistry` schema-driven, `WhatsAppSendResult`, driver `GoWA/EvolutionApi/Waha/Fonnte/Twilio/CustomApi/Meta`), `NotificationService`, `WebhookDispatcher`, `RuntimeSettings`.
@@ -105,7 +105,7 @@ Halaman dashboard yang punya beberapa tab **WAJIB** dipisah ke folder `pages/<na
 - **`RuntimeSettings` cache 1 jam**: ubah setting via tinker → wajib `app(RuntimeSettings::class)->forget()`.
 - **`Portfolio::getCoverUrlAttribute` & aksesor lain TIDAK otomatis masuk JSON** — list API yang pakai `paginate()` mentah harus di-serialize (lihat `->through(fn => $this->serialize(...))`).
 - **Media Library**: model butuh `$fillable=['id']`; `LandingContent::setValue` pertahankan `group`; reset landing images meninggalkan media orphan (TODO).
-- **Test**: skrip di `/home/opc` (`spa_test.py`, `final_test.py`, `access_test.py`); `/etc/hosts` berisi `127.0.0.1 imagery.assasakiy.my.id`; `/tmp/opencode` TIDAK writable.
+- **Test**: skrip di `/home/opc` (`spa_test.py`, `final_test.py`, `access_test.py`); `/etc/hosts` berisi `127.0.0.1 imagery.my.id`; `/tmp/opencode` TIDAK writable.
 
 ## 13. Sesi Terbaru (2026-08-15) — Squash Migrasi + Kategori Unified + Pipeline Media Thumb/Watermark
 - **Migrasi jadi 5 squash**: 14 migrasi lama dihapus → `2026_08_10_000000..000004` (`squash_auth_platform`, `squash_media_content`, `squash_services_pages`, `squash_projects_orders`, `squash_reviews_security`). Schema-final langsung — tanpa bolak-balik create/drop. `landing_contents` TETAP ada (kode masih pakai). `db:wipe` + `migrate --force` + `db:seed --force` jalan bersih.

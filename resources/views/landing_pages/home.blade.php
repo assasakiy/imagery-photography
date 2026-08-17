@@ -68,25 +68,25 @@
             <div class="reveal order-1 lg:order-2">
                 <p class="mb-3 text-sm font-semibold uppercase tracking-widest text-brand-600 dark:text-brand-400">Tentang Kami</p>
                 <h2 class="section-heading text-ink">{{ $homeAboutTitle }}</h2>
-                <p class="mt-6 leading-relaxed text-ink-muted">{{ Str::limit(content_plain($homeAboutContent), 300) }}</p>
+                <p class="mt-6 leading-relaxed text-ink-muted">{{ content_first_sentences($homeAboutContent, 2) }}</p>
+                @if ($aboutStats->isNotEmpty())
                 <div class="mt-8 grid grid-cols-3 gap-4">
-                    <div class="card p-4 text-center">
-                        <p class="text-2xl font-bold text-brand-600 dark:text-brand-400">500+</p>
-                        <p class="mt-1 text-xs text-ink-muted">Momen Terabadikan</p>
-                    </div>
-                    <div class="card p-4 text-center">
-                        <p class="text-2xl font-bold text-brand-600 dark:text-brand-400">100%</p>
-                        <p class="mt-1 text-xs text-ink-muted">Hasil Profesional</p>
-                    </div>
-                    <div class="card p-4 text-center">
-                        <p class="text-2xl font-bold text-brand-600 dark:text-brand-400">24/7</p>
-                        <p class="mt-1 text-xs text-ink-muted">Siap Dibooking</p>
-                    </div>
+                    @foreach ($aboutStats as $stat)
+                        <div class="card p-4 text-center">
+                            <p class="text-2xl font-bold text-brand-600 dark:text-brand-400">{{ $stat->resolved_value }}<span class="text-lg">{{ $stat->suffix }}</span></p>
+                            <p class="mt-1 text-xs text-ink-muted">{{ $stat->label }}</p>
+                        </div>
+                    @endforeach
                 </div>
-                <a href="{{ route('about') }}" class="btn-dark mt-8">
-                    Selengkapnya
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14m-7-7 7 7-7 7"/></svg>
-                </a>
+                @endif
+                <details class="group mt-8">
+                    <summary class="btn-dark inline-flex cursor-pointer list-none items-center gap-2 [&::-webkit-details-marker]:hidden">
+                        Selengkapnya
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="transition-transform duration-300 group-open:rotate-180"><path d="m6 9 6 6 6-6"/></svg>
+                    </summary>
+                    <div class="rich-content mt-6 text-ink-muted">{!! content_html($homeAboutContent) !!}</div>
+                    <a href="{{ route('about') }}" class="btn-outline mt-6">Lihat Halaman Tentang</a>
+                </details>
             </div>
         </div>
     </section>
@@ -100,7 +100,7 @@
                         <p class="mb-3 text-sm font-semibold uppercase tracking-widest text-brand-600 dark:text-brand-400">Portofolio</p>
                         <h2 class="section-heading text-ink">Karya Terpilih</h2>
                     </div>
-                    <a href="{{ route('gallery') }}" class="btn-outline shrink-0">Lihat Semua Galeri</a>
+                    <a href="{{ route('gallery') }}" class="btn-link shrink-0">Lihat Semua Galeri <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 5l7 7-7 7"/><path d="M6 5l7 7-7 7"/></svg></a>
                 </div>
 
                 <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -126,7 +126,7 @@
                 <div class="reveal mb-12 max-w-2xl">
                     <p class="mb-3 text-sm font-semibold uppercase tracking-widest text-brand-600 dark:text-brand-400">Layanan</p>
                     <h2 class="section-heading text-ink">Layanan Kami</h2>
-                    <p class="mt-4 text-ink-muted">{{ $servicesIntro }}</p>
+                    <div class="rich-content mt-4 text-ink-muted">{!! content_html($servicesIntro) !!}</div>
                 </div>
 
                 <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
@@ -167,15 +167,15 @@
         <section class="py-24">
             <div class="container-site">
                 <div class="reveal mb-10 text-center">
-                    <p class="mb-3 text-sm font-semibold uppercase tracking-widest text-brand-600 dark:text-brand-400">Testimoni</p>
-                    <h2 class="section-heading text-ink">Kata Klien Kami</h2>
+                    <p class="mb-3 text-sm font-semibold uppercase tracking-widest text-brand-600 dark:text-brand-400">{{ $reviewSec['subtitle'] ?? 'Testimoni' }}</p>
+                    <h2 class="section-heading text-ink">{{ $reviewSec['title'] ?? 'Kata Klien Kami' }}</h2>
                 </div>
 
                 <div class="rating-carousel" data-rating-carousel>
-                    <button type="button" class="rating-carousel-btn rating-carousel-btn--prev" data-rating-prev aria-label="Testimoni sebelumnya">
+                    <button type="button" class="rating-carousel-btn rating-carousel-btn--prev opacity-0 pointer-events-none" data-rating-prev aria-label="Testimoni sebelumnya">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
                     </button>
-                    <button type="button" class="rating-carousel-btn rating-carousel-btn--next" data-rating-next aria-label="Testimoni berikutnya">
+                    <button type="button" class="rating-carousel-btn rating-carousel-btn--next opacity-0 pointer-events-none" data-rating-next aria-label="Testimoni berikutnya">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
                     </button>
                     <div class="rating-track" data-rating-track>
@@ -217,12 +217,12 @@
         <section class="bg-zinc-100/60 py-24 dark:bg-zinc-900/40">
             <div class="container-site">
                 <div class="reveal mb-12 max-w-2xl">
-                    <p class="mb-3 text-sm font-semibold uppercase tracking-widest text-brand-600 dark:text-brand-400">FAQ</p>
-                    <h2 class="section-heading text-ink">Pertanyaan Umum</h2>
+                    <p class="mb-3 text-sm font-semibold uppercase tracking-widest text-brand-600 dark:text-brand-400">{{ $faqSec['subtitle'] ?? 'FAQ' }}</p>
+                    <h2 class="section-heading text-ink">{{ $faqSec['title'] ?? 'Pertanyaan Umum' }}</h2>
                 </div>
 
                 <div class="mx-auto max-w-3xl space-y-3">
-                    @foreach ($faqs->take(5) as $faq)
+                    @foreach ($faqs as $faq)
                         <details class="reveal group card p-0">
                             <summary class="flex cursor-pointer list-none items-center justify-between gap-4 px-6 py-5 text-left font-semibold text-ink [&::-webkit-details-marker]:hidden">
                                 {{ $faq->question }}
@@ -251,7 +251,7 @@
                         <p class="mb-3 text-sm font-semibold uppercase tracking-widest text-brand-600 dark:text-brand-400">Blog</p>
                         <h2 class="section-heading text-ink">Artikel Terbaru</h2>
                     </div>
-                    <a href="{{ route('blog') }}" class="btn-outline shrink-0">Semua Artikel</a>
+                    <a href="{{ route('blog') }}" class="btn-link shrink-0">Semua Artikel <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 5l7 7-7 7"/><path d="M6 5l7 7-7 7"/></svg></a>
                 </div>
 
                 <div class="grid grid-cols-1 gap-6 md:grid-cols-3">

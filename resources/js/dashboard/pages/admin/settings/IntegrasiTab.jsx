@@ -726,7 +726,7 @@ export default function IntegrasiTab({
                             </Field>
                             <div className="sm:col-span-2">
                                 <Field label="URL Redirect (Callback)" hint="opsional" error={errors.google_redirect_url?.[0]}>
-                                    <input className="input" value={form.google_redirect_url} onChange={(e) => set('google_redirect_url', e.target.value)} placeholder="https://imagery.assasakiy.my.id/auth/google/callback" />
+                                    <input className="input" value={form.google_redirect_url} onChange={(e) => set('google_redirect_url', e.target.value)} placeholder="https://imagery.my.id/auth/google/callback" />
                                 </Field>
                                 <p className="mt-1 text-xs text-ink-muted">
                                     Kosongkan untuk memakai otomatis: <code className="font-mono">{meta.google_redirect_url || '-'}</code>

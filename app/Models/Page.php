@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\AssetResolver;
 use Illuminate\Database\Eloquent\Model;
 
 class Page extends Model
@@ -15,5 +16,17 @@ class Page extends Model
             'sections' => 'array',
             'images' => 'array',
         ];
+    }
+
+    protected $appends = ['image_urls'];
+
+    public function getImageUrlsAttribute(): array
+    {
+        $urls = [];
+        foreach ((array) $this->images as $key => $value) {
+            $urls[$key] = AssetResolver::resolveImageValue((string) $value, '');
+        }
+
+        return $urls;
     }
 }

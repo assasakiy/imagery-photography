@@ -15,8 +15,6 @@ class Review extends Model
         'recommend_score',
         'title',
         'content',
-        'is_published',
-        'published_at',
         'order',
     ];
 
@@ -25,8 +23,6 @@ class Review extends Model
         return [
             'rating' => 'integer',
             'recommend_score' => 'integer',
-            'is_published' => 'boolean',
-            'published_at' => 'datetime',
         ];
     }
 
@@ -38,10 +34,5 @@ class Review extends Model
     public function project()
     {
         return $this->belongsTo(Project::class);
-    }
-
-    public function scopePublished($query)
-    {
-        return $query->where('is_published', true);
     }
 }

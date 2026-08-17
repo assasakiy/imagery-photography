@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Page;
 use App\Models\Portfolio;
 use App\Models\TeamMember;
+use App\Services\LandingContentResolver;
 
 class AboutPageController extends Controller
 {
@@ -30,6 +31,9 @@ class AboutPageController extends Controller
         $history = collect($sections)->firstWhere('type', 'history');
         $history = is_array($history) ? (string) ($history['text'] ?? '') : '';
 
-        return view('landing_pages.about', compact('page', 'aboutImage', 'featured', 'team', 'timeline', 'history'));
+        $statsSec = collect($sections)->firstWhere('type', 'stats');
+        $aboutStats = $statsSec ? LandingContentResolver::stats($statsSec) : collect();
+
+        return view('landing_pages.about', compact('page', 'aboutImage', 'featured', 'team', 'timeline', 'history', 'aboutStats'));
     }
 }

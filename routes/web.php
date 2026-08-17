@@ -34,6 +34,7 @@ Route::middleware('maintenance')->group(function () {
     Route::get('/blog/penulis/{id}', [BlogController::class, 'author'])->name('blog.author');
     Route::get('/blog/kategori/{slug}', [BlogController::class, 'category'])->name('blog.category');
     Route::get('/blog/tag/{slug}', [BlogController::class, 'tag'])->name('blog.tag');
+    Route::get('/blog/jelajah', [BlogController::class, 'topics'])->name('blog.topics');
     Route::get('/blog/{section}', [BlogController::class, 'section'])->whereIn('section', ['featured', 'latest', 'populer'])->name('blog.section');
     Route::get('/blog/{slug}', [BlogController::class, 'show'])->name('blog.show');
     Route::get('/watermark/{hash}', [WatermarkController::class, 'show'])->name('watermark');

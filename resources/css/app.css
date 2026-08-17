@@ -1,6 +1,7 @@
 @import 'tailwindcss';
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../resources/views/**/*.blade.php';
 @source '../../storage/framework/views/*.php';
 
 @custom-variant dark (&:where(.dark, .dark *));
@@ -193,7 +194,7 @@
     }
 
     .rating-carousel-btn {
-        @apply absolute top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-line bg-surface/90 text-ink shadow-lg backdrop-blur transition-all duration-200 hover:border-brand-600 hover:bg-brand-600 hover:text-white disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-line disabled:hover:bg-surface/90 disabled:hover:text-ink;
+        @apply absolute top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-line bg-surface/90 text-ink shadow-lg backdrop-blur transition-all duration-200 hover:border-brand-600 hover:bg-brand-600 hover:text-white disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-line disabled:hover:bg-surface/90 disabled:hover:text-ink;
     }
 
     .rating-carousel-btn--prev {

@@ -16,10 +16,6 @@ class ReviewController extends Controller
     {
         $query = Review::with(['client', 'project']);
 
-        if ($request->filled('is_published')) {
-            $query->where('is_published', (bool) $request->integer('is_published'));
-        }
-
         if ($request->filled('rating')) {
             $query->where('rating', $request->integer('rating'));
         }
@@ -36,8 +32,6 @@ class ReviewController extends Controller
 
         $stats = [
             'all' => Review::count(),
-            'published' => Review::where('is_published', true)->count(),
-            'hidden' => Review::where('is_published', false)->count(),
             'ratings' => [],
         ];
 
@@ -93,8 +87,6 @@ class ReviewController extends Controller
 
         $data['content'] = ContentSanitizer::plainText($data['content']);
 
-        $published = (int) $data['rating'] >= 3;
-
         $review = Review::create([
             'client_id' => $user->id,
             'project_id' => $project->id,
@@ -104,8 +96,6 @@ class ReviewController extends Controller
             'recommend_score' => $data['recommend_score'] ?? null,
             'title' => $data['title'] ?? null,
             'content' => $data['content'],
-            'is_published' => $published,
-            'published_at' => $published ? now() : null,
         ]);
 
         app(\App\Services\AuditLogger::class)->log('review.created', 'Review baru dari ' . $review->name . ' untuk ' . $project->name, $review);
@@ -113,7 +103,7 @@ class ReviewController extends Controller
         app(NotificationService::class)->inApp(
             User::role(['owner', 'admin'])->get(),
             'Review baru masuk',
-            "{$review->name} memberi rating {$review->rating}/5 untuk {$project->name}" . ($published ? '.' : ' (tidak ditampilkan otomatis).'),
+            "{$review->name} memberi rating {$review->rating}/5 untuk {$project->name}.",
             '/dashboard/reviews',
             'review.new'
         );
@@ -166,7 +156,6 @@ class ReviewController extends Controller
         $review = Review::where('client_id', $user->id)->where('project_id', $project->id)->firstOrFail();
 
         $data['content'] = ContentSanitizer::plainText($data['content']);
-        $published = (int) $data['rating'] >= 3;
 
         $review->update([
             'name' => $data['name'],
@@ -175,29 +164,9 @@ class ReviewController extends Controller
             'recommend_score' => $data['recommend_score'] ?? null,
             'title' => $data['title'] ?? null,
             'content' => $data['content'],
-            'is_published' => $published,
-            'published_at' => $published ? now() : null,
         ]);
 
         app(\App\Services\AuditLogger::class)->log('review.updated', 'Review diperbarui oleh ' . $review->name, $review);
-
-        return response()->json($this->serialize($review));
-    }
-
-    public function togglePublish(Review $review)
-    {
-        $published = !$review->is_published;
-
-        $review->update([
-            'is_published' => $published,
-            'published_at' => $published ? now() : null,
-        ]);
-
-        app(\App\Services\AuditLogger::class)->log(
-            'review.published',
-            $published ? 'Review ditampilkan' : 'Review disembunyikan',
-            $review
-        );
 
         return response()->json($this->serialize($review));
     }
@@ -224,8 +193,6 @@ class ReviewController extends Controller
             'recommend_score' => $review->recommend_score,
             'title' => $review->title,
             'content' => $review->content,
-            'is_published' => $review->is_published,
-            'published_at' => $review->published_at,
             'order' => $review->order,
             'created_at' => $review->created_at,
             'client' => $review->client ? [

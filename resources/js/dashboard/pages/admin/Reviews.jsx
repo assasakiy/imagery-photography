@@ -18,8 +18,7 @@ function Stars({ value, size = 18 }) {
 export default function Reviews() {
     const [items, setItems] = useState([]);
     const [meta, setMeta] = useState({});
-    const [stats, setStats] = useState({ all: 0, published: 0, hidden: 0, ratings: {} });
-    const [isPublished, setIsPublished] = useState('');
+    const [stats, setStats] = useState({ all: 0, ratings: {} });
     const [rating, setRating] = useState('');
     const [q, setQ] = useState('');
     const [search, setSearch] = useState('');
@@ -34,7 +33,6 @@ export default function Reviews() {
         api.get('/reviews', {
             params: {
                 page,
-                is_published: isPublished === '' ? undefined : isPublished,
                 rating: rating === '' ? undefined : rating,
                 q: search || undefined,
             },
@@ -49,18 +47,7 @@ export default function Reviews() {
 
     useEffect(() => {
         load();
-    }, [isPublished, rating, search]);
-
-    const toggle = async (item) => {
-        setActing(item.id);
-        try {
-            await api.patch(`/reviews/${item.id}/toggle-publish`);
-            show(item.is_published ? 'Review disembunyikan dari situs.' : 'Review ditampilkan di situs.');
-            load(meta.current_page);
-        } finally {
-            setActing(null);
-        }
-    };
+    }, [rating, search]);
 
     const handleEdit = async (e) => {
         e.preventDefault();
@@ -108,53 +95,34 @@ export default function Reviews() {
         <>
             <PageHeader title="Review" subtitle="Semua review dari klien." />
 
-            <div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
-                <div className="card p-4">
-                    <p className="text-xs font-semibold uppercase tracking-wider text-ink-muted">Semua</p>
-                    <p className="mt-1 text-2xl font-bold text-ink">{stats.all ?? 0}</p>
+            <div className="mb-4 flex flex-wrap items-center gap-2">
+                <div className="flex flex-wrap gap-2">
+                    {ratingTabs.map((r) => (
+                        <button key={r.key || 'all'} className={`chip ${rating === r.key ? 'chip-active' : ''}`} onClick={() => setRating(r.key)}>
+                            {r.label}
+                            {r.key && stats.ratings?.[Number(r.key)] ? ` (${stats.ratings[Number(r.key)]})` : ''}
+                        </button>
+                    ))}
                 </div>
-                <div className="card p-4">
-                    <p className="text-xs font-semibold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Ditampilkan</p>
-                    <p className="mt-1 text-2xl font-bold text-emerald-700 dark:text-emerald-300">{stats.published ?? 0}</p>
-                </div>
-                <div className="card p-4 col-span-2 sm:col-span-1">
-                    <p className="text-xs font-semibold uppercase tracking-wider text-red-500">Tidak ditampilkan</p>
-                    <p className="mt-1 text-2xl font-bold text-red-600 dark:text-red-400">{stats.hidden ?? 0}</p>
-                </div>
-            </div>
 
-            <div className="mb-4 flex flex-wrap gap-2">
-                <button className={`chip ${isPublished === '' ? 'chip-active' : ''}`} onClick={() => setIsPublished('')}>Semua status</button>
-                <button className={`chip ${isPublished === '1' ? 'chip-active' : ''}`} onClick={() => setIsPublished('1')}>Ditampilkan</button>
-                <button className={`chip ${isPublished === '0' ? 'chip-active' : ''}`} onClick={() => setIsPublished('0')}>Tidak ditampilkan</button>
+                <form
+                    className="min-w-[180px] flex-1"
+                    onSubmit={(e) => {
+                        e.preventDefault();
+                        setSearch(q);
+                    }}
+                >
+                    <div className="relative">
+                        <Icon name="search" size={18} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" />
+                        <input
+                            className="input w-full !pl-10"
+                            placeholder="Cari nama klien, email, pesanan, atau isi review…"
+                            value={q}
+                            onChange={(e) => setQ(e.target.value)}
+                        />
+                    </div>
+                </form>
             </div>
-
-            <div className="mb-4 flex flex-wrap gap-2">
-                {ratingTabs.map((r) => (
-                    <button key={r.key || 'all'} className={`chip ${rating === r.key ? 'chip-active' : ''}`} onClick={() => setRating(r.key)}>
-                        {r.label}
-                        {r.key && stats.ratings?.[Number(r.key)] ? ` (${stats.ratings[Number(r.key)]})` : ''}
-                    </button>
-                ))}
-            </div>
-
-            <form
-                className="mb-4"
-                onSubmit={(e) => {
-                    e.preventDefault();
-                    setSearch(q);
-                }}
-            >
-                <div className="relative">
-                    <Icon name="search" size={18} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" />
-                    <input
-                        className="input w-full !pl-10"
-                        placeholder="Cari nama klien, email, pesanan, atau isi review…"
-                        value={q}
-                        onChange={(e) => setQ(e.target.value)}
-                    />
-                </div>
-            </form>
 
             {loading ? (
                 <Skeleton variant="card" />
@@ -166,9 +134,6 @@ export default function Reviews() {
                                 <div className="min-w-0">
                                     <div className="flex flex-wrap items-center gap-2">
                                         <p className="font-bold text-ink">{item.name}</p>
-                                        <span className={`badge ${item.is_published ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' : 'bg-zinc-500/15 text-zinc-600 dark:text-zinc-400'}`}>
-                                            {item.is_published ? 'Ditampilkan' : 'Tidak ditampilkan'}
-                                        </span>
                                     </div>
                                     <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1">
                                         <Stars value={item.rating} />
@@ -198,14 +163,6 @@ export default function Reviews() {
                                             <Icon name="folder-open" size={16} />
                                         </Link>
                                     )}
-                                    <button
-                                        className="rounded-lg p-1.5 text-ink-muted hover:bg-surface-muted disabled:opacity-40"
-                                        title={item.is_published ? 'Sembunyikan dari situs' : 'Tampilkan di situs'}
-                                        disabled={acting === item.id}
-                                        onClick={() => toggle(item)}
-                                    >
-                                        <Icon name={item.is_published ? 'eye-off' : 'eye'} size={16} className={item.is_published ? 'hover:!text-red-500' : 'hover:!text-emerald-600'} />
-                                    </button>
                                     <button className="rounded-lg p-1.5 text-ink-muted hover:bg-surface-muted hover:text-brand-600" title="Edit" onClick={() => setEditing({ ...item })}>
                                         <Icon name="edit" size={16} />
                                     </button>
