@@ -8,6 +8,10 @@ export function normalizeSections(existing) {
         blog: { type: 'blog', subtitle: '', title: '', limit: 3 },
         cta: { type: 'cta', title: '', description: '', button_text: '', button_link: '' },
         timeline: { type: 'timeline', data: [] },
+        cerita: { type: 'cerita', subtitle: 'Cerita Kami', title: 'Cerita Kami', content: '' },
+        perjalanan: { type: 'perjalanan', subtitle: 'Perjalanan', title: 'Tentang Situs & Layanan', history: '' },
+        tim: { type: 'tim', subtitle: 'Tim', title: 'Di Balik Lensa' },
+        karya: { type: 'karya', subtitle: 'Karya Unggulan', title: 'Sebagian Karya Kami', mode: 'featured', category_ids: [], limit: 3 },
     };
 
     const normalized = { ...defaults };
@@ -17,6 +21,10 @@ export function normalizeSections(existing) {
                 normalized[sec.type] = { ...defaults[sec.type], ...sec };
             }
         });
+    }
+    const legacyHistory = Array.isArray(existing) ? existing.find((s) => s?.type === 'history') : null;
+    if (legacyHistory && !(normalized.perjalanan.history || '').trim()) {
+        normalized.perjalanan = { ...normalized.perjalanan, history: legacyHistory.text || '' };
     }
     if (normalized.reviews.mode === '5star') {
         normalized.reviews = { ...normalized.reviews, mode: 'star', star: 5, items: [] };
@@ -30,6 +38,9 @@ export function normalizeSections(existing) {
     }
     if (!['ids', 'all'].includes(normalized.stats.mode)) {
         normalized.stats = { ...normalized.stats, mode: 'ids' };
+    }
+    if (!['featured', 'latest', 'category'].includes(normalized.karya.mode)) {
+        normalized.karya = { ...normalized.karya, mode: 'featured' };
     }
     return normalized;
 }

@@ -21,10 +21,10 @@
             </div>
 
             <div class="reveal lg:col-span-3">
-                <p class="mb-3 text-sm font-semibold uppercase tracking-widest text-brand-600 dark:text-brand-400">Cerita Kami</p>
-                <h2 class="section-heading text-ink">Cerita Kami</h2>
+                <p class="mb-3 text-sm font-semibold uppercase tracking-widest text-brand-600 dark:text-brand-400">{{ $ceritaSubtitle }}</p>
+                <h2 class="section-heading text-ink">{{ $ceritaTitle }}</h2>
                 <div class="rich-content mt-5 text-ink-muted">
-                    {!! content_html($page?->content ?? '') !!}
+                    {!! content_html($ceritaContent) !!}
                 </div>
             </div>
         </div>
@@ -35,8 +35,8 @@
         <section class="border-t border-line bg-zinc-100/60 dark:bg-zinc-900/40">
             <div class="container-site py-16 md:py-20">
                 <div class="mx-auto max-w-3xl text-center">
-                    <p class="mb-3 text-sm font-semibold uppercase tracking-widest text-brand-600 dark:text-brand-400">Perjalanan</p>
-                    <h2 class="section-heading text-ink">Tentang Situs & Layanan</h2>
+                    <p class="mb-3 text-sm font-semibold uppercase tracking-widest text-brand-600 dark:text-brand-400">{{ $perjalananSubtitle }}</p>
+                    <h2 class="section-heading text-ink">{{ $perjalananTitle }}</h2>
                 </div>
 
                 <div class="mx-auto mt-12 max-w-3xl">
@@ -72,8 +72,8 @@
     @if ($team->isNotEmpty())
         <section class="container-site py-16 md:py-20">
             <div class="mb-12 text-center">
-                <p class="mb-3 text-sm font-semibold uppercase tracking-widest text-brand-600 dark:text-brand-400">Tim</p>
-                <h2 class="section-heading text-ink">Di Balik Lensa</h2>
+                <p class="mb-3 text-sm font-semibold uppercase tracking-widest text-brand-600 dark:text-brand-400">{{ $timSubtitle }}</p>
+                <h2 class="section-heading text-ink">{{ $timTitle }}</h2>
             </div>
 
             <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -120,8 +120,8 @@
             <div class="container-site py-14">
                 <div class="mb-8 flex items-end justify-between">
                     <div>
-                        <p class="mb-2 text-sm font-semibold uppercase tracking-widest text-brand-600 dark:text-brand-400">Karya Unggulan</p>
-                        <h2 class="section-heading text-ink">Sebagian Karya Kami</h2>
+                        <p class="mb-2 text-sm font-semibold uppercase tracking-widest text-brand-600 dark:text-brand-400">{{ $karyaSubtitle }}</p>
+                        <h2 class="section-heading text-ink">{{ $karyaTitle }}</h2>
                     </div>
                     <a href="{{ route('gallery') }}" class="hidden text-sm font-medium text-brand-600 hover:underline dark:text-brand-400 sm:block">Lihat galeri →</a>
                 </div>

@@ -143,8 +143,9 @@ export default function Editor() {
 
                 if (data.slug === 'tentang') {
                     initialForm.sections = normalizeSections(data.sections);
-                    const hs = Array.isArray(data.sections) ? data.sections.find((s) => s?.type === 'history') : null;
-                    initialForm.history = (hs && typeof hs.text === 'string') ? hs.text : '';
+                    initialForm.images = data.images || {};
+                    initialForm.image_urls = data.image_urls || {};
+                    initialForm.reset_images = {};
                 }
 
                 if (data.slug === 'faq-page') {
@@ -180,7 +181,7 @@ export default function Editor() {
         setSaving(true);
         setErrors({});
         try {
-            if (form.slug === 'home') {
+            if (form.slug === 'home' || form.slug === 'tentang') {
                 const formData = new FormData();
                 formData.append('_method', 'PUT');
                 formData.append('title', form.title || '');
@@ -195,27 +196,49 @@ export default function Editor() {
                 formData.append('published', form.published ? '1' : '0');
                 formData.append('content', form.content || '');
 
-                const cleanAbout = { ...(form.sections.about || {}) };
-                ['subtitle', 'title', 'content'].forEach((k) => {
-                    const v = cleanAbout[k];
-                    if (typeof v === 'string' && !v.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, '').trim()) {
-                        cleanAbout[k] = undefined;
+                if (form.slug === 'home') {
+                    const cleanAbout = { ...(form.sections.about || {}) };
+                    ['subtitle', 'title', 'content'].forEach((k) => {
+                        const v = cleanAbout[k];
+                        if (typeof v === 'string' && !v.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, '').trim()) {
+                            cleanAbout[k] = undefined;
+                        }
+                    });
+
+                    const sections = [
+                        { type: 'hero', ...form.sections.hero },
+                        { type: 'about', ...cleanAbout },
+                        { type: 'reviews', ...form.sections.reviews },
+                        { type: 'faq', ...form.sections.faq },
+                        { type: 'stats', ...form.sections.stats },
+                        { type: 'blog', ...form.sections.blog },
+                        { type: 'cta', ...form.sections.cta },
+                    ];
+                    formData.append('sections', JSON.stringify(sections));
+                } else {
+                    const cleanCerita = { ...(form.sections.cerita || {}) };
+                    if (typeof cleanCerita.content === 'string' && !cleanCerita.content.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, '').trim()) {
+                        cleanCerita.content = undefined;
                     }
-                });
+                    const cleanPerjalanan = { ...(form.sections.perjalanan || {}) };
+                    if (typeof cleanPerjalanan.history === 'string' && !cleanPerjalanan.history.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, '').trim()) {
+                        cleanPerjalanan.history = undefined;
+                    }
 
-                const sections = [
-                    { type: 'hero', ...form.sections.hero },
-                    { type: 'about', ...cleanAbout },
-                    { type: 'reviews', ...form.sections.reviews },
-                    { type: 'faq', ...form.sections.faq },
-                    { type: 'stats', ...form.sections.stats },
-                    { type: 'blog', ...form.sections.blog },
-                    { type: 'cta', ...form.sections.cta },
-                ];
-                formData.append('sections', JSON.stringify(sections));
+                    const sections = [
+                        { type: 'cerita', ...cleanCerita },
+                        { type: 'perjalanan', ...cleanPerjalanan },
+                        { type: 'timeline', data: form.sections.timeline?.data || [] },
+                        { type: 'tim', ...form.sections.tim },
+                        { type: 'karya', ...form.sections.karya },
+                        { type: 'stats', ...form.sections.stats },
+                    ];
+                    formData.append('sections', JSON.stringify(sections));
+                }
 
+                const imageKeys = form.slug === 'home' ? ['hero_image', 'about_image'] : ['about_image'];
                 if (form.images) {
-                    ['hero_image', 'about_image'].forEach((key) => {
+                    imageKeys.forEach((key) => {
                         const img = form.images[key];
                         if (img) {
                             if (img.source === 'url') {
@@ -249,15 +272,6 @@ export default function Editor() {
                     content: form.content,
                     published: form.published,
                 };
-
-                if (form.slug === 'tentang') {
-                    const sections = [{ type: 'timeline', data: form.sections.timeline?.data || [] }];
-                    if (form.history != null && form.history !== '') {
-                        sections.push({ type: 'history', text: form.history });
-                    }
-                    sections.push({ type: 'stats', ...form.sections.stats });
-                    payload.sections = sections;
-                }
 
                 if (form.slug === 'faq-page') {
                     payload.sections = [{ type: 'faq', ...form.sections.faq }];
@@ -331,7 +345,7 @@ export default function Editor() {
 
                 {isHome && <HomeSections form={form} options={options} updateSection={updateSection} updateSectionMode={updateSectionMode} setReviewsMode={setReviewsMode} toggleReviewRating={toggleReviewRating} setReviewStar={setReviewStar} setReviewsMinStar={setReviewsMinStar} toggleReviewItem={toggleReviewItem} renderImageUploader={renderImageUploader} />}
 
-                {isTentang && <TentangSections form={form} options={options} updateSection={updateSection} updateSectionMode={updateSectionMode} updateTimeline={updateTimeline} addTimelinePoint={addTimelinePoint} removeTimelinePoint={removeTimelinePoint} setForm={setForm} />}
+                {isTentang && <TentangSections form={form} options={options} updateSection={updateSection} updateSectionMode={updateSectionMode} updateTimeline={updateTimeline} addTimelinePoint={addTimelinePoint} removeTimelinePoint={removeTimelinePoint} setForm={setForm} renderImageUploader={renderImageUploader} />}
 
                 {isFaqPage && <FaqSections form={form} options={options} updateSection={updateSection} updateSectionMode={updateSectionMode} />}
 
