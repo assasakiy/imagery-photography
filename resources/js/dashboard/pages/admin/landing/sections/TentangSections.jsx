@@ -2,6 +2,7 @@ import Icon from '../../../../components/Icon';
 import RichEditor from '../../../../components/RichEditor';
 import SearchableMultiSelect from '../../../../components/SearchableMultiSelect';
 import { Field } from '../../../../components/ui';
+import TeamSection from './TeamSection';
 import { statLabel } from './shared';
 
 const isEmptyRich = (html) => !html || !String(html).replace(/<[^>]*>/g, '').replace(/&nbsp;/g, '').trim();
@@ -75,16 +76,9 @@ export default function TentangSections({ form, options, updateSection, updateSe
             <div className="card p-5 space-y-6">
                 <div className="border-b border-line pb-3">
                     <h3 className="font-bold text-xl text-ink">Section Tim</h3>
-                    <p className="mt-1 text-sm text-ink-muted">Anggota tim diatur di menu Tim pada dashboard (CRUD murni, tanpa aturan landing). Daftar anggota tampil otomatis di sini; hanya tampilan (judul kecil & judul) yang diatur di bawah.</p>
+                    <p className="mt-1 text-sm text-ink-muted">Tim tampil otomatis dari akun admin & owner (profil mereka). Atur pilihan anggota & override tampilan card di bawah.</p>
                 </div>
-                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                    <Field label="Judul Kecil">
-                        <input className="input" value={tim.subtitle || ''} onChange={(e) => updateSection('tim', 'subtitle', e.target.value)} />
-                    </Field>
-                    <Field label="Judul">
-                        <input className="input" value={tim.title || ''} onChange={(e) => updateSection('tim', 'title', e.target.value)} />
-                    </Field>
-                </div>
+                <TeamSection tim={tim} team={options?.team || []} updateSection={updateSection} />
             </div>
 
             <div className="card p-5 space-y-6">

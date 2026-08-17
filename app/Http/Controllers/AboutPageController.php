@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Page;
 use App\Models\Portfolio;
-use App\Models\TeamMember;
+use App\Models\User;
 use App\Services\AssetResolver;
 use App\Services\LandingContentResolver;
 
@@ -17,8 +17,6 @@ class AboutPageController extends Controller
         $aboutImage = $page
             ? AssetResolver::pageImage($page, 'about_image', AssetResolver::DEFAULT_ABOUT_IMAGE)
             : AssetResolver::DEFAULT_ABOUT_IMAGE;
-
-        $team = TeamMember::orderByDesc('is_owner')->orderBy('order')->get();
 
         $sections = is_array($page?->sections) ? $page->sections : [];
         $sections = collect($sections);
@@ -41,6 +39,37 @@ class AboutPageController extends Controller
         $tim = $sections->firstWhere('type', 'tim') ?: [];
         $timSubtitle = (string) ($tim['subtitle'] ?? 'Tim');
         $timTitle = (string) ($tim['title'] ?? 'Di Balik Lensa');
+        $timMembers = collect(is_array($tim['members'] ?? null) ? $tim['members'] : [])->keyBy('user_id');
+
+        $team = User::with('profile', 'socials.platform')
+            ->whereHas('roles', fn ($q) => $q->whereIn('name', ['owner', 'admin']))
+            ->orderByDesc('id')
+            ->get()
+            ->sortByDesc(fn (User $u) => $u->isOwner())
+            ->filter(function (User $u) use ($timMembers) {
+                $ov = is_array($timMembers->get($u->id)) ? $timMembers[$u->id] : [];
+
+                return ($ov['show'] ?? true) !== false;
+            })
+            ->map(function (User $u) use ($timMembers) {
+                $ov = is_array($timMembers->get($u->id)) ? $timMembers[$u->id] : [];
+                $socials = $u->socials->keyBy('platform.slug');
+
+                return [
+                    'name' => trim((string) ($ov['name'] ?? '')) !== '' ? $ov['name'] : $u->name,
+                    'position' => trim((string) ($ov['position'] ?? '')) !== '' ? $ov['position'] : ($u->occupation ?: ($u->isOwner() ? 'Owner & Founder' : 'Admin')),
+                    'bio' => trim((string) ($ov['bio'] ?? '')) !== '' ? $ov['bio'] : ($u->bio ?? ''),
+                    'photo' => AssetResolver::resolveImageValue((string) ($ov['photo_url'] ?? ''), $u->avatar() ?: AssetResolver::DEFAULT_ABOUT_IMAGE),
+                    'is_owner' => $u->isOwner(),
+                    'socials' => [
+                        'facebook' => trim((string) ($ov['social_facebook'] ?? '')) !== '' ? $ov['social_facebook'] : ($socials->get('facebook')?->url ?? ''),
+                        'instagram' => trim((string) ($ov['social_instagram'] ?? '')) !== '' ? $ov['social_instagram'] : ($socials->get('instagram')?->url ?? ''),
+                        'tiktok' => trim((string) ($ov['social_tiktok'] ?? '')) !== '' ? $ov['social_tiktok'] : ($socials->get('tiktok')?->url ?? ''),
+                        'whatsapp' => trim((string) ($ov['social_whatsapp'] ?? '')) !== '' ? $ov['social_whatsapp'] : ($socials->get('whatsapp')?->url ?? ''),
+                    ],
+                ];
+            })
+            ->values();
 
         $karya = $sections->firstWhere('type', 'karya') ?: [];
         $karyaSubtitle = (string) ($karya['subtitle'] ?? 'Karya Unggulan');
@@ -76,10 +105,10 @@ class AboutPageController extends Controller
             'timeline',
             'timSubtitle',
             'timTitle',
+            'team',
             'karyaSubtitle',
             'karyaTitle',
             'featured',
-            'team',
             'aboutStats'
         ));
     }

@@ -29,7 +29,7 @@ const PAGE_TITLES = {
     '/dashboard/pages': 'Halaman',
     '/dashboard/pages/:slug/edit': 'Edit Halaman',
     '/dashboard/settings': 'Pengaturan',
-    '/dashboard/team': 'Tim & Admin',
+    '/dashboard/team': 'Admin',
     '/dashboard/reviews': 'Review',
     '/dashboard/audit': 'Audit & Log',
     '/dashboard/recycle-bin': 'Recycle Bin',

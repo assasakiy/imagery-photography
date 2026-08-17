@@ -80,21 +80,21 @@
                 @foreach ($team as $member)
                     <div class="reveal card group p-6 text-center transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-brand-600/10">
                         <div class="mx-auto h-24 w-24 overflow-hidden rounded-full ring-4 ring-brand-500/15">
-                            <img src="{{ $member->resolvePhotoUrl() }}" alt="{{ $member->name }}" loading="lazy" class="h-full w-full object-cover">
+                            <img src="{{ $member['photo'] ?? asset('img/default-avatar.png') }}" alt="{{ $member['name'] ?? '' }}" loading="lazy" class="h-full w-full object-cover">
                         </div>
-                        <h3 class="mt-4 text-lg font-bold text-ink">{{ $member->name }}</h3>
-                        <p class="text-sm font-medium text-brand-600 dark:text-brand-400">{{ $member->position }}</p>
-                        @if ($member->is_owner)
+                        <h3 class="mt-4 text-lg font-bold text-ink">{{ $member['name'] ?? '' }}</h3>
+                        <p class="text-sm font-medium text-brand-600 dark:text-brand-400">{{ $member['position'] ?? '' }}</p>
+                        @if (!empty($member['is_owner']))
                             <span class="mt-2 inline-block rounded-full bg-brand-500/15 px-3 py-1 text-xs font-semibold text-brand-600 dark:text-brand-400">Founder & Owner</span>
                         @endif
-                        @if ($member->bio)
-                            <p class="mt-3 text-sm leading-relaxed text-ink-muted">{{ $member->bio }}</p>
+                        @if (!empty($member['bio']))
+                            <p class="mt-3 text-sm leading-relaxed text-ink-muted">{{ $member['bio'] }}</p>
                         @endif
                         <div class="mt-4 flex items-center justify-center gap-1">
-                            @include('partials.social-icon', ['type' => 'instagram', 'url' => $member->social_instagram ?? '', 'size' => 18, 'class' => 'rounded-lg p-2 text-ink-muted transition-colors hover:text-brand-600 dark:hover:text-brand-400'])
-                            @include('partials.social-icon', ['type' => 'facebook', 'url' => $member->social_facebook ?? '', 'size' => 18, 'class' => 'rounded-lg p-2 text-ink-muted transition-colors hover:text-brand-600 dark:hover:text-brand-400'])
-                            @include('partials.social-icon', ['type' => 'tiktok', 'url' => $member->social_tiktok ?? '', 'size' => 18, 'class' => 'rounded-lg p-2 text-ink-muted transition-colors hover:text-brand-600 dark:hover:text-brand-400'])
-                            @include('partials.social-icon', ['type' => 'whatsapp', 'url' => $member->social_whatsapp ?? '', 'size' => 18, 'class' => 'rounded-lg p-2 text-ink-muted transition-colors hover:text-brand-600 dark:hover:text-brand-400'])
+                            @include('partials.social-icon', ['type' => 'instagram', 'url' => $member['socials']['instagram'] ?? '', 'size' => 18, 'class' => 'rounded-lg p-2 text-ink-muted transition-colors hover:text-brand-600 dark:hover:text-brand-400'])
+                            @include('partials.social-icon', ['type' => 'facebook', 'url' => $member['socials']['facebook'] ?? '', 'size' => 18, 'class' => 'rounded-lg p-2 text-ink-muted transition-colors hover:text-brand-600 dark:hover:text-brand-400'])
+                            @include('partials.social-icon', ['type' => 'tiktok', 'url' => $member['socials']['tiktok'] ?? '', 'size' => 18, 'class' => 'rounded-lg p-2 text-ink-muted transition-colors hover:text-brand-600 dark:hover:text-brand-400'])
+                            @include('partials.social-icon', ['type' => 'whatsapp', 'url' => $member['socials']['whatsapp'] ?? '', 'size' => 18, 'class' => 'rounded-lg p-2 text-ink-muted transition-colors hover:text-brand-600 dark:hover:text-brand-400'])
                         </div>
                     </div>
                 @endforeach

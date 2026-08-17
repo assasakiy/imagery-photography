@@ -225,11 +225,18 @@ export default function Editor() {
                         cleanPerjalanan.history = undefined;
                     }
 
+                    const cleanTim = { ...(form.sections.tim || {}) };
+                    const rawMembers = Array.isArray(cleanTim.members) ? cleanTim.members : [];
+                    cleanTim.members = rawMembers.filter((m) => {
+                        if (m?.show === false) return true;
+                        return ['name', 'position', 'bio', 'photo_url', 'social_facebook', 'social_instagram', 'social_tiktok', 'social_whatsapp'].some((k) => typeof m?.[k] === 'string' && m[k].trim() !== '');
+                    });
+
                     const sections = [
                         { type: 'cerita', ...cleanCerita },
                         { type: 'perjalanan', ...cleanPerjalanan },
                         { type: 'timeline', data: form.sections.timeline?.data || [] },
-                        { type: 'tim', ...form.sections.tim },
+                        { type: 'tim', ...cleanTim },
                         { type: 'karya', ...form.sections.karya },
                         { type: 'stats', ...form.sections.stats },
                     ];

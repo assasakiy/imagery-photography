@@ -117,7 +117,7 @@ const ownerNav = [
         sub: [
             { to: '/dashboard/audit', icon: 'clock', label: 'Audit & Log' },
             { to: '/dashboard/recycle-bin', icon: 'trash', label: 'Recycle Bin' },
-            { to: '/dashboard/team', icon: 'users', label: 'Tim & Admin' },
+            { to: '/dashboard/team', icon: 'users', label: 'Admin' },
             { to: '/dashboard/settings', icon: 'settings', label: 'Pengaturan' },
         ]
     }

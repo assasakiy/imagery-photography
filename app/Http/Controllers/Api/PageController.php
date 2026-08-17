@@ -9,6 +9,7 @@ use App\Models\Faq;
 use App\Models\Page;
 use App\Models\Review;
 use App\Models\Stat;
+use App\Models\User;
 use App\Support\ContentSanitizer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -25,11 +26,33 @@ class PageController extends Controller
         $about = Page::where('slug', 'tentang')->first();
         $aboutSections = collect(is_array($about?->sections) ? $about->sections : []);
 
+        $team = User::with('profile', 'socials.platform')
+            ->whereHas('roles', fn ($q) => $q->whereIn('name', ['owner', 'admin']))
+            ->orderByDesc('id')
+            ->get()
+            ->sortByDesc(fn (User $u) => $u->isOwner())
+            ->values()
+            ->map(fn (User $u) => [
+                'id' => $u->id,
+                'name' => $u->name,
+                'position' => $u->occupation ?: ($u->isOwner() ? 'Owner & Founder' : 'Admin'),
+                'bio' => $u->bio ?? '',
+                'photo_url' => $u->avatar() ?: \App\Services\AssetResolver::DEFAULT_ABOUT_IMAGE,
+                'is_owner' => $u->isOwner(),
+                'socials' => [
+                    'facebook' => $u->socials->firstWhere('platform.slug', 'facebook')?->url ?? '',
+                    'instagram' => $u->socials->firstWhere('platform.slug', 'instagram')?->url ?? '',
+                    'tiktok' => $u->socials->firstWhere('platform.slug', 'tiktok')?->url ?? '',
+                    'whatsapp' => $u->socials->firstWhere('platform.slug', 'whatsapp')?->url ?? '',
+                ],
+            ]);
+
         return response()->json([
             'faqs' => Faq::with('categories')->orderBy('order')->orderBy('id')->get(['id', 'question', 'order']),
             'reviews' => Review::orderBy('order')->orderByDesc('id')->get(['id', 'name', 'service', 'rating']),
             'stats' => Stat::orderBy('order')->orderBy('id')->get(),
             'categories' => Category::orderBy('name')->get(['id', 'name']),
+            'team' => $team,
             'about_fallbacks' => [
                 'subtitle' => $about?->hero_title ?: $about?->title ?: 'Tentang Kami',
                 'title' => 'Tentang Situs & Layanan',

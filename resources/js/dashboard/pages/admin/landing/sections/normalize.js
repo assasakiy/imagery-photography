@@ -10,7 +10,7 @@ export function normalizeSections(existing) {
         timeline: { type: 'timeline', data: [] },
         cerita: { type: 'cerita', subtitle: 'Cerita Kami', title: 'Cerita Kami', content: '' },
         perjalanan: { type: 'perjalanan', subtitle: 'Perjalanan', title: 'Tentang Situs & Layanan', history: '' },
-        tim: { type: 'tim', subtitle: 'Tim', title: 'Di Balik Lensa' },
+        tim: { type: 'tim', subtitle: 'Tim', title: 'Di Balik Lensa', members: [] },
         karya: { type: 'karya', subtitle: 'Karya Unggulan', title: 'Sebagian Karya Kami', mode: 'featured', category_ids: [], limit: 3 },
     };
 
