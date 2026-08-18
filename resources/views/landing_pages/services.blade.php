@@ -4,268 +4,180 @@
 @section('meta_description', 'Daftar layanan dan paket harga photography & videography Sopian Lalu Imagery - dari paket satuan hingga bundling lengkap.')
 
 @section('content')
-    @php
-        $whatsappUrl = \App\Models\Setting::getValue('social_whatsapp', 'https://wa.me/6287764426909');
-
-        $allServices = $services; // master satuan
-        $minPhoto = $allServices->where('media', 'photo')->min('price');
-        $minVideo = $allServices->where('media', 'video')->min('price');
-
-        $allPackages = \App\Models\Package::with('services')->active()->orderBy('display_order')->get();
-        $featuredPackage = $allPackages->firstWhere('is_featured', true) ?? $allPackages->firstWhere('is_popular', true) ?? $allPackages->first();
-
-        $mediaMeta = [
-            'photo' => ['label' => 'Photography', 'desc' => 'Abadikan momen dengan gambar berkualitas tinggi.', 'icon' => 'M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z M12 13a3 3 0 1 0 0-6 3 3 0 0 0 0 6z', 'min' => $minPhoto],
-            'video' => ['label' => 'Videography', 'desc' => 'Cerita bergerak sinematik untuk momen Anda.', 'icon' => 'M22 8l-6 4 6 4V8z M2 6h14v12H2z', 'min' => $minVideo],
-        ];
-        $cards = array_values(array_filter($mediaMeta, fn ($m) => $m['min'] !== null));
-
-        $priceCategories = \App\Models\ServiceCategory::where('published', true)->orderBy('order')->get()
-            ->sortBy(fn ($c) => $c->type === 'satuan' ? PHP_INT_MAX : $c->order);
-    @endphp
-
     @include('partials.page-hero', [
         'page' => $page,
         'badge' => 'Layanan',
         'title' => 'Paket & Harga',
-        'align' => 'center',
     ])
 
-    {{-- Widget kartu utama (dihitung otomatis) --}}
-    <section class="container-site py-20">
-        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-            @foreach ($cards as $card)
-                <div class="card group relative overflow-hidden p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-brand-600/10">
-                    <div class="absolute right-0 top-0 h-24 w-24 translate-x-8 -translate-y-8 rounded-full bg-brand-600/10 transition-transform duration-300 group-hover:scale-150"></div>
-                    <div class="mb-5 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-500/15 text-brand-600 dark:text-brand-400">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{ $card['icon'] }}"/></svg>
-                    </div>
-                    <h2 class="text-lg font-bold text-ink">{{ $card['label'] }}</h2>
-                    <p class="mt-1 text-sm leading-relaxed text-ink-muted">{{ $card['desc'] }}</p>
-                    <p class="mt-6 text-sm text-ink-muted">Mulai dari</p>
-                    <p class="text-2xl font-bold text-brand-600 dark:text-brand-400">Rp {{ number_format($card['min'], 0, ',', '.') }}</p>
-                </div>
-            @endforeach
-
-            @if ($featuredPackage)
-                <div class="card group relative flex flex-col overflow-hidden border-amber-500/40 p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-amber-500/10 lg:col-span-1">
-                    <div class="absolute right-0 top-0 h-24 w-24 translate-x-8 -translate-y-8 rounded-full bg-amber-500/10 transition-transform duration-300 group-hover:scale-150"></div>
-                    <div class="mb-5 flex items-center gap-3">
-                        <div class="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-500/15 text-amber-600 dark:text-amber-400">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
-                        </div>
-                        @if ($featuredPackage->is_featured)
-                            <span class="rounded-full bg-amber-500/15 px-2 py-0.5 text-xs font-semibold text-amber-600 dark:text-amber-400">Unggulan</span>
-                        @elseif ($featuredPackage->is_popular)
-                            <span class="rounded-full bg-emerald-500/15 px-2 py-0.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400">Populer</span>
+    {{-- Section 2: Paket Populer / Unggulan --}}
+    @if ($highlightPackages->isNotEmpty())
+        <section class="container-site py-20">
+            <div class="mb-12 text-center">
+                <p class="mb-3 text-sm font-semibold uppercase tracking-widest text-brand-600 dark:text-brand-400">{{ $highlightSubtitle }}</p>
+                <h2 class="section-heading text-ink">{{ $highlightTitle }}</h2>
+            </div>
+            <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+                @foreach ($highlightPackages as $pkg)
+                    <div class="card group relative flex flex-col overflow-hidden p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-brand-600/10">
+                        <div class="absolute right-0 top-0 h-24 w-24 translate-x-8 -translate-y-8 rounded-full bg-brand-600/10 transition-transform duration-300 group-hover:scale-150"></div>
+                        @if ($pkg->is_popular)
+                            <span class="inline-flex w-fit rounded-full bg-emerald-500/15 px-2 py-0.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400">Populer</span>
+                        @elseif ($pkg->is_featured)
+                            <span class="inline-flex w-fit rounded-full bg-amber-500/15 px-2 py-0.5 text-xs font-semibold text-amber-600 dark:text-amber-400">Unggulan</span>
                         @endif
-                    </div>
-                    <h2 class="text-lg font-bold text-ink">{{ $featuredPackage->name }}</h2>
-                    <p class="mt-1 flex-1 text-sm leading-relaxed text-ink-muted">{{ $featuredPackage->summary() }}</p>
-                    <div class="mt-6">
-                        @if ($featuredPackage->discountValue() > 0)
-                            <p class="text-sm text-ink-muted line-through">Rp {{ number_format($featuredPackage->basePrice(), 0, ',', '.') }}</p>
-                            <p class="text-sm font-semibold text-emerald-600 dark:text-emerald-400">Hemat Rp {{ number_format($featuredPackage->discountValue(), 0, ',', '.') }}</p>
-                        @else
-                            <p class="text-sm text-ink-muted">Harga</p>
-                        @endif
-                        <p class="text-2xl font-bold text-brand-600 dark:text-brand-400">Rp {{ number_format($featuredPackage->computedPrice(), 0, ',', '.') }}</p>
-                    </div>
-                </div>
-            @endif
-        </div>
-    </section>
-
-    {{-- Daftar harga per kategori --}}
-    @if ($priceCategories->isNotEmpty())
-        <section class="bg-zinc-100/60 py-20 dark:bg-zinc-900/40">
-            <div class="container-site space-y-16">
-                @foreach ($priceCategories as $cat)
-                    @php
-                        $isSatuan = $cat->type === 'satuan';
-                        $items = $isSatuan
-                            ? $allServices->where('active', true)->sortBy('order')
-                            : $allPackages->where('type', $cat->type);
-                    @endphp
-                    @if ($items->isNotEmpty())
-                        <div>
-                            <div class="mb-8">
-                                @if ($cat->label)
-                                    <p class="mb-2 text-sm font-semibold uppercase tracking-widest text-brand-600 dark:text-brand-400">{{ $cat->label }}</p>
-                                @endif
-                                <h2 class="text-2xl font-bold text-ink sm:text-3xl">{{ $cat->title }}</h2>
-                                @if ($cat->description)
-                                    <p class="mt-2 text-sm text-ink-muted">{{ content_plain($cat->description) }}</p>
-                                @endif
-                            </div>
-
-                            @if ($cat->type === 'bundling')
-                                @php
-                                    $bunds = $allPackages->where('type', 'bundling')->where('is_active', true)->sortBy('display_order');
-                                    $photoGroup = $bunds->filter(fn ($p) => $p->services->contains(fn ($s) => $s->media === 'photo'));
-                                    $videoGroup = $bunds->filter(fn ($p) => $p->services->contains(fn ($s) => $s->media === 'video'));
-                                    $pairs = [];
-                                    foreach ($photoGroup as $p) {
-                                        $events = $p->services->pluck('event')->sort()->values();
-                                        $match = $videoGroup->first(fn ($v) => $v->services->pluck('event')->sort()->values()->implode(',') === $events->implode(','));
-                                        $pairs[] = ['name' => $p->name, 'photo' => $p, 'video' => $match];
-                                    }
-                                @endphp
-                                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                                    @foreach ($pairs as $pair)
-                                        <div class="card flex flex-col justify-between p-5">
-                                            <div>
-                                                <span class="font-semibold text-ink">{{ str_replace(' Foto', '', $pair['name']) }}</span>
-                                                <ul class="mt-3 space-y-2">
-                                                    <li class="flex items-center justify-between gap-3 text-sm">
-                                                        <span class="text-ink-muted">Foto (Bundling)</span>
-                                                        @if ($pair['photo'])
-                                                            <span class="font-bold text-brand-600 dark:text-brand-400">Rp {{ number_format($pair['photo']->computedPrice(), 0, ',', '.') }}</span>
-                                                        @else
-                                                            <span class="text-ink-muted">-</span>
-                                                        @endif
-                                                    </li>
-                                                    <li class="flex items-center justify-between gap-3 text-sm">
-                                                        <span class="text-ink-muted">Video (Bundling)</span>
-                                                        @if ($pair['video'])
-                                                            <span class="font-bold text-brand-600 dark:text-brand-400">Rp {{ number_format($pair['video']->computedPrice(), 0, ',', '.') }}</span>
-                                                        @else
-                                                            <span class="text-ink-muted">-</span>
-                                                        @endif
-                                                    </li>
-                                                    <li class="flex items-center justify-between gap-3 border-t border-line pt-2 text-sm">
-                                                        <span class="font-semibold text-ink">Foto + Video</span>
-                                                        <span class="font-bold text-emerald-600 dark:text-emerald-400">Rp {{ number_format($pair['photo']->computedPrice() + ($pair['video']?->computedPrice() ?? 0), 0, ',', '.') }}</span>
-                                                    </li>
-                                                </ul>
-                                            </div>
-                                        </div>
-                                    @endforeach
-                                </div>
-                            @elseif ($isSatuan && $cat->layout === 'grid')
-                                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                                    @foreach ($items->groupBy('event') as $event => $rows)
-                                        <div class="card p-5">
-                                            <span class="font-semibold text-ink">{{ $event }}</span>
-                                            <ul class="mt-3 space-y-2">
-                                                @foreach ($rows as $svc)
-                                                    <li class="flex items-center justify-between gap-3 text-sm">
-                                                        <span class="capitalize text-ink-muted">{{ $svc->media }}
-                                                            @if ($svc->terms)
-                                                                <span class="block text-xs text-ink-muted/70">{{ $svc->terms }}</span>
-                                                            @endif
-                                                            @if ($svc->duration)
-                                                                <span class="block text-xs text-ink-muted/70">{{ $svc->duration }}</span>
-                                                            @endif
-                                                        </span>
-                                                        <span class="font-bold text-brand-600 dark:text-brand-400">Rp {{ number_format($svc->price, 0, ',', '.') }}</span>
-                                                    </li>
-                                                @endforeach
-                                            </ul>
-                                        </div>
-                                    @endforeach
-                                </div>
-                            @elseif ($cat->layout === 'grid')
-                                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                                    @foreach ($items as $pkg)
-                                        <div class="card flex flex-col justify-between p-5">
-                                            <div>
-                                                <span class="font-semibold text-ink">{{ $pkg->name }}</span>
-                                                <p class="mt-1 text-xs text-ink-muted">{{ $pkg->summary() }}</p>
-                                            </div>
-                                            <div class="mt-3">
-                                                @if ($pkg->discountValue() > 0)
-                                                    <p class="text-xs text-ink-muted line-through">Rp {{ number_format($pkg->basePrice(), 0, ',', '.') }}</p>
-                                                    <p class="text-xs font-semibold text-emerald-600 dark:text-emerald-400">Hemat Rp {{ number_format($pkg->discountValue(), 0, ',', '.') }}</p>
-                                                @endif
-                                                <span class="text-lg font-bold text-brand-600 dark:text-brand-400">Rp {{ number_format($pkg->computedPrice(), 0, ',', '.') }}</span>
-                                            </div>
-                                        </div>
-                                    @endforeach
-                                </div>
-                            @else
-                                @php
-                                    $mediaCols = [];
-                                    foreach (($cat->columns ?: []) as $i => $col) {
-                                        if ($i === 0) continue;
-                                        $mediaCols[] = ['label' => $col, 'media' => str_contains(strtolower($col), 'foto') ? 'photo' : (str_contains(strtolower($col), 'video') ? 'video' : (str_contains(strtolower($col), 'drone') ? 'drone' : null))];
-                                    }
-                                    $groupedEvents = $isSatuan ? $items->groupBy('event')->sortKeys() : collect();
-                                @endphp
-                                <div class="card overflow-hidden">
-                                    <table class="table">
-                                        <thead>
-                                            <tr>
-                                                @foreach ($cat->columns ?: ($isSatuan ? ['Layanan', 'Harga'] : ['Paket', 'Harga']) as $col)
-                                                    <th>{{ $col }}</th>
-                                                @endforeach
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            @if ($isSatuan)
-                                                @foreach ($groupedEvents as $event => $rows)
-                                                    <tr>
-                                                        <td class="font-semibold text-ink">{{ $event }}</td>
-                                                        @foreach ($mediaCols as $mc)
-                                                            @php $svc = $rows->firstWhere('media', $mc['media']); @endphp
-                                                            <td class="text-ink">
-                                                                @if ($svc)
-                                                                    Rp {{ number_format($svc->price, 0, ',', '.') }}
-                                                                    @if ($svc->terms)
-                                                                        <span class="block text-xs font-normal text-ink-muted">{{ $svc->terms }}</span>
-                                                                    @endif
-                                                                    @if ($svc->duration)
-                                                                        <span class="block text-xs font-normal text-ink-muted">{{ $svc->duration }}</span>
-                                                                    @endif
-                                                                @else
-                                                                    <span class="text-ink-muted">-</span>
-                                                                @endif
-                                                            </td>
-                                                        @endforeach
-                                                    </tr>
-                                                @endforeach
-                                            @else
-                                                @foreach ($items as $row)
-                                                    <tr>
-                                                        <td class="font-semibold text-ink">{{ $row->name }}</td>
-                                                        <td class="text-ink">Rp {{ number_format($row->computedPrice(), 0, ',', '.') }}</td>
-                                                    </tr>
-                                                @endforeach
-                                            @endif
-                                        </tbody>
-                                    </table>
-                                </div>
+                        <h3 class="mt-3 text-lg font-bold text-ink">{{ $pkg->name }}</h3>
+                        <p class="mt-2 flex-1 text-sm leading-relaxed text-ink-muted">{{ $pkg->summary() }}</p>
+                        <div class="mt-6">
+                            @if ($pkg->discountValue() > 0)
+                                <p class="text-sm text-ink-muted line-through">Rp {{ number_format($pkg->basePrice(), 0, ',', '.') }}</p>
+                                <p class="text-sm font-semibold text-emerald-600 dark:text-emerald-400">Hemat Rp {{ number_format($pkg->discountValue(), 0, ',', '.') }}</p>
                             @endif
+                            <p class="text-2xl font-bold text-brand-600 dark:text-brand-400">Rp {{ number_format($pkg->computedPrice(), 0, ',', '.') }}</p>
                         </div>
-                    @endif
+                    </div>
                 @endforeach
             </div>
+        </section>
+    @endif
 
-            <div class="container-site mt-16">
-                <div class="card border-amber-500/40 bg-amber-500/5 p-6">
-                    <h3 class="flex items-center gap-2 font-bold text-ink">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-amber-500"><path d="M21.73 18l-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4M12 17h.01"/></svg>
-                        Catatan Penting
-                    </h3>
-                    <ul class="mt-4 space-y-2 text-sm leading-relaxed text-ink-muted">
-                        <li><span class="font-semibold text-ink">Layanan Video:</span> Harga sudah <span class="font-semibold text-ink">termasuk penggunaan Drone</span> untuk pengambilan gambar udara.</li>
-                        <li><span class="font-semibold text-ink">Ketentuan File Foto:</span> Paket foto bersifat <em>File Only</em>. Semua file dikirimkan melalui <span class="font-semibold text-ink">Google Drive</span> segera setelah acara selesai/diproses.</li>
-                        <li><span class="font-semibold text-ink">Biaya Transportasi (charge luar wilayah):</span> Luar Pringgarata <span class="font-semibold text-ink">+50k</span>, Luar Lombok Tengah <span class="font-semibold text-ink">+100k</span>.</li>
-                        <li>Untuk paket sekolah atau kebutuhan khusus lainnya, silakan hubungi kami.</li>
-                    </ul>
+    {{-- Section 3: Paket Satuan --}}
+    @if ($satuanServices->isNotEmpty())
+        <section class="border-t border-line bg-zinc-100/60 py-20 dark:bg-zinc-900/40">
+            <div class="container-site">
+                <div class="mb-12 text-center">
+                    <p class="mb-3 text-sm font-semibold uppercase tracking-widest text-brand-600 dark:text-brand-400">{{ $satuanSubtitle }}</p>
+                    <h2 class="section-heading text-ink">{{ $satuanTitle }}</h2>
+                </div>
+                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    @foreach ($satuanServices->groupBy('event') as $event => $rows)
+                        <div class="card p-5">
+                            <span class="font-semibold text-ink">{{ $event }}</span>
+                            <ul class="mt-3 space-y-2">
+                                @foreach ($rows as $svc)
+                                    <li class="flex items-center justify-between gap-3 text-sm">
+                                        <span class="capitalize text-ink-muted">{{ $svc->media }}
+                                            @if ($svc->terms)
+                                                <span class="block text-xs text-ink-muted/70">{{ $svc->terms }}</span>
+                                            @endif
+                                            @if ($svc->duration)
+                                                <span class="block text-xs text-ink-muted/70">{{ $svc->duration }}</span>
+                                            @endif
+                                        </span>
+                                        <span class="font-bold text-brand-600 dark:text-brand-400">Rp {{ number_format($svc->price, 0, ',', '.') }}</span>
+                                    </li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endforeach
                 </div>
             </div>
         </section>
     @endif
 
+    {{-- Section 4: Paket Premium (Bundling) --}}
+    @if ($premiumPackages->isNotEmpty())
+        <section class="container-site py-20">
+            <div class="mb-12 text-center">
+                <p class="mb-3 text-sm font-semibold uppercase tracking-widest text-brand-600 dark:text-brand-400">{{ $premiumSubtitle }}</p>
+                <h2 class="section-heading text-ink">{{ $premiumTitle }}</h2>
+            </div>
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                @foreach ($premiumPackages as $pkg)
+                    <div class="card flex flex-col justify-between p-5">
+                        <div>
+                            <span class="font-semibold text-ink">{{ $pkg->name }}</span>
+                            <p class="mt-1 text-xs text-ink-muted">{{ $pkg->summary() }}</p>
+                        </div>
+                        <div class="mt-3">
+                            @if ($pkg->discountValue() > 0)
+                                <p class="text-xs text-ink-muted line-through">Rp {{ number_format($pkg->basePrice(), 0, ',', '.') }}</p>
+                                <p class="text-xs font-semibold text-emerald-600 dark:text-emerald-400">Hemat Rp {{ number_format($pkg->discountValue(), 0, ',', '.') }}</p>
+                            @endif
+                            <span class="text-lg font-bold text-brand-600 dark:text-brand-400">Rp {{ number_format($pkg->computedPrice(), 0, ',', '.') }}</span>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        </section>
+    @endif
+
+    {{-- Section 5: Paket Ultimate (Combo) --}}
+    @if ($ultimatePackages->isNotEmpty())
+        <section class="border-t border-line bg-zinc-100/60 py-20 dark:bg-zinc-900/40">
+            <div class="container-site">
+                <div class="mb-12 text-center">
+                    <p class="mb-3 text-sm font-semibold uppercase tracking-widest text-brand-600 dark:text-brand-400">{{ $ultimateSubtitle }}</p>
+                    <h2 class="section-heading text-ink">{{ $ultimateTitle }}</h2>
+                </div>
+                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    @foreach ($ultimatePackages as $pkg)
+                        <div class="card flex flex-col justify-between p-5">
+                            <div>
+                                <span class="font-semibold text-ink">{{ $pkg->name }}</span>
+                                <p class="mt-1 text-xs text-ink-muted">{{ $pkg->summary() }}</p>
+                            </div>
+                            <div class="mt-3">
+                                @if ($pkg->discountValue() > 0)
+                                    <p class="text-xs text-ink-muted line-through">Rp {{ number_format($pkg->basePrice(), 0, ',', '.') }}</p>
+                                    <p class="text-xs font-semibold text-emerald-600 dark:text-emerald-400">Hemat Rp {{ number_format($pkg->discountValue(), 0, ',', '.') }}</p>
+                                @endif
+                                <span class="text-lg font-bold text-brand-600 dark:text-brand-400">Rp {{ number_format($pkg->computedPrice(), 0, ',', '.') }}</span>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+        </section>
+    @endif
+
+    {{-- Section 6: Judul & Catatan --}}
+    @if ($catatanContent !== '')
+        <section class="container-site py-20">
+            <div class="card mx-auto max-w-4xl border-line bg-surface p-6 sm:p-8">
+                <h2 class="flex items-center gap-2 font-bold text-ink">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-amber-500"><path d="M21.73 18l-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4M12 17h.01"/></svg>
+                    {{ $catatanTitle }}
+                </h2>
+                <div class="rich-content mt-4 text-ink-muted">{!! content_html($catatanContent) !!}</div>
+            </div>
+        </section>
+    @endif
+
+    {{-- Section 7: Tanya Jawab (FAQ) --}}
+    @if ($faqs->isNotEmpty())
+        <section class="border-t border-line bg-zinc-100/60 py-20 dark:bg-zinc-900/40">
+            <div class="container-site">
+                <div class="mb-12 text-center">
+                    <p class="mb-3 text-sm font-semibold uppercase tracking-widest text-brand-600 dark:text-brand-400">{{ $faqSubtitle }}</p>
+                    <h2 class="section-heading text-ink">{{ $faqTitle }}</h2>
+                </div>
+                <div class="mx-auto max-w-3xl space-y-3">
+                    @foreach ($faqs as $faq)
+                        <details class="reveal group card p-0">
+                            <summary class="flex cursor-pointer list-none items-center justify-between gap-4 px-6 py-5 text-left font-semibold text-ink [&::-webkit-details-marker]:hidden">
+                                {{ $faq->question }}
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 text-ink-muted transition-transform duration-300 group-open:rotate-180"><path d="m6 9 6 6 6-6"/></svg>
+                            </summary>
+                            <div class="rich-content px-6 pb-6">{!! content_html($faq->answer) !!}</div>
+                        </details>
+                    @endforeach
+                </div>
+            </div>
+        </section>
+    @endif
+
+    {{-- Section 8: CTA --}}
     <section class="container-site py-20">
         <div class="rounded-3xl bg-gradient-to-r from-brand-700 via-brand-600 to-brand-500 p-8 text-center sm:p-12">
-            <h2 class="text-2xl font-bold text-white sm:text-3xl">Siap Mengabadikan Momen Anda?</h2>
-            <p class="mx-auto mt-3 max-w-xl text-sm text-brand-100 sm:text-base">Konsultasikan kebutuhan Anda secara gratis. Kami akan bantu pilih paket yang paling tepat.</p>
-            <a href="{{ $whatsappUrl }}" target="_blank" rel="noreferrer" class="btn mt-6 bg-white text-brand-700 shadow-lg hover:bg-brand-50">
-                Hubungi via WhatsApp
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14m-7-7 7 7-7 7"/></svg>
-            </a>
+            <h2 class="text-2xl font-bold text-white sm:text-3xl">{{ $ctaTitle }}</h2>
+            <p class="mx-auto mt-3 max-w-xl text-sm text-brand-100 sm:text-base">{!! content_html($ctaDescription) !!}</p>
+            @if ($ctaButtonText)
+                <a href="{{ $ctaButtonLink }}" target="_blank" rel="noreferrer" class="btn mt-6 bg-white text-brand-700 shadow-lg hover:bg-brand-50">
+                    {{ $ctaButtonText }}
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14m-7-7 7 7-7 7"/></svg>
+                </a>
+            @endif
         </div>
     </section>
 @endsection

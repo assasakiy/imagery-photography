@@ -44,7 +44,7 @@ export default function Index() {
                                     )}
                                 </div>
                                 <h3 className="mt-1 font-bold text-ink">{item.title}</h3>
-                                <p className="text-sm text-ink-muted line-clamp-1">{item.description || 'Tidak ada deskripsi'}</p>
+                                <p className="text-sm text-ink-muted line-clamp-1">{(item.description || '').replace(/<[^>]*>/g, '').trim() || 'Tidak ada deskripsi'}</p>
                             </div>
                             <div className="flex items-center gap-1">
                                 <a href={item.slug === 'home' ? '/' : `/${item.slug}`} target="_blank" rel="noreferrer" className="rounded-lg p-2 text-ink-muted hover:bg-surface-muted hover:text-brand-600" aria-label="Lihat">

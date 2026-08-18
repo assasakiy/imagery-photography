@@ -33,7 +33,7 @@
                     <p class="mt-5 leading-relaxed text-ink-muted">{{ $portfolio->description }}</p>
 
                     <div class="mt-8 space-y-3">
-                        <a href="{{ route('contact') }}" class="btn-primary w-full">Pesan Paket Serupa</a>
+                        <a href="{{ route('booking') }}" class="btn-primary w-full">Pesan Paket Serupa</a>
                         <a href="{{ route('gallery') }}" class="btn-outline w-full">Kembali ke Galeri</a>
                     </div>
 

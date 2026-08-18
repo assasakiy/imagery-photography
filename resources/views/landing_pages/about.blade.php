@@ -10,6 +10,38 @@
         'title' => $page?->hero_title ?: ($page?->title ?: 'Tentang Kami'),
     ])
 
+    @if ($aboutStats->isNotEmpty())
+        <section class="border-b border-line bg-surface py-4">
+            <div class="container-site grid grid-cols-2 gap-4 sm:gap-0 lg:grid-cols-4">
+                @foreach ($aboutStats as $stat)
+                    @php
+                        $i = $loop->iteration;
+                        $cellClass = 'reveal text-center px-4 py-6 border-line sm:px-8';
+                        if ($i % 2 === 0) {
+                            $cellClass .= ' border-l';
+                        }
+                        if ($i >= 3) {
+                            $cellClass .= ' border-t';
+                        }
+                        if ($i > 1) {
+                            $cellClass .= ' lg:border-l';
+                        }
+                        if ($i >= 3) {
+                            $cellClass .= ' lg:border-t-0';
+                        }
+                    @endphp
+                    <div class="{{ $cellClass }}" style="transition-delay: {{ $loop->index * 120 }}ms">
+                        <p class="text-5xl font-semibold tracking-tight text-ink tabular-nums">
+                            <span class="stat-count" data-final="{{ $stat->resolved_value }}">0</span><span class="text-2xl text-brand-600 dark:text-brand-400">{{ $stat->suffix }}</span>
+                        </p>
+                        <div class="mx-auto mt-4 mb-3 h-px w-12 bg-gradient-to-r from-brand-600 to-brand-400"></div>
+                        <p class="text-xs uppercase tracking-widest text-ink-muted">{{ $stat->label }}</p>
+                    </div>
+                @endforeach
+            </div>
+        </section>
+    @endif
+
     <section class="container-site py-16 md:py-20">
         <div class="grid grid-cols-1 items-center gap-12 lg:grid-cols-5">
             <div class="reveal relative mx-auto w-full max-w-md lg:order-1 lg:col-span-2 lg:mx-0 lg:max-w-none">
@@ -70,52 +102,77 @@
     @endif
 
     @if ($team->isNotEmpty())
+        @php
+            $socialItems = [
+                ['type' => 'instagram', 'label' => 'Instagram'],
+                ['type' => 'facebook', 'label' => 'Facebook'],
+                ['type' => 'tiktok', 'label' => 'TikTok'],
+                ['type' => 'whatsapp', 'label' => 'WhatsApp'],
+            ];
+        @endphp
         <section class="container-site py-16 md:py-20">
             <div class="mb-12 text-center">
                 <p class="mb-3 text-sm font-semibold uppercase tracking-widest text-brand-600 dark:text-brand-400">{{ $timSubtitle }}</p>
                 <h2 class="section-heading text-ink">{{ $timTitle }}</h2>
             </div>
 
-            <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
                 @foreach ($team as $member)
-                    <div class="reveal card group p-6 text-center transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-brand-600/10">
-                        <div class="mx-auto h-24 w-24 overflow-hidden rounded-full ring-4 ring-brand-500/15">
-                            <img src="{{ $member['photo'] ?? asset('img/default-avatar.png') }}" alt="{{ $member['name'] ?? '' }}" loading="lazy" class="h-full w-full object-cover">
+                    @php
+                        $hasSocial = collect($socialItems)->contains(fn ($item) => !empty($member['socials'][$item['type']] ?? ''));
+                        $contactRows = [];
+                        foreach ($socialItems as $item) {
+                            if (!empty($member['socials'][$item['type']] ?? '')) {
+                                $contactRows[] = ['type' => $item['type'], 'label' => $item['label'], 'url' => $member['socials'][$item['type']]];
+                            }
+                        }
+                        $waPhone = preg_replace('/\D/', '', (string) ($member['phone'] ?? ''));
+                        if (empty($member['socials']['whatsapp'] ?? '') && $waPhone !== '') {
+                            $contactRows[] = ['type' => 'whatsapp', 'label' => 'WhatsApp', 'url' => 'https://wa.me/' . $waPhone];
+                        }
+                        if (!empty($member['email'])) {
+                            $contactRows[] = ['type' => 'email', 'label' => 'Email', 'url' => 'mailto:' . $member['email']];
+                        }
+                    @endphp
+                    @if (!empty($contactRows) || (!empty($member['bio']) && !$hasSocial) || (!empty($member['joined_at']) && !$hasSocial))
+                    <div class="reveal card flex flex-col gap-6 p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-brand-600/10 md:flex-row md:items-center">
+                        <div class="flex flex-row items-center gap-4 md:w-2/5 md:flex-col md:items-center md:gap-3">
+                            <img src="{{ $member['photo'] }}" alt="{{ $member['name'] ?? '' }}" loading="lazy" class="h-20 w-20 shrink-0 rounded-full object-cover ring-4 ring-brand-500/15 md:h-24 md:w-24">
+                            <div class="min-w-0 flex-1 text-left md:w-full md:flex-none md:text-center">
+                                <h3 class="text-lg font-bold text-ink">{{ $member['name'] ?? '' }}</h3>
+                                <p class="mt-0.5 text-sm font-medium text-brand-600 dark:text-brand-400">{{ $member['position'] ?? '' }}</p>
+                            </div>
                         </div>
-                        <h3 class="mt-4 text-lg font-bold text-ink">{{ $member['name'] ?? '' }}</h3>
-                        <p class="text-sm font-medium text-brand-600 dark:text-brand-400">{{ $member['position'] ?? '' }}</p>
-                        @if (!empty($member['is_owner']))
-                            <span class="mt-2 inline-block rounded-full bg-brand-500/15 px-3 py-1 text-xs font-semibold text-brand-600 dark:text-brand-400">Founder & Owner</span>
-                        @endif
-                        @if (!empty($member['bio']))
-                            <p class="mt-3 text-sm leading-relaxed text-ink-muted">{{ $member['bio'] }}</p>
-                        @endif
-                        <div class="mt-4 flex items-center justify-center gap-1">
-                            @include('partials.social-icon', ['type' => 'instagram', 'url' => $member['socials']['instagram'] ?? '', 'size' => 18, 'class' => 'rounded-lg p-2 text-ink-muted transition-colors hover:text-brand-600 dark:hover:text-brand-400'])
-                            @include('partials.social-icon', ['type' => 'facebook', 'url' => $member['socials']['facebook'] ?? '', 'size' => 18, 'class' => 'rounded-lg p-2 text-ink-muted transition-colors hover:text-brand-600 dark:hover:text-brand-400'])
-                            @include('partials.social-icon', ['type' => 'tiktok', 'url' => $member['socials']['tiktok'] ?? '', 'size' => 18, 'class' => 'rounded-lg p-2 text-ink-muted transition-colors hover:text-brand-600 dark:hover:text-brand-400'])
-                            @include('partials.social-icon', ['type' => 'whatsapp', 'url' => $member['socials']['whatsapp'] ?? '', 'size' => 18, 'class' => 'rounded-lg p-2 text-ink-muted transition-colors hover:text-brand-600 dark:hover:text-brand-400'])
+
+                        <div class="flex-1 md:border-l md:border-line md:pl-6">
+                            <p class="mb-3 text-xs font-semibold uppercase tracking-widest text-ink-muted">Follow on</p>
+                            <div class="flex flex-wrap items-center gap-1 md:flex-col md:items-stretch md:gap-1.5">
+                                @foreach ($contactRows as $row)
+                                    <a href="{{ $row['url'] }}" target="{{ $row['type'] === 'email' ? '_self' : '_blank' }}" rel="{{ $row['type'] === 'email' ? '' : 'noreferrer' }}" class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-ink-muted transition-colors hover:bg-surface-muted hover:text-brand-600 dark:hover:text-brand-400">
+                                        @include('partials.social-icon', ['type' => $row['type'], 'url' => $row['url'], 'size' => 18, 'bare' => true, 'iconClass' => 'shrink-0 text-current'])
+                                        <span class="truncate font-medium">{{ $row['label'] }}</span>
+                                    </a>
+                                @endforeach
+                            </div>
+                            @if (!$hasSocial && (!empty($member['bio']) || !empty($member['joined_at'])))
+                                <div class="mt-4 space-y-3 border-t border-line pt-4">
+                                    @if (!empty($member['joined_at']))
+                                        <p class="text-sm text-ink-muted"><strong class="font-semibold text-ink">Bergabung</strong> · {{ $member['joined_at'] }}</p>
+                                    @endif
+                                    @if (!empty($member['bio']))
+                                        <p class="text-sm leading-relaxed text-ink-muted">{{ $member['bio'] }}</p>
+                                    @endif
+                                </div>
+                            @endif
                         </div>
                     </div>
+                    @endif
                 @endforeach
             </div>
         </section>
     @endif
 
-    @if ($aboutStats->isNotEmpty())
-    <section class="container-site pb-16">
-        <div class="card grid grid-cols-1 gap-6 p-8 sm:grid-cols-3">
-            @foreach ($aboutStats as $stat)
-                <div class="text-center">
-                    <p class="text-2xl font-extrabold text-brand-600 dark:text-brand-400">{{ $stat->resolved_value }}<span class="text-lg">{{ $stat->suffix }}</span></p>
-                    <p class="mt-1 text-sm text-ink-muted">{{ $stat->label }}</p>
-                </div>
-            @endforeach
-        </div>
-    </section>
-    @endif
-
-    @if ($featured->isNotEmpty())
+@if ($featured->isNotEmpty())
         <section class="border-t border-line bg-zinc-100/60 dark:bg-zinc-900/40">
             <div class="container-site py-14">
                 <div class="mb-8 flex items-end justify-between">
@@ -126,11 +183,17 @@
                     <a href="{{ route('gallery') }}" class="hidden text-sm font-medium text-brand-600 hover:underline dark:text-brand-400 sm:block">Lihat galeri →</a>
                 </div>
 
-                <div class="grid grid-cols-2 gap-4 md:grid-cols-4">
+                <div class="grid grid-cols-2 gap-4 md:grid-cols-3">
                     @foreach ($featured as $item)
-                        <a href="{{ route('gallery') }}" class="group overflow-hidden rounded-xl border border-line">
+                        <a href="{{ route('gallery.show', $item->slug) }}" class="group relative overflow-hidden rounded-xl border border-line">
                             <div class="aspect-square overflow-hidden">
                                 <img src="{{ $item->thumbnail_url }}" alt="{{ $item->title }}" loading="lazy" class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105">
+                            </div>
+                            <div class="absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-zinc-950/85 via-zinc-950/25 to-transparent p-4">
+                                @if ($item->categories->isNotEmpty())
+                                    <p class="text-xs font-semibold uppercase tracking-widest text-brand-300">{{ $item->categories->pluck('name')->join(', ') }}</p>
+                                @endif
+                                <h3 class="mt-1 text-base font-bold text-white">{{ $item->title }}</h3>
                             </div>
                         </a>
                     @endforeach

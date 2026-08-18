@@ -47,7 +47,7 @@
                 <span class="text-lg font-bold tracking-tight text-ink">@include('partials.site-brand')</span>
             </a>
 
-            <nav class="hidden items-center gap-1 md:flex" aria-label="Navigasi utama">
+            <nav class="hidden items-center gap-1 lg:flex" aria-label="Navigasi utama">
                 @foreach ($navLinks as $link)
                     <a href="{{ $link['href'] }}"
                        class="group relative px-3 py-2 text-sm font-medium transition-colors after:absolute after:inset-x-3 after:bottom-1 after:h-0.5 after:origin-left after:rounded-full after:bg-brand-600 after:transition-transform after:duration-300 dark:after:bg-brand-400 {{ $link['active'] ? 'text-ink after:scale-x-100' : 'text-ink-muted after:scale-x-0 hover:text-ink hover:after:scale-x-100' }}">
@@ -75,7 +75,7 @@
                         </div>
                     </div>
 
-                    <div class="relative hidden md:block">
+                    <div class="relative hidden lg:block">
                         <button type="button" data-profile-toggle aria-label="Menu profil" class="flex items-center gap-2 rounded-lg px-2 py-1.5 transition-colors hover:bg-surface-muted">
                             @if ($authAvatar)
                                 <img src="{{ $authAvatar }}" alt="" class="h-8 w-8 rounded-full object-cover ring-2 ring-brand-500/30">
@@ -115,26 +115,26 @@
                 @endauth
 
                 @guest
-                    <div class="hidden md:flex items-center gap-1">
+                    <div class="hidden lg:flex items-center gap-1">
                         <a href="{{ route('login') }}" class="rounded-lg px-3 py-2 text-sm font-semibold text-brand-600 transition-colors hover:bg-brand-500/10 dark:text-brand-400">Masuk</a>
                         <a href="{{ route('booking') }}" class="ml-1 rounded-xl bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-700">Pesan Sekarang</a>
                     </div>
                 @endguest
 
-                <button type="button" data-theme-toggle aria-label="Ganti tema" class="relative hidden h-8 w-14 shrink-0 items-center rounded-full bg-zinc-200 px-1 transition-colors duration-300 dark:bg-zinc-700 md:flex">
+                <button type="button" data-theme-toggle aria-label="Ganti tema" class="relative hidden h-8 w-14 shrink-0 items-center rounded-full bg-zinc-200 px-1 transition-colors duration-300 dark:bg-zinc-700 lg:flex">
                     <span class="flex h-6 w-6 items-center justify-center rounded-full bg-white shadow-sm transition-transform duration-300 dark:translate-x-6 dark:shadow-md">
                         <svg data-icon="sun" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-amber-500 dark:hidden"><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" /></svg>
                         <svg data-icon="moon" xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden text-indigo-400 dark:block"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" /></svg>
                     </span>
                 </button>
 
-                <button type="button" data-menu-toggle aria-label="Buka menu" aria-expanded="false" class="rounded-lg p-2 text-ink-muted transition-colors hover:bg-surface-muted hover:text-ink md:hidden">
+                <button type="button" data-menu-toggle aria-label="Buka menu" aria-expanded="false" class="rounded-lg p-2 text-ink-muted transition-colors hover:bg-surface-muted hover:text-ink lg:hidden">
                     <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16" /></svg>
                 </button>
             </div>
         </div>
 
-        <div data-mobile-menu class="hidden border-t border-line/70 bg-zinc-50 dark:bg-zinc-950 md:hidden">
+        <div data-mobile-menu class="hidden border-t border-line/70 bg-zinc-50 dark:bg-zinc-950 lg:hidden">
             <nav class="container-site flex flex-col gap-1 py-4" aria-label="Navigasi mobile">
                 @auth
                     <div class="mb-2 flex items-center gap-3 rounded-xl border border-line bg-surface p-3">
@@ -229,12 +229,13 @@
                 <p class="max-w-sm text-sm leading-relaxed text-ink-muted">
                     {!! content_html($siteDescription) !!}
                 </p>
+                @if (!request()->routeIs('contact'))
                 <div class="mt-5 flex items-center gap-2">
-                    @include('partials.social-icon', ['type' => 'instagram', 'url' => \App\Models\Setting::getValue('social_instagram')])
-                    @include('partials.social-icon', ['type' => 'facebook', 'url' => \App\Models\Setting::getValue('social_facebook')])
-                    @include('partials.social-icon', ['type' => 'tiktok', 'url' => \App\Models\Setting::getValue('social_tiktok')])
-                    @include('partials.social-icon', ['type' => 'whatsapp', 'url' => \App\Models\Setting::getValue('social_whatsapp')])
+                    @foreach (contact_info()['socials'] as $soc)
+                        @include('partials.social-icon', ['type' => $soc['type'], 'url' => $soc['url']])
+                    @endforeach
                 </div>
+                @endif
             </div>
 
             <div>

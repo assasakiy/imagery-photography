@@ -16,9 +16,17 @@
         $homeBtn2Link = $page->button2_link ?: route('services');
         $homeSections = is_array($page->sections) ? $page->sections : [];
         $homeAbout = collect($homeSections)->firstWhere('type', 'about') ?? [];
-        $homeAboutTitle = $homeAbout['title'] ?? 'Tentang Kami';
-        $homeAboutContent = $homeAbout['content'] ?? ($homeAbout['description'] ?? '');
-        $servicesIntro = \App\Models\Page::where('slug', 'services')->value('description') ?: 'Paket dokumentasi untuk momen spesial Anda.';
+        $tentangPage = \App\Models\Page::where('slug', 'tentang')->first();
+        $tentangSections = collect(is_array($tentangPage?->sections) ? $tentangPage->sections : []);
+        $tentangCerita = $tentangSections->firstWhere('type', 'cerita') ?: [];
+        $homeAboutSubtitle = $homeAbout['subtitle'] ?? ($tentangPage?->hero_title ?: $tentangPage?->title ?: 'Tentang Kami');
+        $homeAboutTitle = $homeAbout['title'] ?? ($tentangCerita['title'] ?? ($tentangPage?->hero_title ?: $tentangPage?->title ?: 'Tentang Kami'));
+        $homeAboutContent = trim($homeAbout['content'] ?? '') !== '' ? $homeAbout['content'] : (trim((string) ($homeAbout['description'] ?? '')) !== '' ? $homeAbout['description'] : (trim((string) ($tentangCerita['content'] ?? '')) !== '' ? $tentangCerita['content'] : ($tentangPage?->content ?? '')));
+        $karyaSubtitle = $karyaSec['subtitle'] ?? 'Portofolio';
+        $karyaTitle = $karyaSec['title'] ?? 'Karya Terpilih';
+        $layananSubtitle = $layananSec['subtitle'] ?? 'Layanan';
+        $layananTitle = $layananSec['title'] ?? 'Layanan Kami';
+        $layananIntro = $layananSec['description'] ?? $servicesIntro;
     @endphp
 
     {{-- Hero --}}
@@ -66,9 +74,9 @@
                 </div>
             </div>
             <div class="reveal order-1 lg:order-2">
-                <p class="mb-3 text-sm font-semibold uppercase tracking-widest text-brand-600 dark:text-brand-400">Tentang Kami</p>
+                <p class="mb-3 text-sm font-semibold uppercase tracking-widest text-brand-600 dark:text-brand-400">{{ $homeAboutSubtitle }}</p>
                 <h2 class="section-heading text-ink">{{ $homeAboutTitle }}</h2>
-                <p class="mt-6 leading-relaxed text-ink-muted">{{ content_first_sentences($homeAboutContent, 2) }}</p>
+                <p class="mt-6 leading-relaxed text-ink-muted">{{ content_first_sentences($homeAboutContent, 3) }}</p>
                 @if ($aboutStats->isNotEmpty())
                 <div class="mt-8 grid grid-cols-3 gap-4">
                     @foreach ($aboutStats as $stat)
@@ -79,14 +87,9 @@
                     @endforeach
                 </div>
                 @endif
-                <details class="group mt-8">
-                    <summary class="btn-dark inline-flex cursor-pointer list-none items-center gap-2 [&::-webkit-details-marker]:hidden">
-                        Selengkapnya
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="transition-transform duration-300 group-open:rotate-180"><path d="m6 9 6 6 6-6"/></svg>
-                    </summary>
-                    <div class="rich-content mt-6 text-ink-muted">{!! content_html($homeAboutContent) !!}</div>
-                    <a href="{{ route('about') }}" class="btn-outline mt-6">Lihat Halaman Tentang</a>
-                </details>
+                <div class="mt-8">
+                    <a href="{{ route('about') }}" class="btn-dark">Selengkapnya</a>
+                </div>
             </div>
         </div>
     </section>
@@ -97,8 +100,8 @@
             <div class="container-site">
                 <div class="reveal mb-12 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end">
                     <div>
-                        <p class="mb-3 text-sm font-semibold uppercase tracking-widest text-brand-600 dark:text-brand-400">Portofolio</p>
-                        <h2 class="section-heading text-ink">Karya Terpilih</h2>
+                        <p class="mb-3 text-sm font-semibold uppercase tracking-widest text-brand-600 dark:text-brand-400">{{ $karyaSubtitle }}</p>
+                        <h2 class="section-heading text-ink">{{ $karyaTitle }}</h2>
                     </div>
                     <a href="{{ route('gallery') }}" class="btn-link shrink-0">Lihat Semua Galeri <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 5l7 7-7 7"/><path d="M6 5l7 7-7 7"/></svg></a>
                 </div>
@@ -124,9 +127,9 @@
         <section class="py-24">
             <div class="container-site">
                 <div class="reveal mb-12 max-w-2xl">
-                    <p class="mb-3 text-sm font-semibold uppercase tracking-widest text-brand-600 dark:text-brand-400">Layanan</p>
-                    <h2 class="section-heading text-ink">Layanan Kami</h2>
-                    <div class="rich-content mt-4 text-ink-muted">{!! content_html($servicesIntro) !!}</div>
+                    <p class="mb-3 text-sm font-semibold uppercase tracking-widest text-brand-600 dark:text-brand-400">{{ $layananSubtitle }}</p>
+                    <h2 class="section-heading text-ink">{{ $layananTitle }}</h2>
+                    <div class="rich-content mt-4 text-ink-muted">{!! content_html($layananIntro) !!}</div>
                 </div>
 
                 <div class="grid grid-cols-1 gap-6 md:grid-cols-3">

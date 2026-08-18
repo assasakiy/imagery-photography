@@ -15,6 +15,9 @@ export default function HomeSections({ form, options, updateSection, updateSecti
     const faqSec = form.sections.faq || {};
     const statsSec = form.sections.stats || {};
     const blog = form.sections.blog || {};
+    const karya = form.sections.karya || {};
+    const layanan = form.sections.layanan || {};
+    const sf = options?.services_fallback || {};
     const cta = form.sections.cta || {};
 
     return (
@@ -143,6 +146,84 @@ export default function HomeSections({ form, options, updateSection, updateSecti
                         />
                     </>
                 )}
+            </div>
+
+            <div className="card p-5 space-y-6">
+                <div className="border-b border-line pb-3">
+                    <h3 className="font-bold text-xl text-ink">Section Karya</h3>
+                    <p className="mt-1 text-sm text-ink-muted">Pilih karya yang tampil di halaman beranda: unggulan, terbaru, atau berdasarkan kategori.</p>
+                </div>
+                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                    <Field label="Judul Kecil">
+                        <input className="input" value={karya.subtitle || ''} onChange={(e) => updateSection('karya', 'subtitle', e.target.value)} />
+                    </Field>
+                    <Field label="Judul">
+                        <input className="input" value={karya.title || ''} onChange={(e) => updateSection('karya', 'title', e.target.value)} />
+                    </Field>
+                </div>
+                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                    <Field label="Sumber Karya">
+                        <select className="input" value={karya.mode || 'featured'} onChange={(e) => updateSection('karya', 'mode', e.target.value)}>
+                            <option value="featured">Karya Unggulan</option>
+                            <option value="latest">Terbaru</option>
+                            <option value="category">Berdasarkan kategori</option>
+                        </select>
+                    </Field>
+                    <Field label="Jumlah Tampilan">
+                        <select className="input" value={karya.limit || 6} onChange={(e) => updateSection('karya', 'limit', e.target.value)}>
+                            {[3, 6, 9].map((n) => (
+                                <option key={n} value={n}>{n} Karya</option>
+                            ))}
+                        </select>
+                    </Field>
+                </div>
+                {karya.mode === 'category' && (
+                    <Field label="Pilih Kategori">
+                        <SearchableMultiSelect
+                            options={(options?.categories || []).map((c) => ({ label: c.name, value: c.id }))}
+                            value={karya.category_ids || []}
+                            onChange={(val) => updateSection('karya', 'category_ids', val)}
+                            placeholder="Pilih kategori..."
+                            searchPlaceholder="Cari kategori..."
+                            emptyMessage="Tidak ada kategori."
+                        />
+                    </Field>
+                )}
+            </div>
+
+            <div className="card p-5 space-y-6">
+                <div className="border-b border-line pb-3">
+                    <h3 className="font-bold text-xl text-ink">Section Layanan</h3>
+                    <p className="mt-1 text-sm text-ink-muted">Atur judul & deskripsi yang tampil di halaman beranda. Deskripsi otomatis diambil dari halaman Layanan bila kosong.</p>
+                </div>
+                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                    <Field label="Judul Kecil">
+                        <input className="input" value={layanan.subtitle || ''} onChange={(e) => updateSection('layanan', 'subtitle', e.target.value)} />
+                    </Field>
+                    <Field label="Judul">
+                        <input className="input" value={layanan.title || ''} onChange={(e) => updateSection('layanan', 'title', e.target.value)} />
+                    </Field>
+                </div>
+                <Field label="Deskripsi" hint="Kosongkan untuk memakai deskripsi halaman Layanan.">
+                    <RichEditor variant="mini" value={!isEmptyRich(layanan.description) ? layanan.description : (sf.description || '')} onChange={(val) => updateSection('layanan', 'description', isEmptyRich(val) ? '' : val)} minHeight={100} maxHeight={200} />
+                </Field>
+                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                    <Field label="Mode Tampilan">
+                        <select className="input" value={layanan.mode || 'featured'} onChange={(e) => updateSection('layanan', 'mode', e.target.value)}>
+                            <option value="featured">Unggulan dulu</option>
+                            <option value="popular">Populer dulu</option>
+                            <option value="latest">Terbaru</option>
+                            <option value="all">Semua</option>
+                        </select>
+                    </Field>
+                    <Field label="Jumlah Paket">
+                        <select className="input" value={layanan.limit || 3} onChange={(e) => updateSection('layanan', 'limit', e.target.value)}>
+                            {[3, 6, 9].map((n) => (
+                                <option key={n} value={n}>{n} Paket</option>
+                            ))}
+                        </select>
+                    </Field>
+                </div>
             </div>
 
             <div className="card p-5 space-y-6">

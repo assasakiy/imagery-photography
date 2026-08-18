@@ -47,6 +47,54 @@ document.addEventListener('DOMContentLoaded', () => {
         revealEls.forEach((el) => el.classList.add('is-visible'));
     }
 
+    // ---- Stat count-up ----
+    const statEls = document.querySelectorAll('.stat-count');
+    const animateCount = (el) => {
+        const raw = (el.dataset.final || '').trim();
+        const match = raw.match(/^(\D*)([\d\.,]+)(.*)$/);
+        if (!match) {
+            el.textContent = raw;
+            return;
+        }
+        const [, prefix, numStr, rest] = match;
+        const dots = (numStr.match(/\./g) || []).length;
+        const target = parseFloat(numStr.replace(/\./g, '').replace(/,/g, ''));
+        if (!Number.isFinite(target) || target <= 1) {
+            el.textContent = prefix + numStr + rest;
+            return;
+        }
+        const start = 1;
+        const duration = 1200;
+        const t0 = performance.now();
+        const format = (n) => {
+            const v = dots > 0 ? (n / 10 ** dots).toFixed(dots) : Math.round(n).toString();
+            return prefix + v + rest;
+        };
+        const step = (now) => {
+            const p = Math.min(1, (now - t0) / duration);
+            const eased = 1 - Math.pow(1 - p, 3);
+            el.textContent = format(start + (target - start) * eased);
+            if (p < 1) requestAnimationFrame(step);
+        };
+        requestAnimationFrame(step);
+    };
+    if (statEls.length && 'IntersectionObserver' in window) {
+        const statObserver = new IntersectionObserver(
+            (entries) => {
+                entries.forEach((entry) => {
+                    if (entry.isIntersecting) {
+                        animateCount(entry.target);
+                        statObserver.unobserve(entry.target);
+                    }
+                });
+            },
+            { threshold: 0.3 },
+        );
+        statEls.forEach((el) => statObserver.observe(el));
+    } else {
+        statEls.forEach(animateCount);
+    }
+
     // ---- Lightbox ----
     const lightbox = document.querySelector('[data-lightbox]');
     const lightboxImg = lightbox?.querySelector('img');

@@ -59,7 +59,10 @@ class AboutPageController extends Controller
                     'name' => trim((string) ($ov['name'] ?? '')) !== '' ? $ov['name'] : $u->name,
                     'position' => trim((string) ($ov['position'] ?? '')) !== '' ? $ov['position'] : ($u->occupation ?: ($u->isOwner() ? 'Owner & Founder' : 'Admin')),
                     'bio' => trim((string) ($ov['bio'] ?? '')) !== '' ? $ov['bio'] : ($u->bio ?? ''),
-                    'photo' => AssetResolver::resolveImageValue((string) ($ov['photo_url'] ?? ''), $u->avatar() ?: AssetResolver::DEFAULT_ABOUT_IMAGE),
+                    'joined_at' => $u->created_at?->translatedFormat('d M Y') ?? '',
+                    'email' => $u->email ?? '',
+                    'phone' => $u->phone ?? '',
+                    'photo' => AssetResolver::resolveImageValue((string) ($ov['photo_url'] ?? ''), $u->avatar() ?: AssetResolver::DEFAULT_AVATAR),
                     'is_owner' => $u->isOwner(),
                     'socials' => [
                         'facebook' => trim((string) ($ov['social_facebook'] ?? '')) !== '' ? $ov['social_facebook'] : ($socials->get('facebook')?->url ?? ''),

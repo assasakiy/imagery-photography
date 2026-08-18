@@ -18,7 +18,7 @@ class Faq extends Model
     public function getCategoriesAttribute()
     {
         return $this->relationLoaded('categories')
-            ? $this->categories->map(fn ($c) => ['id' => $c->id, 'name' => $c->name])->values()->toArray()
+            ? $this->getRelation('categories')->map(fn ($c) => ['id' => $c->id, 'name' => $c->name])->values()->toArray()
             : [];
     }
 }

@@ -56,26 +56,20 @@
                         @endif
                     </div>
 
-                    @php
-                        $socials = [
-                            'social_instagram' => 'instagram',
-                            'social_tiktok' => 'tiktok',
-                            'social_facebook' => 'facebook',
-                            'social_whatsapp' => 'whatsapp',
-                        ];
-                    @endphp
-                    @if (collect($socials)->keys()->filter(fn ($k) => !empty($contents[$k]))->isNotEmpty())
+                    @if (!empty($contents['social_extra']))
                         <div class="mt-auto border-t border-line pt-6">
                             <p class="mb-4 text-sm font-semibold text-ink">Temukan Kami di Sosial Media</p>
                             <div class="flex flex-wrap gap-3">
-                                @foreach ($socials as $key => $type)
-                                    @if (!empty($contents[$key]))
+                                @foreach ($contents['social_extra'] as $extra)
+                                    @if (!empty($extra['type']) && !empty($extra['url']))
                                         @include('partials.social-icon', [
-                                            'type' => $type,
-                                            'url' => $contents[$key],
+                                            'type' => $extra['type'],
+                                            'url' => $extra['url'],
                                             'size' => 20,
                                             'class' => 'flex h-11 w-11 items-center justify-center rounded-full border border-line bg-zinc-50 text-ink-muted transition-all hover:-translate-y-0.5 hover:border-brand-500/50 hover:text-brand-600 dark:bg-zinc-900 dark:hover:text-brand-400',
                                         ])
+                                    @elseif (!empty($extra['label']) && !empty($extra['url']))
+                                        <a href="{{ $extra['url'] }}" target="_blank" rel="noreferrer" class="flex items-center rounded-full border border-line bg-zinc-50 px-3 py-2 text-xs font-semibold text-ink-muted transition-all hover:-translate-y-0.5 hover:border-brand-500/50 hover:text-brand-600 dark:bg-zinc-900 dark:hover:text-brand-400">{{ $extra['label'] }}</a>
                                     @endif
                                 @endforeach
                             </div>
@@ -135,7 +129,24 @@
             </div>
         </div>
 
-        @if (!empty($contents['contact_address']))
+        @if (!empty($contents['map_url']))
+            <div class="mt-20">
+                <div class="mb-10 text-center">
+                    <p class="mb-2 text-sm font-semibold uppercase tracking-widest text-brand-600 dark:text-brand-400">Lokasi Kami</p>
+                    <h2 class="text-2xl font-bold text-ink sm:text-3xl">Kunjungi Studio Kami</h2>
+                </div>
+
+                <div class="card overflow-hidden p-2">
+                    <iframe
+                        src="{{ maps_embed_url($contents['map_url']) }}"
+                        class="h-[420px] w-full rounded-xl border-0 sm:h-[500px] lg:h-[520px]"
+                        loading="lazy"
+                        referrerpolicy="no-referrer-when-downgrade"
+                        title="Lokasi Sopian Lalu Imagery"
+                    ></iframe>
+                </div>
+            </div>
+        @elseif (!empty($contents['contact_address']))
             <div class="mt-20">
                 <div class="mb-10 text-center">
                     <p class="mb-2 text-sm font-semibold uppercase tracking-widest text-brand-600 dark:text-brand-400">Lokasi Kami</p>

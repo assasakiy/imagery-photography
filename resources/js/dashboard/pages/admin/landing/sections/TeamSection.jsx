@@ -65,7 +65,7 @@ export default function TeamSection({ tim, team, updateSection }) {
                                         <span className="shrink-0 text-xs text-ink-muted">Override</span>
                                         <Icon name="chevron-down" size={16} className="text-ink-muted" />
                                     </summary>
-                                    <div className="space-y-4 px-4 pb-4">
+                                    <div className="space-y-4 border-t border-line px-4 py-4">
                                         <div className="flex items-center gap-3">
                                             <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-line bg-surface">
                                                 <img src={displayPhoto} alt="" className="h-full w-full object-cover" />

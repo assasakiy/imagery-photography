@@ -56,6 +56,6 @@ class TeamMember extends Model
             }
         }
 
-        return \App\Services\AssetResolver::DEFAULT_ABOUT_IMAGE;
+        return \App\Services\AssetResolver::DEFAULT_AVATAR;
     }
 }

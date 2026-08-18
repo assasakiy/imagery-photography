@@ -8,10 +8,19 @@ export function normalizeSections(existing) {
         blog: { type: 'blog', subtitle: '', title: '', limit: 3 },
         cta: { type: 'cta', title: '', description: '', button_text: '', button_link: '' },
         timeline: { type: 'timeline', data: [] },
+        layanan: { type: 'layanan', subtitle: 'Layanan', title: 'Layanan Kami', description: '', mode: 'featured', limit: 3 },
+        kontak: { type: 'kontak', phone: '', email: '', address: '', socials: [], map_url: '' },
         cerita: { type: 'cerita', subtitle: 'Cerita Kami', title: 'Cerita Kami', content: '' },
         perjalanan: { type: 'perjalanan', subtitle: 'Perjalanan', title: 'Tentang Situs & Layanan', history: '' },
         tim: { type: 'tim', subtitle: 'Tim', title: 'Di Balik Lensa', members: [] },
         karya: { type: 'karya', subtitle: 'Karya Unggulan', title: 'Sebagian Karya Kami', mode: 'featured', category_ids: [], limit: 3 },
+        layanan_populer: { type: 'layanan_populer', subtitle: 'Populer & Unggulan', title: 'Paket Pilihan', use_popular: true, use_featured: true, popular_limit: 3, featured_limit: 3 },
+        layanan_satuan: { type: 'layanan_satuan', subtitle: 'Satuan', title: 'Paket Satuan', items: [] },
+        layanan_premium: { type: 'layanan_premium', subtitle: 'Premium', title: 'Paket Premium', items: [] },
+        layanan_ultimate: { type: 'layanan_ultimate', subtitle: 'Ultimate', title: 'Paket Ultimate', items: [] },
+        layanan_catatan: { type: 'layanan_catatan', title: 'Catatan Penting', content: '' },
+        layanan_faq: { type: 'layanan_faq', subtitle: 'FAQ', title: 'Tanya Jawab', mode: 'all', items: [], categories: [] },
+        layanan_cta: { type: 'layanan_cta', title: 'Siap Mengabadikan Momen Anda?', description: 'Konsultasikan kebutuhan Anda secara gratis.', button_text: 'Hubungi via WhatsApp', button_link: '' },
     };
 
     const normalized = { ...defaults };
@@ -41,6 +50,12 @@ export function normalizeSections(existing) {
     }
     if (!['featured', 'latest', 'category'].includes(normalized.karya.mode)) {
         normalized.karya = { ...normalized.karya, mode: 'featured' };
+    }
+    if (!['ids', 'all', 'category'].includes(normalized.layanan_faq.mode)) {
+        normalized.layanan_faq = { ...normalized.layanan_faq, mode: 'all' };
+    }
+    if (!['featured', 'popular', 'latest', 'all'].includes(normalized.layanan.mode)) {
+        normalized.layanan = { ...normalized.layanan, mode: 'featured' };
     }
     return normalized;
 }

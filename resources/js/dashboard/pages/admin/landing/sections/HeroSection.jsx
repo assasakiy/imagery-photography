@@ -1,6 +1,8 @@
 import RichEditor from '../../../../components/RichEditor';
 import { Field } from '../../../../components/ui';
 
+const isEmptyRich = (html) => !html || !String(html).replace(/<[^>]*>/g, '').replace(/&nbsp;/g, '').trim();
+
 export default function HeroSection({ form, isHome, errors, setForm, renderImageUploader }) {
     return (
         <div className="card p-5 space-y-6">
@@ -19,7 +21,13 @@ export default function HeroSection({ form, isHome, errors, setForm, renderImage
             </div>
 
             <Field label={isHome ? 'Subjudul / Deskripsi' : 'Deskripsi'} error={errors.description?.[0]}>
-                <RichEditor variant="mini" value={isHome ? (form.hero_subtitle || '') : (form.description || '')} onChange={(val) => setForm(isHome ? { ...form, hero_subtitle: val } : { ...form, description: val })} minHeight={100} maxHeight={200} />
+                <RichEditor
+                    variant="mini"
+                    value={isHome ? (form.hero_subtitle || '') : (form.description || '')}
+                    onChange={(val) => setForm(isHome ? { ...form, hero_subtitle: isEmptyRich(val) ? '' : val } : { ...form, description: isEmptyRich(val) ? '' : val })}
+                    minHeight={100}
+                    maxHeight={200}
+                />
             </Field>
 
             {isHome && (

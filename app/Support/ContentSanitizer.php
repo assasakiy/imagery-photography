@@ -37,7 +37,14 @@ class ContentSanitizer
             'tel' => true,
         ]);
 
-        return trim(\Purifier::clean($html, $config));
+        $clean = trim(\Purifier::clean($html, $config));
+
+        // HTML yang setelah dibersihkan tak punya teks (mis. "<p></p>") -> cukup string kosong.
+        if (trim($clean, '<>') === '' || trim(strip_tags($clean)) === '') {
+            return '';
+        }
+
+        return $clean;
     }
 
     public static function plainText(?string $html): string

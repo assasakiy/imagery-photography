@@ -13,9 +13,7 @@ class LandingPageController extends Controller
 {
     public function index()
     {
-        $portfolios = Portfolio::where('is_featured', true)->orderBy('order')->take(6)->get();
         $services = Service::active()->orderBy('order')->get();
-        $packages = Package::with('services')->active()->orderBy('display_order')->take(3)->get();
 
         $page = Page::where('slug', 'home')->first();
         $sections = collect(is_array($page?->sections) ? $page->sections : [])->keyBy('type');
@@ -31,6 +29,56 @@ class LandingPageController extends Controller
         $reviews = $reviewSec ? LandingContentResolver::reviews($reviewSec) : collect();
         $aboutStats = $statsSec ? LandingContentResolver::stats($statsSec) : collect();
 
-        return view('landing_pages.home', compact('portfolios', 'services', 'packages', 'blogs', 'faqs', 'reviews', 'aboutStats', 'faqSec', 'reviewSec', 'page'));
+        // Section Karya (portofolio di halaman beranda)
+        $karyaSec = $sections->get('karya');
+        $karyaMode = (string) ($karyaSec['mode'] ?? 'featured');
+        $karyaLimit = min(9, max(1, (int) ($karyaSec['limit'] ?? 6)));
+        $karyaCatIds = array_values(array_filter((array) ($karyaSec['category_ids'] ?? []), 'is_numeric'));
+
+        $portfolios = Portfolio::where('is_featured', true)->orderBy('order')->take($karyaLimit)->get();
+        if ($karyaMode === 'latest') {
+            $portfolios = Portfolio::orderByDesc('id')->take($karyaLimit)->get();
+        } elseif ($karyaMode === 'category' && count($karyaCatIds) > 0) {
+            $portfolios = Portfolio::whereHas('categories', fn ($q) => $q->whereIn('categories.id', $karyaCatIds))
+                ->orderByDesc('id')
+                ->take($karyaLimit)
+                ->get();
+        } elseif ($portfolios->isEmpty()) {
+            $portfolios = Portfolio::orderByDesc('id')->take($karyaLimit)->get();
+        }
+
+        // Section Layanan (paket di halaman beranda)
+        $servicesIntro = Page::where('slug', 'services')->value('description') ?: 'Paket dokumentasi untuk momen spesial Anda.';
+        $layananSec = $sections->get('layanan');
+        $layananMode = (string) ($layananSec['mode'] ?? 'featured');
+        $layananLimit = min(9, max(1, (int) ($layananSec['limit'] ?? 3)));
+
+        $packagesQuery = Package::with('services')->active();
+        if ($layananMode === 'popular') {
+            $packagesQuery->orderByDesc('is_popular')->orderBy('display_order');
+        } elseif ($layananMode === 'latest') {
+            $packagesQuery->orderByDesc('id');
+        } elseif ($layananMode === 'all') {
+            $packagesQuery->orderBy('display_order');
+        } else {
+            $packagesQuery->orderByDesc('is_featured')->orderBy('display_order');
+        }
+        $packages = $packagesQuery->take($layananLimit)->get();
+
+        return view('landing_pages.home', compact(
+            'services',
+            'packages',
+            'blogs',
+            'faqs',
+            'reviews',
+            'aboutStats',
+            'portfolios',
+            'faqSec',
+            'reviewSec',
+            'karyaSec',
+            'layananSec',
+            'servicesIntro',
+            'page'
+        ));
     }
 }

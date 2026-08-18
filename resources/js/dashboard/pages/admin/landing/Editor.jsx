@@ -10,6 +10,8 @@ import BlogGallerySections from './sections/BlogGallerySections';
 import FaqSections from './sections/FaqSections';
 import HeroSection from './sections/HeroSection';
 import HomeSections from './sections/HomeSections';
+import KontakSections from './sections/KontakSections';
+import LayananSections from './sections/LayananSections';
 import TentangSections from './sections/TentangSections';
 
 export default function Editor() {
@@ -160,6 +162,28 @@ export default function Editor() {
                     initialForm.sections = normalizeGallerySections(data.sections);
                 }
 
+                if (data.slug === 'services') {
+                    initialForm.sections = normalizeSections(data.sections);
+                }
+
+                if (data.slug === 'contact') {
+                    const sec = normalizeSections(data.sections).kontak || {};
+                    const rawSocials = sec.socials || {};
+                    const socials = Array.isArray(rawSocials)
+                        ? rawSocials
+                        : [
+                            ...Object.entries(rawSocials).filter(([k, v]) => !['extra'].includes(k) && v).map(([k, v]) => ({ type: k, label: k, url: v })),
+                            ...(Array.isArray(rawSocials.extra) ? rawSocials.extra : []),
+                        ];
+                    initialForm.contact = {
+                        phone: sec.phone || '',
+                        email: sec.email || '',
+                        address: sec.address || '',
+                        socials: socials || [],
+                        map_url: sec.map_url || '',
+                    };
+                }
+
                 if (data.slug === 'blog') {
                     api.get('/blog/counts')
                         .then(({ data: c }) => setBlogCounts(c))
@@ -204,6 +228,10 @@ export default function Editor() {
                             cleanAbout[k] = undefined;
                         }
                     });
+                    const cleanLayanan = { ...(form.sections.layanan || {}) };
+                    if (typeof cleanLayanan.description === 'string' && !cleanLayanan.description.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, '').trim()) {
+                        cleanLayanan.description = undefined;
+                    }
 
                     const sections = [
                         { type: 'hero', ...form.sections.hero },
@@ -211,6 +239,8 @@ export default function Editor() {
                         { type: 'reviews', ...form.sections.reviews },
                         { type: 'faq', ...form.sections.faq },
                         { type: 'stats', ...form.sections.stats },
+                        { type: 'karya', ...form.sections.karya },
+                        { type: 'layanan', ...cleanLayanan },
                         { type: 'blog', ...form.sections.blog },
                         { type: 'cta', ...form.sections.cta },
                     ];
@@ -288,6 +318,22 @@ export default function Editor() {
                     payload.sections = form.sections;
                 }
 
+                if (form.slug === 'services') {
+                    payload.sections = form.sections;
+                }
+
+                if (form.slug === 'contact') {
+                    const c = form.contact || {};
+                    payload.sections = [{
+                        type: 'kontak',
+                        phone: c.phone || '',
+                        email: c.email || '',
+                        address: c.address || '',
+                        socials: (c.socials || []).filter((s) => s.url),
+                        map_url: c.map_url || '',
+                    }];
+                }
+
                 await api.put(`/pages/${form.slug}`, payload);
             }
 
@@ -308,6 +354,8 @@ export default function Editor() {
     const isFaqPage = form.slug === 'faq-page';
     const isBlog = form.slug === 'blog';
     const isGallery = form.slug === 'gallery';
+    const isContact = form.slug === 'contact';
+    const isServices = form.slug === 'services';
     const isLegal = form.slug === 'privacy' || form.slug === 'terms';
 
     const renderImageUploader = (imageKey, label) => {
@@ -358,7 +406,11 @@ export default function Editor() {
 
                 {(isBlog || isGallery) && <BlogGallerySections form={form} slug={form.slug} blogCounts={blogCounts} updateSection={updateSection} />}
 
-                {!isHome && !isBlog && !isGallery && !isTentang && !isFaqPage && (
+                {isContact && <KontakSections form={form} setForm={setForm} />}
+
+                {isServices && <LayananSections form={form} options={options} updateSection={updateSection} updateSectionMode={updateSectionMode} />}
+
+                {!isHome && !isBlog && !isGallery && !isTentang && !isFaqPage && !isContact && !isServices && (
                     <div className="card p-5 space-y-4">
                         <Field label="Isi Konten Utama" error={errors.content?.[0]}>
                             <RichEditor variant="full" value={form.content || ''} onChange={val => setForm({ ...form, content: val })} minHeight={400} maxHeight={800} />

@@ -6,8 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Services\AuditLogger;
 use App\Models\Category;
 use App\Models\Faq;
+use App\Models\Package;
 use App\Models\Page;
 use App\Models\Review;
+use App\Models\Service;
 use App\Models\Stat;
 use App\Models\User;
 use App\Support\ContentSanitizer;
@@ -25,6 +27,10 @@ class PageController extends Controller
     {
         $about = Page::where('slug', 'tentang')->first();
         $aboutSections = collect(is_array($about?->sections) ? $about->sections : []);
+        $cerita = $aboutSections->firstWhere('type', 'cerita') ?: [];
+        $ceritaContent = trim((string) ($cerita['content'] ?? ''));
+        $ceritaTitle = trim((string) ($cerita['title'] ?? ''));
+        $servicesPage = Page::where('slug', 'services')->first();
 
         $team = User::with('profile', 'socials.platform')
             ->whereHas('roles', fn ($q) => $q->whereIn('name', ['owner', 'admin']))
@@ -37,7 +43,7 @@ class PageController extends Controller
                 'name' => $u->name,
                 'position' => $u->occupation ?: ($u->isOwner() ? 'Owner & Founder' : 'Admin'),
                 'bio' => $u->bio ?? '',
-                'photo_url' => $u->avatar() ?: \App\Services\AssetResolver::DEFAULT_ABOUT_IMAGE,
+                'photo_url' => $u->avatar() ?: \App\Services\AssetResolver::DEFAULT_AVATAR,
                 'is_owner' => $u->isOwner(),
                 'socials' => [
                     'facebook' => $u->socials->firstWhere('platform.slug', 'facebook')?->url ?? '',
@@ -55,9 +61,16 @@ class PageController extends Controller
             'team' => $team,
             'about_fallbacks' => [
                 'subtitle' => $about?->hero_title ?: $about?->title ?: 'Tentang Kami',
-                'title' => 'Tentang Situs & Layanan',
-                'content' => (string) ($aboutSections->firstWhere('type', 'history')['text'] ?? ''),
+                'title' => $ceritaTitle !== '' ? $ceritaTitle : ($about?->hero_title ?: $about?->title ?: 'Cerita Kami'),
+                'content' => $ceritaContent !== '' ? $ceritaContent : (trim((string) ($about?->content ?? '')) !== '' ? $about->content : ''),
             ],
+            'services_fallback' => [
+                'subtitle' => '',
+                'title' => '',
+                'description' => $servicesPage?->description ?: '',
+            ],
+            'services' => Service::where('active', true)->orderBy('order')->get(['id', 'event', 'media', 'price', 'duration', 'terms']),
+            'packages' => Package::with('services')->active()->orderBy('display_order')->get(['id', 'name', 'type', 'is_featured', 'is_popular']),
         ]);
     }
 
