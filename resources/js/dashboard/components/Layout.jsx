@@ -68,7 +68,7 @@ const adminNav = [
     {
         label: 'Katalog & Media',
         sub: [
-            { to: '/dashboard/services', icon: 'list', label: 'Layanan & Kategori' },
+            { to: '/dashboard/services', icon: 'list', label: 'Layanan' },
             { to: '/dashboard/portfolios', icon: 'briefcase', label: 'Portofolio' },
             { to: '/dashboard/media', icon: 'image', label: 'Media' },
         ]

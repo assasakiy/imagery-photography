@@ -7,7 +7,6 @@ import Skeleton from '../../components/Skeleton';
 const VIEWS = [
     { key: 'master', label: 'Master Layanan', icon: 'briefcase' },
     { key: 'packages', label: 'Paket', icon: 'sparkles' },
-    { key: 'categories', label: 'Kategori', icon: 'list' },
 ];
 
 const MEDIA_OPTIONS = ['photo', 'video', 'drone', 'photobooth', 'livestream'];
@@ -23,13 +22,11 @@ const emptyPackage = {
     name: '', type: 'bundling', price_mode: 'auto', promo_type: 'none', promo_value: '',
     manual_price: '', description: '', is_popular: false, is_featured: false, is_active: true, display_order: 0, items: [],
 };
-const emptyCategory = { label: '', title: '', type: 'satuan', description: '', layout: 'table', columns: ['Layanan', 'Harga'], published: true, order: 0 };
 
 export default function Services() {
     const [view, setView] = useState('master');
     const [services, setServices] = useState([]);
     const [packages, setPackages] = useState([]);
-    const [categories, setCategories] = useState([]);
     const [loading, setLoading] = useState(true);
 
     const [svcOpen, setSvcOpen] = useState(false);
@@ -46,13 +43,6 @@ export default function Services() {
     const [pkgSaving, setPkgSaving] = useState(false);
     const [pkgDeleting, setPkgDeleting] = useState(null);
 
-    const [catOpen, setCatOpen] = useState(false);
-    const [catEditing, setCatEditing] = useState(null);
-    const [catForm, setCatForm] = useState(emptyCategory);
-    const [catErrors, setCatErrors] = useState({});
-    const [catSaving, setCatSaving] = useState(false);
-    const [catDeleting, setCatDeleting] = useState(null);
-
     const { show, node } = useToast();
 
     const loadAll = () => {
@@ -60,12 +50,10 @@ export default function Services() {
         Promise.all([
             api.get('/services'),
             api.get('/packages'),
-            api.get('/service-categories'),
         ])
-            .then(([s, p, c]) => {
+            .then(([s, p]) => {
                 setServices(s.data);
                 setPackages(p.data);
-                setCategories(c.data);
             })
             .catch(() => show('Gagal memuat data layanan.', 'error'))
             .finally(() => setLoading(false));
@@ -175,58 +163,19 @@ export default function Services() {
         loadAll();
     };
 
-    const openCatCreate = () => { setCatEditing(null); setCatForm(emptyCategory); setCatErrors({}); setCatOpen(true); };
-    const openCatEdit = (c) => {
-        setCatEditing(c);
-        setCatForm({ label: c.label || '', title: c.title, type: c.type || 'satuan', description: c.description || '', layout: c.layout || 'table', columns: c.columns?.length ? c.columns : ['Layanan', 'Harga'], published: Boolean(c.published), order: c.order || 0 });
-        setCatErrors({});
-        setCatOpen(true);
-    };
-    const handleCatSubmit = async (e) => {
-        e.preventDefault();
-        setCatSaving(true);
-        setCatErrors({});
-        try {
-            if (catEditing) {
-                await api.put(`/service-categories/${catEditing.id}`, catForm);
-                show('Kategori diperbarui.');
-            } else {
-                await api.post('/service-categories', catForm);
-                show('Kategori ditambahkan.');
-            }
-            setCatOpen(false);
-            loadAll();
-        } catch (err) {
-            if (err.response?.data?.errors) setCatErrors(err.response.data.errors);
-            else show('Gagal menyimpan kategori.', 'error');
-        } finally {
-            setCatSaving(false);
-        }
-    };
-    const handleCatDelete = async () => {
-        await api.delete(`/service-categories/${catDeleting.id}`);
-        show('Kategori dihapus.');
-        setCatDeleting(null);
-        loadAll();
-    };
-
     return (
         <>
             <PageHeader
                 title="Layanan"
-                subtitle="Atur master layanan satuan, paket (bundling/combo), dan kategori tampilan."
+                subtitle="Atur master layanan satuan dan paket (bundling/combo)."
                 action={
                     view === 'master' ? (
                         <button className="btn-primary" onClick={openSvcCreate}>
                             <Icon name="plus" size={18} /> Tambah Layanan Satuan
                         </button>
-                    ) : view === 'packages' ? (
+                    ) : (
                         <button className="btn-primary" onClick={openPkgCreate}>
                             <Icon name="plus" size={18} /> Tambah Paket
-                        </button>
-                    ) : (
-                        <button className="btn-primary" onClick={openCatCreate}>
-                            <Icon name="plus" size={18} /> Tambah Kategori
                         </button>
                     )
                 }
@@ -347,40 +296,6 @@ export default function Services() {
                     </div>
                 ) : (
                     <EmptyState title="Belum ada paket" message="Buat paket bundling/combo dari layanan satuan." icon="sparkles" />
-                )
-            )}
-
-            {view === 'categories' && (
-                categories.length ? (
-                    <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-                        {categories.map((c) => (
-                            <div key={c.id} className="card p-5">
-                                <div className="flex items-start justify-between gap-3">
-                                    <div className="min-w-0">
-                                        <div className="flex flex-wrap items-center gap-2">
-                                            <h3 className="font-bold text-ink">{c.title}</h3>
-                                            <span className="badge bg-brand-500/15 text-brand-600 dark:text-brand-400">{c.type}</span>
-                                            <span className={`badge ${c.published ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' : 'bg-zinc-500/15 text-zinc-500'}`}>
-                                                {c.published ? 'Tampil' : 'Disembunyikan'}
-                                            </span>
-                                        </div>
-                                        {c.label && <p className="mt-1 text-xs font-medium uppercase tracking-wide text-ink-muted">{c.label}</p>}
-                                        {c.description && <p className="mt-1 text-sm text-ink-muted">{c.description}</p>}
-                                    </div>
-                                    <div className="flex shrink-0 gap-1">
-                                        <button onClick={() => openCatEdit(c)} className="rounded-lg p-1.5 text-ink-muted hover:bg-surface-muted hover:text-brand-600" aria-label="Edit">
-                                            <Icon name="edit" size={16} />
-                                        </button>
-                                        <button onClick={() => setCatDeleting(c)} className="rounded-lg p-1.5 text-ink-muted hover:bg-surface-muted hover:text-red-500" aria-label="Hapus">
-                                            <Icon name="trash" size={16} />
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                ) : (
-                    <EmptyState title="Belum ada kategori" message="Atur kategori tampilan landing." icon="list" />
                 )
             )}
                 </>
@@ -560,54 +475,9 @@ export default function Services() {
                 </form>
             </Modal>
 
-            <Modal open={catOpen} onClose={() => setCatOpen(false)} title={catEditing ? 'Edit Kategori' : 'Tambah Kategori'} footer={
-                <div className="flex justify-end gap-2">
-                    <button type="button" className="btn-outline" onClick={() => setCatOpen(false)}>Batal</button>
-                    <button type="submit" form="category-form" className="btn-primary" disabled={catSaving}>{catSaving ? 'Menyimpan...' : 'Simpan'}</button>
-                </div>
-            }>
-                <form id="category-form" onSubmit={handleCatSubmit} className="space-y-4">
-                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                        <Field label="Label" hint="mis. Satuan">
-                            <input className="input" value={catForm.label} onChange={(e) => setCatForm({ ...catForm, label: e.target.value })} />
-                        </Field>
-                        <Field label="Judul" required error={catErrors.title?.[0]}>
-                            <input className="input" value={catForm.title} onChange={(e) => setCatForm({ ...catForm, title: e.target.value })} required />
-                        </Field>
-                    </div>
-                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                        <Field label="Tipe" required>
-                            <select className="input" value={catForm.type} onChange={(e) => setCatForm({ ...catForm, type: e.target.value })}>
-                                {TYPE_OPTIONS.map((t) => (
-                                    <option key={t} value={t}>{t}</option>
-                                ))}
-                            </select>
-                        </Field>
-                        <Field label="Tampilan">
-                            <select className="input" value={catForm.layout} onChange={(e) => setCatForm({ ...catForm, layout: e.target.value })}>
-                                <option value="table">Tabel</option>
-                                <option value="grid">Grid / Kartu</option>
-                            </select>
-                        </Field>
-                        <Field label="Urutan">
-                            <input className="input" type="number" min="0" value={catForm.order} onChange={(e) => setCatForm({ ...catForm, order: e.target.value })} />
-                        </Field>
-                    </div>
-                    <Field label="Deskripsi" hint="opsional" error={catErrors.description?.[0]}>
-                        <textarea className="input min-h-[70px]" value={catForm.description} onChange={(e) => setCatForm({ ...catForm, description: e.target.value })} />
-                    </Field>
-                    <Field label="Status">
-                        <label className="flex h-[42px] cursor-pointer items-center gap-2 text-sm text-ink">
-                            <input type="checkbox" checked={catForm.published} onChange={(e) => setCatForm({ ...catForm, published: e.target.checked })} className="h-4 w-4 rounded border-line text-brand-600" />
-                            Tampilkan di publik
-                        </label>
-                    </Field>
-                </form>
-            </Modal>
 
             <Confirm open={!!svcDeleting} onClose={() => setSvcDeleting(null)} onConfirm={handleSvcDelete} title="Hapus layanan satuan?" message="Paket yang memakai layanan ini juga akan ikut berubah." />
             <Confirm open={!!pkgDeleting} onClose={() => setPkgDeleting(null)} onConfirm={handlePkgDelete} title="Hapus paket?" message="Project yang sudah memakai paket ini tetap memakai snapshot harga." />
-            <Confirm open={!!catDeleting} onClose={() => setCatDeleting(null)} onConfirm={handleCatDelete} title="Hapus kategori?" />
             {node}
         </>
     );
