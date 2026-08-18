@@ -4,9 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Category;
 use App\Models\Package;
-use App\Models\Portfolio;
 use App\Models\Service;
-use App\Models\ServiceCategory;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
 
@@ -79,7 +77,6 @@ class DummyDataSeeder extends Seeder
     {
         Service::query()->delete();
         Package::query()->delete();
-        ServiceCategory::query()->delete();
 
         // Paket satuan (dari halaman Layanan WordPress).
         $satuan = [
@@ -111,14 +108,6 @@ class DummyDataSeeder extends Seeder
         }
 
         $s = fn ($event, $media) => $services[sprintf('%s|%s', $event, $media)] ?? null;
-
-        foreach ([
-            ['label' => 'Satuan', 'title' => 'Paket Satuan', 'type' => 'satuan', 'layout' => 'table', 'columns' => ['Layanan', 'Foto (Edit + Softfile)', 'Video (3-4 Menit)'], 'order' => 1],
-            ['label' => 'Premium', 'title' => 'Paket Premium', 'type' => 'bundling', 'layout' => 'table', 'columns' => ['Paket', 'Foto (Bundling)', 'Video (Bundling)'], 'order' => 2],
-            ['label' => 'Ultimate', 'title' => 'Paket Ultimate (Combo Foto + Video)', 'type' => 'combo', 'layout' => 'grid', 'columns' => [], 'order' => 3],
-        ] as $cat) {
-            ServiceCategory::create($cat);
-        }
 
         // Paket premium (single medium) — harga foto & video per baris.
         $discount = fn ($satuanTotal, $bundlingPrice) => max(0, $satuanTotal - $bundlingPrice);

@@ -25,7 +25,6 @@ use App\Http\Controllers\Api\CustomerController;
 use App\Http\Controllers\Api\BookmarkController;
 use App\Http\Controllers\Api\HistoryController;
 use App\Http\Controllers\Api\PackageController;
-use App\Http\Controllers\Api\ServiceCategoryController;
 use App\Http\Controllers\Api\SettingsController;
 use App\Http\Controllers\Api\TeamController;
 use App\Http\Controllers\Api\TeamMemberController;
@@ -146,7 +145,6 @@ Route::middleware(['web', 'auth:sanctum', 'maintenance'])->group(function () {
         Route::post('/media/import', [MediaController::class, 'importFromUrl']);
         Route::apiResource('services', ServiceController::class)->except(['create', 'edit']);
         Route::apiResource('packages', PackageController::class)->except(['create', 'edit']);
-        Route::apiResource('service-categories', ServiceCategoryController::class)->except(['create', 'edit']);
         Route::apiResource('clients', ClientController::class)
             ->parameters(['clients' => 'user'])
             ->except(['create', 'edit', 'show', 'destroy']);

@@ -24,19 +24,6 @@ return new class extends Migration
             $table->boolean('active')->default(true);
         });
 
-        Schema::create('service_categories', function (Blueprint $table) {
-            $table->id();
-            $table->string('label')->nullable();
-            $table->string('title');
-            $table->string('type')->default('satuan');
-            $table->text('description')->nullable();
-            $table->string('layout')->default('table');
-            $table->json('columns')->nullable();
-            $table->unsignedInteger('order')->default(0);
-            $table->boolean('published')->default(true);
-            $table->timestamps();
-        });
-
         Schema::create('packages', function (Blueprint $table) {
             $table->id();
             $table->string('name');
