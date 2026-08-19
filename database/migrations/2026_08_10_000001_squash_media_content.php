@@ -117,7 +117,6 @@ return new class extends Migration
             $table->string('question');
             $table->text('answer');
             $table->integer('order')->default(0);
-            $table->boolean('published')->default(true);
             $table->timestamps();
         });
     }

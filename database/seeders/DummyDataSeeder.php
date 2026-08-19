@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Category;
 use App\Models\Package;
+use App\Models\Portfolio;
 use App\Models\Service;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;

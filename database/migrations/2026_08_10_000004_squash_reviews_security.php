@@ -3,6 +3,9 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Spatie\Permission\PermissionRegistrar;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 
 return new class extends Migration
 {
@@ -18,12 +21,9 @@ return new class extends Migration
             $table->unsignedTinyInteger('recommend_score')->nullable();
             $table->text('content');
             $table->string('title')->nullable();
-            $table->boolean('is_published')->default(false);
-            $table->timestamp('published_at')->nullable();
             $table->unsignedInteger('order')->default(0);
             $table->timestamps();
 
-            $table->index('is_published');
             $table->foreign('client_id')->references('id')->on('users')->onDelete('set null');
             $table->foreign('project_id')->references('id')->on('projects')->onDelete('set null');
         });
@@ -69,10 +69,40 @@ return new class extends Migration
             $table->index('created_at');
             $table->foreign('user_id')->references('id')->on('users')->onDelete('set null');
         });
+
+        Schema::create('stats', function (Blueprint $table) {
+            $table->id();
+            $table->string('label');
+            $table->string('value')->nullable();
+            $table->string('suffix', 10)->nullable();
+            $table->string('source')->default('manual');
+            $table->string('metric')->nullable();
+            $table->unsignedInteger('order')->default(0);
+            $table->timestamps();
+        });
+
+        $permission = Permission::firstOrCreate(['name' => 'manage-stats', 'guard_name' => 'web']);
+
+        foreach (['owner', 'admin'] as $roleName) {
+            $role = Role::where('name', $roleName)->where('guard_name', 'web')->first();
+            if ($role) {
+                $role->givePermissionTo($permission);
+            }
+        }
+
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
     }
 
     public function down(): void
     {
+        $permission = Permission::where('name', 'manage-stats')->where('guard_name', 'web')->first();
+        if ($permission) {
+            Role::where('guard_name', 'web')->get()->each(fn (Role $role) => $role->revokePermissionTo($permission));
+            $permission->delete();
+            app(PermissionRegistrar::class)->forgetCachedPermissions();
+        }
+
+        Schema::dropIfExists('stats');
         Schema::dropIfExists('audit_logs');
         Schema::dropIfExists('login_histories');
         Schema::dropIfExists('reviews');

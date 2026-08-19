@@ -49,7 +49,7 @@ export default function Portfolio() {
 
     useEffect(() => {
         load();
-        api.get('/categories').then(({ data }) => setCategories(data.data || data));
+        api.get('/categories?exclude_system=1').then(({ data }) => setCategories(data.data || data));
     }, []);
 
     const openCreate = () => {

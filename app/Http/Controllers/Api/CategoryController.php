@@ -21,6 +21,10 @@ class CategoryController extends Controller
                 'portfolios',
             ]);
 
+        if ($request->boolean('exclude_system')) {
+            $query->where('is_system', false);
+        }
+
         if ($request->filled('scope')) {
             $column = Str::studly($request->string('scope')) === 'Blog' ? 'blogs_count' : 'portfolios_count';
             $query->having($column, '>', 0);

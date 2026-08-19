@@ -57,7 +57,7 @@ class PageController extends Controller
             'faqs' => Faq::with('categories')->orderBy('order')->orderBy('id')->get(['id', 'question', 'order']),
             'reviews' => Review::orderBy('order')->orderByDesc('id')->get(['id', 'name', 'service', 'rating']),
             'stats' => Stat::orderBy('order')->orderBy('id')->get(),
-            'categories' => Category::orderBy('name')->get(['id', 'name']),
+            'categories' => Category::where('is_system', false)->orderBy('name')->get(['id', 'name']),
             'team' => $team,
             'about_fallbacks' => [
                 'subtitle' => $about?->hero_title ?: $about?->title ?: 'Tentang Kami',

@@ -15,50 +15,49 @@ class BookingAndProjectSeeder extends Seeder
         $package = Package::first();
         if (!$package) return;
 
-        // Buat 1 booking pending
-        Booking::firstOrCreate(
+        $client = User::where('email', 'client@imagery.my.id')->first() ?? User::role('client')->first();
+
+        // Bersihkan data lama (idempotent): project & booking tanpa klien / milik klien demo.
+        Project::whereNull('user_id')->forceDelete();
+        Booking::whereNull('user_id')->delete();
+        Project::where('user_id', $client?->id)->forceDelete();
+        Booking::where('user_id', $client?->id)->delete();
+
+        // 1 booking milik klien (converted) yang menjadi 1 pesanan (project).
+        $booking = Booking::firstOrCreate(
             ['booking_no' => 'BK-00001'],
             [
-                'name' => 'Calon Klien 1',
-                'email' => 'calon1@example.com',
-                'package_id' => $package->id,
-                'package_label' => $package->name,
-                'event_date' => now()->addDays(30),
-                'location' => 'Gedung Serbaguna',
-                'notes' => 'Tolong fotografer yang ramah',
-                'price' => $package->computedPrice(),
-                'status' => 'pending'
-            ]
-        );
-
-        // Buat 1 booking converted -> jadi proyek scheduled
-        $b2 = Booking::firstOrCreate(
-            ['booking_no' => 'BK-00002'],
-            [
-                'user_id' => User::role('client')->first()->id ?? null,
-                'name' => 'Budi Santoso',
-                'email' => 'budi@example.com',
+                'user_id' => $client?->id,
+                'name' => $client?->name ?? 'Ayu Maharani',
+                'email' => $client?->email ?? 'client@imagery.my.id',
+                'phone' => '08123456789',
                 'package_id' => $package->id,
                 'package_label' => $package->name,
                 'event_date' => now()->addDays(10),
-                'location' => 'Masjid Raya',
+                'event_start' => now()->addDays(10)->setTime(8, 0),
+                'event_end' => now()->addDays(10)->setTime(14, 0),
+                'location' => 'Masjid Raya, Lombok Tengah',
+                'notes' => 'Pemesanan via dashboard klien.',
                 'price' => $package->computedPrice(),
                 'status' => 'converted'
             ]
         );
 
         $project = Project::firstOrCreate(
-            ['name' => 'Wedding Budi & Sari Baru'],
+            ['name' => 'Wedding Ayu & Rian'],
             [
-                'user_id' => $b2->user_id,
+                'user_id' => $booking->user_id,
                 'package_id' => $package->id,
-                'event_date' => $b2->event_date,
-                'price' => $b2->price,
+                'event_date' => $booking->event_date,
+                'event_start' => $booking->event_start,
+                'event_end' => $booking->event_end,
+                'location' => $booking->location,
+                'price' => $booking->price,
                 'status' => 'scheduled'
             ]
         );
 
-        $b2->update(['project_id' => $project->id]);
+        $booking->update(['project_id' => $project->id]);
 
         $project->invoice()->firstOrCreate(
             ['number' => 'INV-' . str_pad((string) $project->id, 5, '0', STR_PAD_LEFT)],
@@ -70,6 +69,6 @@ class BookingAndProjectSeeder extends Seeder
             ]
         );
 
-        $project->addSystemUpdate('Booking BK-00002 diterima — project dibuat.');
+        $project->addSystemUpdate('Booking ' . $booking->booking_no . ' diterima — project dibuat untuk klien ' . ($client?->name ?? '-') . '.');
     }
 }

@@ -28,7 +28,7 @@ export default function FaqTab({ ref }) {
     };
 
     const loadCategories = () => {
-        api.get('/categories')
+        api.get('/categories?exclude_system=1')
             .then(({ data }) => setCategories(Array.isArray(data) ? data : []))
             .catch(() => setCategories([]));
     };
