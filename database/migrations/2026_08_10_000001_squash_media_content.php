@@ -109,6 +109,7 @@ return new class extends Migration
             $table->string('image_url')->nullable();
             $table->boolean('is_featured')->default(false);
             $table->unsignedInteger('order')->default(0);
+            $table->softDeletes();
             $table->timestamps();
         });
 
