@@ -158,8 +158,8 @@ Route::middleware(['web', 'auth:sanctum', 'maintenance'])->group(function () {
         Route::get('/clients-trashed', [ClientController::class, 'trashed']);
 
         Route::get('/recycle-bin', [RecycleBinController::class, 'index']);
-        Route::post('/recycle-bin/{type}/{id}/restore', [RecycleBinController::class, 'restore'])->where('type', 'client');
-        Route::delete('/recycle-bin/{type}/{id}', [RecycleBinController::class, 'forceDelete'])->where('type', 'client');
+        Route::post('/recycle-bin/{type}/{id}/restore', [RecycleBinController::class, 'restore'])->whereIn('type', ['client', 'blog', 'portfolio']);
+        Route::delete('/recycle-bin/{type}/{id}', [RecycleBinController::class, 'forceDelete'])->whereIn('type', ['client', 'blog', 'portfolio']);
 
         Route::get('/messages', [MessageController::class, 'index']);
         Route::get('/messages/{message}', [MessageController::class, 'show']);

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Support\Bookmarkable;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
@@ -11,7 +12,7 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 class Portfolio extends Model implements HasMedia
 {
-    use Bookmarkable, InteractsWithMedia;
+    use Bookmarkable, InteractsWithMedia, SoftDeletes;
 
     protected $fillable = ['title', 'slug', 'description', 'image_url', 'is_featured', 'order'];
 

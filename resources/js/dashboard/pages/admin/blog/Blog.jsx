@@ -31,7 +31,7 @@ export default function Blog() {
     const performDelete = async () => {
         try {
             await api.delete(`/blog/${deleting.id}`);
-            show('Artikel berhasil dihapus.');
+            show('Artikel dipindah ke Recycle Bin.');
             setDeleting(null);
             load();
         } catch {
@@ -159,7 +159,7 @@ export default function Blog() {
                 onClose={() => setDeleting(null)}
                 onConfirm={performDelete}
                 title="Hapus Artikel"
-                message={`Anda yakin ingin menghapus artikel "${deleting?.title}"? Artikel yang dihapus tidak bisa dikembalikan.`}
+                message={`Anda yakin ingin menghapus artikel "${deleting?.title}"? Artikel dipindah ke Recycle Bin dan bisa dipulihkan.`}
                 confirmText="Ya, Hapus Artikel"
                 danger
             />
