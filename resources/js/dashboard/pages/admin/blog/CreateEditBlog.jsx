@@ -129,13 +129,8 @@ const [form, setForm] = useState({
 
     const onSelectCover = (sel) => {
         if (!sel) return;
-        if (sel.source === 'library') {
-            setForm(f => ({ ...f, media_id: sel.mediaId }));
-            setCoverPreview(sel.url);
-        } else {
-            setForm(f => ({ ...f, media_id: null, image_url: sel.url }));
-            setCoverPreview(sel.url);
-        }
+        setForm(f => ({ ...f, media_id: sel.mediaId, image_url: '' }));
+        setCoverPreview(sel.thumbnail_url || sel.url);
         setMediaOpen(false);
     };
 
@@ -214,6 +209,7 @@ const [form, setForm] = useState({
                                                 value={form.content}
                                                 onChange={(v) => setForm({ ...form, content: v })}
                                                 className="flex-1"
+                                                stickyTop="top-0"
                                             />
                                             {errors.content && <p className="mt-1 text-xs text-red-500">{errors.content[0]}</p>}
                                         </div>
@@ -275,7 +271,7 @@ const [form, setForm] = useState({
                                                     type="button"
                                                     onClick={() => {
                                                         setCoverPreview('');
-                                                        setForm({ ...form, media_id: null, image_url: null });
+                                                        setForm({ ...form, media_id: null, image_url: null, use_image_url: true });
                                                     }}
                                                     className="absolute top-2 right-2 p-1.5 rounded-full bg-surface/80 backdrop-blur-sm text-ink-muted hover:text-ink opacity-0 group-hover:opacity-100 transition-opacity"
                                                 >

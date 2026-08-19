@@ -97,12 +97,8 @@ export default function Portfolio() {
     };
 
     const onMediaSelect = (sel) => {
-        setPreview(sel.url);
-        if (sel.source === 'url') {
-            setForm({ ...form, image_mode: 'url', image: null, media_id: '', image_url: sel.url });
-        } else {
-            setForm({ ...form, image_mode: 'upload', image: null, media_id: sel.mediaId, image_url: '' });
-        }
+        setPreview(sel.thumbnail_url || sel.url);
+        setForm({ ...form, image_mode: 'upload', image: null, media_id: sel.mediaId, image_url: '' });
         setMediaOpen(false);
     };
 
@@ -149,7 +145,7 @@ export default function Portfolio() {
 
     const handleDelete = async () => {
         await api.delete(`/portfolios/${deleting.id}`);
-        show('Portofolio dihapus.');
+        show('Portofolio dipindah ke Recycle Bin.');
         setDeleting(null);
         load(meta.current_page);
     };
@@ -325,7 +321,7 @@ export default function Portfolio() {
                                     className="btn-outline text-red-500"
                                     onClick={() => {
                                         setPreview('');
-                                        setForm({ ...form, image: null, media_id: '', image_mode: 'url', image_url: '' });
+                                        setForm({ ...form, image: null, media_id: '', image_mode: 'url', image_url: '', use_image_url: true });
                                     }}
                                 >
                                     <Icon name="x" size={16} /> Hapus
@@ -362,7 +358,7 @@ export default function Portfolio() {
                 </form>
             </Modal>
 
-            <Confirm open={!!deleting} onClose={() => setDeleting(null)} onConfirm={handleDelete} title="Hapus portofolio?" message="Karya ini akan dihapus dari galeri." />
+            <Confirm open={!!deleting} onClose={() => setDeleting(null)} onConfirm={handleDelete} title="Hapus portofolio?" message="Karya ini dipindah ke Recycle Bin dan bisa dipulihkan." />
             <MediaPicker open={mediaOpen} onClose={() => setMediaOpen(false)} onSelect={onMediaSelect} />
             {node}
         </>

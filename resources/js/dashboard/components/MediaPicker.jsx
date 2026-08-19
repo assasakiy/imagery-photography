@@ -51,7 +51,7 @@ export default function MediaPicker({ open, onClose, onSelect, title = 'Pilih Me
             const data = new FormData();
             data.append('file', file);
             const { data: media } = await api.post('/media', data);
-            setSelected({ source: 'upload', mediaId: media.id, url: media.url });
+            setSelected({ source: 'upload', mediaId: media.id, url: media.url, thumbnail_url: media.thumbnail_url });
             loadLibrary(1);
             show('File diupload.');
         } catch (e) {
@@ -73,7 +73,7 @@ export default function MediaPicker({ open, onClose, onSelect, title = 'Pilih Me
         setImporting(true);
         try {
             const { data: media } = await api.post('/media/import', { url: urlText.trim() });
-            setSelected({ source: 'url', mediaId: media.id, url: media.url });
+            setSelected({ source: 'url', mediaId: media.id, url: media.url, thumbnail_url: media.thumbnail_url });
             loadLibrary(1);
             show('Media diimpor ke Library.');
         } catch (e) {
@@ -129,7 +129,9 @@ export default function MediaPicker({ open, onClose, onSelect, title = 'Pilih Me
                                     <button
                                         key={item.id}
                                         type="button"
-                                        onClick={() => setSelected({ source: 'library', mediaId: item.id, url: item.url })}
+                                        onClick={() =>
+                                            setSelected({ source: 'library', mediaId: item.id, url: item.url, thumbnail_url: item.thumbnail_url })
+                                        }
                                         className={`relative aspect-square overflow-hidden rounded-xl border-2 transition-all ${
                                             selected?.mediaId === item.id ? 'border-brand-500 ring-2 ring-brand-500/30' : 'border-line'
                                         }`}

@@ -70,7 +70,7 @@
 
         @if ($post->resolveCoverUrl())
             <div class="mt-8 overflow-hidden rounded-2xl">
-                <img src="{{ $post->resolveCoverUrl() }}" alt="{{ $post->title }}" class="aspect-[21/10] w-full object-cover">
+                <img src="{{ $post->thumbnail_url }}" alt="{{ $post->title }}" class="aspect-[21/10] w-full object-cover">
             </div>
         @endif
 

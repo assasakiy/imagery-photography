@@ -21,7 +21,7 @@
             <div class="lg:col-span-3">
                 <div class="reveal overflow-hidden rounded-3xl ring-1 ring-line">
                     <button type="button" data-lightbox-trigger data-title="{{ $portfolio->title }}" data-caption="{{ $portfolio->categories->isNotEmpty() ? $portfolio->categories->pluck('name')->join(', ') : '' }}" class="block w-full cursor-zoom-in">
-                        <img src="{{ watermark_url($portfolio->cover_url) }}" data-full="{{ watermark_url($portfolio->cover_url) }}" alt="{{ $portfolio->title }}" class="w-full">
+                        <img src="{{ watermark_url($portfolio->thumbnail_url) }}" data-full="{{ watermark_url($portfolio->cover_url) }}" alt="{{ $portfolio->title }}" class="w-full">
                     </button>
                 </div>
             </div>
