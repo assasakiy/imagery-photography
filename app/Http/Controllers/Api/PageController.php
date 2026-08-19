@@ -20,7 +20,9 @@ class PageController extends Controller
 {
     public function index()
     {
-        return response()->json(Page::orderBy('slug')->get()->makeHidden([]));
+        return response()->json(
+            Page::orderByRaw("CASE WHEN slug IN ('privacy', 'terms') THEN 0 ELSE 1 END, slug")->get()
+        );
     }
 
     public function options()
@@ -93,6 +95,28 @@ class PageController extends Controller
         return $this->save($request, $page);
     }
 
+    private function normalizeSections(array $sections): array
+    {
+        if (array_is_list($sections)) {
+            return $sections;
+        }
+
+        $list = [];
+        foreach ($sections as $type => $sec) {
+            if (is_string($type) && is_array($sec)) {
+                $item = $sec;
+                if (!array_key_exists('type', $item)) {
+                    $item['type'] = $type;
+                }
+                $list[] = $item;
+            } else {
+                $list[] = $sec;
+            }
+        }
+
+        return $list;
+    }
+
     protected function save(Request $request, ?Page $page = null)
     {
         if ($request->has('sections') && is_string($request->input('sections'))) {
@@ -130,8 +154,8 @@ class PageController extends Controller
             'published' => (bool) ($data['published'] ?? true),
         ];
 
-        if (array_key_exists('sections', $data)) {
-            $payload['sections'] = $data['sections'];
+        if (array_key_exists('sections', $data) && is_array($data['sections'])) {
+            $payload['sections'] = $this->normalizeSections($data['sections']);
         }
 
         if ($page) {

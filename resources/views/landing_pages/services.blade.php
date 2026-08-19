@@ -19,23 +19,7 @@
             </div>
             <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
                 @foreach ($highlightPackages as $pkg)
-                    <div class="card group relative flex flex-col overflow-hidden p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-brand-600/10">
-                        <div class="absolute right-0 top-0 h-24 w-24 translate-x-8 -translate-y-8 rounded-full bg-brand-600/10 transition-transform duration-300 group-hover:scale-150"></div>
-                        @if ($pkg->is_popular)
-                            <span class="inline-flex w-fit rounded-full bg-emerald-500/15 px-2 py-0.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400">Populer</span>
-                        @elseif ($pkg->is_featured)
-                            <span class="inline-flex w-fit rounded-full bg-amber-500/15 px-2 py-0.5 text-xs font-semibold text-amber-600 dark:text-amber-400">Unggulan</span>
-                        @endif
-                        <h3 class="mt-3 text-lg font-bold text-ink">{{ $pkg->name }}</h3>
-                        <p class="mt-2 flex-1 text-sm leading-relaxed text-ink-muted">{{ $pkg->summary() }}</p>
-                        <div class="mt-6">
-                            @if ($pkg->discountValue() > 0)
-                                <p class="text-sm text-ink-muted line-through">Rp {{ number_format($pkg->basePrice(), 0, ',', '.') }}</p>
-                                <p class="text-sm font-semibold text-emerald-600 dark:text-emerald-400">Hemat Rp {{ number_format($pkg->discountValue(), 0, ',', '.') }}</p>
-                            @endif
-                            <p class="text-2xl font-bold text-brand-600 dark:text-brand-400">Rp {{ number_format($pkg->computedPrice(), 0, ',', '.') }}</p>
-                        </div>
-                    </div>
+                    @include('partials.package-card', ['pkg' => $pkg])
                 @endforeach
             </div>
         </section>

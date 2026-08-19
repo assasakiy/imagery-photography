@@ -33,13 +33,44 @@ class BookingController extends Controller
                 'base_price' => $p->basePrice(),
                 'discount' => $p->discountValue(),
                 'is_featured' => $p->is_featured,
-                'items' => $p->services->map(fn ($s) => $s->name)->values(),
+                'is_popular' => $p->is_popular,
+                'items' => $p->services->map(fn ($s) => trim($s->event . ' (' . ucfirst((string) $s->media) . ')'))->values(),
             ];
         });
 
         $page = \App\Models\Page::where('slug', 'booking')->first();
 
-        return view('landing_pages.booking', compact('contents', 'services', 'packages', 'page'));
+        $sidebar = collect(is_array($page?->sections) ? $page->sections : [])->keyBy('type')->get('booking_sidebar') ?: [];
+        $showKontak = ($sidebar['show_kontak'] ?? true) !== false;
+        $showPopuler = ($sidebar['show_populer'] ?? true) !== false;
+        $showCara = ($sidebar['show_cara'] ?? true) !== false;
+        $kontakTitle = trim((string) ($sidebar['kontak_title'] ?? '')) !== '' ? $sidebar['kontak_title'] : 'Kontak Kami';
+        $populerTitle = trim((string) ($sidebar['populer_title'] ?? '')) !== '' ? $sidebar['populer_title'] : 'Paket Populer';
+        $caraTitle = trim((string) ($sidebar['cara_title'] ?? '')) !== '' ? $sidebar['cara_title'] : 'Cara Booking';
+        $caraSteps = array_values(array_filter((array) ($sidebar['cara_steps'] ?? []), fn ($s) => is_string($s) && trim($s) !== ''));
+        if (count($caraSteps) === 0) {
+            $caraSteps = [
+                'Isi formulir dengan data diri & detail acara Anda.',
+                'Kami konfirmasi ketersediaan via WhatsApp/Email.',
+                'Cicilan atau pelunasan bisa dilakukan dari portal klien.',
+            ];
+        }
+
+        $faqMode = $sidebar['cara_faq_mode'] ?? 'all';
+        $faqTitle = trim((string) ($sidebar['cara_faq_title'] ?? '')) !== '' ? $sidebar['cara_faq_title'] : 'Pertanyaan Umum';
+        $faqSection = [
+            'mode' => $faqMode,
+            'items' => $sidebar['cara_faq_items'] ?? [],
+            'categories' => $sidebar['cara_faq_categories'] ?? [],
+        ];
+        $faqs = \App\Services\LandingContentResolver::faqs($faqSection);
+        $showFaq = $faqs->isNotEmpty();
+
+        return view('landing_pages.booking', compact(
+            'contents', 'services', 'packages', 'page',
+            'showKontak', 'showPopuler', 'showCara', 'kontakTitle', 'populerTitle', 'caraTitle', 'caraSteps',
+            'faqs', 'showFaq', 'faqTitle'
+        ));
     }
 
     public function store(Request $request)

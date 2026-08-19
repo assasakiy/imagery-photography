@@ -78,13 +78,20 @@ export default function AuditLog() {
     const [meta, setMeta] = useState({});
     const [actions, setActions] = useState([]);
     const [action, setAction] = useState('');
+    const [categorySel, setCategorySel] = useState([]);
     const [status, setStatus] = useState('');
     const [q, setQ] = useState('');
+    const [debouncedQ, setDebouncedQ] = useState('');
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         api.get('/audit/actions').then(({ data }) => setActions(data)).catch(() => {});
     }, []);
+
+    useEffect(() => {
+        const t = setTimeout(() => setDebouncedQ(q.trim()), 400);
+        return () => clearTimeout(t);
+    }, [q]);
 
     const load = (page = 1) => {
         setLoading(true);
@@ -96,9 +103,9 @@ export default function AuditLog() {
             if (action) params.purpose = action;
             if (status) params.status = status;
         } else {
-            if (action) params.action = action;
+            if (categorySel.length) params.categories = categorySel;
         }
-        if (q.trim()) params.q = q.trim();
+        if (debouncedQ) params.q = debouncedQ;
 
         api.get(endpoint, { params })
             .then(({ data }) => {
@@ -108,14 +115,97 @@ export default function AuditLog() {
             .finally(() => setLoading(false));
     };
 
-    useEffect(load, [view]);
+    useEffect(() => {
+        load(1);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [view, action, categorySel, status, debouncedQ]);
 
     const switchView = (v) => {
         setView(v);
         setStatus('');
         setAction('');
+        setCategorySel([]);
         setQ('');
         setItems([]);
+    };
+
+    const categories = [...new Set((actions || []).map((a) => a.split('.')[0]).filter(Boolean))];
+
+    const CATEGORY_ICONS = { blog: 'file', media: 'images', page: 'file', portfolio: 'briefcase', settings: 'settings', team: 'users', payment: 'wallet', project: 'package', review: 'star', auth: 'lock', booking: 'calendar' };
+
+    const FilterDropdown = ({ title, icon, options, value, onChange, multi = false, singlePerGroup = false }) => {
+        const [open, setOpen] = useState(false);
+        const isArr = Array.isArray(value);
+        const selected = isArr ? options.filter((o) => value.includes(o.key)) : options.filter((o) => o.key === value);
+        const activeLabel = selected.length ? selected.map((o) => o.label).join(', ') : title;
+
+        const toggle = (opt) => {
+            if (!multi) {
+                onChange(value === opt.key ? '' : opt.key);
+                setOpen(false);
+                return;
+            }
+            const active = value.includes(opt.key);
+            if (active) {
+                onChange(value.filter((k) => k !== opt.key));
+            } else {
+                const next = singlePerGroup && opt.group
+                    ? value.filter((k) => !(options.find((o) => o.key === k)?.group === opt.group))
+                    : value;
+                onChange([...next, opt.key]);
+            }
+        };
+
+        return (
+            <div className="relative w-full sm:w-auto">
+                <button
+                    type="button"
+                    onClick={() => setOpen((v) => !v)}
+                    className="input flex w-full min-w-[200px] items-center justify-between gap-2 px-3 text-sm"
+                >
+                    <span className="flex min-w-0 items-center gap-2">
+                        <Icon name={icon} size={14} className="shrink-0 text-ink-muted" />
+                        <span className="truncate font-medium text-ink">{activeLabel}</span>
+                        {selected.length > 0 && <span className="badge shrink-0 bg-brand-600 text-white">{selected.length}</span>}
+                    </span>
+                    <Icon name="chevron-down" size={14} className={`shrink-0 text-ink-muted transition-transform ${open ? 'rotate-180' : ''}`} />
+                </button>
+                {open && (
+                    <div className="absolute z-30 mt-1.5 max-h-64 min-w-[240px] overflow-y-auto rounded-xl border border-line bg-surface p-1.5 shadow-xl sm:right-0 sm:max-w-none max-w-[calc(100vw-2rem)]">
+                        <button
+                            type="button"
+                            onClick={() => { onChange(multi ? [] : ''); setOpen(false); }}
+                            className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-sm text-ink-muted transition-colors hover:bg-surface-muted"
+                        >
+                            <Icon name="x" size={14} className="shrink-0" />
+                            Semua
+                        </button>
+                        {options.map((opt, idx) => {
+                            const active = isArr ? value.includes(opt.key) : value === opt.key;
+                            const showDivider = opt.group && idx > 0 && options[idx - 1].group !== opt.group;
+                            return (
+                                <div key={opt.key}>
+                                    {showDivider && <div className="my-1.5 h-px bg-line" />}
+                                    <button
+                                        type="button"
+                                        onClick={() => toggle(opt)}
+                                        className={`flex w-full items-center justify-between gap-2 rounded-lg px-2.5 py-2 text-left text-sm transition-colors hover:bg-surface-muted ${
+                                            active ? 'font-semibold text-brand-600 dark:text-brand-400' : 'text-ink'
+                                        }`}
+                                    >
+                                        <span className="flex min-w-0 items-center gap-2">
+                                            {opt.icon && <Icon name={opt.icon} size={14} className="shrink-0 text-ink-muted" />}
+                                            <span className="truncate">{opt.label}</span>
+                                        </span>
+                                        {active && <Icon name="check" size={14} className="shrink-0 text-brand-600" />}
+                                    </button>
+                                </div>
+                            );
+                        })}
+                    </div>
+                )}
+            </div>
+        );
     };
 
     return (
@@ -137,46 +227,57 @@ export default function AuditLog() {
                 ))}
             </div>
 
-            <div className="mb-4 flex flex-wrap items-center gap-2">
-                {view === 'login' ? (
-                    <select className="input w-auto" value={status} onChange={(e) => { setStatus(e.target.value); }}>
-                        <option value="">Semua status</option>
-                        <option value="success">Berhasil</option>
-                        <option value="failed">Gagal</option>
-                    </select>
-                ) : view === 'links' ? (
-                    <>
-                        <select className="input w-auto" value={action} onChange={(e) => { setAction(e.target.value); }}>
-                            <option value="">Semua jenis</option>
-                            {Object.entries(PURPOSE_LABEL).map(([k, label]) => (
-                                <option key={k} value={k}>{label}</option>
-                            ))}
-                        </select>
-                        <select className="input w-auto" value={status} onChange={(e) => { setStatus(e.target.value); }}>
-                            <option value="">Semua status</option>
-                            {Object.entries(LINK_STATUS_META).map(([k, m]) => (
-                                <option key={k} value={k}>{m.label}</option>
-                            ))}
-                        </select>
-                    </>
-                ) : (
-                    <select className="input w-auto" value={action} onChange={(e) => { setAction(e.target.value); }}>
-                        <option value="">Semua aksi</option>
-                        {actions.map((a) => (
-                            <option key={a} value={a}>{a}</option>
-                        ))}
-                    </select>
-                )}
-                <input
-                    className="input w-56"
-                    placeholder="Cari nama / email / IP / aksi…"
-                    value={q}
-                    onChange={(e) => setQ(e.target.value)}
-                    onKeyDown={(e) => { if (e.key === 'Enter') load(); }}
-                />
-                <button className="btn-outline" onClick={() => load()} disabled={loading}>
-                    <Icon name="search" size={16} /> Cari
-                </button>
+            <div className="mb-4 flex flex-wrap items-center gap-y-2 gap-x-1.5">
+                <div className="flex flex-wrap items-center gap-1.5">
+                    {view === 'login' ? (
+                        <FilterDropdown
+                            title="Status Login"
+                            icon="clock"
+                            value={status}
+                            onChange={setStatus}
+                            options={Object.entries(STATUS_META).map(([k, m]) => ({ key: k, label: m.label, icon: k === 'success' ? 'check' : 'x' }))}
+                        />
+                    ) : view === 'links' ? (
+                        <FilterDropdown
+                            title="Jenis & Status"
+                            icon="link"
+                            multi
+                            singlePerGroup
+                            value={[
+                                ...(action ? [`purpose:${action}`] : []),
+                                ...(status ? [`status:${status}`] : []),
+                            ]}
+                            onChange={(keys) => {
+                                const purpose = keys.find((k) => k.startsWith('purpose:'));
+                                const st = keys.find((k) => k.startsWith('status:'));
+                                setAction(purpose ? purpose.slice(8) : '');
+                                setStatus(st ? st.slice(7) : '');
+                            }}
+                            options={[
+                                ...Object.entries(PURPOSE_LABEL).map(([k, label]) => ({ key: 'purpose:' + k, label, icon: k === 'invite' ? 'mail' : k === 'recovery' ? 'lock' : 'folder', group: 'types' })),
+                                ...Object.entries(LINK_STATUS_META).map(([k, m]) => ({ key: 'status:' + k, label: m.label, icon: k === 'accepted' ? 'check' : k === 'cancelled' ? 'x' : 'clock', group: 'status' })),
+                            ]}
+                        />
+                    ) : (
+                        <FilterDropdown
+                            title="Filter Kategori"
+                            icon="file"
+                            multi
+                            value={categorySel}
+                            onChange={setCategorySel}
+                            options={categories.map((c) => ({ key: c, label: c, icon: CATEGORY_ICONS[c] }))}
+                        />
+                    )}
+                </div>
+                <div className="relative ml-auto w-full min-w-[200px] flex-1 sm:w-96 sm:flex-none">
+                    <Icon name="search" size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" />
+                    <input
+                        className="input pl-9"
+                        placeholder="Cari nama / email / IP / aksi…"
+                        value={q}
+                        onChange={(e) => setQ(e.target.value)}
+                    />
+                </div>
             </div>
 
             {loading ? (

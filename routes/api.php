@@ -213,6 +213,7 @@ Route::middleware(['web', 'auth:sanctum', 'maintenance'])->group(function () {
         Route::put('/settings', [SettingsController::class, 'update']);
         Route::post('/settings/test-email', [SettingsController::class, 'testEmail']);
         Route::post('/settings/test-whatsapp', [SettingsController::class, 'testWhatsapp']);
+        Route::post('/settings/test-webhook', [SettingsController::class, 'testWebhook']);
         Route::post('/settings/test-payment-gateway', [SettingsController::class, 'testPaymentGateway']);
     });
 });

@@ -59,6 +59,8 @@ class SettingsController extends Controller
             'whatsapp_configured' => $settings->whatsappConfigured(),
             'email_enabled' => $settings->channelEnabled('email'),
             'whatsapp_enabled' => $settings->channelEnabled('whatsapp'),
+            'webhook_configured' => count($settings->webhookUrls()) > 0,
+            'webhook_enabled' => $settings->channelEnabled('webhook'),
             'email_events' => app(NotificationService::class)->channelEvents('email'),
             'whatsapp_events' => app(NotificationService::class)->channelEvents('whatsapp'),
             'inapp_events' => app(NotificationService::class)->channelEvents('inapp'),
@@ -126,7 +128,22 @@ class SettingsController extends Controller
             'whatsapp_config' => 'nullable|array',
             'whatsapp_config.driver' => ['nullable', 'string', Rule::in(array_keys(WhatsAppDriverRegistry::CLASSES))],
             'whatsapp_config.config' => 'nullable|array',
-            'webhook_urls' => 'nullable|string|max:2048',
+            'webhook_urls' => ['nullable', 'string', 'max:8192', function ($attribute, $value, $fail) {
+                if (empty($value)) {
+                    return;
+                }
+                $rt = app(RuntimeSettings::class);
+                foreach (preg_split('/[\r\n,]+/', $value) ?: [] as $line) {
+                    $line = trim($line);
+                    if ($line === '') {
+                        continue;
+                    }
+                    if (!$rt->isSafeWebhookUrl($line)) {
+                        $fail('Terdapat URL webhook yang tidak valid: ' . $line);
+                    }
+                }
+            }],
+            'notif_webhook_enabled' => 'boolean',
             'brand_color' => 'nullable|string|regex:/^#[0-9a-fA-F]{6}$/',
             'google_auth_enabled' => 'boolean',
             'google_client_id' => 'nullable|string|max:255',
@@ -193,14 +210,23 @@ class SettingsController extends Controller
                 continue;
             }
 
-            if ($key === 'notif_email_enabled' || $key === 'notif_wa_enabled') {
-                $channel = $key === 'notif_email_enabled' ? 'email' : 'whatsapp';
+            if ($key === 'notif_email_enabled' || $key === 'notif_wa_enabled' || $key === 'notif_webhook_enabled') {
+                $channel = match ($key) {
+                    'notif_wa_enabled' => 'whatsapp',
+                    'notif_webhook_enabled' => 'webhook',
+                    default => 'email',
+                };
                 $enabled = (bool) $value;
 
                 // Guard: jangan izinkan ON bila transport tak terkonfigurasi.
                 if ($enabled) {
                     $rt = app(RuntimeSettings::class);
-                    $configured = $channel === 'email' ? $rt->emailConfigured() : $rt->whatsappConfigured();
+                    $configured = match ($channel) {
+                        'email' => $rt->emailConfigured(),
+                        'whatsapp' => $rt->whatsappConfigured(),
+                        'webhook' => count($rt->webhookUrls()) > 0,
+                        default => false,
+                    };
                     if (!$configured) {
                         $enabled = false;
                     }
@@ -415,6 +441,26 @@ class SettingsController extends Controller
 
             return response()->json(['message' => 'Gagal mengirim WhatsApp uji: ' . $e->getMessage()], 422);
         }
+    }
+
+    public function testWebhook()
+    {
+        $settings = app(RuntimeSettings::class);
+        $urls = $settings->webhookUrls();
+
+        if (count($urls) === 0) {
+            return response()->json(['message' => 'Belum ada URL webhook yang valid.'], 422);
+        }
+
+        $sent = app(\App\Services\WebhookDispatcher::class)->dispatch('test', ['note' => 'Tes koneksi webhook dari dashboard.', 'time' => now()->toIso8601String()]);
+
+        if ($sent < count($urls)) {
+            return response()->json(['message' => 'Ada URL yang gagal dihubungi. Cek log untuk detail.'], 422);
+        }
+
+        app(AuditLogger::class)->log('settings.test_webhook', 'Tes koneksi webhook terkirim ke ' . $sent . ' URL');
+
+        return response()->json(['ok' => true, 'message' => 'Webhook uji terkirim ke ' . $sent . ' URL']);
     }
 
     private function loginMethodsPayload(RuntimeSettings $settings): array

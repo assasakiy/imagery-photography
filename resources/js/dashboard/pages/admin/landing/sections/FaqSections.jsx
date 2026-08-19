@@ -3,6 +3,9 @@ import { Field } from '../../../../components/ui';
 
 export default function FaqSections({ form, options, updateSection, updateSectionMode }) {
     const faqSec = form.sections.faq || {};
+    const faqCats = (options?.categories || []).filter((c) =>
+        (options?.faqs || []).some((f) => (f.categories || []).some((fc) => fc.id === c.id))
+    );
 
     return (
         <div className="card p-5 space-y-6">
@@ -32,12 +35,12 @@ export default function FaqSections({ form, options, updateSection, updateSectio
             {faqSec.mode === 'category' && (
                 <Field label="Pilih Kategori">
                     <SearchableMultiSelect
-                        options={(options?.categories || []).map((c) => ({ label: c.name, value: c.id }))}
+                        options={faqCats.map((c) => ({ label: c.name, value: c.id }))}
                         value={faqSec.categories || []}
                         onChange={(val) => updateSection('faq', 'categories', val)}
                         placeholder="Pilih kategori FAQ..."
                         searchPlaceholder="Cari kategori..."
-                        emptyMessage="Tidak ada kategori."
+                        emptyMessage="Tidak ada kategori dengan FAQ."
                     />
                 </Field>
             )}

@@ -1,4 +1,10 @@
 export function normalizeSections(existing) {
+    let list = [];
+    if (Array.isArray(existing)) {
+        list = existing;
+    } else if (existing && typeof existing === 'object') {
+        list = Object.entries(existing).map(([type, sec]) => ({ type, ...(sec || {}) }));
+    }
     const defaults = {
         hero: { type: 'hero', title: '', subtitle: '', button_text: '', button_link: '' },
         about: { type: 'about', subtitle: '', title: '', description: '', content: '', button_text: '', button_link: '', image: '' },
@@ -15,17 +21,35 @@ export function normalizeSections(existing) {
         tim: { type: 'tim', subtitle: 'Tim', title: 'Di Balik Lensa', members: [] },
         karya: { type: 'karya', subtitle: 'Karya Unggulan', title: 'Sebagian Karya Kami', mode: 'featured', category_ids: [], limit: 3 },
         layanan_populer: { type: 'layanan_populer', subtitle: 'Populer & Unggulan', title: 'Paket Pilihan', use_popular: true, use_featured: true, popular_limit: 3, featured_limit: 3 },
-        layanan_satuan: { type: 'layanan_satuan', subtitle: 'Satuan', title: 'Paket Satuan', items: [] },
-        layanan_premium: { type: 'layanan_premium', subtitle: 'Premium', title: 'Paket Premium', items: [] },
-        layanan_ultimate: { type: 'layanan_ultimate', subtitle: 'Ultimate', title: 'Paket Ultimate', items: [] },
+        layanan_satuan: { type: 'layanan_satuan', subtitle: 'Satuan', title: 'Paket Satuan', mode: 'all', items: [] },
+        layanan_premium: { type: 'layanan_premium', subtitle: 'Premium', title: 'Paket Premium', mode: 'all', items: [] },
+        layanan_ultimate: { type: 'layanan_ultimate', subtitle: 'Ultimate', title: 'Paket Ultimate', mode: 'all', items: [] },
         layanan_catatan: { type: 'layanan_catatan', title: 'Catatan Penting', content: '' },
         layanan_faq: { type: 'layanan_faq', subtitle: 'FAQ', title: 'Tanya Jawab', mode: 'all', items: [], categories: [] },
         layanan_cta: { type: 'layanan_cta', title: 'Siap Mengabadikan Momen Anda?', description: 'Konsultasikan kebutuhan Anda secara gratis.', button_text: 'Hubungi via WhatsApp', button_link: '' },
+        booking_sidebar: {
+            type: 'booking_sidebar',
+            show_kontak: true,
+            kontak_title: 'Kontak Kami',
+            show_populer: true,
+            populer_title: 'Paket Populer',
+            show_cara: true,
+            cara_title: 'Cara Booking',
+            cara_faq_title: 'Pertanyaan Umum',
+            cara_faq_mode: 'all',
+            cara_faq_items: [],
+            cara_faq_categories: [],
+            cara_steps: [
+                'Isi formulir dengan data diri & detail acara Anda.',
+                'Kami konfirmasi ketersediaan via WhatsApp/Email.',
+                'Cicilan atau pelunasan bisa dilakukan dari portal klien.',
+            ],
+        },
     };
 
     const normalized = { ...defaults };
-    if (Array.isArray(existing)) {
-        existing.forEach(sec => {
+    if (list.length) {
+        list.forEach(sec => {
             if (sec.type && defaults[sec.type]) {
                 normalized[sec.type] = { ...defaults[sec.type], ...sec };
             }

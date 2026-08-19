@@ -21,12 +21,24 @@ export default function LayananSections({ form, options, updateSection, updateSe
     const pkgLabel = (p) => `${p.name}${p.is_featured ? ' ⭐' : ''}${p.is_popular ? ' 🔥' : ''}`;
     const svcLabel = (s) => `${s.event} · ${s.media}${s.duration ? ' · ' + s.duration : ''}`;
 
+    const faqCats = (options?.categories || []).filter((c) =>
+        (options?.faqs || []).some((f) => (f.categories || []).some((fc) => fc.id === c.id))
+    );
+
+    const showPopular = populer.use_popular !== false;
+    const showFeatured = populer.use_featured !== false;
+
+    const setPopulerMode = (mode) => {
+        updateSection('layanan_populer', 'use_popular', mode !== 'featured');
+        updateSection('layanan_populer', 'use_featured', mode !== 'popular');
+    };
+
     return (
         <>
             <div className="card p-5 space-y-6">
                 <div className="border-b border-line pb-3">
                     <h3 className="font-bold text-xl text-ink">Section Paket Populer / Unggulan</h3>
-                    <p className="mt-1 text-sm text-ink-muted">Pilih kombinasi: tampilkan paket populer (🔥) dan/atau unggulan (⭐) sekaligus.</p>
+                    <p className="mt-1 text-sm text-ink-muted">Pilih tampilkan paket populer, unggulan, atau keduanya sekaligus.</p>
                 </div>
                 <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                     <Field label="Judul Kecil">
@@ -36,32 +48,33 @@ export default function LayananSections({ form, options, updateSection, updateSe
                         <input className="input" value={populer.title || ''} onChange={(e) => updateSection('layanan_populer', 'title', e.target.value)} />
                     </Field>
                 </div>
-                <div className="rounded-xl border border-line bg-surface-muted/50 p-4 space-y-4">
-                    <div className="flex flex-wrap gap-6">
-                        <label className="flex cursor-pointer items-center gap-2 text-sm text-ink">
-                            <input type="checkbox" className="h-4 w-4 rounded border-line text-brand-600" checked={populer.use_popular !== false} onChange={(e) => updateSection('layanan_populer', 'use_popular', e.target.checked)} />
-                            Tampilkan paket Populer
-                        </label>
-                        <label className="flex cursor-pointer items-center gap-2 text-sm text-ink">
-                            <input type="checkbox" className="h-4 w-4 rounded border-line text-brand-600" checked={populer.use_featured !== false} onChange={(e) => updateSection('layanan_populer', 'use_featured', e.target.checked)} />
-                            Tampilkan paket Unggulan
-                        </label>
-                    </div>
-                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                        <Field label="Jumlah Populer Tampil">
-                            <select className="input" value={populer.popular_limit || 3} onChange={(e) => updateSection('layanan_populer', 'popular_limit', e.target.value)}>
-                                {[3, 6].map((n) => (
-                                    <option key={n} value={n}>{n} Paket</option>
-                                ))}
-                            </select>
-                        </Field>
-                        <Field label="Jumlah Unggulan Tampil">
-                            <select className="input" value={populer.featured_limit || 3} onChange={(e) => updateSection('layanan_populer', 'featured_limit', e.target.value)}>
-                                {[3, 6].map((n) => (
-                                    <option key={n} value={n}>{n} Paket</option>
-                                ))}
-                            </select>
-                        </Field>
+                <div className="space-y-4">
+                    <Field label="Mode Tampilan">
+                        <select className="input" value={showPopular && showFeatured ? 'both' : showPopular ? 'popular' : 'featured'} onChange={(e) => setPopulerMode(e.target.value)}>
+                            <option value="popular">Populer saja</option>
+                            <option value="featured">Unggulan saja</option>
+                            <option value="both">Populer + Unggulan</option>
+                        </select>
+                    </Field>
+                    <div className={`grid grid-cols-1 gap-4 ${showPopular && showFeatured ? 'sm:grid-cols-2' : ''}`}>
+                        {showPopular && (
+                            <Field label="Jumlah Paket Populer Tampil">
+                                <select className="input" value={populer.popular_limit || 3} onChange={(e) => updateSection('layanan_populer', 'popular_limit', e.target.value)}>
+                                    {[3, 6].map((n) => (
+                                        <option key={n} value={n}>{n} Paket</option>
+                                    ))}
+                                </select>
+                            </Field>
+                        )}
+                        {showFeatured && (
+                            <Field label="Jumlah Paket Unggulan Tampil">
+                                <select className="input" value={populer.featured_limit || 3} onChange={(e) => updateSection('layanan_populer', 'featured_limit', e.target.value)}>
+                                    {[3, 6].map((n) => (
+                                        <option key={n} value={n}>{n} Paket</option>
+                                    ))}
+                                </select>
+                            </Field>
+                        )}
                     </div>
                 </div>
             </div>
@@ -69,7 +82,7 @@ export default function LayananSections({ form, options, updateSection, updateSe
             <div className="card p-5 space-y-6">
                 <div className="border-b border-line pb-3">
                     <h3 className="font-bold text-xl text-ink">Section Paket Satuan</h3>
-                    <p className="mt-1 text-sm text-ink-muted">Layanan satuan (mis. Akad Photo, Wedding Video). Kosongkan pilihan untuk menampilkan semua.</p>
+                    <p className="mt-1 text-sm text-ink-muted">Pilih mode: tampilkan semua layanan satuan, atau pilih paket tertentu.</p>
                 </div>
                 <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                     <Field label="Judul Kecil">
@@ -79,16 +92,24 @@ export default function LayananSections({ form, options, updateSection, updateSe
                         <input className="input" value={satuan.title || ''} onChange={(e) => updateSection('layanan_satuan', 'title', e.target.value)} />
                     </Field>
                 </div>
-                <Field label="Pilih Layanan (opsional)">
-                    <SearchableMultiSelect
-                        options={allServices.map((s) => ({ label: svcLabel(s), value: s.id }))}
-                        value={satuan.items || []}
-                        onChange={(val) => updateSection('layanan_satuan', 'items', val)}
-                        placeholder="Pilih layanan..."
-                        searchPlaceholder="Cari layanan..."
-                        emptyMessage="Tidak ada layanan satuan."
-                    />
+                <Field label="Mode Tampilan">
+                    <select className="input" value={satuan.mode || 'all'} onChange={(e) => updateSectionMode('layanan_satuan', e.target.value)}>
+                        <option value="all">Tampilkan semua</option>
+                        <option value="ids">Pilih paket</option>
+                    </select>
                 </Field>
+                {(satuan.mode || 'all') === 'ids' && (
+                    <Field label="Pilih Layanan">
+                        <SearchableMultiSelect
+                            options={allServices.map((s) => ({ label: svcLabel(s), value: s.id }))}
+                            value={satuan.items || []}
+                            onChange={(val) => updateSection('layanan_satuan', 'items', val)}
+                            placeholder="Pilih layanan..."
+                            searchPlaceholder="Cari layanan..."
+                            emptyMessage="Tidak ada layanan satuan."
+                        />
+                    </Field>
+                )}
             </div>
 
             <div className="card p-5 space-y-6">
@@ -103,16 +124,24 @@ export default function LayananSections({ form, options, updateSection, updateSe
                         <input className="input" value={premium.title || ''} onChange={(e) => updateSection('layanan_premium', 'title', e.target.value)} />
                     </Field>
                 </div>
-                <Field label="Pilih Paket Premium">
-                    <SearchableMultiSelect
-                        options={bundlingPackages.map((p) => ({ label: pkgLabel(p), value: p.id }))}
-                        value={premium.items || []}
-                        onChange={(val) => updateSection('layanan_premium', 'items', val)}
-                        placeholder="Pilih paket..."
-                        searchPlaceholder="Cari paket..."
-                        emptyMessage="Belum ada paket bundling."
-                    />
+                <Field label="Mode Tampilan">
+                    <select className="input" value={premium.mode || 'all'} onChange={(e) => updateSectionMode('layanan_premium', e.target.value)}>
+                        <option value="all">Tampilkan semua</option>
+                        <option value="ids">Pilih paket</option>
+                    </select>
                 </Field>
+                {(premium.mode || 'all') === 'ids' && (
+                    <Field label="Pilih Paket Premium">
+                        <SearchableMultiSelect
+                            options={bundlingPackages.map((p) => ({ label: pkgLabel(p), value: p.id }))}
+                            value={premium.items || []}
+                            onChange={(val) => updateSection('layanan_premium', 'items', val)}
+                            placeholder="Pilih paket..."
+                            searchPlaceholder="Cari paket..."
+                            emptyMessage="Belum ada paket bundling."
+                        />
+                    </Field>
+                )}
             </div>
 
             <div className="card p-5 space-y-6">
@@ -187,12 +216,12 @@ export default function LayananSections({ form, options, updateSection, updateSe
                 {faqSec.mode === 'category' && (
                     <Field label="Pilih Kategori">
                         <SearchableMultiSelect
-                            options={(options?.categories || []).map((c) => ({ label: c.name, value: c.id }))}
+                            options={faqCats.map((c) => ({ label: c.name, value: c.id }))}
                             value={faqSec.categories || []}
                             onChange={(val) => updateSection('layanan_faq', 'categories', val)}
                             placeholder="Pilih kategori..."
                             searchPlaceholder="Cari kategori..."
-                            emptyMessage="Tidak ada kategori."
+                            emptyMessage="Tidak ada kategori dengan FAQ."
                         />
                     </Field>
                 )}

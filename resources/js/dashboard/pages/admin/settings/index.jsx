@@ -6,7 +6,6 @@ import { PageHeader, useToast } from '../../../components/ui';
 import Skeleton from '../../../components/Skeleton';
 import BrandingTab from './BrandingTab';
 import IntegrasiTab from './IntegrasiTab';
-import WebhookTab from './WebhookTab';
 import NotificationsTab from './NotificationsTab';
 import PaymentTab from './PaymentTab';
 import SecurityTab from './SecurityTab';
@@ -23,6 +22,7 @@ export default function Settings() {
     const [testingEmail, setTestingEmail] = useState(false);
     const [testingWhatsapp, setTestingWhatsapp] = useState(false);
     const [testingTripay, setTestingTripay] = useState(false);
+    const [testingWebhook, setTestingWebhook] = useState(false);
     const [errors, setErrors] = useState({});
     const [mediaFor, setMediaFor] = useState(null);
     const [openEmail, setOpenEmail] = useState(false);
@@ -194,6 +194,35 @@ export default function Settings() {
         await save(['google_auth_enabled'], { google_auth_enabled: v });
     };
 
+    const toggleWebhookChannel = async (v) => {
+        if (v && !webhookUrlsValid()) {
+            show('Tambahkan URL webhook yang valid terlebih dahulu.', 'error');
+            return;
+        }
+        set('notif_webhook_enabled', v);
+        await save(['notif_webhook_enabled', 'webhook_urls'], { notif_webhook_enabled: v });
+    };
+
+    const webhookUrlsValid = () => {
+        try {
+            return (form.webhook_urls || '').split(/[\r\n,]+/).map((s) => s.trim()).filter(Boolean).length > 0;
+        } catch {
+            return false;
+        }
+    };
+
+    const testWebhook = async () => {
+        setTestingWebhook(true);
+        try {
+            const { data } = await api.post('/settings/test-webhook');
+            show(data.message || 'Webhook uji terkirim.');
+        } catch (err) {
+            show(err.response?.data?.message || 'Gagal menguji webhook.', 'error');
+        } finally {
+            setTestingWebhook(false);
+        }
+    };
+
     const ctx = {
         form, meta, errors, saving, set, setChecked, save, dirty, dirtyColor, show,
         openEmail, setOpenEmail, openWa, setOpenWa,
@@ -204,6 +233,9 @@ export default function Settings() {
         toggleManualPayment, toggleGatewayPayment, toggleGoogleAuth,
         waDrivers, waDriver, waFields, waConfig, setWaDriver,
         mediaFor, setMediaFor,
+        webhookConfigured: !!meta.webhook_configured,
+        webhookEnabled: !!meta.webhook_enabled,
+        toggleWebhookChannel, testWebhook, testingWebhook,
     };
 
     return (
@@ -236,7 +268,6 @@ export default function Settings() {
             {tab === 'branding' && <BrandingTab {...ctx} />}
             {tab === 'integrasi' && <IntegrasiTab {...ctx} />}
             {tab === 'pembayaran' && <PaymentTab {...ctx} />}
-            {tab === 'webhook' && <WebhookTab {...ctx} />}
             {tab === 'notifications' && <NotificationsTab {...ctx} />}
             {tab === 'security' && <SecurityTab {...ctx} />}
             {tab === 'maintenance' && <MaintenanceTab {...ctx} />}

@@ -294,10 +294,12 @@ export default function IntegrasiTab({
     toggleEmailChannel, toggleWaChannel, togglePaymentGateway, toggleGoogleAuth, toggleManualPayment,
     testEmail, testWhatsapp, testGateway, testingEmail, testingWhatsapp, testingTripay,
     waDrivers, waDriver, waFields, waConfig, setWaDriver,
+    webhookConfigured, webhookEnabled, toggleWebhookChannel, testWebhook, testingWebhook,
 }) {
     const [loaded, setLoaded] = useState(false);
     const [scanning, setScanning] = useState(false);
     const [groups, setGroups] = useState([]);
+    const [openWebhook, setOpenWebhook] = useState(false);
 
     const inferType = (label) => {
         const lbl = (label || '').toLowerCase();
@@ -358,23 +360,25 @@ export default function IntegrasiTab({
     return (
         <div className="space-y-6">
             <div className="card w-full p-6">
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                    <div>
+                <div className="flex items-center justify-between gap-3">
+                    <div className="min-w-0 flex-1">
                         <h2 className="font-semibold text-ink">Transfer Manual</h2>
                         <p className="text-xs text-ink-muted">Kelola rekening bank, dompet digital, dan QRIS statis.</p>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex shrink-0 items-center gap-2">
                         <button
                             type="button"
                             onClick={() => setOpenManual((v) => !v)}
                             className={`badge cursor-pointer transition-colors ${
-                                manualConfigured
-                                    ? 'bg-emerald-500/15 text-emerald-600 hover:bg-emerald-500/25 dark:text-emerald-400'
-                                    : 'bg-zinc-500/15 text-ink-muted hover:bg-zinc-500/25'
+                                !manualConfigured
+                                    ? 'bg-red-500/15 text-red-600 hover:bg-red-500/25 dark:text-red-400'
+                                    : form.payment_manual_enabled
+                                      ? 'bg-emerald-500/15 text-emerald-600 hover:bg-emerald-500/25 dark:text-emerald-400'
+                                      : 'bg-amber-500/15 text-amber-600 hover:bg-amber-500/25 dark:text-amber-400'
                             }`}
                         >
                             <Icon name="chevron-down" size={12} className={`transition-transform ${openManual ? 'rotate-180' : ''}`} />
-                            {manualConfigured ? 'Terkonfigurasi' : 'Belum Dikonfigurasi'}
+                            {!manualConfigured ? 'Belum Dikonfigurasi' : form.payment_manual_enabled ? 'Aktif' : 'Nonaktif'}
                         </button>
                     </div>
                 </div>
@@ -417,23 +421,25 @@ export default function IntegrasiTab({
             </div>
 
             <div className="card w-full p-6">
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                    <div>
+                <div className="flex items-center justify-between gap-3">
+                    <div className="min-w-0 flex-1">
                         <h2 className="font-semibold text-ink">Email (SMTP)</h2>
                         <p className="text-xs text-ink-muted">Dipakai untuk notifikasi email, OTP login, dan email uji.</p>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex shrink-0 items-center gap-2">
                         <button
                             type="button"
                             onClick={() => setOpenEmail((v) => !v)}
                             className={`badge cursor-pointer transition-colors ${
-                                meta.email_configured
-                                    ? 'bg-emerald-500/15 text-emerald-600 hover:bg-emerald-500/25 dark:text-emerald-400'
-                                    : 'bg-red-500/15 text-red-600 hover:bg-red-500/25 dark:text-red-400'
+                                !meta.email_configured
+                                    ? 'bg-red-500/15 text-red-600 hover:bg-red-500/25 dark:text-red-400'
+                                    : form.notif_email_enabled
+                                      ? 'bg-emerald-500/15 text-emerald-600 hover:bg-emerald-500/25 dark:text-emerald-400'
+                                      : 'bg-amber-500/15 text-amber-600 hover:bg-amber-500/25 dark:text-amber-400'
                             }`}
                         >
                             <Icon name="chevron-down" size={12} className={`transition-transform ${openEmail ? 'rotate-180' : ''}`} />
-                            {meta.email_configured ? 'Terkonfigurasi' : 'Belum Dikonfigurasi'}
+                            {!meta.email_configured ? 'Belum Dikonfigurasi' : form.notif_email_enabled ? 'Aktif' : 'Nonaktif'}
                         </button>
                     </div>
                 </div>
@@ -490,23 +496,25 @@ export default function IntegrasiTab({
             </div>
 
             <div className="card w-full p-6">
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                    <div>
+                <div className="flex items-center justify-between gap-3">
+                    <div className="min-w-0 flex-1">
                         <h2 className="font-semibold text-ink">WhatsApp</h2>
                         <p className="text-xs text-ink-muted">Pilih driver, isi konfigurasinya, lalu tes koneksi.</p>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex shrink-0 items-center gap-2">
                         <button
                             type="button"
                             onClick={() => setOpenWa((v) => !v)}
                             className={`badge cursor-pointer transition-colors ${
-                                meta.whatsapp_configured
-                                    ? 'bg-emerald-500/15 text-emerald-600 hover:bg-emerald-500/25 dark:text-emerald-400'
-                                    : 'bg-red-500/15 text-red-600 hover:bg-red-500/25 dark:text-red-400'
+                                !meta.whatsapp_configured
+                                    ? 'bg-red-500/15 text-red-600 hover:bg-red-500/25 dark:text-red-400'
+                                    : form.notif_wa_enabled
+                                      ? 'bg-emerald-500/15 text-emerald-600 hover:bg-emerald-500/25 dark:text-emerald-400'
+                                      : 'bg-amber-500/15 text-amber-600 hover:bg-amber-500/25 dark:text-amber-400'
                             }`}
                         >
                             <Icon name="chevron-down" size={12} className={`transition-transform ${openWa ? 'rotate-180' : ''}`} />
-                            {meta.whatsapp_configured ? 'Terkonfigurasi' : 'Belum Dikonfigurasi'}
+                            {!meta.whatsapp_configured ? 'Belum Dikonfigurasi' : form.notif_wa_enabled ? 'Aktif' : 'Nonaktif'}
                         </button>
                     </div>
                 </div>
@@ -597,23 +605,79 @@ export default function IntegrasiTab({
             </div>
 
             <div className="card w-full p-6">
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                    <div>
+                <div className="flex items-center justify-between gap-3">
+                    <div className="min-w-0 flex-1">
+                        <h2 className="font-semibold text-ink">Webhook</h2>
+                        <p className="text-xs text-ink-muted">Kirim notifikasi event ke URL eksternal (satu URL per baris).</p>
+                    </div>
+                    <div className="flex shrink-0 items-center gap-2">
+                        <button
+                            type="button"
+                            onClick={() => setOpenWebhook((v) => !v)}
+                            className={`badge cursor-pointer transition-colors ${
+                                !webhookConfigured
+                                    ? 'bg-red-500/15 text-red-600 hover:bg-red-500/25 dark:text-red-400'
+                                    : webhookEnabled
+                                      ? 'bg-emerald-500/15 text-emerald-600 hover:bg-emerald-500/25 dark:text-emerald-400'
+                                      : 'bg-amber-500/15 text-amber-600 hover:bg-amber-500/25 dark:text-amber-400'
+                            }`}
+                        >
+                            <Icon name="chevron-down" size={12} className={`transition-transform ${openWebhook ? 'rotate-180' : ''}`} />
+                            {!webhookConfigured ? 'Belum Dikonfigurasi' : webhookEnabled ? 'Aktif' : 'Nonaktif'}
+                        </button>
+                    </div>
+                </div>
+
+                {webhookConfigured && (
+                    <div className="mt-4 border-b border-line pb-4">
+                        <Toggle
+                            checked={webhookEnabled}
+                            onChange={(v) => toggleWebhookChannel(v)}
+                            label="Aktifkan integrasi webhook"
+                            desc={webhookEnabled
+                                ? 'Integrasi aktif — event terpilih dikirim ke URL webhook.'
+                                : 'Integrasi nonaktif. Konfigurasi tetap tersimpan.'}
+                        />
+                    </div>
+                )}
+
+                {openWebhook && (
+                    <div className="mt-5">
+                        <Field label="URL Webhook" hint="Satu URL per baris. Hanya http/https ke alamat publik (IP internal diblokir demi keamanan)." error={errors.webhook_urls?.[0]}>
+                            <textarea className="input min-h-[180px] font-mono text-xs" placeholder={'https://example.com/hooks/imager\nhttps://hook.site/...'} value={form.webhook_urls || ''} onChange={(e) => set('webhook_urls', e.target.value)} />
+                        </Field>
+                        <div className="mt-6 flex flex-wrap justify-end gap-2 border-t border-line pt-5">
+                            <Button variant="outline" icon="send" loading={testingWebhook} disabled={!webhookConfigured} onClick={testWebhook}>
+                                Tes Koneksi
+                            </Button>
+                            <Button icon="check" loading={saving} disabled={!dirty(['webhook_urls'])} onClick={() => save(['webhook_urls', 'notif_webhook_enabled'])}>
+                                Simpan Webhook
+                            </Button>
+                        </div>
+                    </div>
+                )}
+            </div>
+
+            <div className="card w-full p-6">
+                <div className="flex items-center justify-between gap-3">
+                    <div className="min-w-0 flex-1">
                         <h2 className="font-semibold text-ink">Payment Gateway (TriPay)</h2>
                         <p className="text-xs text-ink-muted">Terima pembayaran otomatis via channel TriPay.</p>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex shrink-0 items-center gap-2">
                         <button
                             type="button"
                             onClick={() => setOpenTripay((v) => !v)}
                             className={`badge cursor-pointer transition-colors ${
-                                tripayConfigured
-                                    ? 'bg-emerald-500/15 text-emerald-600 hover:bg-emerald-500/25 dark:text-emerald-400'
-                                    : 'bg-red-500/15 text-red-600 hover:bg-red-500/25 dark:text-red-400'
+                                !tripayConfigured
+                                    ? 'bg-red-500/15 text-red-600 hover:bg-red-500/25 dark:text-red-400'
+                                    : form.payment_gateway_enabled
+                                      ? 'bg-emerald-500/15 text-emerald-600 hover:bg-emerald-500/25 dark:text-emerald-400'
+                                      : 'bg-amber-500/15 text-amber-600 hover:bg-amber-500/25 dark:text-amber-400'
                             }`}
                         >
                             <Icon name="chevron-down" size={12} className={`transition-transform ${openTripay ? 'rotate-180' : ''}`} />
-                            {tripayConfigured ? 'Terkonfigurasi' : 'Belum Dikonfigurasi'}
+                            {!tripayConfigured ? 'Belum Dikonfigurasi' : form.payment_gateway_enabled ? 'Aktif' : 'Nonaktif'}
                         </button>
                     </div>
                 </div>
@@ -681,23 +745,25 @@ export default function IntegrasiTab({
             </div>
 
             <div className="card w-full p-6">
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                    <div>
+                <div className="flex items-center justify-between gap-3">
+                    <div className="min-w-0 flex-1">
                         <h2 className="font-semibold text-ink">Masuk dengan Google</h2>
                         <p className="text-xs text-ink-muted">Izinkan admin masuk lewat akun Google.</p>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex shrink-0 items-center gap-2">
                         <button
                             type="button"
                             onClick={() => setOpenGoogle((v) => !v)}
                             className={`badge cursor-pointer transition-colors ${
-                                googleConfigured
-                                    ? 'bg-emerald-500/15 text-emerald-600 hover:bg-emerald-500/25 dark:text-emerald-400'
-                                    : 'bg-red-500/15 text-red-600 hover:bg-red-500/25 dark:text-red-400'
+                                !googleConfigured
+                                    ? 'bg-red-500/15 text-red-600 hover:bg-red-500/25 dark:text-red-400'
+                                    : form.google_auth_enabled
+                                      ? 'bg-emerald-500/15 text-emerald-600 hover:bg-emerald-500/25 dark:text-emerald-400'
+                                      : 'bg-amber-500/15 text-amber-600 hover:bg-amber-500/25 dark:text-amber-400'
                             }`}
                         >
                             <Icon name="chevron-down" size={12} className={`transition-transform ${openGoogle ? 'rotate-180' : ''}`} />
-                            {googleConfigured ? 'Terkonfigurasi' : 'Belum Dikonfigurasi'}
+                            {!googleConfigured ? 'Belum Dikonfigurasi' : form.google_auth_enabled ? 'Aktif' : 'Nonaktif'}
                         </button>
                     </div>
                 </div>

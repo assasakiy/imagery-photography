@@ -14,7 +14,16 @@ class AuditLogController extends Controller
     {
         $query = AuditLog::with(['user' => fn ($q) => $q->withTrashed()])->latest('id');
 
-        if ($request->filled('action')) {
+        $categories = $request->input('categories');
+        if (is_array($categories) && count($categories) > 0) {
+            $query->where(function ($q) use ($categories) {
+                foreach ($categories as $c) {
+                    $q->orWhere('action', 'like', $c . '.%');
+                }
+            });
+        } elseif ($request->filled('category')) {
+            $query->where('action', 'like', $request->input('category') . '.%');
+        } elseif ($request->filled('action')) {
             $query->where('action', $request->input('action'));
         }
 

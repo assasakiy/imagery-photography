@@ -1,12 +1,13 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../../../api';
 import Icon from '../../../components/Icon';
 import MediaPicker from '../../../components/MediaPicker';
 import RichEditor from '../../../components/RichEditor';
-import { PageHeader, Field, useToast } from '../../../components/ui';
+import { PageHeader, Field, ButtonSpinner, useToast } from '../../../components/ui';
 import { normalizeBlogSections, normalizeGallerySections, normalizeSections } from './sections/normalize';
 import BlogGallerySections from './sections/BlogGallerySections';
+import BookingSections from './sections/BookingSections';
 import FaqSections from './sections/FaqSections';
 import HeroSection from './sections/HeroSection';
 import HomeSections from './sections/HomeSections';
@@ -22,27 +23,41 @@ export default function Editor() {
     const [errors, setErrors] = useState({});
     const [saving, setSaving] = useState(false);
     const [mediaOpenFor, setMediaOpenFor] = useState(null);
+    const [dirty, setDirty] = useState(false);
+    const cleanSnapshotRef = useRef(null);
+
+    const serializeForm = (f) =>
+        JSON.stringify(f, (k, v) => (v instanceof File ? { __file: v.name, size: v.size, mtime: v.lastModified } : v));
+
+    useEffect(() => {
+        if (cleanSnapshotRef.current === null) return;
+        setDirty(serializeForm(form) !== cleanSnapshotRef.current);
+    }, [form]);
     const [options, setOptions] = useState(null);
     const [blogCounts, setBlogCounts] = useState(null);
     const { show, node } = useToast();
 
     const updateSection = (sectionType, field, val) => {
-        const newSections = { ...form.sections };
-        if (!newSections[sectionType]) newSections[sectionType] = { type: sectionType };
-        newSections[sectionType] = { ...newSections[sectionType], [field]: val };
-        setForm({ ...form, sections: newSections });
+        setForm((prev) => {
+            const newSections = { ...prev.sections };
+            if (!newSections[sectionType]) newSections[sectionType] = { type: sectionType };
+            newSections[sectionType] = { ...newSections[sectionType], [field]: val };
+            return { ...prev, sections: newSections };
+        });
     };
 
     const updateSectionMode = (sectionType, mode) => {
-        const newSections = { ...form.sections };
-        if (!newSections[sectionType]) newSections[sectionType] = { type: sectionType };
-        newSections[sectionType] = {
-            ...newSections[sectionType],
-            mode,
-            items: mode === 'ids' ? (newSections[sectionType].items || []) : [],
-            categories: mode === 'category' ? (newSections[sectionType].categories || []) : [],
-        };
-        setForm({ ...form, sections: newSections });
+        setForm((prev) => {
+            const newSections = { ...prev.sections };
+            if (!newSections[sectionType]) newSections[sectionType] = { type: sectionType };
+            newSections[sectionType] = {
+                ...newSections[sectionType],
+                mode,
+                items: mode === 'ids' ? (newSections[sectionType].items || []) : [],
+                categories: mode === 'category' ? (newSections[sectionType].categories || []) : [],
+            };
+            return { ...prev, sections: newSections };
+        });
     };
 
     const reviewIdsFor = (criteria) => (options?.reviews || []).filter((r) => criteria(r.rating)).map((r) => r.id);
@@ -166,6 +181,10 @@ export default function Editor() {
                     initialForm.sections = normalizeSections(data.sections);
                 }
 
+                if (data.slug === 'booking') {
+                    initialForm.sections = normalizeSections(data.sections);
+                }
+
                 if (data.slug === 'contact') {
                     const sec = normalizeSections(data.sections).kontak || {};
                     const rawSocials = sec.socials || {};
@@ -190,6 +209,7 @@ export default function Editor() {
                         .catch(() => setBlogCounts(null));
                 }
 
+                cleanSnapshotRef.current = serializeForm(initialForm);
                 setForm(initialForm);
             })
             .catch(() => {
@@ -322,6 +342,10 @@ export default function Editor() {
                     payload.sections = form.sections;
                 }
 
+                if (form.slug === 'booking') {
+                    payload.sections = form.sections;
+                }
+
                 if (form.slug === 'contact') {
                     const c = form.contact || {};
                     payload.sections = [{
@@ -356,6 +380,7 @@ export default function Editor() {
     const isGallery = form.slug === 'gallery';
     const isContact = form.slug === 'contact';
     const isServices = form.slug === 'services';
+    const isBooking = form.slug === 'booking';
     const isLegal = form.slug === 'privacy' || form.slug === 'terms';
 
     const renderImageUploader = (imageKey, label) => {
@@ -410,7 +435,9 @@ export default function Editor() {
 
                 {isServices && <LayananSections form={form} options={options} updateSection={updateSection} updateSectionMode={updateSectionMode} />}
 
-                {!isHome && !isBlog && !isGallery && !isTentang && !isFaqPage && !isContact && !isServices && (
+                {isBooking && <BookingSections form={form} options={options} updateSection={updateSection} updateSectionMode={updateSectionMode} />}
+
+                {!isHome && !isBlog && !isGallery && !isTentang && !isFaqPage && !isContact && !isServices && !isBooking && (
                     <div className="card p-5 space-y-4">
                         <Field label="Isi Konten Utama" error={errors.content?.[0]}>
                             <RichEditor variant="full" value={form.content || ''} onChange={val => setForm({ ...form, content: val })} minHeight={400} maxHeight={800} />
@@ -432,8 +459,17 @@ export default function Editor() {
                     </Field>
 
                     <div className="flex justify-end gap-3 pt-4 border-t border-line">
-                        <button type="button" className="btn-outline" onClick={() => navigate('/dashboard/pages')}>Kembali</button>
-                        <button type="submit" className="btn-primary" disabled={saving}>{saving ? 'Menyimpan...' : 'Simpan Perubahan'}</button>
+                        <button type="button" className="btn-outline inline-flex items-center gap-1.5" onClick={() => navigate('/dashboard/pages')}>
+                            <Icon name="arrow-left" size={16} /> Kembali
+                        </button>
+                        <button
+                            type="submit"
+                            className="btn-primary inline-flex items-center gap-2 disabled:opacity-50 disabled:pointer-events-none"
+                            disabled={!dirty || saving}
+                        >
+                            {saving ? <ButtonSpinner /> : <Icon name="check" size={16} />}
+                            Simpan Perubahan
+                        </button>
                     </div>
                 </div>
             </form>

@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Setting;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 
 class RuntimeSettings
 {
@@ -191,9 +192,74 @@ class RuntimeSettings
             return [];
         }
 
-        $urls = array_filter(array_map('trim', explode(',', $value)));
+        // Dipisah per baris atau koma (mendukung teksarea UI & nilai lama).
+        $raw = preg_split('/[\r\n,]+/', $value) ?: [];
+
+        $urls = [];
+
+        foreach ($raw as $candidate) {
+            $candidate = trim($candidate);
+
+            if ($candidate === '' || !$this->isSafeWebhookUrl($candidate)) {
+                Log::warning('Webhook URL ditolak karena tidak lolos validasi keamanan: ' . $candidate);
+                continue;
+            }
+
+            $urls[] = $candidate;
+        }
 
         return array_values($urls);
+    }
+
+    /**
+     * Anti-SSRF: hanya http/https, dan menolak host/IP privat, loopback,
+     * link-local, serta alamat reserved (termasuk hasil resolve DNS).
+     * Catatan: gethostbyname hanya menangani rekaman IPv4; target IPv6-only
+     * internal tidak ter-resolve di sini (bukan risiko karena koneksi akan gagal).
+     */
+    public function isSafeWebhookUrl(string $url): bool
+    {
+        if (!filter_var($url, FILTER_VALIDATE_URL)) {
+            return false;
+        }
+
+        $scheme = strtolower((string) parse_url($url, PHP_URL_SCHEME));
+        if (!in_array($scheme, ['http', 'https'], true)) {
+            return false;
+        }
+
+        $host = (string) parse_url($url, PHP_URL_HOST);
+        if ($host === '') {
+            return false;
+        }
+
+        // Strip bracket IPv6 literal (http://[::1]/).
+        $host = trim($host, '[]');
+
+        if (strcasecmp($host, 'localhost') === 0 || str_ends_with(strtolower($host), '.localhost')) {
+            return false;
+        }
+
+        if (filter_var($host, FILTER_VALIDATE_IP)) {
+            return $this->isPublicIp($host);
+        }
+
+        // Resolve DNS ke IP publik saja.
+        $resolved = gethostbyname($host);
+        if ($resolved !== $host) {
+            return $this->isPublicIp($resolved);
+        }
+
+        return true;
+    }
+
+    private function isPublicIp(string $ip): bool
+    {
+        return filter_var(
+            $ip,
+            FILTER_VALIDATE_IP,
+            FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE | FILTER_FLAG_IPV4
+        ) !== false;
     }
 
     public function brandColor(): string

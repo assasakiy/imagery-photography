@@ -72,28 +72,27 @@ class ContactController extends Controller
         $popularLimit = min(6, max(1, (int) ($populer['popular_limit'] ?? 3)));
         $featuredLimit = min(6, max(1, (int) ($populer['featured_limit'] ?? 3)));
 
-        $highlightPackages = collect();
-        if ($usePopular) {
-            $highlightPackages = $highlightPackages->merge($allPackages->where('is_popular', true)->values()->take($popularLimit));
-        }
-        if ($useFeatured) {
-            $highlightPackages = $highlightPackages->merge($allPackages->where('is_featured', true)->values()->take($featuredLimit));
-        }
-        $highlightPackages = $highlightPackages->unique('id')->values();
+        $popularPackages = $usePopular ? $allPackages->where('is_popular', true)->values()->take($popularLimit) : collect();
+        $featuredPackages = $useFeatured ? $allPackages->where('is_featured', true)->values()->take($featuredLimit) : collect();
+        $highlightPackages = $popularPackages->concat($featuredPackages)->unique('id')->values();
 
         // Section Satuan
         $satuan = $sections->get('layanan_satuan') ?: [];
         $satuanTitle = trim((string) ($satuan['title'] ?? '')) !== '' ? $satuan['title'] : 'Paket Satuan';
         $satuanSubtitle = trim((string) ($satuan['subtitle'] ?? '')) !== '' ? $satuan['subtitle'] : 'Satuan';
+        $satuanMode = $satuan['mode'] ?? null;
         $satuanIds = array_values(array_filter((array) ($satuan['items'] ?? []), 'is_numeric'));
-        $satuanServices = count($satuanIds) > 0 ? $allServices->whereIn('id', $satuanIds)->values() : $allServices;
+        $useSatuanIds = $satuanMode === 'ids' || ($satuanMode === null && count($satuanIds) > 0);
+        $satuanServices = $useSatuanIds && count($satuanIds) > 0 ? $allServices->whereIn('id', $satuanIds)->values() : $allServices;
 
         // Section Premium (bundling)
         $premium = $sections->get('layanan_premium') ?: [];
         $premiumTitle = trim((string) ($premium['title'] ?? '')) !== '' ? $premium['title'] : 'Paket Premium';
         $premiumSubtitle = trim((string) ($premium['subtitle'] ?? '')) !== '' ? $premium['subtitle'] : 'Premium';
+        $premiumMode = $premium['mode'] ?? null;
         $premiumIds = array_values(array_filter((array) ($premium['items'] ?? []), 'is_numeric'));
-        $premiumPackages = count($premiumIds) > 0
+        $usePremiumIds = $premiumMode === 'ids' || ($premiumMode === null && count($premiumIds) > 0);
+        $premiumPackages = $usePremiumIds && count($premiumIds) > 0
             ? $allPackages->where('type', 'bundling')->whereIn('id', $premiumIds)->values()
             : $allPackages->where('type', 'bundling')->values();
 
@@ -101,8 +100,10 @@ class ContactController extends Controller
         $ultimate = $sections->get('layanan_ultimate') ?: [];
         $ultimateTitle = trim((string) ($ultimate['title'] ?? '')) !== '' ? $ultimate['title'] : 'Paket Ultimate';
         $ultimateSubtitle = trim((string) ($ultimate['subtitle'] ?? '')) !== '' ? $ultimate['subtitle'] : 'Ultimate';
+        $ultimateMode = $ultimate['mode'] ?? null;
         $ultimateIds = array_values(array_filter((array) ($ultimate['items'] ?? []), 'is_numeric'));
-        $ultimatePackages = count($ultimateIds) > 0
+        $useUltimateIds = $ultimateMode === 'ids' || ($ultimateMode === null && count($ultimateIds) > 0);
+        $ultimatePackages = $useUltimateIds && count($ultimateIds) > 0
             ? $allPackages->where('type', 'combo')->whereIn('id', $ultimateIds)->values()
             : $allPackages->where('type', 'combo')->values();
 
@@ -133,6 +134,10 @@ class ContactController extends Controller
             'highlightSubtitle',
             'highlightTitle',
             'highlightPackages',
+            'usePopular',
+            'useFeatured',
+            'popularPackages',
+            'featuredPackages',
             'satuanSubtitle',
             'satuanTitle',
             'satuanServices',
