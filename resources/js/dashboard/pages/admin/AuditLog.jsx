@@ -157,7 +157,7 @@ export default function AuditLog() {
         };
 
         return (
-            <div className="relative w-full md:max-w-md">
+            <div className="relative ml-auto w-full md:w-auto">
                 <button
                     type="button"
                     onClick={() => setOpen((v) => !v)}
@@ -237,7 +237,7 @@ export default function AuditLog() {
                         onChange={(e) => setQ(e.target.value)}
                     />
                 </div>
-                <div className="ml-auto flex w-full min-w-0 flex-1 flex-wrap items-center gap-1.5 md:ml-0">
+                <div className="ml-auto flex w-full flex-wrap items-center gap-1.5 md:w-auto">
                     {view === 'login' ? (
                         <FilterDropdown
                             title="Status Login"
