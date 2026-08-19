@@ -157,7 +157,7 @@ export default function AuditLog() {
         };
 
         return (
-            <div className="relative w-full md:w-auto">
+            <div className="relative w-full md:max-w-md">
                 <button
                     type="button"
                     onClick={() => setOpen((v) => !v)}
@@ -228,7 +228,7 @@ export default function AuditLog() {
             </div>
 
             <div className="mb-4 flex flex-wrap items-center gap-y-2 gap-x-1.5">
-                <div className="relative w-full min-w-[200px] flex-1 md:w-96 md:flex-none">
+                <div className="relative w-full md:w-96">
                     <Icon name="search" size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" />
                     <input
                         className="input pl-9"
@@ -237,7 +237,7 @@ export default function AuditLog() {
                         onChange={(e) => setQ(e.target.value)}
                     />
                 </div>
-                <div className="ml-auto flex w-full flex-wrap items-center gap-1.5 md:w-auto">
+                <div className="ml-auto flex w-full min-w-0 flex-1 flex-wrap items-center gap-1.5 md:ml-0">
                     {view === 'login' ? (
                         <FilterDropdown
                             title="Status Login"
