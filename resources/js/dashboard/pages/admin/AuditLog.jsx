@@ -78,7 +78,7 @@ export default function AuditLog() {
     const [meta, setMeta] = useState({});
     const [actions, setActions] = useState([]);
     const [action, setAction] = useState('');
-    const [categorySel, setCategorySel] = useState([]);
+    const [categorySel, setCategorySel] = useState('');
     const [status, setStatus] = useState('');
     const [q, setQ] = useState('');
     const [debouncedQ, setDebouncedQ] = useState('');
@@ -103,7 +103,7 @@ export default function AuditLog() {
             if (action) params.purpose = action;
             if (status) params.status = status;
         } else {
-            if (categorySel.length) params.categories = categorySel;
+            if (categorySel) params.category = categorySel;
         }
         if (debouncedQ) params.q = debouncedQ;
 
@@ -124,7 +124,7 @@ export default function AuditLog() {
         setView(v);
         setStatus('');
         setAction('');
-        setCategorySel([]);
+        setCategorySel('');
         setQ('');
         setItems([]);
     };
@@ -271,7 +271,6 @@ export default function AuditLog() {
                         <FilterDropdown
                             title="Filter Kategori"
                             icon="file"
-                            multi
                             value={categorySel}
                             onChange={setCategorySel}
                             options={categories.map((c) => ({ key: c, label: c, icon: CATEGORY_ICONS[c] }))}
