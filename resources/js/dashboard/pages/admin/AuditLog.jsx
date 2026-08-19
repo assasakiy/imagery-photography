@@ -161,7 +161,7 @@ export default function AuditLog() {
                 <button
                     type="button"
                     onClick={() => setOpen((v) => !v)}
-                    className="input flex w-full min-w-[200px] items-center justify-between gap-2 px-3 text-sm"
+                    className="input flex w-full items-center justify-between gap-2 px-3 text-sm"
                 >
                     <span className="flex min-w-0 items-center gap-2">
                         <Icon name={icon} size={14} className="shrink-0 text-ink-muted" />
@@ -228,7 +228,16 @@ export default function AuditLog() {
             </div>
 
             <div className="mb-4 flex flex-wrap items-center gap-y-2 gap-x-1.5">
-                <div className="flex flex-wrap items-center gap-1.5">
+                <div className="relative w-full min-w-[200px] flex-1 sm:w-96 sm:flex-none">
+                    <Icon name="search" size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" />
+                    <input
+                        className="input pl-9"
+                        placeholder="Cari nama / email / IP / aksi…"
+                        value={q}
+                        onChange={(e) => setQ(e.target.value)}
+                    />
+                </div>
+                <div className="ml-auto flex w-full flex-wrap items-center gap-1.5 sm:w-auto">
                     {view === 'login' ? (
                         <FilterDropdown
                             title="Status Login"
@@ -268,15 +277,6 @@ export default function AuditLog() {
                             options={categories.map((c) => ({ key: c, label: c, icon: CATEGORY_ICONS[c] }))}
                         />
                     )}
-                </div>
-                <div className="relative ml-auto w-full min-w-[200px] flex-1 sm:w-96 sm:flex-none">
-                    <Icon name="search" size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" />
-                    <input
-                        className="input pl-9"
-                        placeholder="Cari nama / email / IP / aksi…"
-                        value={q}
-                        onChange={(e) => setQ(e.target.value)}
-                    />
                 </div>
             </div>
 
