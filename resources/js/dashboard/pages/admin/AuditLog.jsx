@@ -171,7 +171,7 @@ export default function AuditLog() {
                     <Icon name="chevron-down" size={14} className={`shrink-0 text-ink-muted transition-transform ${open ? 'rotate-180' : ''}`} />
                 </button>
                 {open && (
-                    <div className="absolute z-30 mt-1.5 max-h-64 min-w-[240px] overflow-y-auto rounded-xl border border-line bg-surface p-1.5 shadow-xl md:right-0 md:max-w-none max-w-[calc(100vw-2rem)]">
+                    <div className="absolute left-0 top-full z-30 mt-1.5 max-h-64 w-full overflow-y-auto rounded-xl border border-line bg-surface p-1.5 shadow-xl">
                         <button
                             type="button"
                             onClick={() => { onChange(multi ? [] : ''); setOpen(false); }}
