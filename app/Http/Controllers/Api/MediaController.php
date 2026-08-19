@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Services\AuditLogger;
-use App\Models\Blog;
 use App\Models\MediaLibrary;
 use Illuminate\Http\Request;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
@@ -13,20 +12,14 @@ class MediaController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Media::query()->where('model_type', '!=', \App\Models\Project::class);
+        // Hanya media milik Library (hasil upload/impor sendiri), bukan copy
+        // yang menjadi milik Blog/Portofolio/aset situs, agar tidak terlihat duplikat.
+        $query = Media::query()->where('model_type', MediaLibrary::class);
 
         // Visibilitas: milik sendiri ATAU ditandai publik.
         $query->where(fn ($w) => $w
             ->where('uploaded_by', $request->user()->id)
             ->orWhere('is_public', true));
-
-        // Filter cerdas: sembunyikan media milik Blog yang sudah soft-deleted (anti gambar "zombie").
-        $trashedIds = Blog::onlyTrashed()->pluck('id');
-        if ($trashedIds->isNotEmpty()) {
-            $query->whereNot(function ($w) use ($trashedIds) {
-                $w->where('model_type', Blog::class)->whereIn('model_id', $trashedIds);
-            });
-        }
 
         if ($request->filled('type')) {
             match ($request->input('type')) {
