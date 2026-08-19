@@ -157,7 +157,7 @@ export default function AuditLog() {
         };
 
         return (
-            <div className="relative w-full sm:w-auto">
+            <div className="relative w-full md:w-auto">
                 <button
                     type="button"
                     onClick={() => setOpen((v) => !v)}
@@ -171,7 +171,7 @@ export default function AuditLog() {
                     <Icon name="chevron-down" size={14} className={`shrink-0 text-ink-muted transition-transform ${open ? 'rotate-180' : ''}`} />
                 </button>
                 {open && (
-                    <div className="absolute z-30 mt-1.5 max-h-64 min-w-[240px] overflow-y-auto rounded-xl border border-line bg-surface p-1.5 shadow-xl sm:right-0 sm:max-w-none max-w-[calc(100vw-2rem)]">
+                    <div className="absolute z-30 mt-1.5 max-h-64 min-w-[240px] overflow-y-auto rounded-xl border border-line bg-surface p-1.5 shadow-xl md:right-0 md:max-w-none max-w-[calc(100vw-2rem)]">
                         <button
                             type="button"
                             onClick={() => { onChange(multi ? [] : ''); setOpen(false); }}
@@ -228,7 +228,7 @@ export default function AuditLog() {
             </div>
 
             <div className="mb-4 flex flex-wrap items-center gap-y-2 gap-x-1.5">
-                <div className="relative w-full min-w-[200px] flex-1 sm:w-96 sm:flex-none">
+                <div className="relative w-full min-w-[200px] flex-1 md:w-96 md:flex-none">
                     <Icon name="search" size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" />
                     <input
                         className="input pl-9"
@@ -237,7 +237,7 @@ export default function AuditLog() {
                         onChange={(e) => setQ(e.target.value)}
                     />
                 </div>
-                <div className="ml-auto flex w-full flex-wrap items-center gap-1.5 sm:w-auto">
+                <div className="ml-auto flex w-full flex-wrap items-center gap-1.5 md:w-auto">
                     {view === 'login' ? (
                         <FilterDropdown
                             title="Status Login"
