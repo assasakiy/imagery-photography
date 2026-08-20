@@ -220,6 +220,59 @@ export default function SecurityTab({ form, meta, errors, saving, set, save, dir
                     </Button>
                 </div>
             </div>
+
+            <div className="card w-full p-6">
+                <div className="mb-5">
+                    <h2 className="font-semibold text-ink">Analisis Kunjungan</h2>
+                    <p className="text-xs text-ink-muted">Catat page view pengunjung situs publik untuk dashboard Analitik.</p>
+                </div>
+                <div className="space-y-5">
+                    <Toggle
+                        label="Aktifkan analitik"
+                        desc="Tracking hanya berjalan setelah pengunjung mengizinkan cookie analitik (patuh UU Perlindungan Data Pribadi). IP di-hash dan tidak disimpan dalam bentuk asli."
+                        checked={!!form.analytics_enabled}
+                        onChange={(v) => set('analytics_enabled', v)}
+                    />
+                    <p className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${statusBadge(!!form.analytics_enabled, 'Aktif', 'Nonaktif')}`}>
+                        {form.analytics_enabled ? 'Analitik aktif' : 'Analitik nonaktif'}
+                    </p>
+                </div>
+                <div className="mt-6 flex justify-end border-t border-line pt-5">
+                    <Button icon="check" loading={saving} disabled={!dirty(TAB_FIELDS.security_analytics)} onClick={() => save(TAB_FIELDS.security_analytics)}>
+                        Simpan Analitik
+                    </Button>
+                </div>
+            </div>
+
+            <div className="card w-full p-6">
+                <div className="mb-5">
+                    <h2 className="font-semibold text-ink">Banner Preferensi Cookie</h2>
+                    <p className="text-xs text-ink-muted">Tampilkan banner consent cookie di situs publik (opsi: terima semua / tolak / kustom).</p>
+                </div>
+                <div className="space-y-5">
+                    <Toggle
+                        label="Tampilkan banner cookie"
+                        desc="Teks ini ditampilkan di bawah banner consent sebelum pengunjung memilih."
+                        checked={!!form.cookie_banner_enabled}
+                        onChange={(v) => set('cookie_banner_enabled', v)}
+                    />
+                    <Field label="Teks Banner">
+                        <textarea
+                            className="input w-full resize-none disabled:opacity-50"
+                            rows={3}
+                            value={form.cookie_banner_message || ''}
+                            disabled={!form.cookie_banner_enabled}
+                            onChange={(e) => set('cookie_banner_message', e.target.value)}
+                            placeholder="Pesan untuk pengunjung tentang penggunaan cookie..."
+                        />
+                    </Field>
+                </div>
+                <div className="mt-6 flex justify-end border-t border-line pt-5">
+                    <Button icon="check" loading={saving} disabled={!dirty(TAB_FIELDS.security_cookie)} onClick={() => save(TAB_FIELDS.security_cookie)}>
+                        Simpan Banner Cookie
+                    </Button>
+                </div>
+            </div>
         </div>
     );
 }

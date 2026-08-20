@@ -23,7 +23,6 @@ export const TABS = [
     { key: 'integrasi', label: 'Integrasi', icon: 'link' },
     { key: 'pembayaran', label: 'Pembayaran', icon: 'credit-card' },
     { key: 'notifications', label: 'Notifikasi', icon: 'bell' },
-    { key: 'analytics', label: 'Analitik', icon: 'trending-up' },
     { key: 'security', label: 'Keamanan', icon: 'lock' },
     { key: 'maintenance', label: 'Pemeliharaan', icon: 'zap' },
 ];
@@ -42,8 +41,9 @@ export const TAB_FIELDS = {
     notifications: ['notif_email_enabled', 'notif_wa_enabled'],
     security_login: ['login_remember_enabled', 'login_remember_days', 'login_methods_global'],
     security_file: ['file_retention_days', 'invite_expiry_hours', 'preview_expiry_days', 'archive_delay_days'],
+    security_analytics: ['analytics_enabled'],
+    security_cookie: ['cookie_banner_enabled', 'cookie_banner_message'],
     maintenance: ['maintenance_enabled', 'maintenance_message'],
-    analytics: ['analytics_enabled', 'cookie_banner_enabled', 'cookie_banner_message'],
 };
 
 export const SMTP_FIELDS = ['mail_host', 'mail_port', 'mail_username', 'mail_password', 'mail_from_address', 'mail_from_name'];
