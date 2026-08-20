@@ -9,15 +9,16 @@ function NotifCard({ channel, form, meta, toggleEvent, open, setOpen }) {
     const label = isEmail ? 'Email' : 'WhatsApp';
     const active = isEnabled && (events || []).some((e) => !!e.enabled);
     const configured = isEmail ? meta.email_configured : meta.whatsapp_configured;
+    const canConfigure = isEnabled && configured;
 
     const badgeClass = !configured
         ? 'bg-red-500/15 text-red-600 hover:bg-red-500/25 dark:text-red-400'
-        : isEnabled
+        : canConfigure
             ? (active
                 ? 'bg-emerald-500/15 text-emerald-600 hover:bg-emerald-500/25 dark:text-emerald-400'
                 : 'bg-amber-500/15 text-amber-600 hover:bg-amber-500/25 dark:text-amber-400')
             : 'bg-amber-500/15 text-amber-600 hover:bg-amber-500/25 dark:text-amber-400';
-    const badgeLabel = !configured ? 'Belum Dikonfigurasi' : isEnabled ? (active ? 'Aktif' : 'Pasif') : 'Nonaktif';
+    const badgeLabel = !configured ? 'Belum Dikonfigurasi' : canConfigure ? (active ? 'Aktif' : 'Pasif') : 'Nonaktif';
 
     return (
         <div className="card w-full p-6">
@@ -44,12 +45,13 @@ function NotifCard({ channel, form, meta, toggleEvent, open, setOpen }) {
                 </div>
             </div>
 
-            {!isEnabled && (
+            {!canConfigure && (
                 <div className="mt-4 flex items-start gap-2 rounded-xl bg-amber-500/10 p-3 text-xs text-amber-600 dark:text-amber-400">
                     <Icon name="alert-triangle" size={16} className="mt-0.5 shrink-0" />
                     <p>
-                        Integrasi {isEmail ? 'Email' : 'WhatsApp'} sedang dinonaktifkan atau belum dikonfigurasi di tab Integrasi. 
-                        Event notifikasi di bawah tidak akan terkirim.
+                        {!configured
+                            ? `Integrasi ${isEmail ? 'Email' : 'WhatsApp'} belum dikonfigurasi di tab Integrasi. Konfigurasi terlebih dahulu lalu aktifkan untuk dapat mengatur event notifikasi di bawah.`
+                            : `Integrasi ${isEmail ? 'Email' : 'WhatsApp'} sedang nonaktif di tab Integrasi. Aktifkan terlebih dahulu untuk dapat mengatur event notifikasi di bawah.`}
                     </p>
                 </div>
             )}
@@ -70,7 +72,7 @@ function NotifCard({ channel, form, meta, toggleEvent, open, setOpen }) {
                             <Toggle
                                 size="sm"
                                 checked={!!ev.enabled}
-                                disabled={ev.mandatory || !isEnabled}
+                                disabled={ev.mandatory || !canConfigure}
                                 onChange={(v) => toggleEvent(channel, ev.key, v)}
                             />
                         </div>
