@@ -124,6 +124,47 @@ Repo siap untuk **Nixpacks** (auto-detect Laravel) atau Dockerfile. Catatan pent
 - Gunakan volume untuk `storage/app/public` (upload media).
 - `.env` diisi via UI Coolify (jangan commit `.env`).
 
+### Shared Hosting / cPanel (minimal, murah)
+
+Deployment paling ringan tanpa Nginx, Docker, maupun VPS — cukup file yang sudah ada di repo:
+
+- Letakkan semua file repo di docroot domain/subdomain (mis. `~/imagery`).
+- `.htaccess` (root) otomatis me-*rewrite* semua request ke `public/` **dan** memblokir akses file sensitif (`.env`, `vendor/`, `config/`, `composer.json`, `artisan`, dll → `403`).
+- `.user.ini` / `php.ini` mengatur error log cPanel.
+- `public/.htaccess` menaikkan limit PHP untuk upload media & image processing (`upload_max_filesize=64M`, `post_max_size=70M`, `memory_limit=512M`) via `lsapi_module`/`php8_module`.
+
+> **Penting:** docroot cPanel boleh menunjuk ke root repo (tidak harus `public/`) karena rewrite ditangani `.htaccess` root.
+
+Langkah sekali pakai setelah clone/deploy:
+
+```bash
+# 1. Dependensi
+composer install --no-dev --optimize-autoloader
+npm ci && npm run build
+
+# 2. Konfigurasi
+cp .env.example .env
+php artisan key:generate
+# isi kredensial DB cPanel di .env lalu:
+
+# 3. Database & media
+php artisan migrate --force
+php artisan db:seed --force
+php artisan storage:link
+php artisan media:import-covers     # impor cover default (perlu akses internet)
+php artisan media:watermark --fresh
+
+# 4. Scheduler & queue (cron cPanel, setiap menit)
+* * * * * cd /home/USER/DIR && /usr/local/bin/php artisan schedule:run >> /dev/null 2>&1
+* * * * * cd /home/USER/DIR && /usr/local/bin/php artisan queue:work --stop-when-empty --tries=3 --timeout=90 >> /home/USER/logs/queue.log 2>&1
+```
+
+Catatan untuk shared hosting:
+
+- `APP_DEBUG=false`, `APP_ENV=production`, `APP_URL=https://domain`.
+- Cache/session/queue: `database` (tidak butuh Redis) — sudah default di `.env.example`.
+- PHP CLI di cPanel biasanya `/usr/local/bin/php` (cek `which php`).
+
 ## Keamanan
 
 - `.env`, file storage, dan dump SQL di-ignore (jangan commit).

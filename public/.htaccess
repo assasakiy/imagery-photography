@@ -23,3 +23,19 @@
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteRule ^ index.php [L]
 </IfModule>
+
+# PHP resource limits untuk upload media & image processing
+<IfModule lsapi_module>
+    php_value upload_max_filesize 64M
+    php_value post_max_size 70M
+    php_value memory_limit 512M
+    php_value max_execution_time 300
+    php_value max_input_time 300
+</IfModule>
+<IfModule php8_module>
+    php_value upload_max_filesize 64M
+    php_value post_max_size 70M
+    php_value memory_limit 512M
+    php_value max_execution_time 300
+    php_value max_input_time 300
+</IfModule>
