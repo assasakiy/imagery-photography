@@ -51,6 +51,7 @@ export default function ProfileSettings() {
     const [saving, setSaving] = useState(false);
     const [tab, setTab] = useState('profile');
     const [errors, setErrors] = useState({});
+    const [baseline, setBaseline] = useState(null);
 
     const [profile, setProfile] = useState({ name: '', email: '', phone: '', bio: '' });
     const [socials, setSocials] = useState([]);
@@ -104,7 +105,7 @@ export default function ProfileSettings() {
         api.get('/profile')
             .then(({ data }) => {
                 const u = data.user;
-                setProfile({ full_name: u.name, username: u.username || '', email: u.email, phone: u.phone || '', bio: u.bio || '', company: u.company || '', occupation: u.occupation || '', website: u.website || '' });
+                const profileLoaded = { full_name: u.name, username: u.username || '', email: u.email, phone: u.phone || '', bio: u.bio || '', company: u.company || '', occupation: u.occupation || '', website: u.website || '' };
                 const socialList = Array.isArray(u.socials) && u.socials.length > 0
                     ? u.socials.map((s) => ({ slug: s.slug, url: s.url || '' }))
                     : [
@@ -113,16 +114,26 @@ export default function ProfileSettings() {
                         { slug: 'tiktok', url: u.social_tiktok || '' },
                         { slug: 'whatsapp', url: u.social_whatsapp || '' },
                     ].filter((s) => s.url);
-                setSocials(socialList);
-                setPrefs({ notif_inapp: u.notif_inapp !== false, notif_email: u.notif_email !== false, notif_whatsapp: u.notif_whatsapp !== false });
-                const rawEvents = u.notif_events;
-                setNotifEvents(Array.isArray(rawEvents) || !rawEvents || typeof rawEvents !== 'object'
+                const prefsLoaded = { notif_inapp: u.notif_inapp !== false, notif_email: u.notif_email !== false, notif_whatsapp: u.notif_whatsapp !== false };
+                const eventsLoaded = Array.isArray(u.notif_events) || !u.notif_events || typeof u.notif_events !== 'object'
                     ? { email: [], whatsapp: [] }
-                    : { email: rawEvents.email || [], whatsapp: rawEvents.whatsapp || [] });
-                setOtpChannel(u.notif_otp_channel || '');
+                    : { email: u.notif_events.email || [], whatsapp: u.notif_events.whatsapp || [] };
+                const otpLoaded = u.notif_otp_channel || '';
+                setProfile(profileLoaded);
+                setSocials(socialList);
+                setPrefs(prefsLoaded);
+                setNotifEvents(eventsLoaded);
+                setOtpChannel(otpLoaded);
                 setNotifMeta(u.notif || {});
                 setAvatarUrl(u.avatar || null);
                 setCoverUrl(u.cover || null);
+                setBaseline({
+                    profile: profileLoaded,
+                    socials: socialList.map((s) => ({ slug: s.slug, url: s.url || '' })),
+                    prefs: prefsLoaded,
+                    notifEvents: { email: eventsLoaded.email.slice(), whatsapp: eventsLoaded.whatsapp.slice() },
+                    otpChannel: otpLoaded,
+                });
             })
             .finally(() => setLoading(false));
     }, []);
@@ -146,16 +157,26 @@ export default function ProfileSettings() {
         }
     };
 
+    const sameSocials = (a, b) => {
+        const norm = (l) => (l || []).filter((s) => s.url).map((s) => `${s.slug}:${s.url}`).sort().join('|');
+        return norm(a) === norm(b);
+    };
+
     const saveProfile = async (e) => {
         e.preventDefault();
         const payload = { ...profile };
         if (avatarValue !== undefined) payload.avatar = avatarValue;
-        await save(payload, 'Profil diperbarui.');
+        const ok = await save(payload, 'Profil diperbarui.');
+        if (ok) {
+            setAvatarValue(undefined);
+            setBaseline((b) => ({ ...b, profile: { ...profile } }));
+        }
     };
 
     const saveSocials = async (e) => {
         e.preventDefault();
-        await save({ socials }, 'Media sosial diperbarui.');
+        const ok = await save({ socials }, 'Media sosial diperbarui.');
+        if (ok) setBaseline((b) => ({ ...b, socials: socials.map((s) => ({ slug: s.slug, url: s.url || '' })) }));
     };
 
     const savePassword = async (e) => {
@@ -185,6 +206,12 @@ export default function ProfileSettings() {
         if (otpChannel) payload.notif_otp_channel = otpChannel;
         const ok = await save(payload, 'Preferensi notifikasi diperbarui.');
         if (ok) {
+            setBaseline((b) => ({
+                ...b,
+                prefs: { ...prefs },
+                notifEvents: { email: (notifEvents.email || []).slice(), whatsapp: (notifEvents.whatsapp || []).slice() },
+                otpChannel,
+            }));
             const { data } = await api.get('/profile');
             setNotifMeta(data.user.notif || {});
         }
@@ -303,6 +330,15 @@ export default function ProfileSettings() {
     const initials = (profile.full_name || '?').charAt(0).toUpperCase();
     const emailActive = !!notifMeta.email_configured && notifMeta.email_enabled !== false;
     const waActive = !!notifMeta.whatsapp_configured && notifMeta.whatsapp_enabled !== false;
+
+    const profileDirty = !!baseline && (JSON.stringify(profile) !== JSON.stringify(baseline.profile) || avatarValue !== undefined);
+    const socialsDirty = !!baseline && !sameSocials(socials, baseline.socials);
+    const passDirty = !!pass.current_password && !!pass.password && pass.password === pass.password_confirmation;
+    const prefsDirty = !!baseline && (
+        JSON.stringify(prefs) !== JSON.stringify(baseline.prefs) ||
+        JSON.stringify(notifEvents) !== JSON.stringify(baseline.notifEvents) ||
+        otpChannel !== baseline.otpChannel
+    );
 
     return (
         <>
@@ -462,7 +498,7 @@ export default function ProfileSettings() {
                                 />
                             </Field>
                             <div className="flex justify-end pt-2">
-                                <button type="submit" className="btn-primary" disabled={saving}>
+                                <button type="submit" className="btn-primary" disabled={saving || !profileDirty}>
                                     <Icon name="check" size={16} /> Simpan Profil
                                 </button>
                             </div>
@@ -538,7 +574,7 @@ export default function ProfileSettings() {
                         )}
 
                         <div className="flex justify-end pt-2">
-                            <button type="submit" className="btn-primary" disabled={saving}>
+                            <button type="submit" className="btn-primary" disabled={saving || !socialsDirty}>
                                 <Icon name="check" size={16} /> Simpan Media Sosial
                             </button>
                         </div>
@@ -569,7 +605,7 @@ export default function ProfileSettings() {
                                 </Field>
                             </div>
                             <div className="flex justify-end pt-2">
-                                <button type="submit" className="btn-primary" disabled={saving || pass.password !== pass.password_confirmation}>
+                                <button type="submit" className="btn-primary" disabled={saving || !passDirty}>
                                     <Icon name="lock" size={16} /> Ubah Kata Sandi
                                 </button>
                             </div>
@@ -678,7 +714,7 @@ export default function ProfileSettings() {
                         )}
 
                         <div className="flex justify-end pt-4">
-                            <button type="button" className="btn-primary" disabled={saving} onClick={savePrefs}>
+                            <button type="button" className="btn-primary" disabled={saving || !prefsDirty} onClick={savePrefs}>
                                 <Icon name="check" size={16} /> Simpan Preferensi
                             </button>
                         </div>
