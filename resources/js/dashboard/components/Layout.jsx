@@ -87,6 +87,7 @@ const adminNav = [
         sub: [
             { to: '/dashboard/messages', icon: 'message-circle', label: 'Pesan' },
             { to: '/dashboard/reviews', icon: 'star', label: 'Review' },
+            { to: '/dashboard/comments', icon: 'message-circle', label: 'Komentar' },
             { to: '/dashboard/clients', icon: 'users', label: 'Daftar Klien' },
         ]
     },

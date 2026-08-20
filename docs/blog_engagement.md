@@ -45,7 +45,13 @@ Catatan: `createUser()` sekarang public; internal memakai `array_unique(array_fi
 
 ## 6. Middleware Akses
 
-Semua endpoint engagement memakai guard manual `ensureCanEngage()` = user login & (`hasRole('subscriber')` atau `hasRole('client')`). Admin/owner tidak bisa like/komentar dari sisi publik (bukan target fitur). Moderasi/hapus diizinkan untuk `owner`/`admin`.
+Semua endpoint engagement memakai guard manual `ensureCanEngage()` = user login & (role `subscriber`, `client`, `owner`, atau `admin`). Admin/owner dapat like & komentar di konten publik layaknya subscriber/client, dan juga memiliki akses moderasi. Hapus komentar diizinkan untuk pemilik komentar atau `owner`/`admin`.
+
+## 6b. Moderasi Komentar (Dashboard Admin)
+
+- Halaman dashboard admin `/dashboard/comments` (`resources/js/dashboard/pages/admin/Comments.jsx`) menampilkan semua komentar dari blog/portfolio/package, dengan tab filter status (Semua/Disetujui/Disembunyikan).
+- Aksi: setujui (`PATCH /api/comments/{comment}/moderate` status `approved`), sembunyikan (`hidden`), atau hapus (`DELETE /api/comments/{comment}`).
+- `GET /api/comments/moderate/list?status=all|approved|hidden` (paginate 20, di-serialize dengan info target `{type, id, title}` via relation `commentable`).
 
 ## 7. Skema & Migrasi
 

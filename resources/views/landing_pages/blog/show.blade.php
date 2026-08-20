@@ -92,7 +92,7 @@
                 @auth
                     @php
                         $authUser = auth()->user();
-                        $canEngage = $authUser->hasRole('subscriber') || $authUser->hasRole('client');
+                        $canEngage = $authUser->hasRole('subscriber') || $authUser->hasRole('client') || $authUser->hasRole('owner') || $authUser->hasRole('admin');
                     @endphp
                     @if ($canEngage)
                         <button type="button" data-like-toggle data-id="{{ $post->id }}" data-type="blog"
@@ -125,7 +125,7 @@
             </div>
         </div>
 
-        @if (auth()->check() && (auth()->user()->hasRole('subscriber') || auth()->user()->hasRole('client')))
+        @if (auth()->check() && (auth()->user()->hasRole('subscriber') || auth()->user()->hasRole('client') || auth()->user()->hasRole('owner') || auth()->user()->hasRole('admin')))
             <section data-comments-section class="mt-12 border-t border-line pt-10">
                 <h2 class="mb-6 text-2xl font-bold text-ink">Komentar</h2>
 

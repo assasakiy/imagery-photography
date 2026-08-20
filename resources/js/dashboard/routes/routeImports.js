@@ -21,6 +21,7 @@ export const pageImports = {
     '/dashboard/pages': () => import('../pages/admin/landing/Index'),
     '/dashboard/pages/:slug/edit': () => import('../pages/admin/landing/Editor'),
     '/dashboard/reviews': () => import('../pages/admin/Reviews'),
+    '/dashboard/comments': () => import('../pages/admin/Comments'),
 
     '/dashboard/settings': () => import('../pages/admin/Settings'),
     '/dashboard/team': () => import('../pages/admin/Team'),

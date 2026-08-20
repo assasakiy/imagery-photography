@@ -15,7 +15,7 @@ class AlertMail extends Mailable
     public function __construct(
         public string $name,
         public string $subjectText,
-        public string $message,
+        public string $body,
         public ?string $code = null,
     ) {}
 

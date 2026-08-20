@@ -25,8 +25,8 @@ class EngagementController extends Controller
     private function ensureCanEngage(Request $request): void
     {
         $user = $request->user();
-        if (!$user || !($user->hasRole('subscriber') || $user->hasRole('client'))) {
-            abort(403, 'Fitur ini khusus untuk subscriber dan klien.');
+        if (!$user || !($user->hasRole('subscriber') || $user->hasRole('client') || $user->hasRole('owner') || $user->hasRole('admin'))) {
+            abort(403, 'Fitur ini khusus untuk pengguna yang login.');
         }
     }
 
@@ -125,7 +125,16 @@ class EngagementController extends Controller
 
     public function moderateList(Request $request)
     {
-        $comments = Comment::with('user')->latest()->paginate(20);
+        $data = $request->validate([
+            'status' => 'sometimes|string|in:all,approved,hidden',
+        ]);
+
+        $status = $data['status'] ?? 'all';
+
+        $comments = Comment::with('user', 'commentable')
+            ->when($status !== 'all', fn ($q) => $q->where('status', $status))
+            ->latest()
+            ->paginate(20);
 
         return response()->json($comments->through(fn ($c) => $this->serializeComment($c, $request->user())));
     }
@@ -146,14 +155,22 @@ class EngagementController extends Controller
 
     private function serializeComment(Comment $comment, ?\App\Models\User $viewer): array
     {
+        $target = $comment->relationLoaded('commentable') ? $comment->commentable : null;
+
         return [
             'id' => $comment->id,
             'body' => $comment->body,
+            'status' => $comment->status,
             'user' => [
                 'id' => $comment->user?->id,
                 'name' => $comment->user?->name ?? 'Subscriber',
                 'avatar' => $comment->user?->avatar(),
             ],
+            'target' => $target ? [
+                'type' => class_basename($comment->commentable_type),
+                'id' => $target->id,
+                'title' => $target->title ?? $target->name ?? 'Konten',
+            ] : null,
             'created_at' => $comment->created_at,
             'created_at_rel' => $comment->created_at?->diffForHumans(),
             'can_delete' => $viewer && ($viewer->id === $comment->user_id || $viewer->hasRole('owner') || $viewer->hasRole('admin')),
