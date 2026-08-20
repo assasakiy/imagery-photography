@@ -11,7 +11,7 @@ Desain lengkap sistem analisis pengunjung + kepatuhan cookie (UU PDP) yang ditam
 
 ## Skema Database
 
-Migrasi: `database/migrations/2026_08_20_000000_create_analytics_tables.php`
+Migrasi: tabel `page_views`, `page_view_daily`, `cookie_consents` dibuat di squash `database/migrations/2026_08_10_000004_squash_reviews_security.php`. Folder `database/migrations/` hanya berisi 5 file squash (tidak ada file migrasi terpisah untuk analytics).
 
 ### `page_views` — kunjungan mentah
 | Kolom | Keterangan |
