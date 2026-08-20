@@ -44,10 +44,26 @@ class GoogleAuthController extends Controller
             return redirect('/login')->withErrors(['form' => 'Gagal masuk dengan Google. Coba lagi.']);
         }
 
-        $user = User::where('email', $googleUser->getEmail())->first();
+        $googleEmail = strtolower(trim((string) $googleUser->getEmail()));
+        $googleName = $googleUser->getName() ?: null;
 
-        if (!$user || !$user->isAdmin() || !$user->canUseLoginMethod('google')) {
-            return redirect('/login')->withErrors(['form' => 'Akun Google tidak terdaftar sebagai admin di situs ini.']);
+        $user = User::where('email', $googleEmail)->first();
+
+        if (!$user) {
+            if (!$this->settingsAllowSubscribers()) {
+                return redirect('/login')->withErrors(['form' => 'Google tidak diizinkan untuk pendaftaran baru.']);
+            }
+
+            $user = app(\App\Services\ClientRegistrationService::class)->ensureUser([
+                'email' => $googleEmail,
+                'name' => $googleName,
+            ], 'subscriber');
+
+            $user->update(['status' => 'active', 'activated_at' => now()]);
+        }
+
+        if (!$user->canUseLoginMethod('google')) {
+            return redirect('/login')->withErrors(['form' => 'Metode login Google nonaktif.']);
         }
 
         Auth::login($user);
@@ -62,6 +78,14 @@ class GoogleAuthController extends Controller
         }
 
         return redirect('/dashboard');
+    }
+
+    private function settingsAllowSubscribers(): bool
+    {
+        $settings = app(RuntimeSettings::class);
+
+        return $settings->googleAuthEnabled()
+            && $settings->get('google_subscriber_registration', '1') === '1';
     }
 
     private function configured(RuntimeSettings $settings): bool

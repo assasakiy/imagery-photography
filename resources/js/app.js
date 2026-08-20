@@ -490,4 +490,132 @@ const consentBanner = document.querySelector('[data-cookie-consent]');
                 choose(analyticsCheck?.checked ? 'all' : 'necessary');
             });
         }
+
+        // ---- Subscribe modal ----
+        const subscribeModal = document.querySelector('[data-subscribe-modal]');
+        const subscribeForm = document.querySelector('[data-subscribe-form]');
+        const subscribeOtpForm = document.querySelector('[data-subscribe-otp-form]');
+        const subscribeName = document.querySelector('[data-subscribe-name]');
+        const subscribeEmail = document.querySelector('[data-subscribe-email]');
+        const subscribeOtp = document.querySelector('[data-subscribe-otp]');
+        const subscribeOtpTarget = document.querySelector('[data-subscribe-otp-target]');
+        const subscribeOtpError = document.querySelector('[data-subscribe-otp-error]');
+        const subscribeTitle = document.querySelector('[data-subscribe-title]');
+
+        if (subscribeModal) {
+            const csrfToken = () => {
+                try {
+                    const raw = (document.cookie.match(/(?:^|; )XSRF-TOKEN=([^;]*)/) || [])[1] || '';
+                    return decodeURIComponent(raw);
+                } catch (e) {
+                    return '';
+                }
+            };
+
+            const openSubscribe = () => {
+                subscribeModal.classList.remove('hidden');
+                subscribeModal.classList.add('flex');
+                subscribeForm?.classList.remove('hidden');
+                subscribeOtpForm?.classList.add('hidden');
+                if (subscribeOtpError) subscribeOtpError.textContent = '';
+                subscribeForm?.querySelector('input')?.focus();
+            };
+
+            const closeSubscribe = () => {
+                subscribeModal.classList.add('hidden');
+                subscribeModal.classList.remove('flex');
+                subscribeForm?.classList.remove('hidden');
+                subscribeOtpForm?.classList.add('hidden');
+            };
+
+            document.querySelectorAll('[data-subscribe-open]').forEach((btn) => {
+                btn.addEventListener('click', openSubscribe);
+            });
+            subscribeModal.querySelectorAll('[data-subscribe-close]').forEach((btn) => {
+                btn.addEventListener('click', closeSubscribe);
+            });
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && !subscribeModal.classList.contains('hidden')) closeSubscribe();
+            });
+
+            subscribeForm?.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const submitBtn = subscribeForm.querySelector('[data-subscribe-submit]');
+                if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Mengirim…'; }
+
+                try {
+                    const res = await fetch('/api/subscribe', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            Accept: 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'X-XSRF-TOKEN': csrfToken(),
+                        },
+                        body: JSON.stringify({
+                            name: subscribeName?.value || '',
+                            email: subscribeEmail?.value || '',
+                        }),
+                    });
+                    const data = await res.json();
+                    if (!res.ok) {
+                        alert(data?.message || 'Gagal mengirim OTP. Coba lagi.');
+                        return;
+                    }
+                    if (subscribeOtpTarget) subscribeOtpTarget.textContent = (subscribeEmail?.value || '').trim();
+                    subscribeForm.classList.add('hidden');
+                    subscribeOtpForm.classList.remove('hidden');
+                    subscribeOtp?.focus();
+                } catch (err) {
+                    alert('Terjadi kesalahan. Coba lagi.');
+                } finally {
+                    if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Kirim Kode OTP'; }
+                }
+            });
+
+            subscribeForm?.querySelector('[data-subscribe-back]')?.addEventListener('click', () => {
+                subscribeForm.classList.remove('hidden');
+                subscribeOtpForm.classList.add('hidden');
+            });
+
+            subscribeOtpForm?.querySelector('[data-subscribe-back]')?.addEventListener('click', () => {
+                subscribeOtpForm.classList.add('hidden');
+                subscribeForm.classList.remove('hidden');
+            });
+
+            subscribeOtpForm?.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const submitBtn = subscribeOtpForm.querySelector('[data-subscribe-otp-submit]');
+                if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Memverifikasi…'; }
+                if (subscribeOtpError) subscribeOtpError.textContent = '';
+
+                try {
+                    const res = await fetch('/api/subscribe/verify', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            Accept: 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'X-XSRF-TOKEN': csrfToken(),
+                        },
+                        body: JSON.stringify({
+                            email: (subscribeEmail?.value || '').trim(),
+                            otp: subscribeOtp?.value || '',
+                        }),
+                    });
+                    const data = await res.json();
+                    if (!res.ok) {
+                        if (subscribeOtpError) subscribeOtpError.textContent = data?.message || 'Kode salah.';
+                        return;
+                    }
+                    if (subscribeTitle) subscribeTitle.textContent = 'Berhasil Subscribe!';
+                    subscribeOtpForm.querySelector('button[type="submit"]').textContent = 'Masuk…';
+                    setTimeout(() => { window.location.href = '/dashboard'; }, 600);
+                } catch (err) {
+                    if (subscribeOtpError) subscribeOtpError.textContent = 'Terjadi kesalahan. Coba lagi.';
+                } finally {
+                    if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Verifikasi & Masuk'; }
+                }
+            });
+        }
 });

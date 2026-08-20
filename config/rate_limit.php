@@ -65,6 +65,33 @@ return [
             'mode'    => 'attempt',
             'reset_on_success' => false,
         ],
+        'auth.register' => [
+            'limit'   => 5,
+            'periode' => 3600,
+            'scope'   => 'ip',
+            'floor'   => 3,
+            'ceiling' => 10,
+            'mode'    => 'attempt',
+            'reset_on_success' => false,
+        ],
+        'subscribe.send' => [
+            'limit'   => 5,
+            'periode' => 900,
+            'scope'   => 'ip+identifier',
+            'floor'   => 3,
+            'ceiling' => 10,
+            'mode'    => 'attempt',
+            'reset_on_success' => true,
+        ],
+        'subscribe.verify' => [
+            'limit'   => 5,
+            'periode' => 900,
+            'scope'   => 'ip+identifier',
+            'floor'   => 3,
+            'ceiling' => 10,
+            'mode'    => 'attempt',
+            'reset_on_success' => true,
+        ],
 
         // --- Booking (forgiving terhadap typo gilir — valid only) ---
         'booking.create' => [

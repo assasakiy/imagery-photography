@@ -33,10 +33,13 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware('web')->group(function () {
     Route::post('/login', [AuthController::class, 'login'])->middleware('api.throttle:auth.login');
+    Route::post('/register', [AuthController::class, 'register'])->middleware('api.throttle:auth.register');
     Route::post('/send-otp', [AuthController::class, 'sendOtp'])->middleware('api.throttle:otp.send');
     Route::post('/verify-otp', [AuthController::class, 'verifyOtp'])->middleware('api.throttle:otp.verify');
     Route::get('/whatsapp-status', [AuthController::class, 'whatsappStatus']);
     Route::post('/forgot', [AuthController::class, 'forgot'])->middleware('api.throttle:auth.forgot');
+    Route::post('/subscribe', [AuthController::class, 'subscribe'])->middleware('api.throttle:subscribe.send');
+    Route::post('/subscribe/verify', [AuthController::class, 'subscribeVerify'])->middleware('api.throttle:subscribe.verify');
     Route::post('/set-password', [AuthController::class, 'setPassword']);
     Route::post('/reset-password', [AuthController::class, 'resetPassword']);
     Route::post('/analytics/consent', [AnalyticsController::class, 'consent'])->middleware('api.throttle:analytics.consent');

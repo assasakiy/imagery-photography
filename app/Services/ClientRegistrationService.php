@@ -106,7 +106,16 @@ class ClientRegistrationService
         return null;
     }
 
-    private function createUser(array $data, string $role): User
+    /**
+     * Buat user baru tanpa invite (dipakai untuk registrasi formal publik).
+     * Role default: client (otomatis juga subscriber).
+     */
+    public function createUser(array $data, string $role = 'client'): User
+    {
+        return $this->createUserInternal($data, $role);
+    }
+
+    private function createUserInternal(array $data, string $role): User
     {
         $username = $this->uniqueUsername($data['username'] ?? null);
         $email = $data['email'] ?? ('client_' . Str::random(8) . '@imagery.local');
@@ -118,7 +127,7 @@ class ClientRegistrationService
             'password' => null,
             'status' => 'pending',
         ]);
-        $user->assignRole(array_filter([$role, 'subscriber']));
+        $user->assignRole(array_values(array_unique(array_filter([$role, 'subscriber']))));
 
         $user->profile()->create([
             'full_name' => $data['name'] ?? $data['full_name'] ?? null,

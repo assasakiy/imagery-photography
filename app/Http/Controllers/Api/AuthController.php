@@ -113,6 +113,41 @@ class AuthController extends Controller
         return $withTrashed ? User::withTrashed() : User::query();
     }
 
+    /**
+     * Registrasi formal publik: akun baru langsung aktif sebagai client
+     * (otomatis juga subscriber) dengan password.
+     */
+    public function register(Request $request)
+    {
+        $data = $request->validate([
+            'name' => 'required|string|max:100',
+            'email' => 'required|email|max:190|unique:users,email',
+            'password' => 'required|string|min:8|confirmed',
+        ]);
+
+        $email = strtolower(trim($data['email']));
+
+        $user = app(\App\Services\ClientRegistrationService::class)->createUser([
+            'email' => $email,
+            'name' => $data['name'],
+        ], 'client');
+
+        $user->update([
+            'password' => Hash::make($data['password']),
+            'status' => 'active',
+            'activated_at' => now(),
+        ]);
+
+        app(AuditLogger::class)->log('auth.register', 'Registrasi formal (client): ' . $email, $user);
+
+        Auth::login($user);
+        session()->regenerate();
+
+        $this->afterLogin($user, 'password');
+
+        return response()->json(['user' => $this->userPayload($user)]);
+    }
+
     public function logout(Request $request)
     {
         $user = $request->user();
@@ -185,6 +220,99 @@ class AuthController extends Controller
 
         // Reset rate limit pada verifikasi sukses (sudah dibuktikan)
         ApiThrottle::reset('otp.verify', ['identifier' => $data['identifier']]);
+
+        Auth::login($user);
+
+        $this->afterLogin($user, 'otp');
+
+        return response()->json(['user' => $this->userPayload($user)]);
+    }
+
+    /**
+     * Subscribe blog: daftar akun baru role subscriber via email + OTP.
+     * Email yang sudah terdaftar (client/subscriber/admin) tidak dibuat ulang,
+     * cukup kirim OTP login biasa.
+     */
+    public function subscribe(Request $request)
+    {
+        $data = $request->validate([
+            'name' => 'required|string|max:100',
+            'email' => 'required|email|max:190',
+        ]);
+
+        $email = strtolower(trim($data['email']));
+
+        $user = $this->resolveUser($email);
+        $isNew = false;
+
+        if (!$user) {
+            $user = app(\App\Services\ClientRegistrationService::class)->ensureUser([
+                'email' => $email,
+                'name' => $data['name'],
+            ], 'subscriber');
+
+            $isNew = true;
+
+            app(AuditLogger::class)->log('auth.subscribe', 'Subscriber baru (pending) didaftarkan: ' . $email, $user);
+        }
+
+        if (!$user->canUseLoginMethod('otp')) {
+            return response()->json(['message' => 'Login via OTP tidak aktif untuk akun ini.'], 422);
+        }
+
+        $otp = (string) random_int(100000, 999999);
+        session()->put('otp_' . $user->id, ['code' => Hash::make($otp), 'expires_at' => now()->addMinutes(5)]);
+        session()->put('otp_target_' . $user->id, $email);
+        session()->put('subscribe_pending_' . $user->id, $isNew);
+
+        app(NotificationService::class)->sendOtp($user, $user->phone ?? $email, $otp);
+
+        app(AuditLogger::class)->log('auth.otp_sent', 'OTP subscribe dikirim untuk ' . $email, $user);
+
+        return response()->json([
+            'message' => 'Kode OTP terkirim ke ' . ($user->phone ?? $email) . ' (jika terkonfigurasi).',
+            'is_new' => $isNew,
+            'dev_otp' => config('app.env') !== 'production' ? $otp : null,
+        ]);
+    }
+
+    /**
+     * Verifikasi OTP subscribe → aktifkan akun baru (subscriber) atau langsung login
+     * jika akun sudah ada, lalu buat sesi.
+     */
+    public function subscribeVerify(Request $request)
+    {
+        $data = $request->validate([
+            'email' => 'required|email|max:190',
+            'otp' => 'required|string',
+        ]);
+
+        $email = strtolower(trim($data['email']));
+        $user = $this->resolveUser($email);
+
+        $stored = session()->pull('otp_' . $user?->id);
+        $isNew = (bool) session()->pull('subscribe_pending_' . $user?->id);
+
+        if (!$user || !$stored || !Hash::check($data['otp'], $stored['code']) || now()->greaterThan($stored['expires_at'])) {
+            app(LoginTracker::class)->recordFailed($user, 'otp', $email);
+            app(AuditLogger::class)->log('auth.otp_verify_failed', 'Verifikasi OTP subscribe gagal: ' . $email, $user);
+
+            return response()->json(['message' => 'Kode OTP salah atau kadaluarsa.'], 422);
+        }
+
+        if ($isNew && $user) {
+            $user->update([
+                'status' => 'active',
+                'activated_at' => now(),
+            ]);
+            if (!$user->hasRole('subscriber')) {
+                $user->assignRole('subscriber');
+            }
+
+            app(AuditLogger::class)->log('auth.subscribe_activated', 'Subscriber diaktifkan: ' . $email, $user);
+        }
+
+        ApiThrottle::reset('subscribe.verify', ['identifier' => $email]);
 
         Auth::login($user);
 
