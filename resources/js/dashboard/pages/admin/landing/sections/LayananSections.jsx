@@ -18,7 +18,7 @@ export default function LayananSections({ form, options, updateSection, updateSe
     const comboPackages = allPackages.filter((p) => p.type === 'combo');
     const allServices = options?.services || [];
 
-    const pkgLabel = (p) => `${p.name}${p.is_featured ? ' ⭐' : ''}${p.is_popular ? ' 🔥' : ''}`;
+    const pkgLabel = (p) => `${p.name}${p.is_featured ? ' ⭐' : ''}`;
     const svcLabel = (s) => `${s.event} · ${s.media}${s.duration ? ' · ' + s.duration : ''}`;
 
     const faqCats = (options?.categories || []).filter((c) =>

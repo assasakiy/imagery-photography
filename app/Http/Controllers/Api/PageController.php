@@ -72,7 +72,7 @@ class PageController extends Controller
                 'description' => $servicesPage?->description ?: '',
             ],
             'services' => Service::where('active', true)->orderBy('order')->get(['id', 'event', 'media', 'price', 'duration', 'terms']),
-            'packages' => Package::with('services')->active()->orderBy('display_order')->get(['id', 'name', 'type', 'is_featured', 'is_popular']),
+            'packages' => Package::with('services')->active()->orderBy('display_order')->get(['id', 'name', 'type', 'is_featured']),
         ]);
     }
 

@@ -34,7 +34,6 @@ return new class extends Migration
             $table->decimal('promo_value', 15, 2)->nullable();
             $table->decimal('manual_price', 15, 2)->nullable();
             $table->text('description')->nullable();
-            $table->boolean('is_popular')->default(false);
             $table->boolean('is_featured')->default(false);
             $table->boolean('is_active')->default(true);
             $table->unsignedInteger('display_order')->default(0);

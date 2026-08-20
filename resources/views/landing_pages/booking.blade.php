@@ -207,8 +207,8 @@
                 @if ($showPopuler && $packages->isNotEmpty())
                     @php
                         $popularCards = $packages
-                            ->sortByDesc(fn ($p) => $p['is_featured'] || $p['is_popular'])
-                            ->filter(fn ($p) => $p['is_featured'] || $p['is_popular'])
+                            ->sortByDesc(fn ($p) => $p['is_featured'] || ($p['booking_count'] ?? 0) > 0)
+                            ->filter(fn ($p) => $p['is_featured'] || ($p['booking_count'] ?? 0) > 0)
                             ->values()
                             ->take(3);
                     @endphp

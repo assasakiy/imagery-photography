@@ -13,7 +13,7 @@ class Package extends Model
     use Bookmarkable;
     protected $fillable = [
         'name', 'slug', 'type', 'price_mode', 'promo_type', 'promo_value',
-        'manual_price', 'description', 'is_popular', 'is_featured', 'is_active', 'display_order',
+        'manual_price', 'description', 'is_featured', 'is_active', 'display_order',
     ];
 
     protected function casts(): array
@@ -21,7 +21,6 @@ class Package extends Model
         return [
             'promo_value' => 'decimal:2',
             'manual_price' => 'decimal:2',
-            'is_popular' => 'boolean',
             'is_featured' => 'boolean',
             'is_active' => 'boolean',
         ];
