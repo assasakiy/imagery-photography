@@ -3,7 +3,7 @@
 @endphp
 
 @if ($cookieBannerEnabled)
-<div id="cookie-consent" class="fixed inset-x-4 bottom-4 z-[60] mx-auto max-w-md sm:inset-x-6 sm:bottom-6" data-cookie-consent hidden>
+<div id="cookie-consent" class="fixed inset-x-4 bottom-4 z-[60] mx-auto max-w-xl sm:inset-x-6 sm:bottom-6" data-cookie-consent hidden>
     <div class="animate-cookie-in relative overflow-hidden rounded-3xl border border-line/80 bg-white/85 shadow-2xl shadow-zinc-950/20 ring-1 ring-black/5 backdrop-blur-xl dark:bg-zinc-900/85 dark:shadow-black/50 dark:ring-white/10">
         <div class="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-brand-500/60 to-transparent"></div>
 
