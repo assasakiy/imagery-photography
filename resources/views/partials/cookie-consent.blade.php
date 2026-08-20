@@ -51,9 +51,11 @@
 
             <div class="mt-6 flex flex-col gap-2.5 sm:flex-row" data-cookie-actions>
                 <button type="button" data-cookie-accept class="flex-1 rounded-xl bg-gradient-to-r from-brand-600 to-brand-700 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-brand-600/25 transition-all duration-200 hover:brightness-110 active:scale-[0.98]">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="mr-1.5 inline-block -translate-y-px"><path d="M20 6 9 17l-5-5" /></svg>
                     Terima Semua
                 </button>
-                <button type="button" data-cookie-necessary class="flex-1 rounded-xl border border-line bg-surface/60 px-4 py-2.5 text-sm font-semibold text-ink transition-colors duration-200 hover:bg-surface-muted active:scale-[0.98]">
+                <button type="button" data-cookie-necessary class="flex-1 rounded-xl border border-brand-500/40 bg-brand-500/10 px-4 py-2.5 text-sm font-semibold text-brand-600 transition-colors duration-200 hover:bg-brand-500/15 active:scale-[0.98] dark:text-brand-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="mr-1.5 inline-block -translate-y-px"><path d="M18 6 6 18M6 6l12 12" /></svg>
                     Tolak
                 </button>
                 <button type="button" data-cookie-custom class="flex-1 rounded-xl border border-brand-500/40 bg-brand-500/5 px-4 py-2.5 text-sm font-semibold text-brand-600 transition-colors duration-200 hover:bg-brand-500/10 active:scale-[0.98] dark:text-brand-400">
