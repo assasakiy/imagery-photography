@@ -103,6 +103,7 @@ const adminNav = [
     {
         label: 'Sistem',
         sub: [
+            { to: '/dashboard/analytics', icon: 'trending-up', label: 'Analitik' },
             { to: '/dashboard/audit', icon: 'clock', label: 'Audit & Log' },
             { to: '/dashboard/recycle-bin', icon: 'trash', label: 'Recycle Bin' },
         ]
@@ -115,6 +116,7 @@ const ownerNav = [
     {
         label: 'Sistem',
         sub: [
+            { to: '/dashboard/analytics', icon: 'trending-up', label: 'Analitik' },
             { to: '/dashboard/audit', icon: 'clock', label: 'Audit & Log' },
             { to: '/dashboard/recycle-bin', icon: 'trash', label: 'Recycle Bin' },
             { to: '/dashboard/team', icon: 'users', label: 'Admin' },

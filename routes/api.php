@@ -28,6 +28,7 @@ use App\Http\Controllers\Api\PackageController;
 use App\Http\Controllers\Api\SettingsController;
 use App\Http\Controllers\Api\TeamController;
 use App\Http\Controllers\Api\TeamMemberController;
+use App\Http\Controllers\Api\AnalyticsController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('web')->group(function () {
@@ -38,6 +39,7 @@ Route::middleware('web')->group(function () {
     Route::post('/forgot', [AuthController::class, 'forgot'])->middleware('api.throttle:auth.forgot');
     Route::post('/set-password', [AuthController::class, 'setPassword']);
     Route::post('/reset-password', [AuthController::class, 'resetPassword']);
+    Route::post('/analytics/consent', [AnalyticsController::class, 'consent'])->middleware('api.throttle:analytics.consent');
 });
 
 Route::post('/webhook/tripay', [PaymentController::class, 'webhook']);
@@ -107,6 +109,13 @@ Route::middleware(['web', 'auth:sanctum', 'maintenance'])->group(function () {
         Route::get('/audit/actions', [AuditLogController::class, 'actions']);
         Route::get('/audit/login-history', [AuditLogController::class, 'loginHistory']);
         Route::get('/audit/links', [AuditLogController::class, 'links']);
+
+        Route::get('/analytics/overview', [AnalyticsController::class, 'overview']);
+        Route::get('/analytics/visits', [AnalyticsController::class, 'visits']);
+        Route::get('/analytics/accounts', [AnalyticsController::class, 'accounts']);
+        Route::get('/analytics/behavior', [AnalyticsController::class, 'behavior']);
+        Route::get('/analytics/raw', [AnalyticsController::class, 'raw']);
+        Route::post('/analytics/rollup', [AnalyticsController::class, 'rollup']);
 
         Route::post('/projects', [ProjectController::class, 'store']);
         Route::put('/projects/{project}', [ProjectController::class, 'update']);

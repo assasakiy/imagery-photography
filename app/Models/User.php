@@ -195,6 +195,11 @@ class User extends Authenticatable
         return $this->hasMany(HistoryEvent::class);
     }
 
+    public function loginHistories(): HasMany
+    {
+        return $this->hasMany(LoginHistory::class);
+    }
+
     public function allowedLoginMethods(): array
     {
         return app(\App\Services\RuntimeSettings::class)->globalLoginMethods();

@@ -114,6 +114,15 @@ return [
             'mode'    => 'request',
             'reset_on_success' => false,
         ],
+        'analytics.consent' => [
+            'limit'   => 20,
+            'periode' => 3600,
+            'scope'   => 'ip',
+            'floor'   => 5,
+            'ceiling' => 100,
+            'mode'    => 'request',
+            'reset_on_success' => false,
+        ],
     ],
 
     /*

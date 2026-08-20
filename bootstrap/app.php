@@ -21,6 +21,15 @@ return Application::configure(basePath: dirname(__DIR__))
             'guest' => \App\Http\Middleware\RedirectIfAuthenticated::class,
             'maintenance' => \App\Http\Middleware\Maintenance::class,
             'api.throttle' => \App\Http\Middleware\ApiThrottleRequests::class,
+            'track.visits' => \App\Http\Middleware\TrackVisits::class,
+        ]);
+
+        $middleware->web(append: [
+            \App\Http\Middleware\TrackVisits::class,
+        ]);
+
+        $middleware->validateCsrfTokens(except: [
+            'api/analytics/consent',
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

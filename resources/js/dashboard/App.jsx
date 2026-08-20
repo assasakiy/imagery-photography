@@ -90,6 +90,7 @@ const PageEditor = lazy(pageImports['/dashboard/pages/:slug/edit']);
 const Team = lazy(pageImports['/dashboard/team']);
 const Reviews = lazy(pageImports['/dashboard/reviews']);
 const AuditLog = lazy(pageImports['/dashboard/audit']);
+const Analytics = lazy(pageImports['/dashboard/analytics']);
 const RecycleBin = lazy(pageImports['/dashboard/recycle-bin']);
 const ProfileSettings = lazy(pageImports['/dashboard/profile']);
 const ClientBookings = lazy(pageImports['/dashboard/client-bookings']);
@@ -182,6 +183,7 @@ function AppRoutes() {
                 <Route path="pages/:slug/edit" element={withSuspense(<Protected adminOnly><PageEditor /></Protected>, 'form')} />
                 <Route path="team" element={withSuspense(<Protected ownerOnly><Team /></Protected>, 'table')} />
                 <Route path="audit" element={withSuspense(<Protected adminOnly><AuditLog /></Protected>, 'table')} />
+                <Route path="analytics" element={withSuspense(<Protected adminOnly><Analytics /></Protected>, 'card')} />
                 <Route path="recycle-bin" element={withSuspense(<Protected adminOnly><RecycleBin /></Protected>, 'table')} />
                 <Route path="settings" element={withSuspense(<Protected ownerOnly><Settings /></Protected>, 'form')} />
             </Route>

@@ -12,3 +12,4 @@ Schedule::command('auth:process-invites')->dailyAt('03:00');
 Schedule::command('projects:process-status')->everyFiveMinutes();
 Schedule::command('projects:prune-previews')->dailyAt('03:30');
 Schedule::command('projects:process-deliveries')->dailyAt('04:00');
+Schedule::command('analytics:process')->dailyAt('02:30');

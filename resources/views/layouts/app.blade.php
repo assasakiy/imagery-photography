@@ -274,6 +274,8 @@
         </div>
     </footer>
 
+    @include('partials.cookie-consent')
+
     @yield('extra')
 
     @vite('resources/js/app.js')

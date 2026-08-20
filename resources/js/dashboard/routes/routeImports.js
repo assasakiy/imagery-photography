@@ -26,6 +26,7 @@ export const pageImports = {
     '/dashboard/team': () => import('../pages/admin/Team'),
     '/dashboard/profile': () => import('../pages/admin/ProfileSettings'),
     '/dashboard/audit': () => import('../pages/admin/AuditLog'),
+    '/dashboard/analytics': () => import('../pages/admin/Analytics'),
     '/dashboard/recycle-bin': () => import('../pages/admin/RecycleBin'),
     '/dashboard/preview': () => import('../pages/admin/Gallery'),
     '/dashboard/preview/:id': () => import('../pages/admin/Detail'),

@@ -23,6 +23,7 @@ export const TABS = [
     { key: 'integrasi', label: 'Integrasi', icon: 'link' },
     { key: 'pembayaran', label: 'Pembayaran', icon: 'credit-card' },
     { key: 'notifications', label: 'Notifikasi', icon: 'bell' },
+    { key: 'analytics', label: 'Analitik', icon: 'trending-up' },
     { key: 'security', label: 'Keamanan', icon: 'lock' },
     { key: 'maintenance', label: 'Pemeliharaan', icon: 'zap' },
 ];
@@ -42,6 +43,7 @@ export const TAB_FIELDS = {
     security_login: ['login_remember_enabled', 'login_remember_days', 'login_methods_global'],
     security_file: ['file_retention_days', 'invite_expiry_hours', 'preview_expiry_days', 'archive_delay_days'],
     maintenance: ['maintenance_enabled', 'maintenance_message'],
+    analytics: ['analytics_enabled', 'cookie_banner_enabled', 'cookie_banner_message'],
 };
 
 export const SMTP_FIELDS = ['mail_host', 'mail_port', 'mail_username', 'mail_password', 'mail_from_address', 'mail_from_name'];
@@ -125,6 +127,9 @@ export const emptyForm = {
         archive_delay_days: 60,
         maintenance_enabled: false,
     maintenance_message: '',
+    analytics_enabled: true,
+    cookie_banner_enabled: true,
+    cookie_banner_message: '',
     notif_email_enabled: true,
     notif_wa_enabled: true,
     email_events: [],
@@ -189,6 +194,9 @@ export function normalize(data) {
         invite_expiry_hours: data.invite_expiry_hours ?? 24,
         maintenance_enabled: !!data.maintenance_enabled,
         maintenance_message: data.maintenance_message || '',
+        analytics_enabled: data.analytics_enabled !== false,
+        cookie_banner_enabled: data.cookie_banner_enabled !== false,
+        cookie_banner_message: data.cookie_banner_message || '',
         notif_email_enabled: data.email_enabled !== false,
         notif_wa_enabled: data.whatsapp_enabled !== false,
         notif_webhook_enabled: data.webhook_enabled !== false,

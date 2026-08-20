@@ -16,7 +16,8 @@ class RuntimeSettings
             try {
                 return Setting::pluck('value', 'key')->all();
             } catch (\Illuminate\Database\QueryException $e) {
-                if (str_contains($e->getMessage(), 'doesn\'t exist') || $e->getCode() === '42S02') {
+                $msg = $e->getMessage();
+                if (str_contains($msg, 'doesn\'t exist') || str_contains($msg, 'no such table') || $e->getCode() === '42S02' || $e->getCode() === 'HY000') {
                     return [];
                 }
 
@@ -408,6 +409,21 @@ class RuntimeSettings
     public function maintenanceMessage(): ?string
     {
         return $this->get('maintenance_message') ?: null;
+    }
+
+    public function analyticsEnabled(): bool
+    {
+        return $this->get('analytics_enabled', '1') === '1';
+    }
+
+    public function cookieBannerEnabled(): bool
+    {
+        return $this->get('cookie_banner_enabled', '1') === '1';
+    }
+
+    public function cookieBannerMessage(): string
+    {
+        return $this->get('cookie_banner_message') ?: 'Kami menggunakan cookie untuk memastikan situs berfungsi dengan baik serta menganalisis kunjungan untuk meningkatkan pengalaman Anda. Cookie analitik hanya aktif jika Anda mengizinkan.';
     }
 
     public function paymentManualEnabled(): bool

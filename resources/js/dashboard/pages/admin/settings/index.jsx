@@ -10,6 +10,7 @@ import NotificationsTab from './NotificationsTab';
 import PaymentTab from './PaymentTab';
 import SecurityTab from './SecurityTab';
 import MaintenanceTab from './MaintenanceTab';
+import AnalyticsTab from './AnalyticsTab';
 import { TABS, TAB_FIELDS, emptyForm, normalize, applyBrandColor, pickValue } from './constants';
 
 export default function Settings() {
@@ -269,6 +270,7 @@ export default function Settings() {
             {tab === 'integrasi' && <IntegrasiTab {...ctx} />}
             {tab === 'pembayaran' && <PaymentTab {...ctx} />}
             {tab === 'notifications' && <NotificationsTab {...ctx} />}
+            {tab === 'analytics' && <AnalyticsTab {...ctx} />}
             {tab === 'security' && <SecurityTab {...ctx} />}
             {tab === 'maintenance' && <MaintenanceTab {...ctx} />}
             </>
