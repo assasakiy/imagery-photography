@@ -433,6 +433,7 @@ const consentBanner = document.querySelector('[data-cookie-consent]');
             const saveBtn = consentBanner.querySelector('[data-cookie-save]');
             const backBtn = consentBanner.querySelector('[data-cookie-back]');
             const actionsRow = consentBanner.querySelector('[data-cookie-actions]');
+            const customActions = consentBanner.querySelector('[data-cookie-custom-actions]');
 
             const hide = () => {
                 consentBanner.hidden = true;
@@ -462,8 +463,7 @@ const consentBanner = document.querySelector('[data-cookie-consent]');
 
             const setCustomMode = (on) => {
                 prefsPanel?.classList.toggle('hidden', !on);
-                saveBtn?.classList.toggle('hidden', !on);
-                backBtn?.classList.toggle('hidden', !on);
+                customActions?.classList.toggle('hidden', !on);
                 actionsRow?.classList.toggle('hidden', on);
             };
 
