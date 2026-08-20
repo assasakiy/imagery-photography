@@ -49,20 +49,25 @@
                 </label>
             </div>
 
-            <div class="mt-6 flex flex-col gap-2.5 sm:flex-row">
+            <div class="mt-6 flex flex-col gap-2.5 sm:flex-row" data-cookie-actions>
                 <button type="button" data-cookie-accept class="flex-1 rounded-xl bg-gradient-to-r from-brand-600 to-brand-700 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-brand-600/25 transition-all duration-200 hover:brightness-110 active:scale-[0.98]">
                     Terima Semua
                 </button>
                 <button type="button" data-cookie-necessary class="flex-1 rounded-xl border border-line bg-surface/60 px-4 py-2.5 text-sm font-semibold text-ink transition-colors duration-200 hover:bg-surface-muted active:scale-[0.98]">
                     Tolak
                 </button>
-                <button type="button" data-cookie-custom class="rounded-xl px-3 py-2.5 text-sm font-semibold text-brand-600 transition-colors duration-200 hover:bg-brand-500/10 active:scale-[0.98] dark:text-brand-400">
+                <button type="button" data-cookie-custom class="flex-1 rounded-xl border border-brand-500/40 bg-brand-500/5 px-4 py-2.5 text-sm font-semibold text-brand-600 transition-colors duration-200 hover:bg-brand-500/10 active:scale-[0.98] dark:text-brand-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-1.5 inline-block -translate-y-px"><path d="M12 3v3M18.366 5.636l-2.122 2.122M21 12h-3M18.364 18.364l-2.122-2.122M12 18v3M7.758 16.242l-2.122 2.122M6 12H3M7.758 7.758L5.636 5.636" /><circle cx="12" cy="12" r="3" /></svg>
                     Kustom
                 </button>
             </div>
 
             <button type="button" data-cookie-save class="mt-2 hidden w-full rounded-xl bg-gradient-to-r from-brand-600 to-brand-700 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-brand-600/25 transition-all duration-200 hover:brightness-110 active:scale-[0.98]">
                 Simpan Preferensi
+            </button>
+
+            <button type="button" data-cookie-back class="mt-2 hidden w-full rounded-xl border border-line bg-surface/60 px-4 py-2.5 text-sm font-semibold text-ink transition-colors duration-200 hover:bg-surface-muted active:scale-[0.98]">
+                Kembali
             </button>
 
             <div class="mt-4 flex items-center justify-center gap-1.5">
