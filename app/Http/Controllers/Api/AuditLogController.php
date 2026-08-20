@@ -124,9 +124,10 @@ class AuditLogController extends Controller
             $query->where(fn ($w) => $w
                 ->where('identifier', 'like', '%' . $q . '%')
                 ->orWhere('ip', 'like', '%' . $q . '%')
-                ->orWhereHas('user', fn ($u) => $u->withTrashed()->where('name', 'like', '%' . $q . '%')
-                    ->orWhere('email', 'like', '%' . $q . '%')
-                    ->orWhere('username', 'like', '%' . $q . '%')));
+                ->orWhereHas('user', fn ($u) => $u->withTrashed()
+                    ->where('email', 'like', '%' . $q . '%')
+                    ->orWhere('username', 'like', '%' . $q . '%')
+                    ->orWhereHas('profile', fn ($p) => $p->where('full_name', 'like', '%' . $q . '%'))));
         }
 
         $logs = $query->paginate(25);
@@ -161,7 +162,77 @@ class AuditLogController extends Controller
             return $this->withAccountState($lh);
         });
 
+        $logs->getCollection()->transform(function ($lh) {
+            $lh->online = $lh->user && $lh->status === 'success' && $lh->user->isOnline();
+
+            return $lh;
+        });
+
         return response()->json($logs);
+    }
+
+    /**
+     * Daftar user (owner/admin/client/subscriber) dengan status kehadiran real-time:
+     * online, terakhir aktif, durasi sesi aktif berjalan.
+     */
+    public function onlineUsers(Request $request)
+    {
+        $users = \App\Models\User::withTrashed()
+            ->whereNull('deleted_at')
+            ->with(['profile'])
+            ->get()
+            ->map(function ($user) {
+                $open = LoginHistory::where('user_id', $user->id)
+                    ->where('status', 'success')
+                    ->whereNull('logged_out_at')
+                    ->latest('logged_in_at')
+                    ->first();
+
+                return [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'username' => $user->username,
+                    'role' => $user->primaryRole(),
+                    'status' => $user->status,
+                    'online' => $user->isOnline(),
+                    'last_seen_at' => $user->last_seen_at?->toIso8601String(),
+                    'last_seen_rel' => $user->last_seen_at ? $this->relativeTime($user->last_seen_at) : null,
+                    'session_open' => $open ? $open->logged_in_at?->toIso8601String() : null,
+                    'session_duration' => $open && $open->logged_in_at
+                        ? (int) $open->logged_in_at->diffInSeconds(now())
+                        : null,
+                    'session_ip' => $open?->ip,
+                    'session_device' => $open?->user_agent,
+                ];
+            })
+            ->values();
+
+        if ($request->filled('role')) {
+            $role = $request->input('role');
+            $users = $users->filter(fn ($u) => $u['role'] === $role)->values();
+        }
+
+        return response()->json($users);
+    }
+
+    private function relativeTime($date): string
+    {
+        $diff = $date->diffInSeconds(now());
+
+        if ($diff < 60) {
+            return 'kurang dari 1 menit lalu';
+        }
+
+        if ($diff < 3600) {
+            return floor($diff / 60) . ' menit lalu';
+        }
+
+        if ($diff < 86400) {
+            return floor($diff / 3600) . ' jam lalu';
+        }
+
+        return floor($diff / 86400) . ' hari lalu';
     }
 
     /**

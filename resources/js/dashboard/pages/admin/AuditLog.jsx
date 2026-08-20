@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
 import api from '../../api';
 import Icon from '../../components/Icon';
+import PresenceBadge from '../../components/PresenceBadge';
 import { PageHeader, EmptyState } from '../../components/ui';
 import Skeleton from '../../components/Skeleton';
 
 const VIEWS = [
+    { key: 'presence', label: 'Kehadiran', icon: 'activity' },
     { key: 'login', label: 'Riwayat Login', icon: 'clock' },
     { key: 'activity', label: 'Log Aktivitas', icon: 'list' },
     { key: 'links', label: 'Riwayat Tautan', icon: 'link' },
@@ -95,13 +97,15 @@ export default function AuditLog() {
 
     const load = (page = 1) => {
         setLoading(true);
-        const endpoint = view === 'login' ? '/audit/login-history' : view === 'links' ? '/audit/links' : '/audit';
+        const endpoint = view === 'login' ? '/audit/login-history' : view === 'links' ? '/audit/links' : view === 'presence' ? '/audit/online-users' : '/audit';
         const params = { page, per_page: 25 };
         if (view === 'login') {
             if (status) params.status = status;
         } else if (view === 'links') {
             if (action) params.purpose = action;
             if (status) params.status = status;
+        } else if (view === 'presence') {
+            if (action) params.role = action;
         } else {
             if (categorySel) params.category = categorySel;
         }
@@ -109,8 +113,13 @@ export default function AuditLog() {
 
         api.get(endpoint, { params })
             .then(({ data }) => {
-                setItems(data.data);
-                setMeta(data);
+                if (view === 'presence') {
+                    setItems(data);
+                    setMeta({ total: data.length });
+                } else {
+                    setItems(data.data);
+                    setMeta(data);
+                }
             })
             .finally(() => setLoading(false));
     };
@@ -238,7 +247,20 @@ export default function AuditLog() {
                     />
                 </div>
                 <div className="ml-auto flex w-full flex-wrap items-center gap-1.5 md:w-auto">
-                    {view === 'login' ? (
+                    {view === 'presence' ? (
+                        <FilterDropdown
+                            title="Filter Role"
+                            icon="users"
+                            value={action}
+                            onChange={setAction}
+                            options={[
+                                { key: 'owner', label: 'Owner', icon: 'shield' },
+                                { key: 'admin', label: 'Admin', icon: 'users' },
+                                { key: 'client', label: 'Client', icon: 'user' },
+                                { key: 'subscriber', label: 'Subscriber', icon: 'user' },
+                            ]}
+                        />
+                    ) : view === 'login' ? (
                         <FilterDropdown
                             title="Status Login"
                             icon="clock"
@@ -282,7 +304,47 @@ export default function AuditLog() {
             {loading ? (
                 <Skeleton variant="table" />
             ) : items.length === 0 ? (
-                <EmptyState icon="clock" title={view === 'login' ? 'Belum ada riwayat login' : view === 'links' ? 'Belum ada riwayat tautan' : 'Belum ada log aktivitas'} />
+                <EmptyState icon="clock" title={view === 'login' ? 'Belum ada riwayat login' : view === 'links' ? 'Belum ada riwayat tautan' : view === 'presence' ? 'Belum ada pengguna' : 'Belum ada log aktivitas'} />
+            ) : view === 'presence' ? (
+                <div className="card overflow-x-auto">
+                    <table className="table">
+                        <thead>
+                            <tr>
+                                <th>User</th>
+                                <th>Role</th>
+                                <th>Status</th>
+                                <th>Terakhir Aktif</th>
+                                <th>Sesi Aktif</th>
+                                <th>Perangkat</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {items.map((it) => (
+                                <tr key={it.id}>
+                                    <td>
+                                        <p className="font-medium text-ink">{it.name}</p>
+                                        <p className="text-xs text-ink-muted">{it.email || it.username}</p>
+                                    </td>
+                                    <td>
+                                        <span className="badge">{it.role}</span>
+                                    </td>
+                                    <td>
+                                        <PresenceBadge online={it.online} lastSeenAt={it.last_seen_at} />
+                                    </td>
+                                    <td className="whitespace-nowrap text-xs text-ink-muted">
+                                        {it.last_seen_at ? formatDateTime(it.last_seen_at) : 'belum pernah aktif'}
+                                    </td>
+                                    <td className="whitespace-nowrap text-xs text-ink-muted">
+                                        {it.online && it.session_duration != null ? formatDuration(it.session_duration) : it.session_open ? formatDateTime(it.session_open) : '-'}
+                                    </td>
+                                    <td className="max-w-[220px] truncate text-xs text-ink-muted" title={it.session_device || ''}>
+                                        {shortUA(it.session_device)}
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
             ) : view === 'login' ? (
                 <div className="card overflow-x-auto">
                     <table className="table">
@@ -323,7 +385,9 @@ export default function AuditLog() {
                                     <td className="whitespace-nowrap text-xs text-ink-muted">{formatDateTime(it.logged_in_at)}</td>
                                     <td className="text-xs text-ink-muted">{it.status === 'success' ? formatDuration(it.duration_seconds) : '-'}</td>
                                     <td>
-                                        {it.suspicious ? (
+                                        {it.online ? (
+                                            <PresenceBadge online lastSeenAt={it.logged_in_at} />
+                                        ) : it.suspicious ? (
                                             <span className="badge bg-red-500/15 text-red-600 dark:text-red-400">Mencurigakan</span>
                                         ) : (
                                             <span className="text-xs text-ink-muted">-</span>

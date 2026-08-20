@@ -295,6 +295,8 @@ class ClientController extends Controller
             'avatar' => $user->avatar(),
             'created_at' => $user->created_at,
             'projects_count' => $user->projects_count ?? $user->projects()->count(),
+            'online' => $user->isOnline(),
+            'last_seen_at' => $user->last_seen_at?->toIso8601String(),
         ];
     }
 

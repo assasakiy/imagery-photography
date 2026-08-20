@@ -252,6 +252,8 @@ class TeamController extends Controller
             'social_instagram' => $socials->get('instagram')?->url,
             'social_tiktok' => $socials->get('tiktok')?->url,
             'social_whatsapp' => $socials->get('whatsapp')?->url,
+            'online' => $user->isOnline(),
+            'last_seen_at' => $user->last_seen_at?->toIso8601String(),
             'created_at' => $user->created_at,
         ];
     }

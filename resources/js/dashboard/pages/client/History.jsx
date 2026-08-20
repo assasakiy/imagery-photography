@@ -37,7 +37,7 @@ export default function History() {
                             </span>
                             <div className="min-w-0">
                                 <p className="text-sm text-ink">
-                                    <span className="font-semibold">{ACTION_LABEL(h.action) || h.action}</span>{' '}
+                                    <span className="font-semibold">{ACTION_LABEL[h.action] || h.action}</span>{' '}
                                     <span className="text-ink-muted">{h.target_type ? h.target_type.toLowerCase() : ''} {h.title ? `· ${h.title}` : ''}</span>
                                 </p>
                                 <p className="mt-0.5 text-xs text-ink-muted">{formatDateTime(h.created_at)}</p>

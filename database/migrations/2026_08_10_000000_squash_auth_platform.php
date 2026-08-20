@@ -24,6 +24,7 @@ return new class extends Migration
             $table->rememberToken();
             $table->string('status')->default('pending');
             $table->timestamp('activated_at')->nullable();
+            $table->timestamp('last_seen_at')->nullable();
             $table->softDeletes();
             $table->unsignedBigInteger('deleted_by_id')->nullable();
             $table->string('deleted_by_name')->nullable();

@@ -26,6 +26,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->web(append: [
             \App\Http\Middleware\TrackVisits::class,
+            \App\Http\Middleware\UpdateLastSeen::class,
         ]);
 
         $middleware->validateCsrfTokens(except: [

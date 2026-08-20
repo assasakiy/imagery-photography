@@ -54,6 +54,7 @@ class User extends Authenticatable
             'notif_whatsapp' => 'boolean',
             'notif_events' => 'array',
             'activated_at' => 'datetime',
+            'last_seen_at' => 'datetime',
             'deleted_at' => 'datetime',
         ];
     }
@@ -153,6 +154,31 @@ class User extends Authenticatable
     public function isVerified(): bool
     {
         return $this->isActive() && !empty($this->activated_at);
+    }
+
+    /**
+     * Ambang waktu (detik) user dianggap "sedang online" sejak last_seen_at.
+     */
+    public static function onlineThresholdSeconds(): int
+    {
+        return (int) env('PRESENCE_ONLINE_THRESHOLD_SECONDS', 180);
+    }
+
+    public function isOnline(?int $thresholdSeconds = null): bool
+    {
+        if (!$this->last_seen_at) {
+            return false;
+        }
+
+        return $this->last_seen_at->diffInSeconds(now()) < ($thresholdSeconds ?? static::onlineThresholdSeconds());
+    }
+
+    public function presence(): array
+    {
+        return [
+            'online' => $this->isOnline(),
+            'last_seen_at' => $this->last_seen_at?->toIso8601String(),
+        ];
     }
 
     public function primaryRole(): string

@@ -3,6 +3,7 @@ import api from '../../api';
 import Icon from '../../components/Icon';
 import MediaPicker from '../../components/MediaPicker';
 import UserDetailModal from '../../components/UserDetailModal';
+import PresenceBadge from '../../components/PresenceBadge';
 import { PageHeader, EmptyState, Modal, Confirm, Field, useToast } from '../../components/ui';
 import Skeleton from '../../components/Skeleton';
 
@@ -160,6 +161,9 @@ function AdminTab() {
                                 <span className={`badge ${item.role === 'owner' ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400' : 'bg-brand-500/15 text-brand-600 dark:text-brand-400'}`}>
                                     {item.role === 'owner' ? 'Owner' : 'Admin'}
                                 </span>
+                            </div>
+                            <div className="mt-3">
+                                <PresenceBadge online={item.online} lastSeenAt={item.last_seen_at} />
                             </div>
                             {item.role !== 'owner' && (
                                 <div className="mt-4 flex gap-1">
