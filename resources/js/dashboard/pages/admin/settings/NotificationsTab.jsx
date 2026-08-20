@@ -8,15 +8,20 @@ function NotifCard({ channel, form, meta, toggleEvent, open, setOpen }) {
     const events = isEmail ? form.email_events : form.whatsapp_events;
     const label = isEmail ? 'Email' : 'WhatsApp';
     const active = isEnabled && (events || []).some((e) => !!e.enabled);
+    const configured = isEmail ? meta.email_configured : meta.whatsapp_configured;
 
-    const badgeClass = isEnabled
-        ? (active ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' : 'bg-zinc-500/15 text-ink-muted')
-        : 'bg-red-500/15 text-red-600 dark:text-red-400';
-    const badgeLabel = isEnabled ? (active ? 'Aktif' : 'Pasif') : 'Nonaktif';
+    const badgeClass = !configured
+        ? 'bg-red-500/15 text-red-600 hover:bg-red-500/25 dark:text-red-400'
+        : isEnabled
+            ? (active
+                ? 'bg-emerald-500/15 text-emerald-600 hover:bg-emerald-500/25 dark:text-emerald-400'
+                : 'bg-amber-500/15 text-amber-600 hover:bg-amber-500/25 dark:text-amber-400')
+            : 'bg-amber-500/15 text-amber-600 hover:bg-amber-500/25 dark:text-amber-400';
+    const badgeLabel = !configured ? 'Belum Dikonfigurasi' : isEnabled ? (active ? 'Aktif' : 'Pasif') : 'Nonaktif';
 
     return (
         <div className="card w-full p-6">
-            <button type="button" onClick={() => setOpen(!open)} className="flex w-full items-center justify-between gap-4" aria-expanded={open}>
+            <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
                     <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-surface-muted text-ink-muted">
                         <Icon name={isEmail ? 'mail' : 'message-circle'} size={20} />
@@ -26,11 +31,18 @@ function NotifCard({ channel, form, meta, toggleEvent, open, setOpen }) {
                         <p className="text-xs text-ink-muted">Atur event yang mengirim notifikasi {isEmail ? 'email' : 'WhatsApp'}.</p>
                     </div>
                 </div>
-                <div className="flex items-center gap-2">
-                    <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${badgeClass}`}>{badgeLabel}</span>
-                    <Icon name="chevron-down" size={18} className={`transition-transform ${open ? 'rotate-180' : ''}`} />
+                <div className="flex shrink-0 items-center gap-2">
+                    <button
+                        type="button"
+                        onClick={() => setOpen(!open)}
+                        aria-expanded={open}
+                        className={`badge cursor-pointer transition-colors ${badgeClass}`}
+                    >
+                        <Icon name="chevron-down" size={12} className={`transition-transform ${open ? 'rotate-180' : ''}`} />
+                        {badgeLabel}
+                    </button>
                 </div>
-            </button>
+            </div>
 
             {!isEnabled && (
                 <div className="mt-4 flex items-start gap-2 rounded-xl bg-amber-500/10 p-3 text-xs text-amber-600 dark:text-amber-400">
@@ -75,7 +87,7 @@ function InAppCard({ form, toggleEvent, open, setOpen }) {
 
     return (
         <div className="card w-full p-6">
-            <button type="button" onClick={() => setOpen(!open)} className="flex w-full items-center justify-between gap-4" aria-expanded={open}>
+            <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
                     <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-surface-muted text-ink-muted">
                         <Icon name="bell" size={20} />
@@ -85,17 +97,21 @@ function InAppCard({ form, toggleEvent, open, setOpen }) {
                         <p className="text-xs text-ink-muted">Notifikasi yang tampil di dalam dashboard.</p>
                     </div>
                 </div>
-                <div className="flex items-center gap-2">
-                    <span
-                        className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${
-                            active ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' : 'bg-zinc-500/15 text-ink-muted'
+                <div className="flex shrink-0 items-center gap-2">
+                    <button
+                        type="button"
+                        onClick={() => setOpen(!open)}
+                        aria-expanded={open}
+                        className={`badge cursor-pointer transition-colors ${
+                            active ? 'bg-emerald-500/15 text-emerald-600 hover:bg-emerald-500/25 dark:text-emerald-400'
+                            : 'bg-amber-500/15 text-amber-600 hover:bg-amber-500/25 dark:text-amber-400'
                         }`}
                     >
+                        <Icon name="chevron-down" size={12} className={`transition-transform ${open ? 'rotate-180' : ''}`} />
                         {active ? 'Aktif' : 'Nonaktif'}
-                    </span>
-                    <Icon name="chevron-down" size={18} className={`transition-transform ${open ? 'rotate-180' : ''}`} />
+                    </button>
                 </div>
-            </button>
+            </div>
 
             {open && (
                 <div className="mt-4 border-t border-line pt-2">
