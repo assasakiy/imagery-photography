@@ -142,7 +142,15 @@ class BlogController extends Controller
             ->where('bookmarkable_id', $post->id)
             ->exists() ?? false;
 
-        return view('landing_pages.blog.show', compact('post', 'related', 'isBookmarked'));
+        $isLiked = $user?->likes()
+            ->where('likeable_type', Blog::class)
+            ->where('likeable_id', $post->id)
+            ->exists() ?? false;
+
+        $likesCount = $post->likes()->count();
+        $commentsCount = $post->approvedComments()->count();
+
+        return view('landing_pages.blog.show', compact('post', 'related', 'isBookmarked', 'isLiked', 'likesCount', 'commentsCount'));
     }
 
     public function author(string $identifier)

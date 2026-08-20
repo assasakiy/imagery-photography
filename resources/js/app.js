@@ -491,7 +491,164 @@ const consentBanner = document.querySelector('[data-cookie-consent]');
             });
         }
 
-        // ---- Bookmark toggle ----
+        // ---- Like toggle ----
+const likeToggle = document.querySelector('[data-like-toggle]');
+if (likeToggle) {
+    likeToggle.addEventListener('click', async () => {
+        const id = likeToggle.getAttribute('data-id');
+        const type = likeToggle.getAttribute('data-type') || 'blog';
+        const icon = likeToggle.querySelector('[data-like-icon]');
+        const label = likeToggle.querySelector('[data-like-label]');
+        const count = likeToggle.querySelector('[data-like-count]');
+        const liked = likeToggle.classList.contains('border-rose-500/50');
+
+        const csrf = (() => {
+            try {
+                return decodeURIComponent((document.cookie.match(/(?:^|; )XSRF-TOKEN=([^;]*)/) || [])[1] || '');
+            } catch (e) {
+                return '';
+            }
+        })();
+
+        try {
+            const res = await fetch('/api/likes/toggle', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest', 'X-XSRF-TOKEN': csrf },
+                body: JSON.stringify({ type, id: Number(id) }),
+            });
+            const data = await res.json();
+            if (!res.ok) {
+                alert(data?.message || 'Gagal menyukai. Coba lagi.');
+                return;
+            }
+            likeToggle.classList.toggle('border-rose-500/50', data.liked);
+            likeToggle.classList.toggle('bg-rose-500/10', data.liked);
+            likeToggle.classList.toggle('text-rose-600', data.liked);
+            likeToggle.classList.toggle('dark:text-rose-400', data.liked);
+            if (icon) icon.setAttribute('fill', data.liked ? 'currentColor' : 'none');
+            if (label) label.textContent = data.liked ? 'Disukai' : 'Suka';
+            if (count) count.textContent = data.likes_count;
+        } catch (err) {
+            alert('Gagal menyukai. Coba lagi.');
+        }
+    });
+}
+
+// ---- Comments ----
+const commentsList = document.querySelector('[data-comments-list]');
+const commentsForm = document.querySelector('[data-comment-form]');
+const commentsCountEl = document.querySelector('[data-comments-count]');
+
+const csrfToken = () => {
+    try {
+        return decodeURIComponent((document.cookie.match(/(?:^|; )XSRF-TOKEN=([^;]*)/) || [])[1] || '');
+    } catch (e) {
+        return '';
+    }
+};
+
+const renderComments = (comments) => {
+    if (!commentsList) return;
+    if (!comments.length) {
+        commentsList.innerHTML = '<p class="text-sm text-ink-muted">Belum ada komentar. Jadilah yang pertama.</p>';
+        return;
+    }
+    commentsList.innerHTML = comments.map((c) => {
+        const avatar = c.user?.avatar
+            ? `<img src="${c.user.avatar}" alt="" class="h-9 w-9 rounded-full object-cover ring-1 ring-line">`
+            : `<span class="flex h-9 w-9 items-center justify-center rounded-full bg-brand-500/15 text-xs font-bold text-brand-600 dark:text-brand-400">${(c.user?.name || '?').charAt(0).toUpperCase()}</span>`;
+        const deleteBtn = c.can_delete
+            ? `<button type="button" data-comment-delete="${c.id}" class="ml-2 text-xs text-ink-muted hover:text-rose-600">Hapus</button>`
+            : '';
+        return `
+            <div class="flex gap-3 rounded-2xl border border-line bg-surface p-4">
+                <div class="shrink-0">${avatar}</div>
+                <div class="min-w-0 flex-1">
+                    <div class="flex items-baseline gap-2">
+                        <span class="text-sm font-semibold text-ink">${c.user?.name || 'Subscriber'}</span>
+                        <span class="text-xs text-ink-muted">${c.created_at_rel || ''}</span>
+                        ${deleteBtn}
+                    </div>
+                    <p class="mt-1 whitespace-pre-wrap text-sm text-ink">${c.body}</p>
+                </div>
+            </div>`;
+    }).join('');
+};
+
+const loadComments = async () => {
+    const postId = document.querySelector('[data-like-toggle]')?.getAttribute('data-id') || document.querySelector('[data-bookmark-toggle]')?.getAttribute('data-id');
+    if (!postId) return;
+    try {
+        const res = await fetch(`/api/comments/blog/${postId}`, { headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' } });
+        const data = await res.json();
+        renderComments(data || []);
+    } catch (e) {
+        /* ignore */
+    }
+};
+
+if (commentsList) {
+    loadComments();
+
+    commentsList.addEventListener('click', async (e) => {
+        const btn = e.target.closest('[data-comment-delete]');
+        if (!btn) return;
+        const id = btn.getAttribute('data-comment-delete');
+        if (!confirm('Hapus komentar ini?')) return;
+        try {
+            const res = await fetch(`/api/comments/${id}`, {
+                method: 'DELETE',
+                headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest', 'X-XSRF-TOKEN': csrfToken() },
+            });
+            if (res.ok) {
+                btn.closest('[data-comment-delete]')?.parentElement?.parentElement?.parentElement?.remove();
+                loadComments();
+            }
+        } catch (err) {
+            /* ignore */
+        }
+    });
+}
+
+if (commentsForm) {
+    commentsForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const body = commentsForm.querySelector('[data-comment-body]');
+        const submitBtn = commentsForm.querySelector('[data-comment-submit]');
+        if (!body?.value.trim()) return;
+        const postId = document.querySelector('[data-like-toggle]')?.getAttribute('data-id');
+        if (!postId) return;
+
+        if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Mengirim…'; }
+        try {
+            const res = await fetch('/api/comments', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest', 'X-XSRF-TOKEN': csrfToken() },
+                body: JSON.stringify({ type: 'blog', id: Number(postId), body: body.value.trim() }),
+            });
+            const data = await res.json();
+            if (!res.ok) {
+                alert(data?.message || 'Gagal mengirim komentar.');
+                return;
+            }
+            body.value = '';
+            if (commentsCountEl) commentsCountEl.textContent = (Number(commentsCountEl.textContent) || 0) + 1;
+            loadComments();
+        } catch (err) {
+            alert('Gagal mengirim komentar. Coba lagi.');
+        } finally {
+            if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Kirim Komentar'; }
+        }
+    });
+}
+
+document.querySelectorAll('[data-scroll-comments]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+        document.querySelector('[data-comments-section]')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+});
+
+// ---- Bookmark toggle ----
         document.querySelectorAll('[data-bookmark-toggle]').forEach((btn) => {
             btn.addEventListener('click', async () => {
                 const id = btn.getAttribute('data-id');

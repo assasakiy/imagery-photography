@@ -95,6 +95,16 @@
                         $canEngage = $authUser->hasRole('subscriber') || $authUser->hasRole('client');
                     @endphp
                     @if ($canEngage)
+                        <button type="button" data-like-toggle data-id="{{ $post->id }}" data-type="blog"
+                                class="btn-outline {{ $isLiked ? 'border-rose-500/50 bg-rose-500/10 text-rose-600 dark:text-rose-400' : '' }}">
+                            <svg data-like-icon xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="{{ $isLiked ? 'currentColor' : 'none' }}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10v12"/><path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z"/></svg>
+                            <span data-like-label>{{ $isLiked ? 'Disukai' : 'Suka' }}</span>
+                            <span data-like-count class="rounded-full bg-line/60 px-1.5 text-xs">{{ $likesCount }}</span>
+                        </button>
+                        <button type="button" data-scroll-comments class="btn-outline">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>
+                            Komentar <span data-comments-count class="rounded-full bg-line/60 px-1.5 text-xs">{{ $commentsCount }}</span>
+                        </button>
                         <button type="button" data-bookmark-toggle data-id="{{ $post->id }}" data-type="blog"
                                 class="btn-outline {{ $isBookmarked ? 'border-amber-500/50 bg-amber-500/10 text-amber-600 dark:text-amber-400' : '' }}">
                             <svg data-bookmark-icon xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="{{ $isBookmarked ? 'currentColor' : 'none' }}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>
@@ -114,6 +124,37 @@
                 </a>
             </div>
         </div>
+
+        @if (auth()->check() && (auth()->user()->hasRole('subscriber') || auth()->user()->hasRole('client')))
+            <section data-comments-section class="mt-12 border-t border-line pt-10">
+                <h2 class="mb-6 text-2xl font-bold text-ink">Komentar</h2>
+
+                <form data-comment-form class="mb-8 rounded-2xl border border-line bg-surface p-4">
+                    <textarea data-comment-body name="body" rows="3" required minlength="2" maxlength="2000"
+                              placeholder="Tulis komentar Anda…"
+                              class="w-full resize-y rounded-xl border border-line bg-zinc-50 px-4 py-3 text-sm text-ink placeholder:text-ink-muted focus:border-brand-500 focus:outline-none dark:bg-zinc-900 dark:text-zinc-100"></textarea>
+                    <div class="mt-3 flex items-center justify-between gap-3">
+                        <p class="text-xs text-ink-muted">Komentar bersifat publik dan perlu dijaga sopan santun.</p>
+                        <button type="submit" data-comment-submit class="btn-primary">Kirim Komentar</button>
+                    </div>
+                </form>
+
+                <div data-comments-list class="space-y-4">
+                    <p class="text-sm text-ink-muted">Belum ada komentar. Jadilah yang pertama.</p>
+                </div>
+            </section>
+        @elseif (!auth()->check())
+            <section data-comments-section class="mt-12 border-t border-line pt-10">
+                <h2 class="mb-6 text-2xl font-bold text-ink">Komentar</h2>
+                <div class="rounded-2xl border border-line bg-surface p-6 text-center">
+                    <p class="text-sm text-ink-muted">Subscribe atau login untuk ikut berkomentar dan menyukai artikel.</p>
+                    <div class="mt-4 flex justify-center gap-2">
+                        <button type="button" data-subscribe-open class="btn-primary">Subscribe</button>
+                        <a href="{{ route('login') }}" class="btn-outline">Masuk</a>
+                    </div>
+                </div>
+            </section>
+        @endif
     </article>
 
     @if ($related->isNotEmpty())

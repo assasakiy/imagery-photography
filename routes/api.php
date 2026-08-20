@@ -24,6 +24,7 @@ use App\Http\Controllers\Api\ServiceController;
 use App\Http\Controllers\Api\CustomerController;
 use App\Http\Controllers\Api\BookmarkController;
 use App\Http\Controllers\Api\HistoryController;
+use App\Http\Controllers\Api\EngagementController;
 use App\Http\Controllers\Api\PackageController;
 use App\Http\Controllers\Api\SettingsController;
 use App\Http\Controllers\Api\TeamController;
@@ -102,6 +103,16 @@ Route::middleware(['web', 'auth:sanctum', 'maintenance'])->group(function () {
     Route::get('/bookmarks', [BookmarkController::class, 'index']);
     Route::post('/bookmarks', [BookmarkController::class, 'store']);
     Route::delete('/bookmarks/{type}/{id}', [BookmarkController::class, 'destroy'])->where(['type' => 'blog|portfolio|package']);
+
+    Route::post('/likes/toggle', [EngagementController::class, 'toggleLike']);
+    Route::get('/comments/{type}/{id}', [EngagementController::class, 'comments'])->where(['type' => 'blog|portfolio|package']);
+    Route::post('/comments', [EngagementController::class, 'storeComment']);
+    Route::delete('/comments/{comment}', [EngagementController::class, 'destroyComment']);
+
+    Route::middleware('role:owner|admin')->group(function () {
+        Route::get('/comments/moderate/list', [EngagementController::class, 'moderateList']);
+        Route::patch('/comments/{comment}/moderate', [EngagementController::class, 'moderate']);
+    });
 
     Route::apiResource('categories', \App\Http\Controllers\Api\CategoryController::class)->names('api.categories')->except(['create', 'edit']);
 

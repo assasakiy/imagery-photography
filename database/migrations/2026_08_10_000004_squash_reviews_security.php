@@ -28,6 +28,53 @@ return new class extends Migration
             $table->foreign('project_id')->references('id')->on('projects')->onDelete('set null');
         });
 
+        Schema::create('likes', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger('user_id');
+            $table->morphs('likeable');
+            $table->timestamps();
+
+            $table->unique(['user_id', 'likeable_type', 'likeable_id']);
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+        });
+
+        Schema::create('comments', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger('user_id');
+            $table->morphs('commentable');
+            $table->text('content');
+            $table->string('status', 20)->default('published');
+            $table->timestamp('approved_at')->nullable();
+            $table->timestamps();
+
+            $table->index(['commentable_type', 'commentable_id', 'status']);
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+        });
+
+        Schema::create('likes', function (Blueprint $table) {
+            $table->id();
+            $table->morphs('likeable');
+            $table->unsignedBigInteger('user_id');
+            $table->timestamps();
+
+            $table->unique(['likeable_type', 'likeable_id', 'user_id']);
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+        });
+
+        Schema::create('comments', function (Blueprint $table) {
+            $table->id();
+            $table->morphs('commentable');
+            $table->unsignedBigInteger('user_id');
+            $table->unsignedBigInteger('parent_id')->nullable();
+            $table->text('body');
+            $table->string('status', 20)->default('approved');
+            $table->timestamps();
+
+            $table->index(['commentable_type', 'commentable_id', 'status']);
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+            $table->foreign('parent_id')->references('id')->on('comments')->onDelete('cascade');
+        });
+
         Schema::create('login_histories', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('user_id')->nullable();
@@ -142,5 +189,9 @@ return new class extends Migration
         Schema::dropIfExists('audit_logs');
         Schema::dropIfExists('login_histories');
         Schema::dropIfExists('reviews');
+        Schema::dropIfExists('comments');
+        Schema::dropIfExists('likes');
+        Schema::dropIfExists('comments');
+        Schema::dropIfExists('likes');
     }
 };
