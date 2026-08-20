@@ -40,6 +40,9 @@ class ProfileController extends Controller
             'social_instagram' => 'nullable|string|max:500',
             'social_tiktok' => 'nullable|string|max:500',
             'social_whatsapp' => 'nullable|string|max:500',
+            'socials' => 'nullable|array',
+            'socials.*.slug' => 'required|string|max:100',
+            'socials.*.url' => 'nullable|string|max:500',
             'notif_inapp' => 'sometimes|boolean',
             'notif_email' => 'sometimes|boolean',
             'notif_whatsapp' => 'sometimes|boolean',
@@ -121,6 +124,29 @@ class ProfileController extends Controller
             } elseif ($existing) {
                 $existing->delete();
             }
+        }
+
+        if (array_key_exists('socials', $data)) {
+            $seen = [];
+            foreach ((array) $data['socials'] as $row) {
+                $slug = trim((string) ($row['slug'] ?? ''));
+                $url = trim((string) ($row['url'] ?? ''));
+                if ($slug === '' || $url === '') {
+                    continue;
+                }
+                $seen[] = $slug;
+                $platform = \App\Models\SocialPlatform::firstOrCreate(
+                    ['slug' => $slug],
+                    ['name' => ucfirst($slug), 'icon' => $slug, 'base_url' => 'https://' . $slug . '.com/']
+                );
+                $existing = $user->socials()->where('social_platform_id', $platform->id)->first();
+                $old = $existing?->url;
+                if ((string) $old !== (string) $url) {
+                    $changes['socials.' . $slug] = ['old' => $old, 'new' => $url];
+                }
+                $user->socials()->updateOrCreate(['social_platform_id' => $platform->id], ['url' => $url, 'is_public' => true]);
+            }
+            $user->socials()->whereDoesntHave('platform', fn ($q) => $q->whereIn('slug', $seen))->delete();
         }
 
         app(AuditLogger::class)->log(

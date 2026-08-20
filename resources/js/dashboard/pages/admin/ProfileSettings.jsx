@@ -5,6 +5,8 @@ import MediaPicker from '../../components/MediaPicker';
 import { PageHeader, Field, Modal, useToast, ButtonSpinner } from '../../components/ui';
 import Skeleton from '../../components/Skeleton';
 import { useAuth } from '../../context/AuthContext';
+import SocialSelect from './landing/sections/SocialSelect';
+import { SOCIAL_PLATFORMS, SocialLogo } from './landing/sections/socialPlatforms';
 
 const ROLE_LABEL = { owner: 'Pemilik', admin: 'Dashboard Admin', client: 'Portal Klien' };
 
@@ -13,13 +15,6 @@ const TABS = [
     { key: 'social', label: 'Media Sosial', icon: 'link' },
     { key: 'password', label: 'Kata Sandi', icon: 'lock' },
     { key: 'prefs', label: 'Preferensi', icon: 'bell' },
-];
-
-const SOCIAL_FIELDS = [
-    { key: 'social_instagram', label: 'Instagram', icon: 'instagram', placeholder: 'https://instagram.com/…' },
-    { key: 'social_facebook', label: 'Facebook', icon: 'facebook', placeholder: 'https://facebook.com/…' },
-    { key: 'social_tiktok', label: 'TikTok', icon: 'tiktok', placeholder: 'https://tiktok.com/@…' },
-    { key: 'social_whatsapp', label: 'WhatsApp', icon: 'whatsapp', placeholder: 'https://wa.me/62…' },
 ];
 
 function Toggle({ checked, onChange, label, desc }) {
@@ -58,7 +53,7 @@ export default function ProfileSettings() {
     const [errors, setErrors] = useState({});
 
     const [profile, setProfile] = useState({ name: '', email: '', phone: '', bio: '' });
-    const [socials, setSocials] = useState({ social_instagram: '', social_facebook: '', social_tiktok: '', social_whatsapp: '' });
+    const [socials, setSocials] = useState([]);
     const [prefs, setPrefs] = useState({ notif_inapp: true, notif_email: true, notif_whatsapp: true });
     const [notifEvents, setNotifEvents] = useState({ email: [], whatsapp: [] });
     const [otpChannel, setOtpChannel] = useState('');
@@ -110,12 +105,15 @@ export default function ProfileSettings() {
             .then(({ data }) => {
                 const u = data.user;
                 setProfile({ full_name: u.name, username: u.username || '', email: u.email, phone: u.phone || '', bio: u.bio || '', company: u.company || '', occupation: u.occupation || '', website: u.website || '' });
-                setSocials({
-                    social_instagram: u.social_instagram || '',
-                    social_facebook: u.social_facebook || '',
-                    social_tiktok: u.social_tiktok || '',
-                    social_whatsapp: u.social_whatsapp || '',
-                });
+                const socialList = Array.isArray(u.socials) && u.socials.length > 0
+                    ? u.socials.map((s) => ({ slug: s.slug, url: s.url || '' }))
+                    : [
+                        { slug: 'instagram', url: u.social_instagram || '' },
+                        { slug: 'facebook', url: u.social_facebook || '' },
+                        { slug: 'tiktok', url: u.social_tiktok || '' },
+                        { slug: 'whatsapp', url: u.social_whatsapp || '' },
+                    ].filter((s) => s.url);
+                setSocials(socialList);
                 setPrefs({ notif_inapp: u.notif_inapp !== false, notif_email: u.notif_email !== false, notif_whatsapp: u.notif_whatsapp !== false });
                 const rawEvents = u.notif_events;
                 setNotifEvents(Array.isArray(rawEvents) || !rawEvents || typeof rawEvents !== 'object'
@@ -157,7 +155,7 @@ export default function ProfileSettings() {
 
     const saveSocials = async (e) => {
         e.preventDefault();
-        await save(socials, 'Media sosial diperbarui.');
+        await save({ socials }, 'Media sosial diperbarui.');
     };
 
     const savePassword = async (e) => {
@@ -386,7 +384,7 @@ export default function ProfileSettings() {
                             tab === t.key ? 'bg-brand-600 text-white shadow' : 'text-ink-muted hover:bg-surface-muted hover:text-ink'
                         }`}
                     >
-                        <Icon name={t.icon} size={16} /> {t.label}
+                        <Icon name={t.icon} size={16} /> <span className="hidden sm:inline">{t.label}</span>
                     </button>
                 ))}
             </div>
@@ -474,28 +472,75 @@ export default function ProfileSettings() {
 
                 {tab === 'social' && (
                     <form onSubmit={saveSocials} className="card p-5 lg:col-span-2">
-                        <h3 className="mb-4 flex items-center gap-2 font-semibold text-ink">
+                        <h3 className="mb-1 flex items-center gap-2 font-semibold text-ink">
                             <Icon name="link" size={18} /> Media Sosial
                         </h3>
-                        <div className="space-y-4">
-                            {SOCIAL_FIELDS.map((f) => (
-                                <Field key={f.key} label={f.label} hint="opsional" error={errors[f.key]?.[0]}>
-                                    <div className="relative">
-                                        <Icon name={f.icon} size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" />
-                                        <input
-                                            className="input pl-10"
-                                            value={socials[f.key]}
-                                            onChange={(e) => setSocials({ ...socials, [f.key]: e.target.value })}
-                                            placeholder={f.placeholder}
-                                        />
-                                    </div>
-                                </Field>
-                            ))}
-                            <div className="flex justify-end pt-2">
-                                <button type="submit" className="btn-primary" disabled={saving}>
-                                    <Icon name="check" size={16} /> Simpan Media Sosial
-                                </button>
+                        <p className="mb-5 text-sm text-ink-muted">Tambahkan akun sosial media Anda yang ingin ditampilkan di profil.</p>
+
+                        <div className="flex items-center justify-between">
+                            <p className="text-sm font-semibold text-ink">Daftar Sosial Media</p>
+                            <button
+                                type="button"
+                                className="btn-outline text-xs py-1.5 px-3"
+                                onClick={() => setSocials([...socials, { slug: 'instagram', url: '' }])}
+                            >
+                                <Icon name="plus" size={14} /> Tambah
+                            </button>
+                        </div>
+
+                        {socials.length === 0 ? (
+                            <div className="mt-3 rounded-lg border border-dashed border-line p-4 text-center text-sm text-ink-muted">
+                                Belum ada sosial media. Klik "Tambah" untuk mulai.
                             </div>
+                        ) : (
+                            <div className="mt-4 space-y-3">
+                                {socials.map((row, i) => (
+                                    <div key={i} className="grid grid-cols-1 items-center gap-3 sm:grid-cols-[200px_1fr_auto]">
+                                        <SocialSelect value={row.slug || ''} onChange={(slug) => {
+                                            const next = socials.slice();
+                                            next[i] = { ...next[i], slug };
+                                            setSocials(next);
+                                        }} />
+                                        <input
+                                            className="input"
+                                            placeholder="https://..."
+                                            value={row.url || ''}
+                                            onChange={(e) => {
+                                                const next = socials.slice();
+                                                next[i] = { ...next[i], url: e.target.value };
+                                                setSocials(next);
+                                            }}
+                                        />
+                                        <button
+                                            type="button"
+                                            className="btn-outline text-red-500 !px-2.5 !py-2"
+                                            onClick={() => setSocials(socials.filter((_, x) => x !== i))}
+                                            title="Hapus"
+                                        >
+                                            <Icon name="trash" size={15} />
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+
+                        {socials.length > 0 && socials.some((r) => r.url) && (
+                            <div className="mt-4 flex flex-wrap gap-2">
+                                {socials.filter((r) => r.url).map((r, i) => {
+                                    const found = SOCIAL_PLATFORMS.find((p) => p.type === r.slug);
+                                    return (
+                                        <span key={i} className="flex items-center gap-1.5 rounded-full border border-line px-2.5 py-1 text-xs text-ink-muted">
+                                            <SocialLogo type={r.slug} size={14} className="text-ink" /> {found ? found.label : r.slug}
+                                        </span>
+                                    );
+                                })}
+                            </div>
+                        )}
+
+                        <div className="flex justify-end pt-2">
+                            <button type="submit" className="btn-primary" disabled={saving}>
+                                <Icon name="check" size={16} /> Simpan Media Sosial
+                            </button>
                         </div>
                     </form>
                 )}
@@ -572,7 +617,7 @@ export default function ProfileSettings() {
 
                         {!emailActive && !waActive ? (
                             <p className="mt-5 rounded-xl border border-line bg-surface-muted/40 p-4 text-sm text-ink-muted">
-                                Belum ada kanal notifikasi yang aktif. Pemilik perlu mengonfigurasi SMTP atau WhatsApp di menu Pengaturan.
+                                Kanal notifikasi email dan WhatsApp belum tersedia untuk akun Anda.
                             </p>
                         ) : (
                             ['email', 'whatsapp'].map((channel) => {
