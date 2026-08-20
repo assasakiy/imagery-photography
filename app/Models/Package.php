@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Support\Bookmarkable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
 
 class Package extends Model
@@ -42,6 +43,23 @@ class Package extends Model
             ->orderBy('package_items.id');
     }
 
+    public function bookings(): HasMany
+    {
+        return $this->hasMany(Booking::class);
+    }
+
+    public function scopeActive($q)
+    {
+        return $q->where('is_active', true);
+    }
+
+    public function scopeWithBookingCount($q)
+    {
+        return $q->withCount([
+            'bookings as booking_count' => fn ($b) => $b->whereIn('status', ['confirmed', 'converted']),
+        ]);
+    }
+
     public function basePrice(): float
     {
         $total = 0;
@@ -75,11 +93,6 @@ class Package extends Model
     public function isDiscounted(): bool
     {
         return $this->discountValue() > 0;
-    }
-
-    public function scopeActive($q)
-    {
-        return $q->where('is_active', true);
     }
 
     public function summary(): string

@@ -59,7 +59,7 @@ class ContactController extends Controller
         $sections = is_array($page?->sections) ? $page->sections : [];
         $sections = collect($sections)->keyBy('type');
 
-        $allPackages = \App\Models\Package::with('services')->active()->orderBy('display_order')->get();
+        $allPackages = \App\Models\Package::with('services')->active()->withBookingCount()->orderBy('display_order')->get();
         $allServices = \App\Models\Service::where('active', true)->orderBy('order')->get();
         $faqs = \Illuminate\Support\Collection::empty();
 
@@ -72,7 +72,7 @@ class ContactController extends Controller
         $popularLimit = min(6, max(1, (int) ($populer['popular_limit'] ?? 3)));
         $featuredLimit = min(6, max(1, (int) ($populer['featured_limit'] ?? 3)));
 
-        $popularPackages = $usePopular ? $allPackages->where('is_popular', true)->values()->take($popularLimit) : collect();
+        $popularPackages = $usePopular ? $allPackages->where('booking_count', '>', 0)->sortByDesc('booking_count')->values()->take($popularLimit) : collect();
         $featuredPackages = $useFeatured ? $allPackages->where('is_featured', true)->values()->take($featuredLimit) : collect();
         $highlightPackages = $popularPackages->concat($featuredPackages)->unique('id')->values();
 

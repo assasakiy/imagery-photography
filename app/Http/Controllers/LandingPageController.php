@@ -53,9 +53,9 @@ class LandingPageController extends Controller
         $layananMode = (string) ($layananSec['mode'] ?? 'featured');
         $layananLimit = min(9, max(1, (int) ($layananSec['limit'] ?? 3)));
 
-        $packagesQuery = Package::with('services')->active();
+        $packagesQuery = Package::with('services')->active()->withBookingCount();
         if ($layananMode === 'popular') {
-            $packagesQuery->orderByDesc('is_popular')->orderBy('display_order');
+            $packagesQuery->orderByDesc('booking_count')->orderBy('display_order');
         } elseif ($layananMode === 'latest') {
             $packagesQuery->orderByDesc('id');
         } elseif ($layananMode === 'all') {

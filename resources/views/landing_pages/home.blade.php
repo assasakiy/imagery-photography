@@ -139,7 +139,7 @@
 <div class="mb-4 flex items-center gap-3">
                     @if ($pkg->is_featured)
                         <span class="rounded-full bg-amber-500/15 px-2 py-0.5 text-xs font-semibold text-amber-600 dark:text-amber-400">Unggulan</span>
-                    @elseif ($pkg->is_popular)
+                    @elseif ($pkg->booking_count > 0)
                         <span class="rounded-full bg-emerald-500/15 px-2 py-0.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400">Populer</span>
                     @endif
                 </div>

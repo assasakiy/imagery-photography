@@ -24,7 +24,7 @@ class BookingController extends Controller
 
         $services = Service::active()->orderBy('order')->get();
 
-        $packages = Package::with('services')->active()->orderBy('display_order')->get()->map(function ($p) {
+        $packages = Package::with('services')->active()->withBookingCount()->orderBy('display_order')->get()->map(function ($p) {
             return [
                 'id' => $p->id,
                 'name' => $p->name,
@@ -33,7 +33,8 @@ class BookingController extends Controller
                 'base_price' => $p->basePrice(),
                 'discount' => $p->discountValue(),
                 'is_featured' => $p->is_featured,
-                'is_popular' => $p->is_popular,
+                'is_popular' => $p->booking_count > 0,
+                'booking_count' => $p->booking_count,
                 'items' => $p->services->map(fn ($s) => trim($s->event . ' (' . ucfirst((string) $s->media) . ')'))->values(),
             ];
         });

@@ -12,7 +12,7 @@ class PackageController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Package::with('services')
+        $query = Package::with('services')->withBookingCount()
             ->when($request->boolean('active_only'), fn ($q) => $q->where('is_active', true))
             ->orderBy('display_order');
 
@@ -82,6 +82,7 @@ class PackageController extends Controller
             'is_popular' => (bool) $package->is_popular,
             'is_featured' => (bool) $package->is_featured,
             'is_active' => (bool) $package->is_active,
+            'booking_count' => (int) ($package->booking_count ?? $package->bookings()->whereIn('status', ['confirmed', 'converted'])->count()),
             'display_order' => $package->display_order,
             'base_price' => $package->basePrice(),
             'discount' => $package->discountValue(),

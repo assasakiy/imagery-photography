@@ -20,7 +20,7 @@ const PROMO_OPTIONS = [
 const emptyService = { event: '', media: 'photo', duration: '', terms: '', price: '', active: true, order: 0 };
 const emptyPackage = {
     name: '', type: 'bundling', price_mode: 'auto', promo_type: 'none', promo_value: '',
-    manual_price: '', description: '', is_popular: false, is_featured: false, is_active: true, display_order: 0, items: [],
+    manual_price: '', description: '', is_featured: false, is_active: true, display_order: 0, items: [], booking_count: 0,
 };
 
 export default function Services() {
@@ -102,7 +102,8 @@ export default function Services() {
         setPkgForm({
             name: p.name, type: p.type, price_mode: p.price_mode, promo_type: p.promo_type || 'none',
             promo_value: p.promo_value ?? '', manual_price: p.manual_price ?? '', description: p.description || '',
-            is_popular: Boolean(p.is_popular), is_featured: Boolean(p.is_featured), is_active: Boolean(p.is_active),
+            is_featured: Boolean(p.is_featured), is_active: Boolean(p.is_active),
+            booking_count: p.booking_count || 0,
             display_order: p.display_order || 0,
             items: (p.items || []).map((i) => ({ service_id: i.service_id, qty: i.qty || 1 })),
         });
@@ -259,7 +260,7 @@ export default function Services() {
                                             <h3 className="font-bold text-ink">{p.name}</h3>
                                             <span className="badge bg-brand-500/15 text-brand-600 dark:text-brand-400">{p.type}</span>
                                             {p.is_featured && <span className="badge bg-amber-500/15 text-amber-600 dark:text-amber-400"><Icon name="star" size={12} /> Unggulan</span>}
-                                            {p.is_popular && <span className="badge bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">Populer</span>}
+                                            {p.booking_count > 0 && <span className="badge bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">Populer</span>}
                                             {!p.is_active && <span className="badge bg-zinc-500/15 text-zinc-500">Nonaktif</span>}
                                         </div>
                                         {p.description && <p className="mt-1 text-sm text-ink-muted">{p.description}</p>}
@@ -462,14 +463,13 @@ export default function Services() {
                                     Unggulan (kartu utama)
                                 </label>
                                 <label className="flex cursor-pointer items-center gap-2 text-sm text-ink">
-                                    <input type="checkbox" checked={pkgForm.is_popular} onChange={(e) => setPkgForm({ ...pkgForm, is_popular: e.target.checked })} className="h-4 w-4 rounded border-line text-brand-600" />
-                                    Populer
-                                </label>
-                                <label className="flex cursor-pointer items-center gap-2 text-sm text-ink">
                                     <input type="checkbox" checked={pkgForm.is_active} onChange={(e) => setPkgForm({ ...pkgForm, is_active: e.target.checked })} className="h-4 w-4 rounded border-line text-brand-600" />
                                     Aktif
                                 </label>
                             </div>
+                            <p className="mt-1 text-xs text-ink-muted">
+                                Label "Populer" otomatis dari jumlah booking (status konfirmasi/converted). Saat ini {pkgForm.booking_count || 0} booking.
+                            </p>
                         </Field>
                     </div>
                 </form>
