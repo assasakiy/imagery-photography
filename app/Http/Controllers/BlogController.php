@@ -137,7 +137,12 @@ class BlogController extends Controller
             ->take(3)
             ->get();
 
-        return view('landing_pages.blog.show', compact('post', 'related'));
+        $isBookmarked = $user?->bookmarks()
+            ->where('bookmarkable_type', Blog::class)
+            ->where('bookmarkable_id', $post->id)
+            ->exists() ?? false;
+
+        return view('landing_pages.blog.show', compact('post', 'related', 'isBookmarked'));
     }
 
     public function author(string $identifier)

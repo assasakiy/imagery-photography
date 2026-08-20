@@ -88,10 +88,31 @@
             @php
                 $shareText = urlencode($post->title . "\n" . route('blog.show', $post->slug));
             @endphp
-            <a href="https://wa.me/?text={{ $shareText }}" target="_blank" rel="noreferrer" class="btn-outline">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-                Bagikan via WhatsApp
-            </a>
+            <div class="flex flex-wrap items-center gap-2">
+                @auth
+                    @php
+                        $authUser = auth()->user();
+                        $canEngage = $authUser->hasRole('subscriber') || $authUser->hasRole('client');
+                    @endphp
+                    @if ($canEngage)
+                        <button type="button" data-bookmark-toggle data-id="{{ $post->id }}" data-type="blog"
+                                class="btn-outline {{ $isBookmarked ? 'border-amber-500/50 bg-amber-500/10 text-amber-600 dark:text-amber-400' : '' }}">
+                            <svg data-bookmark-icon xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="{{ $isBookmarked ? 'currentColor' : 'none' }}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>
+                            <span data-bookmark-label>{{ $isBookmarked ? 'Tersimpan' : 'Simpan' }}</span>
+                        </button>
+                    @endif
+                @endauth
+                @guest
+                    <button type="button" data-subscribe-open class="btn-outline">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>
+                        Simpan
+                    </button>
+                @endguest
+                <a href="https://wa.me/?text={{ $shareText }}" target="_blank" rel="noreferrer" class="btn-outline">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                    Bagikan via WhatsApp
+                </a>
+            </div>
         </div>
     </article>
 

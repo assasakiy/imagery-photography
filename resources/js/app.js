@@ -491,6 +491,48 @@ const consentBanner = document.querySelector('[data-cookie-consent]');
             });
         }
 
+        // ---- Bookmark toggle ----
+        document.querySelectorAll('[data-bookmark-toggle]').forEach((btn) => {
+            btn.addEventListener('click', async () => {
+                const id = btn.getAttribute('data-id');
+                const type = btn.getAttribute('data-type') || 'blog';
+                const icon = btn.querySelector('[data-bookmark-icon]');
+                const label = btn.querySelector('[data-bookmark-label]');
+                const active = btn.classList.contains('border-amber-500/50');
+
+                const csrf = (() => {
+                    try {
+                        return decodeURIComponent((document.cookie.match(/(?:^|; )XSRF-TOKEN=([^;]*)/) || [])[1] || '');
+                    } catch (e) {
+                        return '';
+                    }
+                })();
+
+                try {
+                    if (active) {
+                        await fetch(`/api/bookmarks/${type}/${id}`, {
+                            method: 'DELETE',
+                            headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest', 'X-XSRF-TOKEN': csrf },
+                        });
+                        btn.classList.remove('border-amber-500/50', 'bg-amber-500/10', 'text-amber-600', 'dark:text-amber-400');
+                        if (icon) icon.setAttribute('fill', 'none');
+                        if (label) label.textContent = 'Simpan';
+                    } else {
+                        await fetch('/api/bookmarks', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest', 'X-XSRF-TOKEN': csrf },
+                            body: JSON.stringify({ type, id: Number(id) }),
+                        });
+                        btn.classList.add('border-amber-500/50', 'bg-amber-500/10', 'text-amber-600', 'dark:text-amber-400');
+                        if (icon) icon.setAttribute('fill', 'currentColor');
+                        if (label) label.textContent = 'Tersimpan';
+                    }
+                } catch (err) {
+                    alert('Gagal menyimpan. Coba lagi.');
+                }
+            });
+        });
+
         // ---- Subscribe modal ----
         const subscribeModal = document.querySelector('[data-subscribe-modal]');
         const subscribeForm = document.querySelector('[data-subscribe-form]');
