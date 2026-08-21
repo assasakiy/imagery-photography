@@ -75,10 +75,21 @@
             {!! content_html($post->content) !!}
         </div>
 
+        @if ($post->tags->isNotEmpty())
+            <div class="mt-8 border-t border-line/70 pt-6">
+                <p class="mb-3 text-xs font-semibold uppercase tracking-widest text-ink-muted">Tag Artikel</p>
+                <div class="flex flex-wrap gap-2">
+                    @foreach ($post->tags as $tag)
+                        <a href="{{ route('blog.tag', $tag->slug) }}" class="chip">#{{ $tag->name }}</a>
+                    @endforeach
+                </div>
+            </div>
+        @endif
+
         @php
             $shareUrl = route('blog.show', $post->slug);
         @endphp
-        <div class="mt-10 border-t border-line pt-8">
+        <div class="mt-6 border-t border-line pt-6">
             <div class="flex flex-wrap items-center gap-2">
                 @auth
                     @php
@@ -116,16 +127,6 @@
                     <span data-share-label>Bagikan</span>
                 </button>
             </div>
-            @if ($post->tags->isNotEmpty())
-                <div class="mt-6 border-t border-line/70 pt-6">
-                    <p class="mb-3 text-xs font-semibold uppercase tracking-widest text-ink-muted">Tag Artikel</p>
-                    <div class="flex flex-wrap gap-2">
-                        @foreach ($post->tags as $tag)
-                            <a href="{{ route('blog.tag', $tag->slug) }}" class="chip">#{{ $tag->name }}</a>
-                        @endforeach
-                    </div>
-                </div>
-            @endif
         </div>
 
         @if (auth()->check() && (auth()->user()->hasRole('subscriber') || auth()->user()->hasRole('client') || auth()->user()->hasRole('owner') || auth()->user()->hasRole('admin')))
