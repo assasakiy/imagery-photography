@@ -214,7 +214,7 @@
     </main>
 
     <footer class="border-t border-line bg-zinc-100/60 dark:bg-zinc-900/60">
-        <div class="container-site py-12">
+        <div class="container-site pb-8 pt-12">
             <div class="grid grid-cols-1 gap-8 md:grid-cols-4">
             <div class="md:col-span-2 md:pr-10 lg:pr-16">
                 <a href="{{ route('home') }}" class="mb-4 flex items-center gap-3 text-ink transition-opacity hover:opacity-80">
@@ -266,9 +266,9 @@
         <div class="mt-8 flex flex-col items-center gap-2 border-t border-line/70 pt-6 text-center text-sm text-ink-muted">
             <p>&copy; {{ date('Y') }} {{ $siteName }}. Semua hak dilindungi.</p>
             <div class="flex items-center justify-center gap-4">
-                <a href="{{ route('privacy') }}" class="transition-colors hover:text-brand-600 hover:underline hover:underline-offset-4 hover:decoration-brand-600 dark:hover:text-brand-400">Privasi</a>
-                <span class="text-line">•</span>
-                <a href="{{ route('terms') }}" class="transition-colors hover:text-brand-600 hover:underline hover:underline-offset-4 hover:decoration-brand-600 dark:hover:text-brand-400">Term</a>
+                <a href="{{ route('privacy') }}" class="transition-colors hover:text-brand-600 hover:underline hover:underline-offset-4 hover:decoration-brand-600 dark:hover:text-brand-400">Kebijakan Privasi</a>
+                <span aria-hidden="true" class="text-line">·</span>
+                <a href="{{ route('terms') }}" class="transition-colors hover:text-brand-600 hover:underline hover:underline-offset-4 hover:decoration-brand-600 dark:hover:text-brand-400">Syarat &amp; Ketentuan</a>
             </div>
         </div>
         </div>
