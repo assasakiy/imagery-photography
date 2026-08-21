@@ -638,7 +638,7 @@ const renderComment = (comment, nested = false, parentName = '') => {
         ? `<img src="${escapeHTML(comment.user.avatar)}" alt="" class="${avatarSize} rounded-full object-cover ring-1 ring-line">`
         : `<span class="flex ${avatarSize} items-center justify-center rounded-full bg-brand-500/15 font-bold text-brand-600 dark:text-brand-400">${escapeHTML((comment.user?.name || '?').charAt(0).toUpperCase())}</span>`;
     const replyBtn = commentsForm && !nested
-        ? `<button type="button" data-comment-reply="${comment.id}" data-comment-reply-name="${escapeHTML(comment.user?.name || 'Subscriber')}" class="inline-flex items-center gap-1 text-xs font-semibold text-brand-600 hover:underline dark:text-brand-400"><span aria-hidden="true">↩</span> Balas</button>`
+        ? `<button type="button" data-comment-reply="${comment.id}" data-comment-reply-name="${escapeHTML(comment.user?.name || 'Subscriber')}" class="inline-flex items-center gap-1.5 text-xs font-semibold text-brand-600 hover:underline dark:text-brand-400"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 17-5-5 5-5"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg>Balas</button>`
         : '';
     const deleteBtn = comment.can_delete
         ? `<button type="button" data-comment-delete="${comment.id}" class="text-xs text-ink-muted hover:text-rose-600">Hapus</button>`
