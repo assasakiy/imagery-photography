@@ -268,6 +268,12 @@ export default function Login() {
                     )}
 
                     <p className="mt-6 text-center text-xs text-ink-muted">
+                        Belum punya akun?{' '}
+                        <Link to="/register" className="font-medium text-brand-600 hover:underline dark:text-brand-400">
+                            Daftar
+                        </Link>
+                    </p>
+                    <p className="mt-2 text-center text-xs text-ink-muted">
                         <a href="/" className="font-medium text-brand-600 hover:underline dark:text-brand-400">
                             ← Kembali ke beranda
                         </a>

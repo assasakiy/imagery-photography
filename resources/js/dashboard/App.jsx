@@ -65,6 +65,7 @@ import { Spinner } from './components/ui';
 import { pageImports } from './routes/routeImports';
 
 import Login from './pages/auth/Login';
+import Register from './pages/auth/Register';
 import ForgotPassword from './pages/auth/ForgotPassword';
 import ResetPassword from './pages/auth/ResetPassword';
 import SetPassword from './pages/auth/SetPassword';
@@ -136,10 +137,18 @@ function LoginRoute() {
     return <Login />;
 }
 
+function RegisterRoute() {
+    const { user, loading } = useAuth();
+
+    if (!loading && user) return <Navigate to="/dashboard" replace />;
+    return <Register />;
+}
+
 function AppRoutes() {
     return (
         <Routes>
             <Route path="/login" element={<LoginRoute />} />
+            <Route path="/register" element={<RegisterRoute />} />
             <Route path="/forgot" element={<ForgotPassword />} />
             <Route path="/set-password" element={<SetPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />

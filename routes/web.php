@@ -44,7 +44,9 @@ Route::middleware('maintenance')->group(function () {
 Route::get('/login', function () {
     return view('app');
 })->middleware('guest')->name('login');
-Route::get('/register', fn () => view('landing_pages.auth.register'))->middleware('guest')->name('register');
+Route::get('/register', function () {
+    return view('app');
+})->middleware('guest')->name('register');
 Route::get('/access/{token}', [AuthController::class, 'accessViaToken'])->name('access.token');
 Route::get('/auth/google/redirect', [GoogleAuthController::class, 'redirect'])->name('auth.google.redirect');
 Route::get('/auth/google/callback', [GoogleAuthController::class, 'callback'])->name('auth.google.callback');
