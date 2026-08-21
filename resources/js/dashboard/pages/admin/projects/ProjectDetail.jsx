@@ -313,7 +313,11 @@ export default function ProjectDetail() {
             show('Foto bukti diunggah.');
             load();
         } catch (err) {
-            show(err.response?.data?.message || 'Gagal mengunggah file.', 'error');
+            const msg = err.response?.data?.errors?.file?.[0]
+                || err.response?.data?.message
+                || 'Gagal mengunggah file.';
+            console.error('[uploadFile]', err.response?.status, err.response?.data);
+            show(msg, 'error');
         } finally {
             setUploading(false);
         }
