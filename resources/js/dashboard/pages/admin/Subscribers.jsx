@@ -123,6 +123,9 @@ export default function Subscribers() {
                                             <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold ${item.status === 'active' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : 'bg-zinc-500/10 text-zinc-500'}`}>
                                                 {item.status === 'active' ? 'Aktif' : 'Pending'}
                                             </span>
+                                            {item.is_client && (
+                                                <span className="inline-flex items-center rounded-full bg-brand-500/10 px-2 py-0.5 text-[10px] font-semibold text-brand-600 dark:text-brand-400">Klien</span>
+                                            )}
                                         </div>
                                     </td>
                                     <td className="px-4 py-3 text-right text-ink-muted">{item.bookmarks_count}</td>
@@ -180,6 +183,9 @@ export default function Subscribers() {
                                         <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold ${detail.status === 'active' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : 'bg-zinc-500/10 text-zinc-500'}`}>
                                             {detail.status === 'active' ? 'Aktif' : 'Pending'}
                                         </span>
+                                        {detail.is_client && (
+                                            <span className="inline-flex items-center rounded-full bg-brand-500/10 px-2 py-0.5 text-[10px] font-semibold text-brand-600 dark:text-brand-400">Klien</span>
+                                        )}
                                     </div>
                                 </div>
                             </div>
@@ -239,9 +245,13 @@ export default function Subscribers() {
                             )}
 
                             <div className="flex justify-end gap-2 border-t border-line pt-4">
-                                <button className="btn-outline text-red-500 hover:bg-red-500/10" onClick={() => { setDeleting(detail); setDetail(null); }}>
-                                    <Icon name="trash" size={16} className="mr-1" /> Hapus
-                                </button>
+                                {detail.is_client ? (
+                                    <p className="text-xs text-ink-muted">Subscriber ini juga klien. Hapus dari menu Klien.</p>
+                                ) : (
+                                    <button className="btn-outline text-red-500 hover:bg-red-500/10" onClick={() => { setDeleting(detail); setDetail(null); }}>
+                                        <Icon name="trash" size={16} className="mr-1" /> Hapus
+                                    </button>
+                                )}
                             </div>
                         </div>
                     </div>

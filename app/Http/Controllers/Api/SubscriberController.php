@@ -95,6 +95,7 @@ class SubscriberController extends Controller
             'status' => $user->status,
             'avatar' => $user->avatar(),
             'is_online' => $user->isOnline(),
+            'is_client' => $user->hasRole('client'),
             'last_seen_at' => $user->last_seen_at,
             'created_at' => $user->created_at,
             'bookmarks_count' => $user->bookmarks()->count(),
