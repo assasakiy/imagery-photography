@@ -130,7 +130,7 @@
         </div>
 
         @if (auth()->check() && (auth()->user()->hasRole('subscriber') || auth()->user()->hasRole('client') || auth()->user()->hasRole('owner') || auth()->user()->hasRole('admin')))
-            <section data-comments-section class="mt-12 border-t border-line pt-10">
+            <section data-comments-section data-post-id="{{ $post->id }}" class="mt-12 border-t border-line pt-10">
                 <h2 class="mb-6 text-2xl font-bold text-ink">Komentar</h2>
 
                 <form data-comment-form class="mb-8 rounded-2xl border border-line bg-surface p-4">
@@ -148,7 +148,7 @@
                 </div>
             </section>
         @elseif (!auth()->check())
-            <section data-comments-section class="mt-12 border-t border-line pt-10">
+            <section data-comments-section data-post-id="{{ $post->id }}" class="mt-12 border-t border-line pt-10">
                 <h2 class="mb-6 text-2xl font-bold text-ink">Komentar</h2>
                 <div data-comments-list class="mb-6 space-y-4">
                     <p class="text-sm text-ink-muted">Memuat komentar…</p>

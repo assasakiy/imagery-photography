@@ -657,7 +657,7 @@ const renderComments = (comments) => {
 };
 
 const loadComments = async () => {
-    const postId = document.querySelector('[data-like-toggle]')?.getAttribute('data-id') || document.querySelector('[data-bookmark-toggle]')?.getAttribute('data-id');
+    const postId = document.querySelector('[data-comments-section]')?.getAttribute('data-post-id');
     if (!postId) return;
     try {
         const res = await fetch(`/api/comments/blog/${postId}`, { headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' } });
@@ -697,7 +697,7 @@ if (commentsForm) {
         const body = commentsForm.querySelector('[data-comment-body]');
         const submitBtn = commentsForm.querySelector('[data-comment-submit]');
         if (!body?.value.trim()) return;
-        const postId = document.querySelector('[data-like-toggle]')?.getAttribute('data-id');
+        const postId = document.querySelector('[data-comments-section]')?.getAttribute('data-post-id');
         if (!postId) return;
 
         if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Mengirim…'; }
