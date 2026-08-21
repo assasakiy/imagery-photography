@@ -47,6 +47,7 @@ Route::middleware('web')->group(function () {
     Route::post('/set-password', [AuthController::class, 'setPassword']);
     Route::post('/reset-password', [AuthController::class, 'resetPassword']);
     Route::post('/analytics/consent', [AnalyticsController::class, 'consent'])->middleware('api.throttle:analytics.consent');
+    Route::get('/comments/{type}/{id}', [EngagementController::class, 'comments'])->where(['type' => 'blog|portfolio|package']);
 });
 
 Route::post('/webhook/tripay', [PaymentController::class, 'webhook']);
@@ -108,7 +109,6 @@ Route::middleware(['web', 'auth:sanctum', 'maintenance'])->group(function () {
     Route::delete('/bookmarks/{type}/{id}', [BookmarkController::class, 'destroy'])->where(['type' => 'blog|portfolio|package']);
 
     Route::post('/likes/toggle', [EngagementController::class, 'toggleLike']);
-    Route::get('/comments/{type}/{id}', [EngagementController::class, 'comments'])->where(['type' => 'blog|portfolio|package']);
     Route::post('/comments', [EngagementController::class, 'storeComment']);
     Route::delete('/comments/{comment}', [EngagementController::class, 'destroyComment']);
 

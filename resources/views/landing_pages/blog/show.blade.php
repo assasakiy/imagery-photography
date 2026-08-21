@@ -150,10 +150,14 @@
         @elseif (!auth()->check())
             <section data-comments-section class="mt-12 border-t border-line pt-10">
                 <h2 class="mb-6 text-2xl font-bold text-ink">Komentar</h2>
-                <div class="rounded-2xl border border-line bg-surface p-6 text-center">
-                    <p class="text-sm text-ink-muted">Subscribe atau login untuk ikut berkomentar dan menyukai artikel.</p>
+                <div data-comments-list class="mb-6 space-y-4">
+                    <p class="text-sm text-ink-muted">Memuat komentar…</p>
+                </div>
+                <div class="rounded-2xl border border-brand-500/20 bg-brand-500/5 p-6 text-center">
+                    <p class="font-semibold text-ink">Punya pendapat tentang artikel ini?</p>
+                    <p class="mt-1 text-sm text-ink-muted">Subscribe atau masuk untuk ikut berdiskusi, menyukai, dan menyimpan artikel.</p>
                     <div class="mt-4 flex justify-center gap-2">
-                        <button type="button" data-subscribe-open class="btn-primary">Subscribe</button>
+                        <button type="button" data-subscribe-open class="btn-primary">Ikut Berkomentar</button>
                         <a href="{{ route('login') }}" class="btn-outline">Masuk</a>
                     </div>
                 </div>
