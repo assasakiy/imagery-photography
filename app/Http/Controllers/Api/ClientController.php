@@ -288,6 +288,7 @@ class ClientController extends Controller
             'email' => $user->email,
             'phone' => $user->phone,
             'status' => $user->status,
+            'has_subscriber' => $user->hasRole('subscriber'),
             'company' => $user->profile?->company,
             'occupation' => $user->profile?->occupation,
             'website' => $user->profile?->website,
