@@ -213,7 +213,6 @@ export default function Clients() {
                 </form>
                 <div className="ml-auto flex w-full flex-wrap items-center gap-1.5 md:w-auto">
                     <FilterDropdown title="Filter Status" icon="users" value={statusFilter} onChange={setStatusFilter} options={STATUS_FILTERS} />
-                    <span className="whitespace-nowrap px-2 text-sm text-ink-muted">{meta.total || 0} klien</span>
                 </div>
             </div>
 
