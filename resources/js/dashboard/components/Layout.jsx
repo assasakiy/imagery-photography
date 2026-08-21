@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { NavLink, Outlet, useNavigate, Link, useLocation } from 'react-router-dom';
 import Icon from './Icon';
 import ScrollToTop from './ScrollToTop';
-import VerifiedName from './VerifiedName';
+import VerifiedName, { isVerified, VerifiedBadge } from './VerifiedName';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { useBadges } from '../context/BadgeContext';
@@ -315,13 +315,16 @@ export default function Layout() {
                                 className="flex items-center gap-2 rounded-xl p-1.5 pr-2 text-ink transition-colors hover:bg-surface-muted"
                                 aria-label="Menu profil"
                             >
-                                {user?.avatar ? (
-                                    <img src={user.avatar} alt="" className="h-8 w-8 rounded-full object-cover ring-2 ring-brand-500/30" />
-                                ) : (
-                                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-500/20 text-sm font-bold text-brand-600 dark:text-brand-400">
-                                        {initial}
-                                    </span>
-                                )}
+                                <span className="relative shrink-0">
+                                    {user?.avatar ? (
+                                        <img src={user.avatar} alt="" className="h-8 w-8 rounded-full object-cover ring-2 ring-brand-500/30" />
+                                    ) : (
+                                        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-500/20 text-sm font-bold text-brand-600 dark:text-brand-400">
+                                            {initial}
+                                        </span>
+                                    )}
+                                    {isVerified(user) && <VerifiedBadge className="absolute -bottom-1 -right-1 border-2 border-surface md:hidden" />}
+                                </span>
                                 <VerifiedName user={user} className="hidden max-w-[140px] text-sm font-semibold md:inline-flex" />
                                 <Icon
                                     name="chevron-down"
