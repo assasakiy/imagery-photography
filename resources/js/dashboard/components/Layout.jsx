@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react';
 import { NavLink, Outlet, useNavigate, Link, useLocation } from 'react-router-dom';
 import Icon from './Icon';
 import ScrollToTop from './ScrollToTop';
-import VerifiedName, { isVerified, VerifiedBadge } from './VerifiedName';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { useBadges } from '../context/BadgeContext';
@@ -315,17 +314,14 @@ export default function Layout() {
                                 className="flex items-center gap-2 rounded-xl p-1.5 pr-2 text-ink transition-colors hover:bg-surface-muted"
                                 aria-label="Menu profil"
                             >
-                                <span className="relative shrink-0">
-                                    {user?.avatar ? (
-                                        <img src={user.avatar} alt="" className="h-8 w-8 rounded-full object-cover ring-2 ring-brand-500/30" />
-                                    ) : (
-                                        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-500/20 text-sm font-bold text-brand-600 dark:text-brand-400">
-                                            {initial}
-                                        </span>
-                                    )}
-                                    {isVerified(user) && <VerifiedBadge className="absolute -bottom-1 -right-1 border-2 border-surface md:hidden" />}
-                                </span>
-                                <VerifiedName user={user} className="hidden max-w-[140px] text-sm font-semibold md:inline-flex" />
+                                {user?.avatar ? (
+                                    <img src={user.avatar} alt="" className="h-8 w-8 rounded-full object-cover ring-2 ring-brand-500/30" />
+                                ) : (
+                                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-500/20 text-sm font-bold text-brand-600 dark:text-brand-400">
+                                        {initial}
+                                    </span>
+                                )}
+                                <span className="hidden max-w-[120px] truncate text-sm font-semibold md:block">{user?.name}</span>
                                 <Icon
                                     name="chevron-down"
                                     size={16}
@@ -336,7 +332,7 @@ export default function Layout() {
                             {profileOpen && (
                                 <div className="absolute right-0 top-full z-50 mt-2 w-56 origin-top-right overflow-hidden rounded-2xl border border-line bg-surface shadow-2xl">
                                     <div className="border-b border-line bg-surface-muted px-4 py-3">
-                                        <VerifiedName user={user} className="text-sm font-bold text-ink" />
+                                        <p className="truncate text-sm font-bold text-ink">{user?.name}</p>
                                         <p className="truncate text-xs text-ink-muted">{user?.email}</p>
                                     </div>
                                     <div className="p-1.5">

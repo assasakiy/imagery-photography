@@ -262,7 +262,12 @@ class CustomerController extends Controller
                   ->orWhere('phone', $user->phone);
             });
 
-        return response()->json($query->orderBy('created_at', 'asc')->get());
+        return response()->json($query->orderBy('created_at', 'asc')->get()->each(function ($message) {
+            $message->setAttribute('official_team', $message->sender_type === 'admin');
+            if ($message->replyTo) {
+                $message->replyTo->setAttribute('official_team', $message->replyTo->sender_type === 'admin');
+            }
+        }));
     }
 
     public function sendMessage(Request $request)

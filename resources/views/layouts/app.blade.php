@@ -82,12 +82,12 @@
                             @else
                                 <span class="flex h-8 w-8 items-center justify-center rounded-full bg-brand-600 text-sm font-bold text-white">{{ $authInitials }}</span>
                             @endif
-                            <span class="hidden max-w-[140px] text-sm font-medium text-ink sm:block">@include('partials.verified-name', ['user' => $authUser])</span>
+                            <span class="hidden max-w-[120px] truncate text-sm font-medium text-ink sm:block">{{ $authUser->name }}</span>
                             <svg data-profile-chevron xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden text-ink-muted transition-transform duration-200 sm:block"><path d="m6 9 6 6 6-6" /></svg>
                         </button>
                         <div data-profile-menu class="dropdown-panel absolute right-0 top-full z-50 mt-2 w-60 overflow-hidden rounded-2xl border border-line bg-white shadow-xl shadow-black/5 dark:bg-zinc-900">
                             <div class="border-b border-line px-4 py-3">
-                                <p class="text-sm font-bold text-ink">@include('partials.verified-name', ['user' => $authUser])</p>
+                                <p class="truncate text-sm font-bold text-ink">{{ $authUser->name }}</p>
                                 <p class="text-xs capitalize text-ink-muted">{{ $authRole }}</p>
                             </div>
                             <div class="p-1.5">
@@ -144,7 +144,7 @@
                             <span class="flex h-10 w-10 items-center justify-center rounded-full bg-brand-600 text-sm font-bold text-white">{{ $authInitials }}</span>
                         @endif
                         <div class="min-w-0">
-                            <p class="text-sm font-bold text-ink">@include('partials.verified-name', ['user' => $authUser])</p>
+                            <p class="truncate text-sm font-bold text-ink">{{ $authUser->name }}</p>
                             <p class="text-xs capitalize text-ink-muted">{{ $authRole }}</p>
                         </div>
                     </div>

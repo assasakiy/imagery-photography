@@ -44,7 +44,7 @@
                         @else
                             <span class="flex h-9 w-9 items-center justify-center rounded-full bg-brand-500/15 text-xs font-bold text-brand-600 dark:text-brand-400">{{ $authorInitials }}</span>
                         @endif
-                        <span class="font-medium text-ink">@include('partials.verified-name', ['user' => $author, 'name' => $authorName])</span>
+                        <span class="font-medium text-ink">@include('partials.official-team-name', ['user' => $author, 'name' => $authorName])</span>
                     </a>
                 @else
                     <span class="flex items-center gap-2.5">
@@ -200,7 +200,7 @@
                                     @endif
                                     <span class="inline-flex items-center gap-1 text-xs text-ink-muted">
                                         @if ($item->author)
-                                            @include('partials.verified-name', ['user' => $item->author])
+                                            @include('partials.official-team-name', ['user' => $item->author])
                                         @else
                                             <span>Sopian Lalu Imagery</span>
                                         @endif

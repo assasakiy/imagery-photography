@@ -5,7 +5,6 @@ import { getApiErrorMessage } from '../../lib/errors';
 import Icon from '../../components/Icon';
 import { PageHeader, EmptyState, Confirm, formatDate } from '../../components/ui';
 import Skeleton from '../../components/Skeleton';
-import VerifiedName from '../../components/VerifiedName';
 
 export default function Comments() {
     const [items, setItems] = useState([]);
@@ -96,7 +95,7 @@ export default function Comments() {
                                                 {(item.user?.name || 'S').charAt(0).toUpperCase()}
                                             </span>
                                         )}
-                                        <VerifiedName user={item.user} name={item.user?.name || 'Subscriber'} className="font-bold text-ink" />
+                                        <p className="font-bold text-ink">{item.user?.name || 'Subscriber'}</p>
                                         {item.status === 'hidden' && (
                                             <span className="chip chip-active !px-2 !py-0.5 text-[10px]">Disembunyikan</span>
                                         )}
@@ -110,7 +109,7 @@ export default function Comments() {
                                     )}
                                     {item.parent && (
                                         <div className="mt-2 rounded-lg border-l-2 border-brand-500/30 bg-surface-muted px-3 py-2 text-xs text-ink-muted">
-                                            <span className="inline-flex flex-wrap items-center gap-1">Balasan untuk <VerifiedName user={item.parent.user} name={item.parent.user?.name || 'Subscriber'} className="font-semibold text-ink" />:</span> {item.parent.body}
+                                            Balasan untuk <span className="font-semibold text-ink">{item.parent.user?.name || 'Subscriber'}</span>: {item.parent.body}
                                         </div>
                                     )}
                                     <p className="mt-2 text-sm leading-relaxed text-ink">{item.body}</p>

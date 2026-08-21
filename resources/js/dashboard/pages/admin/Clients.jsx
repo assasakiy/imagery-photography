@@ -6,7 +6,6 @@ import Icon from '../../components/Icon';
 import MediaPicker from '../../components/MediaPicker';
 import UserDetailModal from '../../components/UserDetailModal';
 import PresenceBadge from '../../components/PresenceBadge';
-import VerifiedName from '../../components/VerifiedName';
 import { PageHeader, EmptyState, Modal, Confirm, Field, formatDate } from '../../components/ui';
 import Skeleton from '../../components/Skeleton';
 
@@ -201,7 +200,7 @@ export default function Clients() {
                                                 </div>
                                             )}
                                             <div className="min-w-0">
-                                                <VerifiedName user={item} className="font-medium text-ink" />
+                                                <p className="truncate font-medium text-ink">{item.name}</p>
                                                 <p className="truncate text-xs text-ink-muted">{item.email}</p>
                                                 {item.phone && <p className="truncate text-xs text-ink-muted">{item.phone}</p>}
                                                 {item.username && <p className="truncate text-xs text-ink-muted">@{item.username}</p>}

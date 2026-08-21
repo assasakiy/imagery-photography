@@ -639,8 +639,8 @@ const renderComment = (comment, nested = false, parentName = '', rootId = null) 
     const avatar = comment.user?.avatar
         ? `<img src="${escapeHTML(comment.user.avatar)}" alt="" class="${avatarSize} rounded-full object-cover ring-1 ring-line">`
         : `<span class="flex ${avatarSize} items-center justify-center rounded-full bg-brand-500/15 font-bold text-brand-600 dark:text-brand-400">${escapeHTML((comment.user?.name || '?').charAt(0).toUpperCase())}</span>`;
-    const verifiedBadge = comment.user?.verified
-        ? `<span title="Akun terverifikasi" aria-label="Akun terverifikasi" class="inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-sky-500 text-white"><svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6.5 12.5 3.5 3.5 7.5-8"/></svg></span>`
+    const officialTeamBadge = comment.user?.official_team
+        ? `<span title="Tim Resmi" aria-label="Tim Resmi" class="inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-sky-500 text-white"><svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6.5 12.5 3.5 3.5 7.5-8"/></svg></span>`
         : '';
     const replyTargetId = nested ? rootId : comment.id;
     const replyBtn = commentsForm
@@ -664,7 +664,7 @@ const renderComment = (comment, nested = false, parentName = '', rootId = null) 
                     ${replyLabel}
                     <div class="flex flex-wrap items-baseline gap-2">
                         <span class="text-sm font-semibold text-ink">${escapeHTML(comment.user?.name || 'Subscriber')}</span>
-                        ${verifiedBadge}
+                        ${officialTeamBadge}
                         <span class="text-xs text-ink-muted">${escapeHTML(comment.created_at_rel || '')}</span>
                     </div>
                     <p class="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-ink">${formatCommentBody(comment.body)}</p>

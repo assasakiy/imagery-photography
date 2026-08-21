@@ -285,8 +285,6 @@ class ClientController extends Controller
             'id' => $user->id,
             'username' => $user->username,
             'name' => $user->name,
-            'role' => $user->primaryRole(),
-            'verified' => $user->hasRole(['owner', 'admin']),
             'email' => $user->email,
             'phone' => $user->phone,
             'status' => $user->status,

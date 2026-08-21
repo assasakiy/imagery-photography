@@ -199,7 +199,7 @@ class EngagementController extends Controller
                 'name' => $comment->user?->name ?? 'Subscriber',
                 'username' => $comment->user?->username,
                 'avatar' => $comment->user?->avatar(),
-                'verified' => $comment->user?->hasRole(['owner', 'admin']) ?? false,
+                'official_team' => $comment->user?->hasRole(['owner', 'admin']) ?? false,
             ],
             'target' => $target ? [
                 'type' => class_basename($comment->commentable_type),
@@ -213,7 +213,7 @@ class EngagementController extends Controller
                     'id' => $comment->parent->user?->id,
                     'name' => $comment->parent->user?->name ?? 'Subscriber',
                     'username' => $comment->parent->user?->username,
-                    'verified' => $comment->parent->user?->hasRole(['owner', 'admin']) ?? false,
+                    'official_team' => $comment->parent->user?->hasRole(['owner', 'admin']) ?? false,
                 ],
             ] : null,
             'replies' => $comment->relationLoaded('replies')

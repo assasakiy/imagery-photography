@@ -3,7 +3,6 @@ import api from '../../api';
 import { toast } from '../../lib/toast';
 import Icon from '../../components/Icon';
 import PresenceBadge from '../../components/PresenceBadge';
-import VerifiedName from '../../components/VerifiedName';
 import { PageHeader, EmptyState } from '../../components/ui';
 import Skeleton from '../../components/Skeleton';
 
@@ -325,7 +324,7 @@ export default function AuditLog() {
                             {items.map((it) => (
                                 <tr key={it.id}>
                                     <td>
-                                        <VerifiedName user={it} className="font-medium text-ink" />
+                                        <p className="font-medium text-ink">{it.name}</p>
                                         <p className="text-xs text-ink-muted">{it.email || it.username}</p>
                                     </td>
                                     <td>

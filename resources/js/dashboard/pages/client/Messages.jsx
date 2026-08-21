@@ -6,6 +6,14 @@ import { PageHeader, formatDate, Confirm } from '../../components/ui';
 import Skeleton from '../../components/Skeleton';
 import { toast } from '../../lib/toast';
 
+function OfficialTeamBadge() {
+    return (
+        <span className="inline-flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-full bg-sky-500 text-white" title="Tim Resmi" aria-label="Tim Resmi">
+            <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m6.5 12.5 3.5 3.5 7.5-8" /></svg>
+        </span>
+    );
+}
+
 export default function ClientMessages() {
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
@@ -101,7 +109,7 @@ export default function ClientMessages() {
                                     <div key={m.id} className={`flex ${isAdmin ? 'justify-start' : 'justify-end'}`}>
                                         <div className={`max-w-[85%] sm:max-w-[75%] ${isAdmin ? '' : 'flex flex-col items-end'}`}>
                                             <div className="mb-1 flex items-center gap-2 px-1 text-[11px] text-ink-muted">
-                                                <span>{isAdmin ? 'Admin' : 'Anda'}</span>
+                                                <span className="inline-flex items-center gap-1">{isAdmin ? 'Admin' : 'Anda'} {m.official_team && <OfficialTeamBadge />}</span>
                                                 <span>•</span>
                                                 <span>{formatDate(m.created_at)}</span>
                                             </div>
@@ -119,7 +127,7 @@ export default function ClientMessages() {
                                                 <div className={`relative rounded-2xl px-4 py-3 text-sm ${isAdmin ? 'rounded-tl-sm bg-surface-muted text-ink' : 'rounded-tr-sm bg-brand-600 text-white'}`}>
                                                     {m.reply_to_id && m.reply_to && (
                                                         <div className={`mb-2 rounded-lg p-2 text-xs border-l-2 ${isAdmin ? 'bg-white/50 border-ink-muted/30 text-ink-muted' : 'bg-black/10 border-white/30 text-white/80'}`}>
-                                                            <p className="font-semibold">{m.reply_to.sender_type === 'admin' ? 'Admin' : (m.reply_to.user?.name || m.reply_to.name)}</p>
+                                                            <p className="inline-flex items-center gap-1 font-semibold">{m.reply_to.sender_type === 'admin' ? 'Admin' : (m.reply_to.user?.name || m.reply_to.name)} {m.reply_to.official_team && <OfficialTeamBadge />}</p>
                                                             <p className="line-clamp-1 truncate">{m.reply_to.message || 'Mengirim file'}</p>
                                                         </div>
                                                     )}

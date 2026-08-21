@@ -4,7 +4,6 @@ import { toast } from '../../lib/toast';
 import { getApiErrorMessage } from '../../lib/errors';
 import Icon from '../../components/Icon';
 import PresenceBadge from '../../components/PresenceBadge';
-import VerifiedName from '../../components/VerifiedName';
 import { PageHeader, EmptyState, Confirm, formatDate } from '../../components/ui';
 import Skeleton from '../../components/Skeleton';
 
@@ -189,7 +188,7 @@ export default function Subscribers() {
                                                 </span>
                                             )}
                                             <div className="min-w-0">
-                                                <VerifiedName user={item} className="font-semibold text-ink" />
+                                                <p className="truncate font-semibold text-ink">{item.name}</p>
                                                 <p className="truncate text-xs text-ink-muted">{item.email}</p>
                                                 {item.username && <p className="truncate text-xs text-ink-muted">@{item.username}</p>}
                                             </div>
@@ -255,7 +254,7 @@ export default function Subscribers() {
                                         </span>
                                     )}
                                     <div>
-                                        <VerifiedName user={detail} className="text-lg font-bold text-ink" />
+                                        <p className="text-lg font-bold text-ink">{detail.name}</p>
                                         <p className="text-sm text-ink-muted">{detail.email}</p>
                                         <div className="mt-1 flex items-center gap-2">
                                             <PresenceBadge isOnline={detail.is_online} lastSeenAt={detail.last_seen_at} />

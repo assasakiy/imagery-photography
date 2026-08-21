@@ -200,8 +200,6 @@ class SubscriberController extends Controller
             'id' => $user->id,
             'name' => $user->name,
             'username' => $user->username,
-            'role' => $user->primaryRole(),
-            'verified' => $user->hasRole(['owner', 'admin']),
             'email' => $user->email,
             'status' => $user->status,
             'avatar' => $user->avatar(),

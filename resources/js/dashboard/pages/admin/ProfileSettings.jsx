@@ -4,7 +4,6 @@ import Icon from '../../components/Icon';
 import MediaPicker from '../../components/MediaPicker';
 import { PageHeader, Field, Modal, ButtonSpinner } from '../../components/ui';
 import Skeleton from '../../components/Skeleton';
-import VerifiedName from '../../components/VerifiedName';
 import { useAuth } from '../../context/AuthContext';
 import SocialSelect from './landing/sections/SocialSelect';
 import { SOCIAL_PLATFORMS, SocialLogo } from './landing/sections/socialPlatforms';
@@ -396,7 +395,7 @@ export default function ProfileSettings() {
 
                     <div className="mt-4">
                         <div className="flex flex-wrap items-center gap-2">
-                            <h2 className="text-xl font-bold text-ink sm:text-2xl"><VerifiedName user={user} name={profile.full_name || '…'} /></h2>
+                            <h2 className="text-xl font-bold text-ink sm:text-2xl">{profile.full_name || '…'}</h2>
                             <span className="badge bg-brand-600/10 text-brand-600 dark:text-brand-400">{ROLE_LABEL[user?.role] || 'Pengguna'}</span>
                         </div>
                         <p className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-ink-muted">

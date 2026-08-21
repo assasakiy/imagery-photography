@@ -4,7 +4,6 @@ import api from '../../../api';
 import Icon from '../../../components/Icon';
 import { PageHeader, EmptyState, Confirm, formatDate } from '../../../components/ui';
 import Skeleton from '../../../components/Skeleton';
-import VerifiedName from '../../../components/VerifiedName';
 import { toast } from '../../../lib/toast';
 
 export default function Blog() {
@@ -114,7 +113,7 @@ export default function Blog() {
                                             </div>
                                             <div>
                                                 <p className="font-semibold text-ink">{item.title}</p>
-                                                <p className="inline-flex items-center gap-1 text-xs text-ink-muted">Oleh <VerifiedName user={item.author} name={item.author?.name || 'Sistem'} /></p>
+                                                <p className="text-xs text-ink-muted">Oleh {item.author?.name || 'Sistem'}</p>
                                             </div>
                                         </div>
                                     </td>
