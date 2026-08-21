@@ -4,6 +4,7 @@ import Icon from '../../../components/Icon';
 import { PageHeader, EmptyState, Modal, Confirm, Field } from '../../../components/ui';
 import Skeleton from '../../../components/Skeleton';
 import { toast } from '../../../lib/toast';
+import { getApiErrorMessage } from '../../../lib/errors';
 
 const emptyForm = { name: '' };
 
@@ -21,6 +22,7 @@ export default function BlogTags() {
         setLoading(true);
         api.get('/blog-tags')
             .then(({ data }) => setItems(data))
+            .catch(() => toast.error('Gagal memuat data.'))
             .finally(() => setLoading(false));
     };
 
@@ -62,10 +64,14 @@ export default function BlogTags() {
     };
 
     const handleDelete = async () => {
-        await api.delete(`/blog-tags/${deleting.id}`);
-        toast.success('Tag dihapus.');
-        setDeleting(null);
-        load();
+        try {
+            await api.delete(`/blog-tags/${deleting.id}`);
+            toast.success('Tag dihapus.');
+            setDeleting(null);
+            load();
+        } catch (err) {
+            toast.error(getApiErrorMessage(err, 'Gagal menghapus tag.'));
+        }
     };
 
     return (

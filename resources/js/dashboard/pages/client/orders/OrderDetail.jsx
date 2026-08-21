@@ -71,7 +71,10 @@ export default function ProjectDetail() {
     const fileRef = useRef(null);
 
     const load = () => {
-        api.get(`/projects/${id}`).then(({ data }) => setProject(data)).finally(() => setLoading(false));
+        api.get(`/projects/${id}`)
+            .then(({ data }) => setProject(data))
+            .catch(() => toast.error('Gagal memuat detail.'))
+            .finally(() => setLoading(false));
     };
 
     useEffect(load, [id]);

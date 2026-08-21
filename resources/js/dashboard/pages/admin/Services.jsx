@@ -90,10 +90,14 @@ export default function Services() {
         }
     };
     const handleSvcDelete = async () => {
-        await api.delete(`/services/${svcDeleting.id}`);
-        toast.success('Layanan satuan dihapus.');
-        setSvcDeleting(null);
-        loadAll();
+        try {
+            await api.delete(`/services/${svcDeleting.id}`);
+            toast.success('Layanan satuan dihapus.');
+            setSvcDeleting(null);
+            loadAll();
+        } catch (err) {
+            toast.error(getApiErrorMessage(err, 'Gagal menghapus layanan.'));
+        }
     };
 
     const openPkgCreate = () => { setPkgEditing(null); setPkgForm(emptyPackage); setPkgErrors({}); setPkgOpen(true); };
@@ -158,10 +162,14 @@ export default function Services() {
         }
     };
     const handlePkgDelete = async () => {
-        await api.delete(`/packages/${pkgDeleting.id}`);
-        toast.success('Paket dihapus.');
-        setPkgDeleting(null);
-        loadAll();
+        try {
+            await api.delete(`/packages/${pkgDeleting.id}`);
+            toast.success('Paket dihapus.');
+            setPkgDeleting(null);
+            loadAll();
+        } catch (err) {
+            toast.error(getApiErrorMessage(err, 'Gagal menghapus paket.'));
+        }
     };
 
     return (

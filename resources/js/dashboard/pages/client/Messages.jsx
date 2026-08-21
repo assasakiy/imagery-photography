@@ -32,6 +32,7 @@ export default function ClientMessages() {
                     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
                 }, 100);
             })
+            .catch(() => toast.error('Gagal memuat pesan.'))
             .finally(() => setLoading(false));
     };
     

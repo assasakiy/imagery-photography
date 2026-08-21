@@ -27,6 +27,7 @@ export default function Subscribers() {
                 setItems(data.data);
                 setMeta(data);
             })
+            .catch(() => toast.error('Gagal memuat data.'))
             .finally(() => setLoading(false));
     };
 

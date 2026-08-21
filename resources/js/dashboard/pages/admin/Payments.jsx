@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import api from '../../api';
 import { toast } from '../../lib/toast';
+import { getApiErrorMessage } from '../../lib/errors';
 import Icon from '../../components/Icon';
 import { PageHeader, EmptyState, formatRupiah, formatDate } from '../../components/ui';
 import Skeleton from '../../components/Skeleton';
@@ -19,6 +20,7 @@ export default function Payments() {
                 setItems(data.data);
                 setMeta(data);
             })
+            .catch(() => toast.error('Gagal memuat data.'))
             .finally(() => setLoading(false));
     };
 
@@ -32,6 +34,8 @@ export default function Payments() {
             await api.patch(`/payments/${payment.id}/${action}`);
             toast.success(action === 'confirm' ? 'Pembayaran dikonfirmasi.' : 'Pembayaran ditolak.');
             load(meta.current_page);
+        } catch (err) {
+            toast.error(getApiErrorMessage(err, 'Gagal memproses pembayaran.'));
         } finally {
             setActing(null);
         }

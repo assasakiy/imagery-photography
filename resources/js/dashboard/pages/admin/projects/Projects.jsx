@@ -69,6 +69,7 @@ export default function Projects() {
                 setItems(Array.isArray(data) ? data : data.data);
                 setMeta(Array.isArray(data) ? { last_page: 1, current_page: 1 } : data);
             })
+            .catch(() => toast.error('Gagal memuat proyek.'))
             .finally(() => setLoading(false));
     };
 
@@ -77,9 +78,9 @@ export default function Projects() {
     }, [status]);
 
     useEffect(() => {
-        if (isAdmin) api.get('/clients', { params: { per_page: 100 } }).then(({ data }) => setClients(data.data));
-        if (isAdmin) api.get('/packages', { params: { active_only: 1 } }).then(({ data }) => setPackages(data));
-        if (isAdmin) api.get('/services').then(({ data }) => setServices(data));
+        if (isAdmin) api.get('/clients', { params: { per_page: 100 } }).then(({ data }) => setClients(data.data)).catch(() => {});
+        if (isAdmin) api.get('/packages', { params: { active_only: 1 } }).then(({ data }) => setPackages(data)).catch(() => {});
+        if (isAdmin) api.get('/services').then(({ data }) => setServices(data)).catch(() => {});
     }, [isAdmin]);
 
     const openCreate = () => {

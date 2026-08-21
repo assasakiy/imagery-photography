@@ -19,6 +19,7 @@ export default function RecycleBin() {
         setLoading(true);
         api.get('/recycle-bin', { params: { type } })
             .then(({ data }) => setItems(data.data || []))
+            .catch(() => toast.error('Gagal memuat data.'))
             .finally(() => setLoading(false));
     };
 

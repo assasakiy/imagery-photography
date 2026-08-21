@@ -42,6 +42,7 @@ api.interceptors.response.use(
                 toast.warning('Sesi kamu berakhir, silakan login lagi.');
                 setTimeout(() => { window.location.href = '/login'; }, 800);
             }
+            return Promise.resolve({ data: null });
         }
         return Promise.reject(error);
     },

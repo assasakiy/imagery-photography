@@ -4,20 +4,25 @@ import Icon from '../../components/Icon';
 import { PageHeader, EmptyState, formatDate } from '../../components/ui';
 import Skeleton from '../../components/Skeleton';
 import { toast } from '../../lib/toast';
+import { getApiErrorMessage } from '../../lib/errors';
 
 export default function Bookmarks() {
     const [items, setItems] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    const load = () => api.get('/bookmarks').then(({ data }) => setItems(data)).finally(() => setLoading(false));
+    const load = () => api.get('/bookmarks').then(({ data }) => setItems(data)).catch(() => toast.error('Gagal memuat data.')).finally(() => setLoading(false));
     useEffect(() => { load(); }, []);
 
     const remove = async (id, type) => {
         const item = items.find((i) => i.id === id);
         if (!item) return;
-        await api.delete(`/bookmarks/${item.type}/${item.target_id}`);
-        toast.success('Bookmark dihapus.');
-        load();
+        try {
+            await api.delete(`/bookmarks/${item.type}/${item.target_id}`);
+            toast.success('Bookmark dihapus.');
+            load();
+        } catch (err) {
+            toast.error(getApiErrorMessage(err, 'Gagal menghapus bookmark.'));
+        }
     };
 
     const typeLabel = { blog: 'Artikel', portfolio: 'Galeri', package: 'Paket' };

@@ -43,6 +43,7 @@ export default function Reviews() {
                 setMeta(data);
                 if (data.stats) setStats(data.stats);
             })
+            .catch(() => toast.error('Gagal memuat data.'))
             .finally(() => setLoading(false));
     };
 

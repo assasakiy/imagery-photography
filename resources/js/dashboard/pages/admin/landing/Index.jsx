@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../../../api';
+import { toast } from '../../../lib/toast';
 import Icon from '../../../components/Icon';
 import { PageHeader, EmptyState } from '../../../components/ui';
 import { SkeletonCard, SkeletonGrid } from '../../../components/ui/skeleton';
@@ -13,6 +14,7 @@ export default function Index() {
         setLoading(true);
         api.get('/pages')
             .then(({ data }) => setItems(data))
+            .catch(() => toast.error('Gagal memuat data.'))
             .finally(() => setLoading(false));
     };
 

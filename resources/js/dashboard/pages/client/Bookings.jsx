@@ -28,13 +28,14 @@ export default function ClientBookings() {
         setLoading(true);
         api.get('/customer/bookings')
             .then(({ data }) => setItems(data))
+            .catch(() => toast.error('Gagal memuat data.'))
             .finally(() => setLoading(false));
     };
 
     useEffect(() => {
         load();
-        api.get('/customer/packages').then(({ data }) => setPackages(data));
-        api.get('/customer/services').then(({ data }) => setServices(data));
+        api.get('/customer/packages').then(({ data }) => setPackages(data)).catch(() => {});
+        api.get('/customer/services').then(({ data }) => setServices(data)).catch(() => {});
     }, []);
 
     const handleCreate = async (e) => {

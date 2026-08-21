@@ -124,7 +124,10 @@ export default function ProjectDetail() {
     const videoOriginalRef = useRef(null);
 
     const load = () => {
-        api.get(`/projects/${id}`).then(({ data }) => setProject(data)).finally(() => setLoading(false));
+        api.get(`/projects/${id}`)
+            .then(({ data }) => setProject(data))
+            .catch(() => toast.error('Gagal memuat proyek.'))
+            .finally(() => setLoading(false));
     };
 
     useEffect(load, [id]);
@@ -269,10 +272,14 @@ export default function ProjectDetail() {
 
     const addEditNote = async () => {
         if (!editNote.trim()) return;
-        await api.post(`/projects/${id}/updates`, { message: `Proses editing: ${editNote.trim()}` });
-        setEditNote('');
-        toast.success('Pembaruan ditambahkan.');
-        load();
+        try {
+            await api.post(`/projects/${id}/updates`, { message: `Proses editing: ${editNote.trim()}` });
+            setEditNote('');
+            toast.success('Pembaruan ditambahkan.');
+            load();
+        } catch (err) {
+            toast.error(getApiErrorMessage(err, 'Gagal menambahkan pembaruan.'));
+        }
     };
 
     const saveProgressCombined = async (e) => {

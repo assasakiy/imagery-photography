@@ -24,6 +24,7 @@ export default function ClientInvoices() {
     useEffect(() => {
         api.get('/customer/invoices')
             .then(({ data }) => setItems(data))
+            .catch(() => toast.error('Gagal memuat data.'))
             .finally(() => setLoading(false));
     }, []);
 

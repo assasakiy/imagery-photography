@@ -29,6 +29,7 @@ function AdminTab() {
     const load = () => {
         api.get('/team')
             .then(({ data }) => setItems(data))
+            .catch(() => toast.error('Gagal memuat data.'))
             .finally(() => setLoading(false));
     };
 
@@ -123,10 +124,14 @@ function AdminTab() {
     };
 
     const handleDelete = async () => {
-        await api.delete(`/team/${deleting.id}`);
-        toast.success('Admin dihapus.');
-        setDeleting(null);
-        load();
+        try {
+            await api.delete(`/team/${deleting.id}`);
+            toast.success('Admin dihapus.');
+            setDeleting(null);
+            load();
+        } catch (err) {
+            toast.error(getApiErrorMessage(err, 'Gagal menghapus admin.'));
+        }
     };
 
     return (

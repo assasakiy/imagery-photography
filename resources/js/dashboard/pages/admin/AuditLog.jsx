@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import api from '../../api';
+import { toast } from '../../lib/toast';
 import Icon from '../../components/Icon';
 import PresenceBadge from '../../components/PresenceBadge';
 import { PageHeader, EmptyState } from '../../components/ui';
@@ -121,6 +122,7 @@ export default function AuditLog() {
                     setMeta(data);
                 }
             })
+            .catch(() => toast.error('Gagal memuat data.'))
             .finally(() => setLoading(false));
     };
 

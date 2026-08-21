@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../api';
+import { toast } from '../lib/toast';
 import Icon from '../components/Icon';
 import { PageHeader, EmptyState, formatRupiah, formatDate, dateBoxParts } from '../components/ui';
 import Skeleton from '../components/Skeleton';
@@ -23,6 +24,7 @@ export default function Dashboard() {
     useEffect(() => {
         api.get('/dashboard/stats')
             .then(({ data }) => setStats(data))
+            .catch(() => toast.error('Gagal memuat dashboard.'))
             .finally(() => setLoading(false));
     }, []);
 

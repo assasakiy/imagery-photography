@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import api from '../../api';
 import { toast } from '../../lib/toast';
+import { getApiErrorMessage } from '../../lib/errors';
 import Icon from '../../components/Icon';
 import { PageHeader, EmptyState, Modal, Confirm, Field } from '../../components/ui';
 import Skeleton from '../../components/Skeleton';
@@ -21,6 +22,7 @@ export default function Categories() {
         setLoading(true);
         api.get('/categories')
             .then(({ data }) => setItems(data))
+            .catch(() => toast.error('Gagal memuat data.'))
             .finally(() => setLoading(false));
     };
 
@@ -62,10 +64,14 @@ export default function Categories() {
     };
 
     const handleDelete = async () => {
-        await api.delete(`/categories/${deleting.id}`);
-        toast.success('Kategori dihapus.');
-        setDeleting(null);
-        load();
+        try {
+            await api.delete(`/categories/${deleting.id}`);
+            toast.success('Kategori dihapus.');
+            setDeleting(null);
+            load();
+        } catch (err) {
+            toast.error(getApiErrorMessage(err, 'Gagal menghapus kategori.'));
+        }
     };
 
     return (

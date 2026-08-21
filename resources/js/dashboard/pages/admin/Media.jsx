@@ -39,6 +39,7 @@ export default function Media() {
                 setItems(data.data);
                 setMeta(data);
             })
+            .catch(() => toast.error('Gagal memuat data.'))
             .finally(() => setLoading(false));
     };
 
@@ -100,10 +101,14 @@ export default function Media() {
     };
 
     const handleDelete = async () => {
-        await api.delete(`/media/${deleting.id}`);
-        toast.success('File dihapus.');
-        setDeleting(null);
-        load(meta.current_page);
+        try {
+            await api.delete(`/media/${deleting.id}`);
+            toast.success('File dihapus.');
+            setDeleting(null);
+            load(meta.current_page);
+        } catch (err) {
+            toast.error(getApiErrorMessage(err, 'Gagal menghapus file.'));
+        }
     };
 
     const handleBulkDelete = async () => {

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import api from '../../api';
 import { toast } from '../../lib/toast';
+import { getApiErrorMessage } from '../../lib/errors';
 import Icon from '../../components/Icon';
 import MediaPicker from '../../components/MediaPicker';
 import UserDetailModal from '../../components/UserDetailModal';
@@ -57,12 +58,16 @@ export default function Clients() {
     };
 
     const confirmDelete = async () => {
-        await api.post(`/clients/${deleteTarget.id}/soft-delete`, { reason: deleteReason });
-        toast.success('Klien dipindah ke Recycle Bin.');
-        setDeleteTarget(null);
-        setDeleteReason('');
-        setDetail(null);
-        load(meta.current_page);
+        try {
+            await api.post(`/clients/${deleteTarget.id}/soft-delete`, { reason: deleteReason });
+            toast.success('Klien dipindah ke Recycle Bin.');
+            setDeleteTarget(null);
+            setDeleteReason('');
+            setDetail(null);
+            load(meta.current_page);
+        } catch (err) {
+            toast.error(getApiErrorMessage(err, 'Gagal menghapus klien.'));
+        }
     };
 
     const load = (page = 1, q = debounced) => {
@@ -72,6 +77,7 @@ export default function Clients() {
                 setItems(data.data);
                 setMeta(data);
             })
+            .catch(() => toast.error('Gagal memuat data.'))
             .finally(() => setLoading(false));
     };
 

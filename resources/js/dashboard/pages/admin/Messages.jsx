@@ -45,6 +45,7 @@ export default function Messages() {
                     openConversation(data.data[0]);
                 }
             })
+            .catch(() => toast.error('Gagal memuat pesan.'))
             .finally(() => setLoading(false));
     };
 
@@ -105,17 +106,20 @@ export default function Messages() {
     };
 
     const handleDelete = async () => {
-        await api.delete(`/messages/${deleting.id}`);
-        toast.success('Pesan dihapus.');
-        setDeleting(null);
-        if (selectedConv?.id === deleting.id) {
-            setSelectedConv(null);
-            setThread([]);
-        } else if (selectedConv) {
-            // refresh thread
-            openConversation(selectedConv);
+        try {
+            await api.delete(`/messages/${deleting.id}`);
+            toast.success('Pesan dihapus.');
+            setDeleting(null);
+            if (selectedConv?.id === deleting.id) {
+                setSelectedConv(null);
+                setThread([]);
+            } else if (selectedConv) {
+                openConversation(selectedConv);
+            }
+            load(meta.current_page);
+        } catch (err) {
+            toast.error(getApiErrorMessage(err, 'Gagal menghapus percakapan.'));
         }
-        load(meta.current_page);
     };
 
     return (

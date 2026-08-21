@@ -45,8 +45,8 @@ export default function Bookings() {
     const [services, setServices] = useState([]);
 
     useEffect(() => {
-        api.get('/packages', { params: { active_only: 1 } }).then(({ data }) => setPackages(data));
-        api.get('/services').then(({ data }) => setServices(data));
+        api.get('/packages', { params: { active_only: 1 } }).then(({ data }) => setPackages(data)).catch(() => {});
+        api.get('/services').then(({ data }) => setServices(data)).catch(() => {});
     }, []);
 
     const load = (page = 1, search = debounced) => {
@@ -56,6 +56,7 @@ export default function Bookings() {
                 setItems(data.data);
                 setMeta(data);
             })
+            .catch(() => toast.error('Gagal memuat data.'))
             .finally(() => setLoading(false));
     };
 

@@ -38,6 +38,7 @@ export default function PreviewDetail() {
         setLoading(true);
         api.get('/customer/gallery', { params: { project_id: id } })
             .then(({ data }) => setProject(data[0] || null))
+            .catch(() => toast.error('Gagal memuat detail.'))
             .finally(() => setLoading(false));
     };
 

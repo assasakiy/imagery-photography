@@ -4,6 +4,7 @@ import Icon from '../../../components/Icon';
 import { EmptyState, Modal, Confirm, Field } from '../../../components/ui';
 import Skeleton from '../../../components/Skeleton';
 import { toast } from '../../../lib/toast';
+import { getApiErrorMessage } from '../../../lib/errors';
 
 const emptyForm = { label: '', value: '', suffix: '', order: 0, source: 'manual', metric: '' };
 
@@ -35,6 +36,7 @@ export default function StatsTab({ ref }) {
         setLoading(true);
         api.get('/stats')
             .then(({ data }) => setItems(data))
+            .catch(() => toast.error('Gagal memuat data.'))
             .finally(() => setLoading(false));
     };
 
@@ -104,10 +106,14 @@ export default function StatsTab({ ref }) {
     };
 
     const handleDelete = async () => {
-        await api.delete(`/stats/${deleting.id}`);
-        toast.success('Stat dihapus.');
-        setDeleting(null);
-        load();
+        try {
+            await api.delete(`/stats/${deleting.id}`);
+            toast.success('Stat dihapus.');
+            setDeleting(null);
+            load();
+        } catch (err) {
+            toast.error(getApiErrorMessage(err, 'Gagal menghapus stat.'));
+        }
     };
 
     return (

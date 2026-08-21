@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../../../api';
+import { toast } from '../../../lib/toast';
 import Icon from '../../../components/Icon';
 import { PageHeader, EmptyState, formatRupiah, formatDate } from '../../../components/ui';
 import Skeleton from '../../../components/Skeleton';
@@ -28,6 +29,7 @@ export default function Orders() {
         setLoading(true);
         api.get('/projects', { params: { status: status || undefined } })
             .then(({ data }) => setItems(data))
+            .catch(() => toast.error('Gagal memuat data.'))
             .finally(() => setLoading(false));
     };
 

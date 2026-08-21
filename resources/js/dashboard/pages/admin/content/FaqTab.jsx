@@ -6,6 +6,7 @@ import RichEditor from '../../../components/RichEditor';
 import { EmptyState, Modal, Confirm, Field } from '../../../components/ui';
 import Skeleton from '../../../components/Skeleton';
 import { toast } from '../../../lib/toast';
+import { getApiErrorMessage } from '../../../lib/errors';
 
 const emptyForm = { question: '', answer: '', order: 0, category_ids: [] };
 
@@ -24,6 +25,7 @@ export default function FaqTab({ ref }) {
         setLoading(true);
         api.get('/faqs')
             .then(({ data }) => setItems(data))
+            .catch(() => toast.error('Gagal memuat data.'))
             .finally(() => setLoading(false));
     };
 
@@ -76,10 +78,14 @@ export default function FaqTab({ ref }) {
     };
 
     const handleDelete = async () => {
-        await api.delete(`/faqs/${deleting.id}`);
-        toast.success('FAQ dihapus.');
-        setDeleting(null);
-        load();
+        try {
+            await api.delete(`/faqs/${deleting.id}`);
+            toast.success('FAQ dihapus.');
+            setDeleting(null);
+            load();
+        } catch (err) {
+            toast.error(getApiErrorMessage(err, 'Gagal menghapus FAQ.'));
+        }
     };
 
     return (

@@ -1,5 +1,5 @@
 export function getApiErrorMessage(err, fallback = 'Terjadi kesalahan. Coba lagi.') {
-    if (!err.response) {
+    if (!err?.response) {
         if (err.code === 'ERR_NETWORK' || err.message?.includes('Network Error')) {
             return 'Tidak ada koneksi internet. Periksa jaringan Anda.';
         }

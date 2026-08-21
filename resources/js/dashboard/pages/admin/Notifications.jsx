@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../../api';
+import { toast } from '../../lib/toast';
+import { getApiErrorMessage } from '../../lib/errors';
 import Icon from '../../components/Icon';
 import { PageHeader, EmptyState, Confirm, formatDate } from '../../components/ui';
 import Skeleton from '../../components/Skeleton';
@@ -34,6 +36,7 @@ export default function Notifications() {
                 setItems(data.data);
                 setMeta(data);
             })
+            .catch(() => toast.error('Gagal memuat data.'))
             .finally(() => setLoading(false));
     };
 
@@ -43,21 +46,34 @@ export default function Notifications() {
 
     const markRead = async (n) => {
         if (!n.read_at) {
-            await api.patch(`/notifications/${n.id}/read`);
-            load(meta.current_page);
+            try {
+                await api.patch(`/notifications/${n.id}/read`);
+                load(meta.current_page);
+            } catch (err) {
+                toast.error(getApiErrorMessage(err, 'Gagal menandai notifikasi.'));
+            }
         }
     };
 
     const markAll = async () => {
-        await api.patch('/notifications/read-all');
-        load(meta.current_page);
+        try {
+            await api.patch('/notifications/read-all');
+            load(meta.current_page);
+        } catch (err) {
+            toast.error(getApiErrorMessage(err, 'Gagal menandai notifikasi.'));
+        }
     };
 
     const clearAll = async () => {
+        try {
+            await api.delete('/notifications');
+            setItems([]);
+            setMeta({});
+            toast.success('Semua notifikasi dihapus.');
+        } catch (err) {
+            toast.error(getApiErrorMessage(err, 'Gagal menghapus notifikasi.'));
+        }
         setClearing(false);
-        await api.delete('/notifications');
-        setItems([]);
-        setMeta({});
     };
 
     const cardClass = (n) =>

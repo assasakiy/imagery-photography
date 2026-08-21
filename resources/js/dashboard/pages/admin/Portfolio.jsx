@@ -45,12 +45,13 @@ export default function Portfolio() {
                 setItems(data.data);
                 setMeta(data);
             })
+            .catch(() => toast.error('Gagal memuat data.'))
             .finally(() => setLoading(false));
     };
 
     useEffect(() => {
         load();
-        api.get('/categories?exclude_system=1').then(({ data }) => setCategories(data.data || data));
+        api.get('/categories?exclude_system=1').then(({ data }) => setCategories(data.data || data)).catch(() => {});
     }, []);
 
     const openCreate = () => {
@@ -145,10 +146,14 @@ export default function Portfolio() {
     };
 
     const handleDelete = async () => {
-        await api.delete(`/portfolios/${deleting.id}`);
-        toast.success('Portofolio dipindah ke Recycle Bin.');
-        setDeleting(null);
-        load(meta.current_page);
+        try {
+            await api.delete(`/portfolios/${deleting.id}`);
+            toast.success('Portofolio dipindah ke Recycle Bin.');
+            setDeleting(null);
+            load(meta.current_page);
+        } catch (err) {
+            toast.error(getApiErrorMessage(err, 'Gagal menghapus portofolio.'));
+        }
     };
 
     return (
