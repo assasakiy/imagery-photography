@@ -55,7 +55,7 @@ export default function ShootingStep({ ctx }) {
                                 <span className="font-semibold text-ink">{uploading ? 'Mengupload...' : 'Seret 1 foto ke sini atau klik untuk unggah'}</span>
                                 <span className="text-xs text-ink-muted">Foto ini menjadi penanda waktu sesi resmi selesai</span>
                             </button>
-                            <input ref={fileRef} type="file" className="hidden" onChange={uploadEndProof} disabled={formLocked} />
+                            <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" className="hidden" onChange={uploadEndProof} disabled={formLocked} />
                         </div>
 
                         <div className="mt-4">

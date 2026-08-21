@@ -312,6 +312,8 @@ export default function ProjectDetail() {
             await api.post(`/projects/${id}/files`, data);
             show('Foto bukti diunggah.');
             load();
+        } catch (err) {
+            show(err.response?.data?.message || 'Gagal mengunggah file.', 'error');
         } finally {
             setUploading(false);
         }
