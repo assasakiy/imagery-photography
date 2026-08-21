@@ -11,6 +11,7 @@ const api = axios.create({
 });
 
 const authUrls = ['/login', '/user'];
+let _loggingOut = false;
 
 const MUTATION_METHODS = ['post', 'put', 'patch', 'delete'];
 
@@ -36,8 +37,11 @@ api.interceptors.response.use(
             }
         }
         if (error.response?.status === 401 && !authUrls.some((u) => url.includes(u))) {
-            toast.warning('Sesi kamu berakhir, silakan login lagi.');
-            setTimeout(() => { window.location.href = '/login'; }, 800);
+            if (!_loggingOut) {
+                _loggingOut = true;
+                toast.warning('Sesi kamu berakhir, silakan login lagi.');
+                setTimeout(() => { window.location.href = '/login'; }, 800);
+            }
         }
         return Promise.reject(error);
     },
