@@ -30,7 +30,7 @@ export default function FilterDropdown({ title, icon, options, value, onChange, 
                 <span className="flex min-w-0 items-center gap-2">
                     <Icon name={icon} size={14} className="shrink-0 text-ink-muted" />
                     <span className="truncate font-medium text-ink">{activeLabel}</span>
-                    {selected.length > 0 && <span className="badge shrink-0 bg-brand-600 text-white">{selected.length}</span>}
+                    {selected.length > 0 && <span className="inline-flex h-4 min-w-4 shrink-0 items-center justify-center rounded-full bg-brand-600 px-1 text-[9px] font-bold leading-none text-white">{selected.length}</span>}
                 </span>
                 <Icon name="chevron-down" size={14} className={`shrink-0 text-ink-muted transition-transform ${open ? 'rotate-180' : ''}`} />
             </button>
