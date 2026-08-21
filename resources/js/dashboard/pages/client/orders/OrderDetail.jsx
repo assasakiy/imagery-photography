@@ -114,7 +114,6 @@ export default function ProjectDetail() {
     const [rerequestNote, setRerequestNote] = useState('');
     const [reviewOpen, setReviewOpen] = useState(false);
     const [reviewForm, setReviewForm] = useState({ rating: 5, title: '', content: '', recommend_score: 10 });
-    const [confirmArchive, setConfirmArchive] = useState(false);
     const fileRef = useRef(null);
     const photoRef = useRef(null);
     const thumbRef = useRef(null);
@@ -212,21 +211,6 @@ export default function ProjectDetail() {
             await load();
         } catch (err) {
             show(err.response?.data?.message || 'Gagal melanjutkan alur.', 'error');
-        } finally {
-            setSaving(false);
-        }
-    };
-
-    const archive = async () => {
-        setConfirmArchive(false);
-        setSaving(true);
-        try {
-            await api.patch(`/projects/${id}/archive`);
-            show('Pesanan diarsipkan.');
-            setStep(null);
-            await load();
-        } catch (err) {
-            show(err.response?.data?.message || 'Gagal mengarsipkan.', 'error');
         } finally {
             setSaving(false);
         }
@@ -493,11 +477,10 @@ const ctx = {
         isPaid, paidAt,
         fieldNote, setFieldNote, endProof, setDeleteConfirm,
         uploadFile, uploadEndProof, confirmShootingDone,
-        advance, archive, restore, saveEditProgress,
+        advance, restore, saveEditProgress,
         setUploadOpen, uploadLabel, pickAndSaveThumb, thumbFile,
         openReview, existingReview, canReview, setReviewOpen, openChat,
         setShareOpen, feeMap, setFeeMap, reviewRedelivery, setRerequestOpen,
-        setConfirmArchive,
     };
 
     return (
@@ -669,9 +652,6 @@ const ctx = {
                     </Field>
                 </form>
             </Modal>
-
-            <Confirm open={confirmArchive} onClose={() => setConfirmArchive(false)} onConfirm={archive} title="Arsipkan Pesanan?" message="Pesanan akan dipindahkan ke arsip." />
-
             {node}
         </>
     );
