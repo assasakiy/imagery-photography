@@ -10,6 +10,20 @@ import SearchableMultiSelect from '../../components/SearchableMultiSelect';
 import CustomSelect from '../../components/CustomSelect';
 import FilterDropdown from '../../components/FilterDropdown';
 
+const CATEGORY_ICONS = {
+    wedding: 'heart',
+    prewedding: 'camera',
+    akad: 'landmark',
+    event: 'calendar',
+    nyongkolan: 'users',
+    wisuda: 'user-check',
+    engagement: 'sparkles',
+    birthday: 'smile',
+    corporate: 'briefcase',
+    product: 'package',
+    drone: 'video',
+};
+
 const emptyForm = {
     title: '',
     category_ids: [],
@@ -197,12 +211,19 @@ export default function Portfolio() {
                     )}
                 </form>
                 <div className="ml-auto flex w-full flex-wrap items-center gap-1.5 md:w-auto">
-                    <FilterDropdown 
-                        title="Filter Kategori" 
-                        icon="folder" 
-                        value={catFilter} 
-                        onChange={setCatFilter} 
-                        options={categories.map(c => ({ key: c.id, label: c.name }))} 
+                    <FilterDropdown
+                        title="Filter Kategori"
+                        icon="images"
+                        value={catFilter}
+                        onChange={setCatFilter}
+                        options={[
+                            { key: '', label: 'Semua Kategori', icon: 'layers' },
+                            ...categories.map((c) => ({
+                                key: c.id,
+                                label: c.name,
+                                icon: CATEGORY_ICONS[c.slug] || 'check-square',
+                            })),
+                        ]}
                     />
                 </div>
             </div>
@@ -233,7 +254,7 @@ export default function Portfolio() {
                                     <p className="truncate text-sm font-semibold text-ink">{item.title}</p>
                                     <p className="text-xs text-ink-muted">{item.categories?.length > 0 ? (
                                         <span>
-                                            <span className="font-medium text-brand-600">{item.categories[0].name}</span> &nbsp;•&nbsp; 
+                                            <span className="font-medium text-brand-600">{item.categories[0].name}</span> &nbsp;•&nbsp;
                                             <span className="text-[10px]">{item.categories.length} kategori</span>
                                         </span>
                                     ) : 'Tanpa kategori'}</p>
@@ -313,7 +334,7 @@ export default function Portfolio() {
 
                     <div>
                         <label className="label">Kategori</label>
-                        <SearchableMultiSelect 
+                        <SearchableMultiSelect
                             options={categories.map(c => ({ label: c.name, value: c.id }))}
                             value={form.category_ids}
                             onChange={ids => setForm({ ...form, category_ids: ids })}
