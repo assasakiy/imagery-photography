@@ -11,6 +11,7 @@ import Skeleton from '../../components/Skeleton';
 export default function Subscribers() {
     const [items, setItems] = useState([]);
     const [meta, setMeta] = useState({});
+    const [stats, setStats] = useState({});
     const [search, setSearch] = useState('');
     const [debounced, setDebounced] = useState('');
     const [statusFilter, setStatusFilter] = useState('');
@@ -27,6 +28,7 @@ export default function Subscribers() {
             .then(({ data }) => {
                 setItems(data.data);
                 setMeta(data);
+                setStats(data.stats || {});
             })
             .catch(() => toast.error('Gagal memuat data.'))
             .finally(() => setLoading(false));
@@ -129,6 +131,32 @@ export default function Subscribers() {
     return (
         <>
             <PageHeader title="Subscriber" subtitle="Kelola pengguna yang berlangganan blog." />
+
+            <div className="mb-5 grid grid-cols-2 gap-3 xl:grid-cols-4">
+                <div className="card p-4">
+                    <p className="text-xs font-medium text-ink-muted">Total</p>
+                    <p className="mt-1 text-2xl font-bold text-ink">{Number(stats.total || 0).toLocaleString('id-ID')}</p>
+                </div>
+                <div className="card p-4">
+                    <p className="text-xs font-medium text-ink-muted">Aktif</p>
+                    <p className="mt-1 text-2xl font-bold text-emerald-600 dark:text-emerald-400">{Number(stats.active || 0).toLocaleString('id-ID')}</p>
+                    <p className="mt-1 text-xs font-medium text-ink-muted">{stats.active_percentage || 0}%</p>
+                </div>
+                <div className="card p-4">
+                    <p className="text-xs font-medium text-ink-muted">Baru Bulan Ini</p>
+                    <p className="mt-1 text-2xl font-bold text-brand-600 dark:text-brand-400">+{Number(stats.new_this_month || 0).toLocaleString('id-ID')}</p>
+                    {stats.new_growth_percentage !== null && stats.new_growth_percentage !== undefined && (
+                        <p className={`mt-1 text-xs font-semibold ${stats.new_growth_percentage >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>
+                            {stats.new_growth_percentage >= 0 ? '↑' : '↓'} {Math.abs(stats.new_growth_percentage)}%
+                        </p>
+                    )}
+                </div>
+                <div className="card p-4">
+                    <p className="text-xs font-medium text-ink-muted">Nonaktif</p>
+                    <p className="mt-1 text-2xl font-bold text-zinc-500">{Number(stats.disabled || 0).toLocaleString('id-ID')}</p>
+                    <p className="mt-1 text-xs font-medium text-ink-muted">{stats.disabled_percentage || 0}%</p>
+                </div>
+            </div>
 
             <div className="mb-4 flex flex-wrap items-center gap-x-1.5 gap-y-2">
                 <form className="relative w-full md:w-96" onSubmit={(e) => { e.preventDefault(); setDebounced(search.trim()); }}>
