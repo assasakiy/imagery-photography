@@ -6,6 +6,7 @@ import Icon from '../../components/Icon';
 import MediaPicker from '../../components/MediaPicker';
 import UserDetailModal from '../../components/UserDetailModal';
 import PresenceBadge from '../../components/PresenceBadge';
+import FilterDropdown from '../../components/FilterDropdown';
 import { PageHeader, EmptyState, Modal, Confirm, Field, formatDate } from '../../components/ui';
 import Skeleton from '../../components/Skeleton';
 
@@ -14,8 +15,10 @@ const emptyForm = { name: '', username: '', email: '', phone: '', company: '', o
 export default function Clients() {
     const [items, setItems] = useState([]);
     const [meta, setMeta] = useState({});
+    const [stats, setStats] = useState({});
     const [search, setSearch] = useState('');
     const [debounced, setDebounced] = useState('');
+    const [statusFilter, setStatusFilter] = useState('');
     const [loading, setLoading] = useState(true);
     const [open, setOpen] = useState(false);
     const [editing, setEditing] = useState(null);
@@ -72,18 +75,24 @@ export default function Clients() {
 
     const load = (page = 1, q = debounced) => {
         setLoading(true);
-        api.get('/clients', { params: { page, per_page: 15, search: q || undefined } })
+        api.get('/clients', { params: { page, per_page: 15, search: q || undefined, status: statusFilter || undefined } })
             .then(({ data }) => {
                 setItems(data.data);
                 setMeta(data);
+                setStats(data.stats || {});
             })
             .catch(() => toast.error('Gagal memuat data.'))
             .finally(() => setLoading(false));
     };
 
     useEffect(() => {
+        const timer = setTimeout(() => setDebounced(search.trim()), 300);
+        return () => clearTimeout(timer);
+    }, [search]);
+
+    useEffect(() => {
         load();
-    }, [debounced]);
+    }, [debounced, statusFilter]);
 
     const openCreate = () => {
         setEditing(null);
@@ -143,6 +152,19 @@ export default function Clients() {
 
     const update = (key, value) => setForm((f) => ({ ...f, [key]: value }));
 
+    const STATUS_FILTERS = [
+        { key: 'active', label: 'Aktif', icon: 'check' },
+        { key: 'pending', label: 'Menunggu', icon: 'clock' },
+        { key: 'disabled', label: 'Nonaktif', icon: 'eye-off' },
+    ];
+
+    const clientKpis = [
+        { label: 'Total Klien', value: Number(stats.total || 0).toLocaleString('id-ID'), icon: 'users', color: 'bg-brand-500/15 text-brand-600 dark:text-brand-400' },
+        { label: 'Klien Aktif', value: Number(stats.active || 0).toLocaleString('id-ID'), icon: 'user-check', color: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400', trend: { up: true, text: `${stats.active_percentage || 0}%` } },
+        { label: 'Baru Bulan Ini', value: `+${Number(stats.new_this_month || 0).toLocaleString('id-ID')}`, icon: 'user', color: 'bg-sky-500/15 text-sky-600 dark:text-sky-400', trend: stats.new_growth_percentage !== null && stats.new_growth_percentage !== undefined ? { up: stats.new_growth_percentage >= 0, text: `${Math.abs(stats.new_growth_percentage)}%` } : null },
+        { label: 'Klien Nonaktif', value: Number(stats.disabled || 0).toLocaleString('id-ID'), icon: 'eye-off', color: 'bg-zinc-500/15 text-zinc-600 dark:text-zinc-400', trend: { up: false, text: `${stats.disabled_percentage || 0}%` } },
+    ];
+
     return (
         <>
             <PageHeader
@@ -155,21 +177,43 @@ export default function Clients() {
                 }
             />
 
-            <div className="mb-4 flex items-center gap-2">
-                <div className="relative flex-1 max-w-sm">
-                    <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted">
-                        <Icon name="search" size={16} />
-                    </span>
+            <div className="mb-5 grid grid-cols-2 gap-4 lg:grid-cols-4">
+                {clientKpis.map((kpi) => (
+                    <div key={kpi.label} className="card p-4">
+                        <div className="flex items-start justify-between">
+                            <div className={`flex h-9 w-9 items-center justify-center rounded-lg ${kpi.color}`}>
+                                <Icon name={kpi.icon} size={18} />
+                            </div>
+                            {kpi.trend && (
+                                <span className={`badge ${kpi.trend.up ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' : 'bg-red-500/15 text-red-600 dark:text-red-400'}`}>
+                                    <Icon name="trending-up" size={11} className={kpi.trend.up ? '' : 'rotate-180'} /> {kpi.trend.text}
+                                </span>
+                            )}
+                        </div>
+                        <p className="mt-3 text-xl font-bold text-ink">{kpi.value}</p>
+                        <p className="mt-0.5 text-xs text-ink-muted">{kpi.label}</p>
+                    </div>
+                ))}
+            </div>
+
+            <div className="mb-4 flex flex-wrap items-center gap-x-1.5 gap-y-2">
+                <form className="relative w-full md:w-96" onSubmit={(e) => { e.preventDefault(); setDebounced(search.trim()); }}>
+                    <Icon name="search" size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" />
                     <input
                         className="input pl-9"
-                        placeholder="Cari nama, email, atau telepon..."
+                        placeholder="Cari nama, email, atau username…"
                         value={search}
-                        onChange={(e) => {
-                            setSearch(e.target.value);
-                            clearTimeout(window.__clientSearch);
-                            window.__clientSearch = setTimeout(() => setDebounced(e.target.value), 400);
-                        }}
+                        onChange={(e) => setSearch(e.target.value)}
                     />
+                    {search && (
+                        <button type="button" aria-label="Hapus pencarian" onClick={() => { setSearch(''); setDebounced(''); }} className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-muted hover:text-ink">
+                            <Icon name="x" size={14} />
+                        </button>
+                    )}
+                </form>
+                <div className="ml-auto flex w-full flex-wrap items-center gap-1.5 md:w-auto">
+                    <FilterDropdown title="Filter Status" icon="users" value={statusFilter} onChange={setStatusFilter} options={STATUS_FILTERS} />
+                    <span className="whitespace-nowrap px-2 text-sm text-ink-muted">{meta.total || 0} klien</span>
                 </div>
             </div>
 

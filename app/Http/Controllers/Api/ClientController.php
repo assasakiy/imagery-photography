@@ -29,11 +29,35 @@ class ClientController extends Controller
                 ->orWhereHas('profile', fn ($p) => $p->where('full_name', 'like', '%' . $s . '%')));
         }
 
+        if ($request->filled('status')) {
+            $query->where('status', $request->input('status'));
+        }
+
         $users = $query->latest()->paginate(15);
 
         $users->getCollection()->transform(fn ($u) => $this->serialize($u));
 
-        return response()->json($users);
+        return response()->json($users->toArray() + ['stats' => $this->stats()]);
+    }
+
+    private function stats(): array
+    {
+        $base = User::role('client');
+        $total = (clone $base)->count();
+        $active = (clone $base)->where('status', 'active')->count();
+        $disabled = (clone $base)->where('status', 'disabled')->count();
+        $newThisMonth = (clone $base)->whereBetween('created_at', [now()->startOfMonth(), now()->endOfMonth()])->count();
+        $newLastMonth = (clone $base)->whereBetween('created_at', [now()->subMonthNoOverflow()->startOfMonth(), now()->subMonthNoOverflow()->endOfMonth()])->count();
+
+        return [
+            'total' => $total,
+            'active' => $active,
+            'active_percentage' => $total ? round(($active / $total) * 100, 1) : 0,
+            'new_this_month' => $newThisMonth,
+            'new_growth_percentage' => $newLastMonth ? round((($newThisMonth - $newLastMonth) / $newLastMonth) * 100, 1) : null,
+            'disabled' => $disabled,
+            'disabled_percentage' => $total ? round(($disabled / $total) * 100, 1) : 0,
+        ];
     }
 
     public function store(Request $request)
