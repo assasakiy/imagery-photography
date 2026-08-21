@@ -198,10 +198,11 @@ export default function Clients() {
                                         <p className="text-xs text-ink-muted">{item.phone || '-'}</p>
                                     </td>
                                     <td>
-                                        <span className={`badge ${item.status === 'active' ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' : item.status === 'pending' ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400' : 'bg-zinc-500/15 text-ink-muted'}`}>
-                                            {item.status === 'active' ? 'Aktif' : item.status === 'pending' ? 'Menunggu' : item.status === 'disabled' ? 'Nonaktif' : 'Tanpa akun'}
-                                        </span>
-                                        <div className="mt-1.5">
+                                        <div className="flex flex-col gap-1">
+                                            <span className="inline-flex w-fit items-center rounded-full bg-brand-500/10 px-2 py-0.5 text-[10px] font-semibold text-brand-600 dark:text-brand-400">Klien</span>
+                                            <span className={`inline-flex w-fit items-center rounded-full px-2 py-0.5 text-[10px] font-semibold ${item.status === 'active' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : item.status === 'pending' ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400' : 'bg-zinc-500/10 text-zinc-500'}`}>
+                                                {item.status === 'active' ? 'Aktif' : item.status === 'pending' ? 'Menunggu' : item.status === 'disabled' ? 'Nonaktif' : 'Tanpa akun'}
+                                            </span>
                                             <PresenceBadge online={item.online} lastSeenAt={item.last_seen_at} />
                                         </div>
                                     </td>

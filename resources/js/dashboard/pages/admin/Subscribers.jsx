@@ -118,14 +118,9 @@ export default function Subscribers() {
                                     </td>
                                     <td className="px-4 py-3 text-ink-muted">{item.email}</td>
                                     <td className="px-4 py-3">
-                                        <div className="flex items-center gap-2">
+                                        <div className="flex flex-col gap-1">
+                                            <span className="inline-flex w-fit items-center rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">Subscribe</span>
                                             <PresenceBadge isOnline={item.is_online} lastSeenAt={item.last_seen_at} />
-                                            <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold ${item.status === 'active' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : 'bg-zinc-500/10 text-zinc-500'}`}>
-                                                {item.status === 'active' ? 'Aktif' : 'Pending'}
-                                            </span>
-                                            {item.is_client && (
-                                                <span className="inline-flex items-center rounded-full bg-brand-500/10 px-2 py-0.5 text-[10px] font-semibold text-brand-600 dark:text-brand-400">Klien</span>
-                                            )}
                                         </div>
                                     </td>
                                     <td className="px-4 py-3 text-right text-ink-muted">{item.bookmarks_count}</td>
@@ -180,9 +175,7 @@ export default function Subscribers() {
                                     <p className="text-sm text-ink-muted">{detail.email}</p>
                                     <div className="mt-1 flex items-center gap-2">
                                         <PresenceBadge isOnline={detail.is_online} lastSeenAt={detail.last_seen_at} />
-                                        <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold ${detail.status === 'active' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : 'bg-zinc-500/10 text-zinc-500'}`}>
-                                            {detail.status === 'active' ? 'Aktif' : 'Pending'}
-                                        </span>
+                                        <span className="inline-flex items-center rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">Subscribe</span>
                                         {detail.is_client && (
                                             <span className="inline-flex items-center rounded-full bg-brand-500/10 px-2 py-0.5 text-[10px] font-semibold text-brand-600 dark:text-brand-400">Klien</span>
                                         )}
