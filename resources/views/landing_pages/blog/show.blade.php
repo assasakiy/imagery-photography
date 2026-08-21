@@ -107,9 +107,7 @@
             </div>
 
             @php
-                $shareUrl = urlencode(route('blog.show', $post->slug));
-                $shareTitle = urlencode($post->title);
-                $shareText = urlencode($post->title . "\n" . route('blog.show', $post->slug));
+                $shareUrl = route('blog.show', $post->slug);
             @endphp
             <div class="mt-6 grid gap-5 border-t border-line/70 pt-6 sm:grid-cols-2">
                 @if ($post->tags->isNotEmpty())
@@ -124,13 +122,10 @@
                 @endif
                 <div class="{{ $post->tags->isEmpty() ? 'sm:col-span-2' : '' }}">
                     <p class="mb-3 text-xs font-semibold uppercase tracking-widest text-ink-muted">Bagikan Artikel</p>
-                    <div class="flex flex-wrap gap-2">
-                        <a href="https://wa.me/?text={{ $shareText }}" target="_blank" rel="noopener noreferrer" class="btn-outline text-xs">WhatsApp</a>
-                        <a href="https://www.facebook.com/sharer/sharer.php?u={{ $shareUrl }}" target="_blank" rel="noopener noreferrer" class="btn-outline text-xs">Facebook</a>
-                        <a href="https://twitter.com/intent/tweet?text={{ $shareTitle }}&amp;url={{ $shareUrl }}" target="_blank" rel="noopener noreferrer" class="btn-outline text-xs">X</a>
-                        <a href="https://www.linkedin.com/sharing/share-offsite/?url={{ $shareUrl }}" target="_blank" rel="noopener noreferrer" class="btn-outline text-xs">LinkedIn</a>
-                        <a href="https://t.me/share/url?url={{ $shareUrl }}&amp;text={{ $shareTitle }}" target="_blank" rel="noopener noreferrer" class="btn-outline text-xs">Telegram</a>
-                    </div>
+                    <button type="button" data-native-share data-share-title="{{ $post->title }}" data-share-text="{{ $post->excerpt ?: $post->title }}" data-share-url="{{ $shareUrl }}" class="btn-outline inline-flex items-center gap-2 text-xs">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.59 13.51 6.83 3.98M15.41 6.51 8.59 10.49"/></svg>
+                        <span data-share-label>Bagikan</span>
+                    </button>
                 </div>
             </div>
         </div>
