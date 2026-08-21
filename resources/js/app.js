@@ -169,6 +169,7 @@ document.addEventListener('DOMContentLoaded', () => {
         lightboxTitle.textContent = el.dataset.title || '';
         lightboxCaption.textContent = el.dataset.caption || '';
         lightbox.classList.remove('hidden');
+        lightbox.classList.add('flex');
         document.body.style.overflow = 'hidden';
     };
 
@@ -196,6 +197,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeLightbox = () => {
         if (!lightbox) return;
         lightbox.classList.add('hidden');
+        lightbox.classList.remove('flex');
         document.body.style.overflow = '';
     };
 
