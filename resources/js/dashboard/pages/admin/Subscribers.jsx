@@ -4,6 +4,7 @@ import { toast } from '../../lib/toast';
 import { getApiErrorMessage } from '../../lib/errors';
 import Icon from '../../components/Icon';
 import PresenceBadge from '../../components/PresenceBadge';
+import FilterDropdown from '../../components/FilterDropdown';
 import { PageHeader, EmptyState, Confirm, formatDate } from '../../components/ui';
 import Skeleton from '../../components/Skeleton';
 
@@ -110,10 +111,9 @@ export default function Subscribers() {
     };
 
     const STATUS_FILTERS = [
-        { value: '', label: 'Semua' },
-        { value: 'active', label: 'Aktif' },
-        { value: 'pending', label: 'Menunggu' },
-        { value: 'disabled', label: 'Nonaktif' },
+        { key: 'active', label: 'Aktif', icon: 'check' },
+        { key: 'pending', label: 'Menunggu', icon: 'clock' },
+        { key: 'disabled', label: 'Nonaktif', icon: 'eye-off' },
     ];
 
     const statusBadge = (status) => {
@@ -130,33 +130,25 @@ export default function Subscribers() {
         <>
             <PageHeader title="Subscriber" subtitle="Kelola pengguna yang berlangganan blog." />
 
-            <div className="mb-4 flex flex-wrap items-center gap-3">
-                <form
-                    className="min-w-[180px] flex-1"
-                    onSubmit={(e) => { e.preventDefault(); setDebounced(search); }}
-                >
-                    <div className="relative">
-                        <Icon name="search" size={18} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" />
-                        <input
-                            className="input w-full !pl-10"
-                            placeholder="Cari nama, email, atau username…"
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                        />
-                    </div>
-                </form>
-                <div className="flex gap-1 rounded-lg border border-line bg-surface p-0.5">
-                    {STATUS_FILTERS.map((f) => (
-                        <button
-                            key={f.value}
-                            className={`rounded-md px-3 py-1 text-xs font-medium transition-colors ${statusFilter === f.value ? 'bg-brand-500 text-white' : 'text-ink-muted hover:bg-surface-muted'}`}
-                            onClick={() => setStatusFilter(f.value)}
-                        >
-                            {f.label}
+            <div className="mb-4 flex flex-wrap items-center gap-x-1.5 gap-y-2">
+                <form className="relative w-full md:w-96" onSubmit={(e) => { e.preventDefault(); setDebounced(search.trim()); }}>
+                    <Icon name="search" size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" />
+                    <input
+                        className="input pl-9"
+                        placeholder="Cari nama, email, atau username…"
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                    />
+                    {search && (
+                        <button type="button" aria-label="Hapus pencarian" onClick={() => { setSearch(''); setDebounced(''); }} className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-muted hover:text-ink">
+                            <Icon name="x" size={14} />
                         </button>
-                    ))}
+                    )}
+                </form>
+                <div className="ml-auto flex w-full flex-wrap items-center gap-1.5 md:w-auto">
+                    <FilterDropdown title="Filter Status" icon="users" value={statusFilter} onChange={setStatusFilter} options={STATUS_FILTERS} />
+                    <span className="whitespace-nowrap px-2 text-sm text-ink-muted">{meta.total || 0} subscriber</span>
                 </div>
-                <span className="text-sm text-ink-muted">{meta.total || 0} subscriber</span>
             </div>
 
             {loading ? (

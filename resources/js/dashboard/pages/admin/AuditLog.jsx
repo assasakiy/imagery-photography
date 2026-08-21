@@ -3,6 +3,7 @@ import api from '../../api';
 import { toast } from '../../lib/toast';
 import Icon from '../../components/Icon';
 import PresenceBadge from '../../components/PresenceBadge';
+import FilterDropdown from '../../components/FilterDropdown';
 import { PageHeader, EmptyState } from '../../components/ui';
 import Skeleton from '../../components/Skeleton';
 
@@ -143,81 +144,6 @@ export default function AuditLog() {
     const categories = [...new Set((actions || []).map((a) => a.split('.')[0]).filter(Boolean))];
 
     const CATEGORY_ICONS = { blog: 'file', media: 'images', page: 'file', portfolio: 'briefcase', settings: 'settings', team: 'users', payment: 'wallet', project: 'package', review: 'star', auth: 'lock', booking: 'calendar' };
-
-    const FilterDropdown = ({ title, icon, options, value, onChange, multi = false, singlePerGroup = false }) => {
-        const [open, setOpen] = useState(false);
-        const isArr = Array.isArray(value);
-        const selected = isArr ? options.filter((o) => value.includes(o.key)) : options.filter((o) => o.key === value);
-        const activeLabel = selected.length ? selected.map((o) => o.label).join(', ') : title;
-
-        const toggle = (opt) => {
-            if (!multi) {
-                onChange(value === opt.key ? '' : opt.key);
-                setOpen(false);
-                return;
-            }
-            const active = value.includes(opt.key);
-            if (active) {
-                onChange(value.filter((k) => k !== opt.key));
-            } else {
-                const next = singlePerGroup && opt.group
-                    ? value.filter((k) => !(options.find((o) => o.key === k)?.group === opt.group))
-                    : value;
-                onChange([...next, opt.key]);
-            }
-        };
-
-        return (
-            <div className="relative ml-auto w-full md:w-auto">
-                <button
-                    type="button"
-                    onClick={() => setOpen((v) => !v)}
-                    className="input flex w-full items-center justify-between gap-2 px-3 text-sm"
-                >
-                    <span className="flex min-w-0 items-center gap-2">
-                        <Icon name={icon} size={14} className="shrink-0 text-ink-muted" />
-                        <span className="truncate font-medium text-ink">{activeLabel}</span>
-                        {selected.length > 0 && <span className="badge shrink-0 bg-brand-600 text-white">{selected.length}</span>}
-                    </span>
-                    <Icon name="chevron-down" size={14} className={`shrink-0 text-ink-muted transition-transform ${open ? 'rotate-180' : ''}`} />
-                </button>
-                {open && (
-                    <div className="absolute left-0 top-full z-30 mt-1.5 max-h-64 w-full overflow-y-auto rounded-xl border border-line bg-surface p-1.5 shadow-xl">
-                        <button
-                            type="button"
-                            onClick={() => { onChange(multi ? [] : ''); setOpen(false); }}
-                            className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-sm text-ink-muted transition-colors hover:bg-surface-muted"
-                        >
-                            <Icon name="x" size={14} className="shrink-0" />
-                            Semua
-                        </button>
-                        {options.map((opt, idx) => {
-                            const active = isArr ? value.includes(opt.key) : value === opt.key;
-                            const showDivider = opt.group && idx > 0 && options[idx - 1].group !== opt.group;
-                            return (
-                                <div key={opt.key}>
-                                    {showDivider && <div className="my-1.5 h-px bg-line" />}
-                                    <button
-                                        type="button"
-                                        onClick={() => toggle(opt)}
-                                        className={`flex w-full items-center justify-between gap-2 rounded-lg px-2.5 py-2 text-left text-sm transition-colors hover:bg-surface-muted ${
-                                            active ? 'font-semibold text-brand-600 dark:text-brand-400' : 'text-ink'
-                                        }`}
-                                    >
-                                        <span className="flex min-w-0 items-center gap-2">
-                                            {opt.icon && <Icon name={opt.icon} size={14} className="shrink-0 text-ink-muted" />}
-                                            <span className="truncate">{opt.label}</span>
-                                        </span>
-                                        {active && <Icon name="check" size={14} className="shrink-0 text-brand-600" />}
-                                    </button>
-                                </div>
-                            );
-                        })}
-                    </div>
-                )}
-            </div>
-        );
-    };
 
     return (
         <>
