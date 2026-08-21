@@ -120,6 +120,9 @@ export default function Subscribers() {
                                     <td className="px-4 py-3">
                                         <div className="flex flex-col gap-1">
                                             <span className="inline-flex w-fit items-center rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">Subscribe</span>
+                                            {item.is_client && (
+                                                <span className="inline-flex w-fit items-center rounded-full bg-brand-500/10 px-2 py-0.5 text-[10px] font-semibold text-brand-600 dark:text-brand-400">Klien</span>
+                                            )}
                                             <PresenceBadge isOnline={item.is_online} lastSeenAt={item.last_seen_at} />
                                         </div>
                                     </td>
