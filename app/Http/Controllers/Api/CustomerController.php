@@ -104,6 +104,11 @@ class CustomerController extends Controller
         $eventStart = $businessTime->parseToUtc($data['event_start'] ?? null);
         $eventEnd = $businessTime->parseToUtc($data['event_end'] ?? null);
 
+        // Auto-upgrade subscriber → client saat booking dari dashboard.
+        if (!$user->hasRole('client')) {
+            $user->assignRole('client');
+        }
+
         $booking = Booking::create([
             'user_id' => $user->id,
             'name' => $user->name,

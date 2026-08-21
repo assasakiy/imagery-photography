@@ -18,9 +18,10 @@ class SafeUrlDownloader
     {
         $handler = HandlerStack::create();
 
-        // Middleware 1: resolve + validasi IP, simpan hasilnya di request attribute.
+        // Satu middleware yang resolve, validasi, DAN apply CURLOPT_RESOLVE.
+        // Variabel $resolveEntry ditangkap lewat closure, jadi tidak perlu PSR-7 attribute.
         $handler->push(Middleware::tap(
-            function (RequestInterface &$request) {
+            function (RequestInterface &$request) use (&$resolveEntry) {
                 $host = $request->getUri()->getHost();
                 $port = $request->getUri()->getPort()
                     ?? ($request->getUri()->getScheme() === 'https' ? 443 : 80);
@@ -38,14 +39,20 @@ class SafeUrlDownloader
                     throw new \RuntimeException("Blocked: {$host} ({$ip}) mengarah ke IP privat/internal.");
                 }
 
-                // Simpan resolved IP di attribute — middleware curl akan baca dari sini.
-                $request = $request->withAttribute('resolved_ip', $ip);
-                $request = $request->withAttribute('resolved_port', $port);
+                // Simpan hasil resolve — curl middleware di bawah akan pakai ini.
+                $resolveEntry = "{$host}:{$port}:{$ip}";
             }
         ));
 
-        // Middleware 2: apply CURLOPT_RESOLVE dari attribute (per-request, bukan global).
-        $handler->push(self::curlResolveMiddleware());
+        // Middleware curl: apply CURLOPT_RESOLVE dari closure variable.
+        $handler->push(function (callable $handler) use (&$resolveEntry) {
+            return function ($request, array $options) use ($handler, &$resolveEntry) {
+                if ($resolveEntry) {
+                    $options['curl'][CURLOPT_RESOLVE] = [$resolveEntry];
+                }
+                return $handler($request, $options);
+            };
+        });
 
         $client = new Client([
             'handler' => $handler,
@@ -75,28 +82,5 @@ class SafeUrlDownloader
         file_put_contents($tmpFile, $response->getBody()->getContents());
 
         return $tmpFile;
-    }
-
-    /**
-     * Guzzle middleware: baca request attributes (resolved_ip, resolved_port),
-     * inject CURLOPT_RESOLVE ke curl options supaya TCP terkoneksi ke IP valid
-     * tapi hostname asli tetap dipakai untuk TLS SNI & cert validation.
-     */
-    private static function curlResolveMiddleware(): callable
-    {
-        return function (callable $handler) {
-            return function ($request, array $options) use ($handler) {
-                $ip = $request->getAttribute('resolved_ip');
-                $port = $request->getAttribute('resolved_port');
-
-                if ($ip && $port) {
-                    $host = $request->getUri()->getHost();
-                    $options['curl'][CURLOPT_RESOLVE] = ["{$host}:{$port}:{$ip}"];
-                    $request = $request->withoutAttribute('resolved_ip')->withoutAttribute('resolved_port');
-                }
-
-                return $handler($request, $options);
-            };
-        };
     }
 }
