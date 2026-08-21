@@ -10,9 +10,21 @@ use Illuminate\Support\Facades\Validator;
 
 class ServiceController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        return response()->json(Service::orderBy('order')->get());
+        $query = Service::query();
+
+        if ($request->filled('q')) {
+            $query->where('event', 'like', '%' . $request->input('q') . '%');
+        }
+
+        if ($request->filled('status')) {
+            $status = $request->input('status');
+            if ($status === 'active') $query->where('active', true);
+            elseif ($status === 'inactive') $query->where('active', false);
+        }
+
+        return response()->json($query->orderBy('order')->get());
     }
 
     public function store(Request $request)

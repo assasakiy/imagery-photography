@@ -4,6 +4,7 @@ import { toast } from '../../lib/toast';
 import { getApiErrorMessage } from '../../lib/errors';
 import Icon from '../../components/Icon';
 import { PageHeader, EmptyState, Modal, Confirm, Field, formatRupiah } from '../../components/ui';
+import FilterDropdown from '../../components/FilterDropdown';
 import Skeleton from '../../components/Skeleton';
 
 const VIEWS = [
@@ -45,11 +46,31 @@ export default function Services() {
     const [pkgSaving, setPkgSaving] = useState(false);
     const [pkgDeleting, setPkgDeleting] = useState(null);
 
+    const [svcSearch, setSvcSearch] = useState('');
+    const [svcDebounced, setSvcDebounced] = useState('');
+    const [svcStatus, setSvcStatus] = useState('');
+
+    const [pkgSearch, setPkgSearch] = useState('');
+    const [pkgDebounced, setPkgDebounced] = useState('');
+    const [pkgStatus, setPkgStatus] = useState('');
+
+    const loadSvc = () => {
+        api.get('/services', { params: { q: svcDebounced || undefined, status: svcStatus || undefined } })
+            .then(({ data }) => setServices(data))
+            .catch(() => toast.error('Gagal memuat layanan satuan.'));
+    };
+
+    const loadPkg = () => {
+        api.get('/packages', { params: { q: pkgDebounced || undefined, status: pkgStatus || undefined } })
+            .then(({ data }) => setPackages(data))
+            .catch(() => toast.error('Gagal memuat paket.'));
+    };
+
     const loadAll = () => {
         setLoading(true);
         Promise.all([
-            api.get('/services'),
-            api.get('/packages'),
+            api.get('/services', { params: { q: svcDebounced || undefined, status: svcStatus || undefined } }),
+            api.get('/packages', { params: { q: pkgDebounced || undefined, status: pkgStatus || undefined } }),
         ])
             .then(([s, p]) => {
                 setServices(s.data);
@@ -59,7 +80,23 @@ export default function Services() {
             .finally(() => setLoading(false));
     };
 
-    useEffect(loadAll, []);
+    useEffect(() => {
+        const timer = setTimeout(() => setSvcDebounced(svcSearch.trim()), 300);
+        return () => clearTimeout(timer);
+    }, [svcSearch]);
+
+    useEffect(() => {
+        const timer = setTimeout(() => setPkgDebounced(pkgSearch.trim()), 300);
+        return () => clearTimeout(timer);
+    }, [pkgSearch]);
+
+    useEffect(loadSvc, [svcDebounced, svcStatus]);
+    useEffect(loadPkg, [pkgDebounced, pkgStatus]);
+    
+    // Initial load
+    useEffect(() => {
+        loadAll();
+    }, []);
 
     const openSvcCreate = () => { setSvcEditing(null); setSvcForm(emptyService); setSvcErrors({}); setSvcOpen(true); };
     const openSvcEdit = (item) => {
@@ -204,6 +241,62 @@ export default function Services() {
                     </button>
                 ))}
             </div>
+
+            {view === 'master' ? (
+                <div className="mb-4 flex flex-wrap items-center gap-x-1.5 gap-y-2">
+                    <form className="relative w-full md:w-96" onSubmit={(e) => { e.preventDefault(); setSvcDebounced(svcSearch.trim()); }}>
+                        <Icon name="search" size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" />
+                        <input
+                            className="input pl-9"
+                            placeholder="Cari nama layanan..."
+                            value={svcSearch}
+                            onChange={(e) => setSvcSearch(e.target.value)}
+                        />
+                        {svcSearch && (
+                            <button type="button" aria-label="Hapus pencarian" onClick={() => { setSvcSearch(''); setSvcDebounced(''); }} className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-muted hover:text-ink">
+                                <Icon name="x" size={14} />
+                            </button>
+                        )}
+                    </form>
+                    <div className="ml-auto flex w-full flex-wrap items-center gap-1.5 md:w-auto">
+                        <FilterDropdown 
+                            title="Filter Status" 
+                            icon="toggle-left" 
+                            value={svcStatus} 
+                            onChange={setSvcStatus} 
+                            options={[{key: 'active', label: 'Aktif'}, {key: 'inactive', label: 'Nonaktif'}]} 
+                        />
+                        <span className="whitespace-nowrap px-2 text-sm text-ink-muted">{services.length || 0} layanan</span>
+                    </div>
+                </div>
+            ) : (
+                <div className="mb-4 flex flex-wrap items-center gap-x-1.5 gap-y-2">
+                    <form className="relative w-full md:w-96" onSubmit={(e) => { e.preventDefault(); setPkgDebounced(pkgSearch.trim()); }}>
+                        <Icon name="search" size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" />
+                        <input
+                            className="input pl-9"
+                            placeholder="Cari nama paket..."
+                            value={pkgSearch}
+                            onChange={(e) => setPkgSearch(e.target.value)}
+                        />
+                        {pkgSearch && (
+                            <button type="button" aria-label="Hapus pencarian" onClick={() => { setPkgSearch(''); setPkgDebounced(''); }} className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-muted hover:text-ink">
+                                <Icon name="x" size={14} />
+                            </button>
+                        )}
+                    </form>
+                    <div className="ml-auto flex w-full flex-wrap items-center gap-1.5 md:w-auto">
+                        <FilterDropdown 
+                            title="Filter Status" 
+                            icon="toggle-left" 
+                            value={pkgStatus} 
+                            onChange={setPkgStatus} 
+                            options={[{key: 'active', label: 'Aktif'}, {key: 'inactive', label: 'Nonaktif'}]} 
+                        />
+                        <span className="whitespace-nowrap px-2 text-sm text-ink-muted">{packages.length || 0} paket</span>
+                    </div>
+                </div>
+            )}
 
             {loading ? (
                 <Skeleton variant="table" />

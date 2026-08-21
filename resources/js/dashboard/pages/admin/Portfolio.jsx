@@ -8,6 +8,7 @@ import { PageHeader, EmptyState, Modal, Confirm, Field, formatDate } from '../..
 import { SkeletonCard, SkeletonGrid } from '../../components/ui/skeleton';
 import SearchableMultiSelect from '../../components/SearchableMultiSelect';
 import CustomSelect from '../../components/CustomSelect';
+import FilterDropdown from '../../components/FilterDropdown';
 
 const emptyForm = {
     title: '',
@@ -32,6 +33,9 @@ export default function Portfolio() {
     const [errors, setErrors] = useState({});
     const [saving, setSaving] = useState(false);
     const [deleting, setDeleting] = useState(null);
+    const [q, setQ] = useState('');
+    const [debouncedQ, setDebouncedQ] = useState('');
+    const [catFilter, setCatFilter] = useState('');
     const [catSearch, setCatSearch] = useState('');
     const [categories, setCategories] = useState([]);
     const [preview, setPreview] = useState('');
@@ -40,7 +44,7 @@ export default function Portfolio() {
 
     const load = (page = 1) => {
         setLoading(true);
-        api.get('/portfolios', { params: { page } })
+        api.get('/portfolios', { params: { page, category_id: catFilter || undefined, q: debouncedQ || undefined } })
             .then(({ data }) => {
                 setItems(data.data);
                 setMeta(data);
@@ -50,7 +54,15 @@ export default function Portfolio() {
     };
 
     useEffect(() => {
+        const timer = setTimeout(() => setDebouncedQ(q.trim()), 300);
+        return () => clearTimeout(timer);
+    }, [q]);
+
+    useEffect(() => {
         load();
+    }, [debouncedQ, catFilter]);
+
+    useEffect(() => {
         api.get('/categories?exclude_system=1').then(({ data }) => setCategories(data.data || data)).catch(() => {});
     }, []);
 
@@ -168,6 +180,33 @@ export default function Portfolio() {
                     </button>
                 }
             />
+
+            <div className="mb-4 flex flex-wrap items-center gap-x-1.5 gap-y-2">
+                <form className="relative w-full md:w-96" onSubmit={(e) => { e.preventDefault(); setDebouncedQ(q.trim()); }}>
+                    <Icon name="search" size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" />
+                    <input
+                        className="input pl-9"
+                        placeholder="Cari judul..."
+                        value={q}
+                        onChange={(e) => setQ(e.target.value)}
+                    />
+                    {q && (
+                        <button type="button" aria-label="Hapus pencarian" onClick={() => { setQ(''); setDebouncedQ(''); }} className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-muted hover:text-ink">
+                            <Icon name="x" size={14} />
+                        </button>
+                    )}
+                </form>
+                <div className="ml-auto flex w-full flex-wrap items-center gap-1.5 md:w-auto">
+                    <FilterDropdown 
+                        title="Filter Kategori" 
+                        icon="folder" 
+                        value={catFilter} 
+                        onChange={setCatFilter} 
+                        options={[{key: '', label: 'Semua Kategori'}, ...categories.map(c => ({ key: c.id, label: c.name }))]} 
+                    />
+                    <span className="whitespace-nowrap px-2 text-sm text-ink-muted">{meta.total || 0} karya</span>
+                </div>
+            </div>
 
             {loading ? (
                 <SkeletonGrid count={8} columns="sm:grid-cols-2 lg:grid-cols-4">

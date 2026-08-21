@@ -21,6 +21,10 @@ class PortfolioController extends Controller
             $query->whereHas('categories', fn ($q) => $q->where('categories.id', $request->integer('category_id')));
         }
 
+        if ($request->filled('q')) {
+            $query->where('title', 'like', '%' . $request->input('q') . '%');
+        }
+
         $perPage = $request->integer('per_page', 12);
 
         $portfolios = $query->orderBy('order')->paginate($perPage);
