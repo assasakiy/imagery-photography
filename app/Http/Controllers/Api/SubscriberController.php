@@ -5,7 +5,9 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Services\AuditLogger;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 
 class SubscriberController extends Controller
 {
@@ -20,6 +22,10 @@ class SubscriberController extends Controller
                 ->where('email', 'like', '%' . $s . '%')
                 ->orWhere('username', 'like', '%' . $s . '%')
                 ->orWhereHas('profile', fn ($p) => $p->where('full_name', 'like', '%' . $s . '%')));
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->input('status'));
         }
 
         $users = $query->latest()->paginate(15);
@@ -67,7 +73,58 @@ class SubscriberController extends Controller
         ]);
     }
 
-    public function destroy(Request $request, User $user)
+    public function disable(Request $request, User $user)
+    {
+        if (!$user->hasRole('subscriber')) {
+            abort(404);
+        }
+
+        $user->update(['status' => 'disabled']);
+
+        app(AuditLogger::class)->log('subscriber.disabled', 'Subscriber dinonaktifkan: ' . $user->name, $user);
+
+        return response()->json($this->serialize($user));
+    }
+
+    public function activate(Request $request, User $user)
+    {
+        if (!$user->hasRole('subscriber')) {
+            abort(404);
+        }
+
+        $user->update(['status' => 'active', 'activated_at' => now()]);
+
+        app(AuditLogger::class)->log('subscriber.activated', 'Subscriber diaktifkan: ' . $user->name, $user);
+
+        return response()->json($this->serialize($user));
+    }
+
+    public function resendOtp(Request $request, User $user)
+    {
+        if (!$user->hasRole('subscriber')) {
+            abort(404);
+        }
+
+        if ($user->status === 'active') {
+            return response()->json(['message' => 'Akun sudah aktif, tidak perlu OTP.'], 422);
+        }
+
+        $otp = (string) random_int(100000, 999999);
+        session()->put('otp_' . $user->id, ['code' => Hash::make($otp), 'expires_at' => now()->addMinutes(5)]);
+        session()->put('otp_target_' . $user->id, $user->email);
+        session()->put('subscribe_pending_' . $user->id, false);
+
+        app(NotificationService::class)->sendOtp($user, $user->phone ?? $user->email, $otp);
+
+        app(AuditLogger::class)->log('subscriber.otp_resent', 'OTP dikirim ulang ke subscriber: ' . $user->email, $user);
+
+        return response()->json([
+            'message' => 'OTP dikirim ulang ke ' . ($user->phone ?? $user->email),
+            'dev_otp' => config('app.env') !== 'production' ? $otp : null,
+        ]);
+    }
+
+    public function softDelete(Request $request, User $user)
     {
         if (!$user->hasRole('subscriber')) {
             abort(404);
@@ -80,7 +137,56 @@ class SubscriberController extends Controller
         $name = $user->name;
         $user->delete();
 
-        app(AuditLogger::class)->log('subscriber.deleted', 'Subscriber dihapus: ' . $name, $user);
+        app(AuditLogger::class)->log('subscriber.soft_deleted', 'Subscriber dipindahkan ke recycle bin: ' . $name, $user);
+
+        return response()->json(['ok' => true]);
+    }
+
+    public function trashed(Request $request)
+    {
+        $query = User::role('subscriber')
+            ->with(['profile', 'deletedBy:id,username', 'deletedBy.profile'])
+            ->onlyTrashed()
+            ->latest('deleted_at');
+
+        if ($request->filled('search')) {
+            $s = $request->input('search');
+            $query->where(fn ($q) => $q
+                ->where('email', 'like', '%' . $s . '%')
+                ->orWhereHas('profile', fn ($p) => $p->where('full_name', 'like', '%' . $s . '%')));
+        }
+
+        $users = $query->paginate(15);
+
+        $users->getCollection()->transform(fn ($u) => $this->serializeForTrash($u));
+
+        return response()->json($users);
+    }
+
+    public function restore(Request $request, User $user)
+    {
+        if (!$user->hasRole('subscriber')) {
+            abort(404);
+        }
+
+        $name = $user->name;
+        $user->restore();
+
+        app(AuditLogger::class)->log('subscriber.restored', 'Subscriber dipulihkan dari recycle bin: ' . $name, $user);
+
+        return response()->json(['ok' => true]);
+    }
+
+    public function forceDelete(Request $request, User $user)
+    {
+        if (!$user->hasRole('subscriber')) {
+            abort(404);
+        }
+
+        $name = $user->name;
+        $user->forceDelete();
+
+        app(AuditLogger::class)->log('subscriber.force_deleted', 'Subscriber dihapus permanen: ' . $name);
 
         return response()->json(['ok' => true]);
     }
@@ -98,6 +204,21 @@ class SubscriberController extends Controller
             'is_client' => $user->hasRole('client'),
             'last_seen_at' => $user->last_seen_at,
             'created_at' => $user->created_at,
+            'bookmarks_count' => $user->bookmarks()->count(),
+            'likes_count' => $user->likes()->count(),
+            'comments_count' => $user->comments()->count(),
+        ];
+    }
+
+    private function serializeForTrash(User $user): array
+    {
+        return [
+            'id' => $user->id,
+            'type' => 'subscriber',
+            'name' => $user->name,
+            'email' => $user->email,
+            'deleted_by_name' => $user->deleted_by_name ?? $user->deletedBy?->name ?? '-',
+            'deleted_at' => $user->deleted_at,
             'bookmarks_count' => $user->bookmarks()->count(),
             'likes_count' => $user->likes()->count(),
             'comments_count' => $user->comments()->count(),

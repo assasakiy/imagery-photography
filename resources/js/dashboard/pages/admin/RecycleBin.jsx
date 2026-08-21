@@ -4,7 +4,7 @@ import Icon from '../../components/Icon';
 import { PageHeader, EmptyState, useToast, Confirm, formatDate } from '../../components/ui';
 import Skeleton from '../../components/Skeleton';
 
-const TYPE_LABEL = { client: 'Klien', blog: 'Blog', portfolio: 'Portofolio' };
+const TYPE_LABEL = { client: 'Klien', blog: 'Blog', portfolio: 'Portofolio', subscriber: 'Subscriber' };
 const CONTENT_TYPES = ['blog', 'portfolio'];
 
 export default function RecycleBin() {
@@ -71,7 +71,7 @@ export default function RecycleBin() {
                             type === key ? 'bg-brand-600 text-white shadow' : 'text-ink-muted hover:bg-surface-muted hover:text-ink'
                         }`}
                     >
-                        <Icon name={key === 'client' ? 'users' : key === 'blog' ? 'file' : 'briefcase'} size={16} /> {label}
+                        <Icon name={key === 'client' ? 'users' : key === 'blog' ? 'file' : key === 'subscriber' ? 'mail' : 'briefcase'} size={16} /> {label}
                     </button>
                 ))}
             </div>
@@ -114,6 +114,13 @@ export default function RecycleBin() {
                                                 <span>· {it.bookings_count ?? 0} booking</span>
                                                 <span>· {it.payments_count ?? 0} pembayaran</span>
                                                 {(it.messages_count ?? 0) > 0 && <span>· {it.messages_count} pesan</span>}
+                                            </div>
+                                        )}
+                                        {it.type === 'subscriber' && (
+                                            <div className="mt-0.5 flex flex-wrap gap-x-2 gap-y-0.5 text-[11px] text-ink-muted">
+                                                <span>{it.bookmarks_count ?? 0} bookmark</span>
+                                                <span>· {it.likes_count ?? 0} suka</span>
+                                                <span>· {it.comments_count ?? 0} komentar</span>
                                             </div>
                                         )}
                                     </td>

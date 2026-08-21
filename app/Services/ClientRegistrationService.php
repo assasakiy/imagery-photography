@@ -36,10 +36,22 @@ class ClientRegistrationService
 
         if (!$user) {
             $user = $this->createUser($data, $role);
+        } else {
+            if (!$user->hasRole($role)) {
+                $user->assignRole($role);
+            }
+
+            if ($user->status === 'pending' && !$user->phone && !empty($data['phone'])) {
+                $user->update(['phone' => $data['phone']]);
+            }
         }
 
         $isNew = $user->wasRecentlyCreated;
-        $invite = $this->issueInvite($user, $expiresHours, $actor);
+
+        $invite = null;
+        if ($user->status !== 'active') {
+            $invite = $this->issueInvite($user, $expiresHours, $actor);
+        }
 
         return ['user' => $user, 'invite' => $invite, 'new' => $isNew];
     }

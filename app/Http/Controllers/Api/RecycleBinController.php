@@ -14,7 +14,7 @@ use Illuminate\Http\Request;
 
 /**
  * Recycle Bin global: daftar data soft-deleted + aksi pulihkan / hapus permanen.
- * Mendukung: klien (cascade), blog, dan portofolio.
+ * Mendukung: klien (cascade), blog, portofolio, dan subscriber.
  */
 class RecycleBinController extends Controller
 {
@@ -25,6 +25,7 @@ class RecycleBinController extends Controller
         return match ($type) {
             'blog' => $this->blogItems(),
             'portfolio' => $this->portfolioItems(),
+            'subscriber' => $this->subscriberItems(),
             default => $this->clientItems(),
         };
     }
@@ -34,6 +35,7 @@ class RecycleBinController extends Controller
         return match ($type) {
             'blog' => $this->restoreBlog($id),
             'portfolio' => $this->restorePortfolio($id),
+            'subscriber' => $this->restoreSubscriber($id),
             default => $this->restoreClient($id),
         };
     }
@@ -43,6 +45,7 @@ class RecycleBinController extends Controller
         return match ($type) {
             'blog' => $this->forceDeleteBlog($id),
             'portfolio' => $this->forceDeletePortfolio($id),
+            'subscriber' => $this->forceDeleteSubscriber($id),
             default => $this->forceDeleteClient($id),
         };
     }
@@ -178,6 +181,51 @@ class RecycleBinController extends Controller
                     'messages_count' => ContactMessage::whereIn('project_id', $projectIds)->count(),
                 ];
             }),
+        ];
+    }
+
+    private function restoreSubscriber(int $id)
+    {
+        $user = User::role('subscriber')->withTrashed()->findOrFail($id);
+        $name = $user->name;
+        $user->restore();
+
+        app(AuditLogger::class)->log('subscriber.restored', 'Subscriber dipulihkan dari recycle bin: ' . $name, $user);
+
+        return response()->json(['ok' => true]);
+    }
+
+    private function forceDeleteSubscriber(int $id)
+    {
+        $user = User::role('subscriber')->withTrashed()->findOrFail($id);
+        $name = $user->name;
+        $user->forceDelete();
+
+        app(AuditLogger::class)->log('subscriber.force_deleted', 'Subscriber dihapus permanen: ' . $name);
+
+        return response()->json(['ok' => true]);
+    }
+
+    private function subscriberItems(): array
+    {
+        $users = User::role('subscriber')
+            ->with(['profile', 'deletedBy:id,username', 'deletedBy.profile'])
+            ->onlyTrashed()
+            ->latest('deleted_at')
+            ->get();
+
+        return [
+            'data' => $users->map(fn (User $u) => [
+                'id' => $u->id,
+                'type' => 'subscriber',
+                'name' => $u->name,
+                'email' => $u->email,
+                'deleted_by_name' => $u->deleted_by_name ?? $u->deletedBy?->name ?? '-',
+                'deleted_at' => $u->deleted_at,
+                'bookmarks_count' => $u->bookmarks()->count(),
+                'likes_count' => $u->likes()->count(),
+                'comments_count' => $u->comments()->count(),
+            ]),
         ];
     }
 }

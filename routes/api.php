@@ -121,8 +121,14 @@ Route::middleware(['web', 'auth:sanctum', 'maintenance'])->group(function () {
 
     Route::middleware('role:owner|admin')->group(function () {
         Route::get('/subscribers', [SubscriberController::class, 'index']);
+        Route::get('/subscribers/trashed', [SubscriberController::class, 'trashed']);
         Route::get('/subscribers/{user}', [SubscriberController::class, 'show']);
-        Route::delete('/subscribers/{user}', [SubscriberController::class, 'destroy']);
+        Route::post('/subscribers/{user}/disable', [SubscriberController::class, 'disable']);
+        Route::post('/subscribers/{user}/activate', [SubscriberController::class, 'activate']);
+        Route::post('/subscribers/{user}/resend-otp', [SubscriberController::class, 'resendOtp']);
+        Route::post('/subscribers/{user}/soft-delete', [SubscriberController::class, 'softDelete']);
+        Route::post('/subscribers/{user}/restore', [SubscriberController::class, 'restore']);
+        Route::delete('/subscribers/{user}/force-delete', [SubscriberController::class, 'forceDelete']);
 
         Route::get('/audit', [AuditLogController::class, 'index']);
         Route::get('/audit/actions', [AuditLogController::class, 'actions']);
@@ -187,8 +193,8 @@ Route::middleware(['web', 'auth:sanctum', 'maintenance'])->group(function () {
         Route::get('/clients-trashed', [ClientController::class, 'trashed']);
 
         Route::get('/recycle-bin', [RecycleBinController::class, 'index']);
-        Route::post('/recycle-bin/{type}/{id}/restore', [RecycleBinController::class, 'restore'])->whereIn('type', ['client', 'blog', 'portfolio']);
-        Route::delete('/recycle-bin/{type}/{id}', [RecycleBinController::class, 'forceDelete'])->whereIn('type', ['client', 'blog', 'portfolio']);
+        Route::post('/recycle-bin/{type}/{id}/restore', [RecycleBinController::class, 'restore'])->whereIn('type', ['client', 'blog', 'portfolio', 'subscriber']);
+        Route::delete('/recycle-bin/{type}/{id}', [RecycleBinController::class, 'forceDelete'])->whereIn('type', ['client', 'blog', 'portfolio', 'subscriber']);
 
         Route::get('/messages', [MessageController::class, 'index']);
         Route::get('/messages/{message}', [MessageController::class, 'show']);

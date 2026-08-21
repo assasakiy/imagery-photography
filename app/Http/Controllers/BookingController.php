@@ -121,15 +121,25 @@ class BookingController extends Controller
         // Record limit: counter naik HANYA saat request lolos validasi (mode valid).
         \App\Support\ApiThrottle::record('booking.create', ['email' => $data['email'] ?? '']);
 
-        // User pending + booking + invite.
-        $reg = app(ClientRegistrationService::class);
-        $result = $reg->registerWithInvite(
-            ['name' => $data['name'], 'email' => $data['email'] ?? null, 'phone' => $data['phone'] ?? null],
-            'client',
-            null,
-            null
-        );
-        $user = $result['user'];
+        $authUser = $request->user();
+        $isNewClient = false;
+
+        if ($authUser) {
+            if (!$authUser->hasRole('client')) {
+                $authUser->assignRole('client');
+            }
+            $user = $authUser;
+        } else {
+            $reg = app(ClientRegistrationService::class);
+            $result = $reg->registerWithInvite(
+                ['name' => $data['name'], 'email' => $data['email'] ?? null, 'phone' => $data['phone'] ?? null],
+                'client',
+                null,
+                null
+            );
+            $user = $result['user'];
+            $isNewClient = $result['new'];
+        }
 
         if ($data['package_id'] === 'custom') {
             $services = \App\Models\Service::whereIn('id', $data['service_ids'])->get();
@@ -179,6 +189,14 @@ class BookingController extends Controller
 
         app(AuditLogger::class)->log('booking.created', 'Booking baru ' . $booking->booking_no . ': ' . $booking->name . ' (' . ($booking->phone ?: $booking->email) . ')', $booking);
 
-        return back()->with('success', 'Booking diterima! Kami akan menghubungi Anda via WhatsApp segera. Akun klien Anda telah dibuat — cek WhatsApp/Email Anda untuk mengaktifkan akun.');
+        if ($authUser && $authUser->status === 'active') {
+            $msg = 'Booking diterima! Pesanan Anda telah tercatat di dashboard.';
+        } elseif ($authUser) {
+            $msg = 'Booking diterima! Akun Anda telah diperbarui — cek WhatsApp/Email untuk mengaktifkan akun.';
+        } else {
+            $msg = 'Booking diterima! Kami akan menghubungi Anda via WhatsApp segera. Akun klien Anda telah dibuat — cek WhatsApp/Email Anda untuk mengaktifkan akun.';
+        }
+
+        return back()->with('success', $msg);
     }
 }
