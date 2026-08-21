@@ -203,7 +203,6 @@ export default function Clients() {
                                     </td>
                                     <td>
                                         <div className="flex flex-col gap-1">
-                                            <span className="inline-flex w-fit items-center rounded-full bg-brand-500/10 px-2 py-0.5 text-[10px] font-semibold text-brand-600 dark:text-brand-400">Klien</span>
                                             <span className="inline-flex w-fit items-center rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">
                                                 {item.has_subscriber ? 'Subscribe' : 'Unsubscribe'}
                                             </span>
