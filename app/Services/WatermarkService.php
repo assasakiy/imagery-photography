@@ -11,6 +11,8 @@ class WatermarkService
     private const FONTS = [
         '/usr/share/fonts/google-noto-vf/NotoSans[wght].ttf',
         '/usr/share/fonts/redhat-vf/RedHatText[wght].ttf',
+        '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf',
+        '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',
     ];
 
     private const ALLOWED_MIME = [
@@ -31,7 +33,9 @@ class WatermarkService
 
     public function hash(string $source): string
     {
-        return sha1($source);
+        $text = trim(app(RuntimeSettings::class)->siteName()) ?: 'Imagery Photography';
+
+        return sha1($source.'|'.$text.'|v2');
     }
 
     public function publicUrl(string $source): string
