@@ -542,6 +542,7 @@ class ProjectController extends Controller
         $media->save();
 
         ProjectFile::create([
+            'project_id' => $project->id,
             'media_id' => $media->id,
             'variant' => 'record',
             'category' => 'proof',
@@ -603,6 +604,7 @@ class ProjectController extends Controller
             app(\App\Services\ThumbnailService::class)->ensureAuto($project, $media->getPath());
 
             $created->push(ProjectFile::create([
+                'project_id' => $project->id,
                 'media_id' => $media->id,
                 'asset_key' => (string) Str::uuid(),
                 'variant' => 'original',
@@ -669,6 +671,7 @@ class ProjectController extends Controller
         $originalMedia->save();
 
         ProjectFile::create([
+            'project_id' => $project->id,
             'media_id' => $previewMedia->id,
             'asset_key' => $assetKey,
             'variant' => 'preview',
@@ -683,6 +686,7 @@ class ProjectController extends Controller
         ]);
 
         ProjectFile::create([
+            'project_id' => $project->id,
             'media_id' => $originalMedia->id,
             'asset_key' => $assetKey,
             'variant' => 'original',
