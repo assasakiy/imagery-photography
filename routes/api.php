@@ -26,6 +26,7 @@ use App\Http\Controllers\Api\BookmarkController;
 use App\Http\Controllers\Api\HistoryController;
 use App\Http\Controllers\Api\EngagementController;
 use App\Http\Controllers\Api\PackageController;
+use App\Http\Controllers\Api\SubscriberController;
 use App\Http\Controllers\Api\SettingsController;
 use App\Http\Controllers\Api\TeamController;
 use App\Http\Controllers\Api\TeamMemberController;
@@ -119,6 +120,10 @@ Route::middleware(['web', 'auth:sanctum', 'maintenance'])->group(function () {
     Route::get('/history', [HistoryController::class, 'index']);
 
     Route::middleware('role:owner|admin')->group(function () {
+        Route::get('/subscribers', [SubscriberController::class, 'index']);
+        Route::get('/subscribers/{user}', [SubscriberController::class, 'show']);
+        Route::delete('/subscribers/{user}', [SubscriberController::class, 'destroy']);
+
         Route::get('/audit', [AuditLogController::class, 'index']);
         Route::get('/audit/actions', [AuditLogController::class, 'actions']);
         Route::get('/audit/login-history', [AuditLogController::class, 'loginHistory']);

@@ -32,6 +32,7 @@ const PAGE_TITLES = {
     '/dashboard/team': 'Admin',
     '/dashboard/reviews': 'Review',
     '/dashboard/comments': 'Komentar',
+    '/dashboard/subscribers': 'Subscriber',
     '/dashboard/audit': 'Audit & Log',
     '/dashboard/recycle-bin': 'Recycle Bin',
     '/dashboard/profile': 'Pengaturan Profil',
@@ -91,6 +92,7 @@ const PageEditor = lazy(pageImports['/dashboard/pages/:slug/edit']);
 const Team = lazy(pageImports['/dashboard/team']);
 const Reviews = lazy(pageImports['/dashboard/reviews']);
 const Comments = lazy(pageImports['/dashboard/comments']);
+const Subscribers = lazy(pageImports['/dashboard/subscribers']);
 const AuditLog = lazy(pageImports['/dashboard/audit']);
 const Analytics = lazy(pageImports['/dashboard/analytics']);
 const RecycleBin = lazy(pageImports['/dashboard/recycle-bin']);
@@ -174,6 +176,7 @@ function AppRoutes() {
                 <Route path="notifications" element={withSuspense(<Notifications />, 'table')} />
                 <Route path="reviews" element={withSuspense(<Protected adminOnly><Reviews /></Protected>, 'table')} />
                 <Route path="comments" element={withSuspense(<Protected adminOnly><Comments /></Protected>, 'table')} />
+                <Route path="subscribers" element={withSuspense(<Protected adminOnly><Subscribers /></Protected>, 'table')} />
                 <Route path="profile" element={withSuspense(<ProfileSettings />, 'form')} />
                 <Route path="blog" element={withSuspense(<Protected adminOnly><Blog /></Protected>, 'table')} />
                 <Route path="blog/create" element={withSuspense(<Protected adminOnly><CreateEditBlog /></Protected>, 'form')} />

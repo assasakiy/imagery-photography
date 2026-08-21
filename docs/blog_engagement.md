@@ -53,6 +53,17 @@ Semua endpoint engagement memakai guard manual `ensureCanEngage()` = user login 
 - Aksi: setujui (`PATCH /api/comments/{comment}/moderate` status `approved`), sembunyikan (`hidden`), atau hapus (`DELETE /api/comments/{comment}`).
 - `GET /api/comments/moderate/list?status=all|approved|hidden` (paginate 20, di-serialize dengan info target `{type, id, title}` via relation `commentable`).
 
+## 6c. Manajemen Subscriber (Dashboard Admin)
+
+- Halaman `/dashboard/subscribers` (`resources/js/dashboard/pages/admin/Subscribers.jsx`) menampilkan daftar semua pengguna dengan role `subscriber`, dengan pencarian (nama/email/username) dan pagination.
+- Kolom tabel: nama, email, status (active/pending), badge online (PresenceBadge), jumlah bookmark/suka/komentar, tanggal bergabung.
+- Detail modal: info profil, stats engagement, bookmark terakhir (10), komentar terakhir (10), tombol hapus.
+- API:
+  - `GET /api/subscribers` (group `role:owner|admin`) — list paginated, search.
+  - `GET /api/subscribers/{user}` — detail subscriber (termasuk data engagement & aktivitas terakhir).
+  - `DELETE /api/subscribers/{user}` — soft delete subscriber. Hanya user murni (role `subscriber` saja); user dengan role `client`/`owner`/`admin` ditolak (422).
+- Controller: `app/Http/Controllers/Api/SubscriberController.php`.
+
 ## 7. Skema & Migrasi
 
 - `likes` & `comments` ditambahkan ke squash `2026_08_10_000004_squash_reviews_security.php` (fresh install).

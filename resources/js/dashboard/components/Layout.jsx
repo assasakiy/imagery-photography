@@ -89,6 +89,7 @@ const adminNav = [
             { to: '/dashboard/reviews', icon: 'star', label: 'Review' },
             { to: '/dashboard/comments', icon: 'message-circle', label: 'Komentar' },
             { to: '/dashboard/clients', icon: 'users', label: 'Daftar Klien' },
+            { to: '/dashboard/subscribers', icon: 'users', label: 'Subscriber' },
         ]
     },
     {
