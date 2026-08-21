@@ -51,7 +51,13 @@ class AuthController extends Controller
         ApiThrottle::reset('auth.login', ['identifier' => $identifier]);
 
         $settings = app(RuntimeSettings::class);
-        Auth::login($user, $settings->loginRememberEnabled() && ($data['remember'] ?? false));
+        $remember = $settings->loginRememberEnabled() && ($data['remember'] ?? false);
+
+        if ($remember) {
+            $request->session()->put('login_remember_days', $settings->loginRememberDays());
+        }
+
+        Auth::login($user, $remember);
 
         $this->afterLogin($user, 'password');
 

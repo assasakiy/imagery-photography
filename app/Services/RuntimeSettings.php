@@ -373,7 +373,15 @@ class RuntimeSettings
 
         $decoded = json_decode($raw, true);
 
-        return is_array($decoded) ? $decoded : ['password', 'otp', 'google', 'token'];
+        // Normalisasi: kembalikan DAFTAR nama method yang aktif (keys),
+        // bukan objek {method: boolean}. Hal ini memperbaiki data-shape
+        // mismatch di User::canUseLoginMethod() yang menggunakan in_array()
+        // yang memeriksa *values* (boolean) bukan *keys* (string).
+        if (is_array($decoded)) {
+            return array_keys(array_filter($decoded, fn ($v) => $v === true));
+        }
+
+        return ['password', 'otp', 'google', 'token'];
     }
 
     public function loginMethodEnabled(string $method): bool

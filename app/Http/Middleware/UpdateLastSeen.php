@@ -23,6 +23,11 @@ class UpdateLastSeen
             $user->forceFill(['last_seen_at' => now()])->save();
         }
 
+        // Perpanjang session jika user login dengan "remember me"
+        if ($user && $request->session()->has('login_remember_days')) {
+            $request->session()->touch($request->session()->get('login_remember_days') * 60);
+        }
+
         return $response;
     }
 }

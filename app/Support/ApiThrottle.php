@@ -82,6 +82,16 @@ class ApiThrottle
             return 1;
         }
         $raw = $cfg['limit'] ?? 1;
+
+        // Ambil override dari DB (RuntimeSettings) jika ada
+        $overrides = app(\App\Services\RuntimeSettings::class)->get('rate_limits');
+        $overrides = $overrides ? json_decode($overrides, true) : [];
+        $override = $overrides[$policy] ?? [];
+
+        if (!empty($override['limit'])) {
+            $raw = $override['limit'];
+        }
+
         $floor = $cfg['floor'] ?? 1;
         $ceiling = $cfg['ceiling'] ?? 100;
 
