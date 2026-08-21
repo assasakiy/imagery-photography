@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { NavLink, Outlet, useNavigate, Link, useLocation } from 'react-router-dom';
 import Icon from './Icon';
 import ScrollToTop from './ScrollToTop';
+import VerifiedName from './VerifiedName';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { useBadges } from '../context/BadgeContext';
@@ -321,7 +322,7 @@ export default function Layout() {
                                         {initial}
                                     </span>
                                 )}
-                                <span className="hidden max-w-[120px] truncate text-sm font-semibold md:block">{user?.name}</span>
+                                <VerifiedName user={user} className="hidden max-w-[140px] text-sm font-semibold md:inline-flex" />
                                 <Icon
                                     name="chevron-down"
                                     size={16}
@@ -332,7 +333,7 @@ export default function Layout() {
                             {profileOpen && (
                                 <div className="absolute right-0 top-full z-50 mt-2 w-56 origin-top-right overflow-hidden rounded-2xl border border-line bg-surface shadow-2xl">
                                     <div className="border-b border-line bg-surface-muted px-4 py-3">
-                                        <p className="truncate text-sm font-bold text-ink">{user?.name}</p>
+                                        <VerifiedName user={user} className="text-sm font-bold text-ink" />
                                         <p className="truncate text-xs text-ink-muted">{user?.email}</p>
                                     </div>
                                     <div className="p-1.5">

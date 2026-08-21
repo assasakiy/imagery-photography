@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import Icon from './Icon';
+import VerifiedName from './VerifiedName';
 import { Spinner, EmptyState } from './ui';
 import { toast } from '../lib/toast';
 
@@ -119,7 +120,7 @@ export default function UserDetailModal({ open, onClose, data, loading, onIssueT
                                     </div>
                                     <div className="min-w-0 flex-1">
                                         <div className="flex flex-wrap items-center gap-2">
-                                            <p className="truncate text-lg font-bold text-ink">{data.name}</p>
+                                            <VerifiedName user={data} className="text-lg font-bold text-ink" />
                                             <span className={`badge ${statusMeta.cls}`}>{statusMeta.label}</span>
                                         </div>
                                         {data.username && <p className="text-sm text-ink-muted">@{data.username}</p>}

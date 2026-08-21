@@ -16,7 +16,7 @@ class BlogController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Blog::with(['author:id,username', 'author.profile', 'categories:id,name,slug', 'tags:id,name']);
+        $query = Blog::with(['author:id,username', 'author.profile', 'author.roles', 'categories:id,name,slug', 'tags:id,name']);
 
         if ($status = $request->input('status')) {
             $query->where('status', $status);
@@ -44,7 +44,7 @@ class BlogController extends Controller
 
     public function show(Blog $blog)
     {
-        return response()->json($this->serialize($blog->load(['author:id,username', 'author.profile', 'categories:id,name,slug', 'tags:id,name'])));
+        return response()->json($this->serialize($blog->load(['author:id,username', 'author.profile', 'author.roles', 'categories:id,name,slug', 'tags:id,name'])));
     }
 
     public function counts()
@@ -80,7 +80,7 @@ class BlogController extends Controller
 
         $this->syncCategories($blog, $request);
 
-        return response()->json($this->serialize($blog->load(['author:id,username', 'author.profile', 'categories:id,name,slug', 'tags:id,name'])), 201);
+        return response()->json($this->serialize($blog->load(['author:id,username', 'author.profile', 'author.roles', 'categories:id,name,slug', 'tags:id,name'])), 201);
     }
 
     public function update(Request $request, Blog $blog)
@@ -109,7 +109,7 @@ class BlogController extends Controller
 
         $this->syncCategories($blog, $request);
 
-        return response()->json($this->serialize($blog->load(['author:id,username', 'author.profile', 'categories:id,name,slug', 'tags:id,name'])));
+        return response()->json($this->serialize($blog->load(['author:id,username', 'author.profile', 'author.roles', 'categories:id,name,slug', 'tags:id,name'])));
     }
 
     private function syncInlineImages(Blog $blog): void
@@ -230,7 +230,11 @@ class BlogController extends Controller
             'excerpt' => $blog->excerpt,
             'content' => $blog->content,
             'status' => $blog->status,
-            'author' => $blog->author ? ['id' => $blog->author->id, 'name' => $blog->author->name] : null,
+            'author' => $blog->author ? [
+                'id' => $blog->author->id,
+                'name' => $blog->author->name,
+                'verified' => $blog->author->hasRole(['owner', 'admin']),
+            ] : null,
             'category' => $blog->categories->isNotEmpty() ? [
                 'id' => $blog->categories->first()->id,
                 'name' => $blog->categories->first()->name,

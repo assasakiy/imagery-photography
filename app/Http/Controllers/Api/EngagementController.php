@@ -162,7 +162,7 @@ class EngagementController extends Controller
 
         $status = $data['status'] ?? 'all';
 
-        $comments = Comment::with('user', 'commentable', 'parent.user')
+        $comments = Comment::with('user.roles', 'commentable', 'parent.user.roles')
             ->withCount('replies')
             ->when($status !== 'all', fn ($q) => $q->where('status', $status))
             ->latest()
@@ -213,6 +213,7 @@ class EngagementController extends Controller
                     'id' => $comment->parent->user?->id,
                     'name' => $comment->parent->user?->name ?? 'Subscriber',
                     'username' => $comment->parent->user?->username,
+                    'verified' => $comment->parent->user?->hasRole(['owner', 'admin']) ?? false,
                 ],
             ] : null,
             'replies' => $comment->relationLoaded('replies')

@@ -14,7 +14,7 @@ class BlogController extends Controller
         $page = \App\Models\Page::where('slug', 'blog')->first();
         $sections = is_array($page?->sections) ? $page->sections : [];
 
-        $query = Blog::with(['author', 'categories', 'tags'])->published()->latest('published_at');
+        $query = Blog::with(['author.roles', 'categories', 'tags'])->published()->latest('published_at');
 
         if ($slug = request('category')) {
             $category = Category::where('slug', $slug)->first();
@@ -47,15 +47,15 @@ class BlogController extends Controller
         $latestCount = (int) (collect($sections)->firstWhere('type', 'latest')['count'] ?? 9);
         $popularCount = (int) (collect($sections)->firstWhere('type', 'popular')['count'] ?? 5);
 
-        $featured = Blog::with(['author', 'categories', 'tags'])->published()->featured()
+        $featured = Blog::with(['author.roles', 'categories', 'tags'])->published()->featured()
             ->latest('published_at')->take($featuredCount)->get();
 
         if ($featured->isEmpty()) {
-            $featured = Blog::with(['author', 'categories', 'tags'])->published()
+            $featured = Blog::with(['author.roles', 'categories', 'tags'])->published()
                 ->latest('published_at')->take($featuredCount)->get();
         }
 
-        $popular = Blog::with(['author', 'categories', 'tags'])->published()
+        $popular = Blog::with(['author.roles', 'categories', 'tags'])->published()
             ->orderByDesc('views_count')->orderByDesc('published_at')->take($popularCount)->get();
 
         $latestTotal = Blog::published()->count();
@@ -69,7 +69,7 @@ class BlogController extends Controller
     {
         $cfg = collect($sections)->firstWhere('type', $sectionType) ?? [];
 
-        $query = Blog::with(['author', 'categories', 'tags'])->published();
+        $query = Blog::with(['author.roles', 'categories', 'tags'])->published();
 
         if ($sectionType === 'featured') {
             $query->featured()->latest('published_at');
@@ -118,7 +118,7 @@ class BlogController extends Controller
 
     public function show(string $slug)
     {
-        $post = Blog::with(['author', 'categories', 'tags'])
+        $post = Blog::with(['author.roles', 'categories', 'tags'])
             ->published()
             ->where('slug', $slug)
             ->firstOrFail();
@@ -129,7 +129,7 @@ class BlogController extends Controller
             app(\App\Services\HistoryService::class)->read($user, Blog::class, $post->id, ['title' => $post->title]);
         }
 
-        $related = Blog::with(['author', 'categories', 'tags'])->published()
+        $related = Blog::with(['author.roles', 'categories', 'tags'])->published()
             ->where('id', '!=', $post->id)
             ->when($post->categories->isNotEmpty(), fn ($q) => $q
                 ->whereHas('categories', fn ($w) => $w->whereIn('categories.id', $post->categories->pluck('id'))))
@@ -155,11 +155,11 @@ class BlogController extends Controller
 
     public function author(string $username)
     {
-        $author = User::with(['profile', 'socials.platform'])
+        $author = User::with(['profile', 'roles', 'socials.platform'])
             ->where('username', strtolower($username))
             ->firstOrFail();
 
-        $posts = Blog::with(['author', 'categories', 'tags'])->published()
+        $posts = Blog::with(['author.roles', 'categories', 'tags'])->published()
             ->where('author_id', $author->id)
             ->when(trim((string) request('category')), fn ($query, $slug) => $query
                 ->whereHas('categories', fn ($categories) => $categories->where('categories.slug', $slug)))
@@ -206,7 +206,7 @@ class BlogController extends Controller
             ->orderBy('name')
             ->get();
 
-        $latest = Blog::with(['author', 'categories'])->published()->latest('published_at')->take(6)->get();
+        $latest = Blog::with(['author.roles', 'categories'])->published()->latest('published_at')->take(6)->get();
 
         return view('landing_pages.blog.topics', compact('categories', 'tags', 'latest', 'page'));
     }
@@ -215,7 +215,7 @@ class BlogController extends Controller
     {
         $category = Category::where('slug', $slug)->firstOrFail();
 
-        $posts = Blog::with(['author', 'categories', 'tags'])->published()
+        $posts = Blog::with(['author.roles', 'categories', 'tags'])->published()
             ->whereHas('categories', fn ($q) => $q->where('categories.id', $category->id))
             ->latest('published_at')
             ->paginate(9)
@@ -230,7 +230,7 @@ class BlogController extends Controller
     {
         $tag = BlogTag::where('slug', $slug)->firstOrFail();
 
-        $posts = Blog::with(['author', 'categories', 'tags'])->published()
+        $posts = Blog::with(['author.roles', 'categories', 'tags'])->published()
             ->whereHas('tags', fn ($q) => $q->where('blog_tags.id', $tag->id))
             ->latest('published_at')
             ->paginate(9)

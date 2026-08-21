@@ -55,7 +55,7 @@
                 @else
                     <span class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-brand-600/15 text-[10px] font-bold text-brand-600 dark:text-brand-400">{{ $authorInitials }}</span>
                 @endif
-                <span class="truncate">{{ $authorName }}</span>
+                @include('partials.verified-name', ['user' => $author, 'name' => $authorName])
             </a>
         @else
             <span class="flex min-w-0 items-center gap-1.5">

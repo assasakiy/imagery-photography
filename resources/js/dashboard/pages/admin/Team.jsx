@@ -6,6 +6,7 @@ import Icon from '../../components/Icon';
 import MediaPicker from '../../components/MediaPicker';
 import UserDetailModal from '../../components/UserDetailModal';
 import PresenceBadge from '../../components/PresenceBadge';
+import VerifiedName from '../../components/VerifiedName';
 import { PageHeader, EmptyState, Modal, Confirm, Field } from '../../components/ui';
 import Skeleton from '../../components/Skeleton';
 
@@ -158,7 +159,7 @@ function AdminTab() {
                                         {item.name.charAt(0).toUpperCase()}
                                     </div>
                                     <div className="min-w-0">
-                                        <p className="truncate font-bold text-ink">{item.name}</p>
+                                        <VerifiedName user={item} className="font-bold text-ink" />
                                         <p className="truncate text-xs text-ink-muted">{item.email || item.phone || 'Tanpa kontak'}</p>
                                         {item.username && <p className="truncate text-xs text-ink-muted">@{item.username}</p>}
                                         {item.company && <p className="truncate text-xs text-ink-muted">{item.company}</p>}
