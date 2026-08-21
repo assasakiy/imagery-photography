@@ -155,12 +155,6 @@ class BlogController extends Controller
 
     public function author(string $username)
     {
-        if (ctype_digit($username)) {
-            $legacyAuthor = User::whereKey((int) $username)->firstOrFail();
-
-            return redirect()->route('blog.author', ['username' => $legacyAuthor->username], 301);
-        }
-
         $author = User::where('username', strtolower($username))->firstOrFail();
 
         $posts = Blog::with(['author', 'categories', 'tags'])->published()
@@ -173,6 +167,13 @@ class BlogController extends Controller
         $tags = BlogTag::withCount('posts')->get();
 
         return view('landing_pages.blog.author', compact('author', 'posts', 'categories', 'tags'));
+    }
+
+    public function authorLegacy(int $id)
+    {
+        $author = User::whereKey($id)->firstOrFail();
+
+        return redirect()->route('blog.author', ['username' => $author->username], 301);
     }
 
     public function topics()

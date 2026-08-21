@@ -31,7 +31,8 @@ Route::middleware('maintenance')->group(function () {
     Route::get('/booking', [BookingController::class, 'index'])->name('booking');
     Route::post('/booking', [BookingController::class, 'store'])->name('booking.store')->middleware('api.throttle:booking.create');
     Route::get('/blog', [BlogController::class, 'index'])->name('blog');
-    Route::get('/blog/penulis/{username}', [BlogController::class, 'author'])->name('blog.author');
+    Route::get('/blog/penulis/@{username}', [BlogController::class, 'author'])->name('blog.author');
+    Route::get('/blog/penulis/{id}', [BlogController::class, 'authorLegacy'])->whereNumber('id')->name('blog.author.legacy');
     Route::get('/blog/kategori/{slug}', [BlogController::class, 'category'])->name('blog.category');
     Route::get('/blog/tag/{slug}', [BlogController::class, 'tag'])->name('blog.tag');
     Route::get('/blog/jelajah', [BlogController::class, 'topics'])->name('blog.topics');
