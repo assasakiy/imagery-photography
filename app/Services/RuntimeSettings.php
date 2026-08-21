@@ -309,7 +309,7 @@ class RuntimeSettings
     {
         $db = $this->get('timezone');
 
-        return !empty($db) ? $db : (env('APP_BUSINESS_TIMEZONE') ?: 'Asia/Makassar');
+        return !empty($db) ? $db : (config('app.business_timezone') ?: 'Asia/Makassar');
     }
 
     public function inviteExpiryHours(): int

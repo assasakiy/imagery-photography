@@ -53,7 +53,7 @@ class ProfileController extends Controller
             'notif_events.whatsapp.*' => ['nullable', 'string', Rule::in(NotificationService::CHANNEL_EVENTS['whatsapp'])],
             'notif_otp_channel' => ['nullable', 'string', Rule::in(['email', 'whatsapp'])],
             'current_password' => 'required_with:password|string',
-            'password' => 'sometimes|nullable|string|min:6',
+            'password' => 'sometimes|nullable|string|min:8',
         ]);
 
         if (isset($data['bio'])) {

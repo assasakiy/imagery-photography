@@ -128,6 +128,11 @@ class PaymentController extends Controller
 
     public function gatewayStatus(Request $request, Payment $payment)
     {
+        $user = $request->user();
+        if ($user->isClient() && $payment->project?->user_id !== $user->id) {
+            abort(403);
+        }
+
         if ($payment->method !== 'gateway' || !$payment->gateway_ref) {
             return response()->json(['status' => $payment->status]);
         }

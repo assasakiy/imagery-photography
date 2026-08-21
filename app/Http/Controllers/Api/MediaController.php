@@ -47,7 +47,7 @@ class MediaController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'file' => 'required|file|max:102400',
+            'file' => 'required|file|max:102400|mimetypes:image/jpeg,image/png,image/gif,image/webp,image/heic,image/heif,image/svg+xml,video/mp4,video/quicktime,application/pdf',
             'name' => 'nullable|string|max:255',
         ]);
 
@@ -80,6 +80,10 @@ class MediaController extends Controller
 
         try {
             $url = $request->input('url');
+            $host = parse_url($url, PHP_URL_HOST);
+            if (!$host || filter_var(gethostbyname($host), FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) === false) {
+                return response()->json(['message' => 'URL tidak valid atau mengarah ke IP privat/internal.'], 422);
+            }
 
             $media = $library->addMediaFromUrl($url)
                 ->usingFileName(basename(parse_url($url, PHP_URL_PATH)) ?: 'import.jpg')

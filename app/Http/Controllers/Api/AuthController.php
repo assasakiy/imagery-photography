@@ -479,7 +479,7 @@ class AuthController extends Controller
     {
         $data = $request->validate([
             'token' => 'required|string',
-            'password' => 'required|string|min:6|confirmed',
+            'password' => 'required|string|min:8|confirmed',
         ]);
 
         $token = $this->resolvePasswordToken($data['token']);

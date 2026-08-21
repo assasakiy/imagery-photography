@@ -166,7 +166,7 @@ class ApiThrottle
      */
     protected static function checkIpGuard(): bool
     {
-        $cfg = config('apithrottle.ip_guard');
+        $cfg = config('rate_limit.ip_guard');
         if (!$cfg || empty($cfg['requests_per_minute'])) {
             return false;
         }

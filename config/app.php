@@ -54,6 +54,8 @@ return [
 
     'url' => env('APP_URL', 'http://localhost'),
 
+    'business_timezone' => env('APP_BUSINESS_TIMEZONE', 'Asia/Makassar'),
+
     /*
     |--------------------------------------------------------------------------
     | Application Timezone

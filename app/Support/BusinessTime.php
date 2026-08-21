@@ -25,7 +25,7 @@ class BusinessTime
             return null;
         }
 
-        $carbon = Carbon::createFromFormat('Y-m-d H:i', "$date $time", $this->tz());
+        $carbon = Carbon::createFromFormat('Y-m-d H:i', "$date $time", $this->tz(), true);
 
         return $carbon ? $carbon->utc() : null;
     }
