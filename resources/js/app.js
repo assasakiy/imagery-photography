@@ -20,6 +20,24 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    // ---- Scroll to top ----
+    const scrollTopBtn = document.querySelector('[data-scroll-top]');
+    if (scrollTopBtn) {
+        const updateScrollTop = () => {
+            const visible = window.scrollY > 500;
+            scrollTopBtn.classList.toggle('pointer-events-none', !visible);
+            scrollTopBtn.classList.toggle('translate-y-3', !visible);
+            scrollTopBtn.classList.toggle('opacity-0', !visible);
+        };
+
+        window.addEventListener('scroll', updateScrollTop, { passive: true });
+        scrollTopBtn.addEventListener('click', () => {
+            const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            window.scrollTo({ top: 0, behavior: reducedMotion ? 'auto' : 'smooth' });
+        });
+        updateScrollTop();
+    }
+
     // ---- Mobile menu ----
     const menuBtn = document.querySelector('[data-menu-toggle]');
     const mobileMenu = document.querySelector('[data-mobile-menu]');

@@ -274,6 +274,16 @@
         </div>
     </footer>
 
+    <button
+        type="button"
+        data-scroll-top
+        aria-label="Kembali ke atas"
+        title="Kembali ke atas"
+        class="pointer-events-none fixed bottom-6 right-6 z-30 flex h-11 w-11 translate-y-3 items-center justify-center rounded-full bg-brand-600 text-white opacity-0 shadow-lg shadow-brand-600/25 ring-1 ring-white/20 transition duration-300 hover:bg-brand-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:ring-offset-2 dark:ring-white/10"
+    >
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m18 15-6-6-6 6"/></svg>
+    </button>
+
     @include('partials.cookie-consent')
 @include('partials.subscribe-modal')
 
