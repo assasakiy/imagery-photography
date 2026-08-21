@@ -55,7 +55,8 @@ export default function MediaPicker({ open, onClose, onSelect, title = 'Pilih Me
             loadLibrary(1);
             show('File diupload.');
         } catch (e) {
-            const msg = e?.response?.data?.message || 'Gagal upload file.';
+            const msg = e?.response?.data?.errors?.file?.[0] || e?.response?.data?.message || 'Gagal upload file.';
+            console.error('[media-picker upload]', e?.response?.status, e?.response?.data);
             show(msg, 'error');
         } finally {
             setUploading(false);

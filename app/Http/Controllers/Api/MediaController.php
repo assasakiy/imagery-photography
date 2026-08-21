@@ -47,7 +47,7 @@ class MediaController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'file' => 'required|file|max:102400|mimetypes:image/jpeg,image/png,image/gif,image/webp,image/heic,image/heif,image/svg+xml,video/mp4,video/quicktime,application/pdf',
+            'file' => 'required|file|max:102400|mimes:jpeg,jpg,png,gif,webp,heic,heif,svg+xml,tif,tiff,bmp,mp4,mov,quicktime,pdf,mp3,wav,webm,mkv',
             'name' => 'nullable|string|max:255',
         ]);
 
