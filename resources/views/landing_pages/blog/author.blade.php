@@ -73,10 +73,22 @@
         </nav>
 
         @if ($posts->isEmpty())
+            @php
+                $clearSearchUrl = $authorUrl . (request('category') ? '?' . http_build_query(['category' => request('category')]) : '');
+            @endphp
             <div class="card p-12 text-center">
-                <p class="text-ink">{{ request('q') ? 'Tidak ada artikel yang cocok dengan pencarian ini.' : 'Belum ada artikel dari penulis ini.' }}</p>
-                @if (request('q'))
-                    <a href="{{ $authorUrl }}" class="btn-outline mt-4">Hapus pencarian</a>
+                @if (request()->filled('q'))
+                    <p class="text-ink">Belum ada artikel dengan kata kunci “{{ request('q') }}”.</p>
+                    <p class="mt-1 text-sm text-ink-muted">Coba ubah kata kunci atau hapus pencarian.</p>
+                    <a href="{{ $clearSearchUrl }}" class="btn-outline mt-5 inline-flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                        Hapus Pencarian
+                    </a>
+                @elseif (request()->filled('category'))
+                    <p class="text-ink">Belum ada artikel penulis ini pada kategori tersebut.</p>
+                    <a href="{{ $authorUrl }}" class="btn-outline mt-5">Lihat Semua Artikel Penulis</a>
+                @else
+                    <p class="text-ink">Belum ada artikel dari penulis ini.</p>
                 @endif
             </div>
         @else
