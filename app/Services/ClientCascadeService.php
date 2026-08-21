@@ -24,6 +24,7 @@ class ClientCascadeService
         // Cabut akses supaya klien yang di-trash tidak bisa login/akses lewat link.
         $user->tokens()->delete();
         $user->accessTokens()->valid()->update(['expires_at' => now()]);
+        \Illuminate\Support\Facades\DB::table('sessions')->where('user_id', $user->id)->delete();
 
         // Semua proyek ikut di-soft-delete agar tidak tampil di tampilan admin/klien.
         $user->projects()->get()->each(fn (Project $p) => $p->softDeleteBy($reason, $actor));

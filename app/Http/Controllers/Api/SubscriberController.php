@@ -81,6 +81,7 @@ class SubscriberController extends Controller
 
         $user->update(['status' => 'disabled']);
         $user->tokens()->delete();
+        \Illuminate\Support\Facades\DB::table('sessions')->where('user_id', $user->id)->delete();
 
         app(AuditLogger::class)->log('subscriber.disabled', 'Subscriber dinonaktifkan: ' . $user->name, $user);
 
