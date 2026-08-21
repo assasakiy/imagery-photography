@@ -264,9 +264,8 @@ export default function Services() {
                             icon="toggle-left" 
                             value={svcStatus} 
                             onChange={setSvcStatus} 
-                            options={[{key: 'active', label: 'Aktif'}, {key: 'inactive', label: 'Nonaktif'}]} 
+                            options={[{key: 'active', label: 'Aktif', icon: 'check'}, {key: 'inactive', label: 'Nonaktif', icon: 'eye-off'}]} 
                         />
-                        <span className="whitespace-nowrap px-2 text-sm text-ink-muted">{services.length || 0} layanan</span>
                     </div>
                 </div>
             ) : (
@@ -291,9 +290,8 @@ export default function Services() {
                             icon="toggle-left" 
                             value={pkgStatus} 
                             onChange={setPkgStatus} 
-                            options={[{key: 'active', label: 'Aktif'}, {key: 'inactive', label: 'Nonaktif'}]} 
+                            options={[{key: 'active', label: 'Aktif', icon: 'check'}, {key: 'inactive', label: 'Nonaktif', icon: 'eye-off'}]} 
                         />
-                        <span className="whitespace-nowrap px-2 text-sm text-ink-muted">{packages.length || 0} paket</span>
                     </div>
                 </div>
             )}

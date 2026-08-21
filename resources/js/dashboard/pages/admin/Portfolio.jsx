@@ -63,7 +63,7 @@ export default function Portfolio() {
     }, [debouncedQ, catFilter]);
 
     useEffect(() => {
-        api.get('/categories?exclude_system=1').then(({ data }) => setCategories(data.data || data)).catch(() => {});
+        api.get('/categories?exclude_system=1&scope=portfolio').then(({ data }) => setCategories(data.data || data)).catch(() => {});
     }, []);
 
     const openCreate = () => {
@@ -202,9 +202,8 @@ export default function Portfolio() {
                         icon="folder" 
                         value={catFilter} 
                         onChange={setCatFilter} 
-                        options={[{key: '', label: 'Semua Kategori'}, ...categories.map(c => ({ key: c.id, label: c.name }))]} 
+                        options={categories.map(c => ({ key: c.id, label: c.name }))} 
                     />
-                    <span className="whitespace-nowrap px-2 text-sm text-ink-muted">{meta.total || 0} karya</span>
                 </div>
             </div>
 
