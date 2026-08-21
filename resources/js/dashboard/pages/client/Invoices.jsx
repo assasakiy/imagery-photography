@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import api from '../../api';
 import Icon from '../../components/Icon';
 import PaymentModal from '../../components/PaymentModal';
-import { PageHeader, Spinner, EmptyState, formatRupiah, formatDate } from '../../components/ui';
+import { PageHeader, EmptyState, formatRupiah, formatDate } from '../../components/ui';
 import Skeleton from '../../components/Skeleton';
 import { toast } from '../../lib/toast';
 
@@ -18,8 +18,6 @@ export default function ClientInvoices() {
     const [items, setItems] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selected, setSelected] = useState(null);
-    const [payments, setPayments] = useState([]);
-    const [paymentsLoading, setPaymentsLoading] = useState(false);
 
     useEffect(() => {
         api.get('/customer/invoices')
@@ -28,34 +26,10 @@ export default function ClientInvoices() {
             .finally(() => setLoading(false));
     }, []);
 
-    const openDetail = (it) => {
-        setSelected(it);
-        setPayments([]);
-        if (it.project_id) {
-            setPaymentsLoading(true);
-            api.get(`/projects/${it.project_id}`)
-                .then(({ data }) => setPayments(data.payments || []))
-                .catch(() => setPayments([]))
-                .finally(() => setPaymentsLoading(false));
-        }
-    };
-
-    const refreshPayments = () => {
-        if (!selected?.project_id) return;
-        api.get(`/projects/${selected.project_id}`)
-            .then(({ data }) => setPayments(data.payments || []))
-            .catch(() => {});
-    };
-
     const reloadInvoices = () => {
         api.get('/customer/invoices')
             .then(({ data }) => setItems(data))
             .catch(() => {});
-        refreshPayments();
-    };
-
-    const onPaid = () => {
-        reloadInvoices();
     };
 
     const totalOutstanding = items.reduce((sum, it) => sum + Number(it.remaining || 0), 0);
@@ -121,7 +95,7 @@ export default function ClientInvoices() {
                                 </div>
                             </div>
                             <div className="mt-4 flex flex-1 items-end gap-2">
-                                <button className="btn-primary flex-1 justify-center py-2" onClick={() => openDetail(it)}>
+                                <button className="btn-primary flex-1 justify-center py-2" onClick={() => setSelected(it)}>
                                     <Icon name={it.remaining > 0 ? 'credit-card' : 'eye'} size={14} />
                                     {it.remaining > 0 ? 'Bayar Tagihan' : 'Lihat Tagihan'}
                                 </button>
@@ -143,34 +117,9 @@ export default function ClientInvoices() {
                 onClose={() => setSelected(null)}
                 invoice={selected}
                 projectId={selected?.project_id}
-                onPaid={onPaid}
+                onPaid={reloadInvoices}
             />
 
-            <div className="card overflow-x-auto">
-                <h4 className="mb-3 text-sm font-semibold text-ink">Riwayat Pembayaran</h4>
-                {paymentsLoading ? (
-                    <Spinner className="h-6 w-6" />
-                ) : payments.length > 0 ? (
-                    <table className="table">
-                        <thead><tr><th>Tanggal</th><th>Jumlah</th><th>Status</th></tr></thead>
-                        <tbody>
-                            {payments.map((p) => (
-                                <tr key={p.id}>
-                                    <td className="text-sm text-ink-muted">{formatDate(p.created_at)}</td>
-                                    <td className="font-semibold text-ink">{formatRupiah(p.amount)}</td>
-                                    <td>
-                                        <span className={`badge ${p.status === 'confirmed' ? 'bg-emerald-500/15 text-emerald-600' : p.status === 'pending' ? 'bg-amber-500/15 text-amber-600' : p.status === 'expired' ? 'bg-zinc-500/15 text-ink-muted' : 'bg-red-500/15 text-red-600'}`}>
-                                            {p.status === 'confirmed' ? 'Terkonfirmasi' : p.status === 'pending' ? 'Menunggu' : p.status === 'expired' ? 'Kadaluarsa' : 'Ditolak'}
-                                        </span>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                ) : (
-                    <p className="text-sm text-ink-muted">Belum ada pembayaran tercatat.</p>
-                )}
-            </div>
             </>
             )}
         </>
