@@ -25,9 +25,8 @@ class CategoryController extends Controller
             $query->where('is_system', false);
         }
 
-        if ($request->filled('scope')) {
-            $column = Str::studly($request->string('scope')) === 'Blog' ? 'blogs_count' : 'portfolios_count';
-            $query->having($column, '>', 0);
+        if ($scope = (string) $request->input('scope')) {
+            $query->having($scope === 'blog' ? 'blogs_count' : 'portfolios_count', '>', 0);
         }
 
         $categories = $query->orderBy('name')->get();
