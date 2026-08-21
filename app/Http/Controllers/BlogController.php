@@ -155,10 +155,16 @@ class BlogController extends Controller
 
     public function author(string $username)
     {
-        $author = User::where('username', strtolower($username))->firstOrFail();
+        $author = User::with(['profile', 'socials.platform'])
+            ->where('username', strtolower($username))
+            ->firstOrFail();
 
         $posts = Blog::with(['author', 'categories', 'tags'])->published()
             ->where('author_id', $author->id)
+            ->when(trim((string) request('q')), fn ($query, $q) => $query
+                ->where(fn ($where) => $where
+                    ->where('title', 'like', '%' . $q . '%')
+                    ->orWhere('excerpt', 'like', '%' . $q . '%')))
             ->latest('published_at')
             ->paginate(9)
             ->withQueryString();

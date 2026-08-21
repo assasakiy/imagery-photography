@@ -1,7 +1,8 @@
-@props(['activeCategory' => null])
+@props(['activeCategory' => null, 'searchAction' => null])
 
 @php
     $activeCategorySlug = $activeCategory ?: request('category');
+    $searchAction = $searchAction ?: route('blog');
 @endphp
 
 <section class="sticky top-16 z-30 border-b border-line bg-zinc-50/90 backdrop-blur-md dark:bg-zinc-950/90">
@@ -38,7 +39,7 @@
                 </button>
             </div>
 
-            <form method="GET" action="{{ route('blog') }}" class="relative hidden shrink-0 lg:block">
+            <form method="GET" action="{{ $searchAction }}" class="relative hidden shrink-0 lg:block">
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="pointer-events-none absolute left-4 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-ink-muted"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
                 <input type="text" inputmode="search" name="q" value="{{ request('q') }}" placeholder="Cari artikel…" class="w-64 rounded-full border border-line bg-surface-muted/50 py-2.5 pl-12 pr-4 text-sm text-ink placeholder:text-ink-muted outline-none transition-colors focus:border-brand-500 focus:bg-surface focus:ring-2 focus:ring-brand-500/20">
             </form>
@@ -57,7 +58,7 @@
             data-mobile-search
             class="pointer-events-none absolute inset-0 z-20 flex origin-right scale-x-75 items-center gap-2 bg-zinc-50/95 px-3 opacity-0 backdrop-blur-md transition-all duration-300 ease-out lg:hidden dark:bg-zinc-950/95"
         >
-            <form method="GET" action="{{ route('blog') }}" class="relative w-full">
+            <form method="GET" action="{{ $searchAction }}" class="relative w-full">
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="pointer-events-none absolute left-4 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-ink-muted"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
                 <input type="text" inputmode="search" name="q" value="{{ request('q') }}" placeholder="Cari artikel…" class="w-full rounded-full border border-line bg-surface py-2.5 pl-12 pr-4 text-sm text-ink placeholder:text-ink-muted outline-none transition-colors focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20">
             </form>
