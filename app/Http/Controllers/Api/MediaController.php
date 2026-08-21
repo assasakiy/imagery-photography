@@ -77,15 +77,15 @@ class MediaController extends Controller
         ]);
 
         $library = MediaLibrary::singleton();
+        $tmpFile = null;
 
         try {
             $url = $request->input('url');
-            $host = parse_url($url, PHP_URL_HOST);
-            if (!$host || filter_var(gethostbyname($host), FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) === false) {
-                return response()->json(['message' => 'URL tidak valid atau mengarah ke IP privat/internal.'], 422);
-            }
 
-            $media = $library->addMediaFromUrl($url)
+            $downloader = app(\App\Services\SafeUrlDownloader::class);
+            $tmpFile = $downloader->fetchToTempFile($url);
+
+            $media = $library->addMedia($tmpFile)
                 ->usingFileName(basename(parse_url($url, PHP_URL_PATH)) ?: 'import.jpg')
                 ->toMediaCollection('library');
 
@@ -101,6 +101,9 @@ class MediaController extends Controller
 
             return response()->json($this->serialize($media), 201);
         } catch (\Throwable $e) {
+            if ($tmpFile && file_exists($tmpFile)) {
+                @unlink($tmpFile);
+            }
             return response()->json([
                 'message' => 'Gagal mengimpor URL. Pastikan link menunjuk ke file gambar yang dapat diunduh.',
             ], 422);
