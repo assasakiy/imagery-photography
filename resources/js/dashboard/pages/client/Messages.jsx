@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import api from '../../api';
 import Icon from '../../components/Icon';
-import { PageHeader, useToast, formatDate } from '../../components/ui';
+import { PageHeader, useToast, formatDate, Confirm } from '../../components/ui';
 import Skeleton from '../../components/Skeleton';
 
 export default function ClientMessages() {
@@ -17,6 +17,7 @@ export default function ClientMessages() {
     const [replyTo, setReplyTo] = useState(null);
     const [showEmoji, setShowEmoji] = useState(false);
     const [sending, setSending] = useState(false);
+    const [confirmDeleteId, setConfirmDeleteId] = useState(null);
     const { show, node } = useToast();
     const scrollRef = useRef(null);
     const fileInputRef = useRef(null);
@@ -64,7 +65,7 @@ export default function ClientMessages() {
     };
 
     const handleDelete = async (id) => {
-        if (!confirm('Hapus pesan ini?')) return;
+        setConfirmDeleteId(null);
         try {
             await api.delete(`/customer/messages/${id}`);
             setItems(items.filter(i => i.id !== id));
@@ -106,7 +107,7 @@ export default function ClientMessages() {
                                             <div className="group relative flex items-center gap-2">
                                                 {!isAdmin && (
                                                     <div className="opacity-0 group-hover:opacity-100 flex items-center gap-1 shrink-0 transition-opacity">
-                                                        <button onClick={() => handleDelete(m.id)} className="p-1 text-red-500 hover:bg-red-500/10 rounded-full" title="Hapus">
+                                                        <button onClick={() => setConfirmDeleteId(m.id)} className="p-1 text-red-500 hover:bg-red-500/10 rounded-full" title="Hapus">
                                                             <Icon name="trash" size={14} />
                                                         </button>
                                                         <button onClick={() => setReplyTo(m)} className="p-1 text-ink-muted hover:text-ink hover:bg-surface-muted rounded-full" title="Balas">
@@ -213,6 +214,9 @@ export default function ClientMessages() {
                     </form>
                 </div>
             </div>
+
+            <Confirm open={!!confirmDeleteId} onClose={() => setConfirmDeleteId(null)} onConfirm={() => handleDelete(confirmDeleteId)} title="Hapus Pesan?" message="Pesan ini akan dihapus secara permanen." />
+
             {node}
         </div>
     );

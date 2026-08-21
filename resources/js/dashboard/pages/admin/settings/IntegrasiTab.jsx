@@ -3,7 +3,7 @@ import jsQR from 'jsqr';
 import Icon from '../../../components/Icon';
 import Button from '../../../components/Button';
 import Toggle from '../../../components/Toggle';
-import { Field } from '../../../components/ui';
+import { Field, useToast } from '../../../components/ui';
 import { SMTP_FIELDS, WA_FIELDS, TRIPAY_FIELDS, GOOGLE_FIELDS, MASK, POPULAR_BANKS, POPULAR_WALLETS, QRIS_PROVIDERS } from './constants';
 import { validateQris } from '../../../utils/qris';
 
@@ -176,7 +176,7 @@ function QrisRow({ acc, onAcc, onRemove, onScanStart }) {
                 if (code && code.data) {
                     onAcc({ ...acc, qris: code.data.trim() });
                 } else {
-                    alert('Gagal mendeteksi kode QR dari gambar.');
+                    show('Gagal mendeteksi kode QR dari gambar.', 'error');
                 }
                 onScanStart(false);
             };
@@ -300,6 +300,7 @@ export default function IntegrasiTab({
     const [scanning, setScanning] = useState(false);
     const [groups, setGroups] = useState([]);
     const [openWebhook, setOpenWebhook] = useState(false);
+    const { show, node: toastNode } = useToast();
 
     const inferType = (label) => {
         const lbl = (label || '').toLowerCase();
@@ -358,6 +359,7 @@ export default function IntegrasiTab({
     const manualConfigured = Array.isArray(form.payment_manual_accounts) && form.payment_manual_accounts.some(g => g.accounts?.length);
 
     return (
+        <>
         <div className="space-y-6">
             <div className="card w-full p-6">
                 <div className="flex items-center justify-between gap-3">
@@ -807,5 +809,7 @@ export default function IntegrasiTab({
                 )}
             </div>
         </div>
+        {toastNode}
+        </>
     );
 }

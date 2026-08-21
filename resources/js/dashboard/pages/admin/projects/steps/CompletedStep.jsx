@@ -2,7 +2,7 @@ import Icon from '../../../../components/Icon';
 import { formatDate, formatRupiah } from '../../../../components/ui';
 
 export default function CompletedStep({ ctx }) {
-    const { PanelHeader, PanelFooter, project, isPaid, paidAt, archive, saving } = ctx;
+    const { PanelHeader, PanelFooter, project, isPaid, paidAt, setConfirmArchive, saving } = ctx;
 
     return (
         <div className="card overflow-hidden">
@@ -30,7 +30,7 @@ export default function CompletedStep({ ctx }) {
                 </div>
             </div>
             <PanelFooter>
-                <button className="btn-outline" onClick={archive} disabled={saving}>
+                <button className="btn-outline" onClick={() => setConfirmArchive(true)} disabled={saving}>
                     <Icon name="folder-open" size={16} /> Arsipkan Proyek
                 </button>
             </PanelFooter>

@@ -114,6 +114,7 @@ export default function ProjectDetail() {
     const [rerequestNote, setRerequestNote] = useState('');
     const [reviewOpen, setReviewOpen] = useState(false);
     const [reviewForm, setReviewForm] = useState({ rating: 5, title: '', content: '', recommend_score: 10 });
+    const [confirmArchive, setConfirmArchive] = useState(false);
     const fileRef = useRef(null);
     const photoRef = useRef(null);
     const thumbRef = useRef(null);
@@ -217,7 +218,7 @@ export default function ProjectDetail() {
     };
 
     const archive = async () => {
-        if (!confirm('Arsipkan pesanan ini?')) return;
+        setConfirmArchive(false);
         setSaving(true);
         try {
             await api.patch(`/projects/${id}/archive`);
@@ -500,6 +501,7 @@ const ctx = {
         setUploadOpen, uploadLabel, pickAndSaveThumb, thumbFile,
         setReviewOpen, openChat,
         setShareOpen, feeMap, setFeeMap, reviewRedelivery, setRerequestOpen,
+        setConfirmArchive,
     };
 
     return (
@@ -810,6 +812,8 @@ const ctx = {
                     <p className="text-xs text-ink-muted">Pengiriman mengikuti aturan notifikasi yang aktif (WhatsApp / email / dalam aplikasi) sesuai preferensi klien.</p>
                 </div>
             </Modal>
+
+            <Confirm open={confirmArchive} onClose={() => setConfirmArchive(false)} onConfirm={archive} title="Arsipkan Pesanan?" message="Pesanan akan dipindahkan ke arsip. Klien masih bisa mengajukan permintaan unduh ulang." />
 
             {node}
         </>
