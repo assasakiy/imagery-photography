@@ -89,7 +89,6 @@ export default function Subscribers() {
                         <thead>
                             <tr className="border-b border-line bg-surface-muted text-xs font-semibold uppercase tracking-wider text-ink-muted">
                                 <th className="px-4 py-3">Nama</th>
-                                <th className="px-4 py-3">Email</th>
                                 <th className="px-4 py-3">Status</th>
                                 <th className="px-4 py-3 text-right">Bookmark</th>
                                 <th className="px-4 py-3 text-right">Suka</th>
@@ -104,19 +103,19 @@ export default function Subscribers() {
                                     <td className="px-4 py-3">
                                         <div className="flex items-center gap-3">
                                             {item.avatar ? (
-                                                <img src={item.avatar} alt="" className="h-8 w-8 rounded-full object-cover" />
+                                                <img src={item.avatar} alt="" className="h-9 w-9 rounded-full object-cover" />
                                             ) : (
-                                                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-500/20 text-xs font-bold text-brand-600 dark:text-brand-400">
+                                                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-500/20 text-xs font-bold text-brand-600 dark:text-brand-400">
                                                     {(item.name || '?').charAt(0).toUpperCase()}
                                                 </span>
                                             )}
                                             <div className="min-w-0">
                                                 <p className="truncate font-semibold text-ink">{item.name}</p>
+                                                <p className="truncate text-xs text-ink-muted">{item.email}</p>
                                                 {item.username && <p className="truncate text-xs text-ink-muted">@{item.username}</p>}
                                             </div>
                                         </div>
                                     </td>
-                                    <td className="px-4 py-3 text-ink-muted">{item.email}</td>
                                     <td className="px-4 py-3">
                                         <div className="flex flex-col gap-1">
                                             <span className="inline-flex w-fit items-center rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">Subscribe</span>

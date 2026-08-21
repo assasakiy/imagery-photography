@@ -175,7 +175,6 @@ export default function Clients() {
                         <thead>
                             <tr>
                                 <th>Nama</th>
-                                <th>Kontak</th>
                                 <th>Status</th>
                                 <th>Project</th>
                                 <th>Bergabung</th>
@@ -187,15 +186,20 @@ export default function Clients() {
                                 <tr key={item.id}>
                                     <td>
                                         <div className="flex items-center gap-3">
-                                            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-500/15 text-brand-600 dark:text-brand-400">
-                                                <Icon name="user" size={16} />
+                                            {item.avatar ? (
+                                                <img src={item.avatar} alt="" className="h-9 w-9 shrink-0 rounded-full object-cover" />
+                                            ) : (
+                                                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-500/15 text-brand-600 dark:text-brand-400">
+                                                    <Icon name="user" size={16} />
+                                                </div>
+                                            )}
+                                            <div className="min-w-0">
+                                                <p className="truncate font-medium text-ink">{item.name}</p>
+                                                <p className="truncate text-xs text-ink-muted">{item.email}</p>
+                                                {item.phone && <p className="truncate text-xs text-ink-muted">{item.phone}</p>}
+                                                {item.username && <p className="truncate text-xs text-ink-muted">@{item.username}</p>}
                                             </div>
-                                            <span className="font-medium text-ink">{item.name}</span>
                                         </div>
-                                    </td>
-                                    <td>
-                                        <p className="text-sm text-ink">{item.email || '-'}</p>
-                                        <p className="text-xs text-ink-muted">{item.phone || '-'}</p>
                                     </td>
                                     <td>
                                         <div className="flex flex-col gap-1">
