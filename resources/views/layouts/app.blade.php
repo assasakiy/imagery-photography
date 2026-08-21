@@ -116,8 +116,8 @@
 
                 @guest
                     <div class="hidden lg:flex items-center gap-1">
-                        <button type="button" data-subscribe-open class="rounded-lg px-3 py-2 text-sm font-semibold text-brand-600 transition-colors hover:bg-brand-500/10 dark:text-brand-400">Subscribe</button>
                         <a href="{{ route('login') }}" class="rounded-lg px-3 py-2 text-sm font-semibold text-ink transition-colors hover:bg-surface-muted">Masuk</a>
+                        <a href="{{ route('register') }}" class="rounded-lg px-3 py-2 text-sm font-semibold text-brand-600 transition-colors hover:bg-brand-500/10 dark:text-brand-400">Daftar</a>
                         <a href="{{ route('booking') }}" class="ml-1 rounded-xl bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-700">Pesan Sekarang</a>
                     </div>
                 @endguest
@@ -173,8 +173,8 @@
 
                 @guest
                     <div class="mt-2 flex flex-col gap-2 border-t border-line pt-3">
-                        <button type="button" data-subscribe-open class="rounded-lg px-3 py-2.5 text-sm font-semibold text-brand-600 transition-colors hover:bg-brand-500/10 dark:text-brand-400 text-left">Subscribe Blog</button>
-                        <a href="{{ route('login') }}" class="rounded-lg px-3 py-2.5 text-sm font-semibold text-brand-600 transition-colors hover:bg-brand-500/10 dark:text-brand-400">Masuk</a>
+                        <a href="{{ route('login') }}" class="rounded-lg px-3 py-2.5 text-sm font-semibold text-ink transition-colors hover:bg-surface-muted">Masuk</a>
+                        <a href="{{ route('register') }}" class="rounded-lg px-3 py-2.5 text-sm font-semibold text-brand-600 transition-colors hover:bg-brand-500/10 dark:text-brand-400 text-left">Daftar</a>
                         <a href="{{ route('booking') }}" class="rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white text-center shadow-sm transition-colors hover:bg-brand-700">Pesan Sekarang</a>
                     </div>
                 @endguest

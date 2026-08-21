@@ -40,7 +40,8 @@
         </form>
 
         <div class="mt-6 text-center text-sm text-gray-500">
-            <a href="/" class="text-indigo-600 hover:text-indigo-800">Kembali ke beranda</a>
+            <p>Belum punya akun? <a href="{{ route('register') }}" class="text-indigo-600 hover:text-indigo-800">Daftar</a></p>
+            <p class="mt-2"><a href="/" class="text-indigo-600 hover:text-indigo-800">Kembali ke beranda</a></p>
         </div>
     </div>
 </div>
