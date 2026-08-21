@@ -321,6 +321,106 @@ class AuthController extends Controller
         return response()->json(['user' => $this->userPayload($user)]);
     }
 
+    /**
+     * Registrasi client via OTP: buat user pending role client + kirim OTP.
+     */
+    public function registerOtp(Request $request)
+    {
+        $data = $request->validate([
+            'name' => 'required|string|max:100',
+            'email' => 'required|email|max:190',
+        ]);
+
+        $email = strtolower(trim($data['email']));
+
+        $user = $this->resolveUser($email);
+        $isNew = false;
+
+        if (!$user) {
+            $user = app(\App\Services\ClientRegistrationService::class)->ensureUser([
+                'email' => $email,
+                'name' => $data['name'],
+            ], 'client');
+
+            $isNew = true;
+
+            app(AuditLogger::class)->log('auth.register_otp', 'Client baru (pending) didaftarkan via OTP: ' . $email, $user);
+        } else {
+            if (!$user->hasRole('client')) {
+                $user->assignRole('client');
+            }
+        }
+
+        if (!$user->canUseLoginMethod('otp')) {
+            return response()->json(['message' => 'Login via OTP tidak aktif untuk akun ini.'], 422);
+        }
+
+        $otp = (string) random_int(100000, 999999);
+        session()->put('otp_' . $user->id, ['code' => Hash::make($otp), 'expires_at' => now()->addMinutes(5)]);
+        session()->put('otp_target_' . $user->id, $email);
+        session()->put('register_pending_' . $user->id, $isNew);
+
+        app(NotificationService::class)->sendOtp($user, $user->phone ?? $email, $otp);
+
+        app(AuditLogger::class)->log('auth.otp_sent', 'OTP registrasi client dikirim untuk ' . $email, $user);
+
+        return response()->json([
+            'message' => 'Kode OTP terkirim ke ' . ($user->phone ?? $email) . ' (jika terkonfigurasi).',
+            'is_new' => $isNew,
+            'dev_otp' => config('app.env') !== 'production' ? $otp : null,
+        ]);
+    }
+
+    /**
+     * Verifikasi OTP registrasi client → aktifkan akun + auto-login + opsional set password.
+     */
+    public function registerOtpVerify(Request $request)
+    {
+        $data = $request->validate([
+            'email' => 'required|email|max:190',
+            'otp' => 'required|string',
+            'password' => 'nullable|string|min:8|confirmed',
+        ]);
+
+        $email = strtolower(trim($data['email']));
+        $user = $this->resolveUser($email);
+
+        $stored = session()->pull('otp_' . $user?->id);
+        $isNew = (bool) session()->pull('register_pending_' . $user?->id);
+
+        if (!$user || !$stored || !Hash::check($data['otp'], $stored['code']) || now()->greaterThan($stored['expires_at'])) {
+            app(LoginTracker::class)->recordFailed($user, 'otp', $email);
+            app(AuditLogger::class)->log('auth.otp_verify_failed', 'Verifikasi OTP registrasi gagal: ' . $email, $user);
+
+            return response()->json(['message' => 'Kode OTP salah atau kadaluarsa.'], 422);
+        }
+
+        if ($isNew && $user) {
+            $user->update([
+                'status' => 'active',
+                'activated_at' => now(),
+            ]);
+            if (!$user->hasRole('client')) {
+                $user->assignRole('client');
+            }
+
+            app(AuditLogger::class)->log('auth.register_activated', 'Client diaktifkan via OTP: ' . $email, $user);
+        }
+
+        if (!empty($data['password']) && $user) {
+            $user->update(['password' => Hash::make($data['password'])]);
+        }
+
+        ApiThrottle::reset('otp.verify', ['identifier' => $email]);
+
+        Auth::login($user);
+        session()->regenerate();
+
+        $this->afterLogin($user, 'otp');
+
+        return response()->json(['user' => $this->userPayload($user)]);
+    }
+
     public function whatsappStatus()
     {
         $settings = app(\App\Services\RuntimeSettings::class);
@@ -401,18 +501,27 @@ class AuthController extends Controller
     public function setPassword(Request $request)
     {
         $data = $request->validate([
-            'token' => 'required|string',
+            'token' => 'nullable|string',
             'password' => 'required|string|min:8|confirmed',
         ]);
 
-        $token = \App\Models\ClientAccessToken::where('token', $data['token'])->valid()->first();
+        $user = null;
 
-        if (!$token || !$token->user) {
-            return response()->json(['message' => 'Tautan aktivasi tidak valid atau sudah kadaluarsa.'], 422);
+        if (!empty($data['token'])) {
+            $token = \App\Models\ClientAccessToken::where('token', $data['token'])->valid()->first();
+            if (!$token || !$token->user) {
+                return response()->json(['message' => 'Tautan aktivasi tidak valid atau sudah kadaluarsa.'], 422);
+            }
+            $user = $token->user;
+        } else {
+            $user = Auth::user();
+            if (!$user) {
+                return response()->json(['message' => 'Sesi tidak ditemukan.'], 422);
+            }
         }
 
         app(\App\Services\ClientRegistrationService::class)->activate(
-            $token->user,
+            $user,
             $data['password']
         );
 
