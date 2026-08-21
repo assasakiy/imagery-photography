@@ -37,7 +37,7 @@ export default function Bookmarks() {
                                 </span>
                                 <div className="min-w-0">
                                     <p className="truncate text-sm font-semibold text-ink">{b.title}</p>
-                                    <p className="text-xs text-ink-muted">{typeLabel(b.type)} · {formatDate(b.created_at)}</p>
+                                    <p className="text-xs text-ink-muted">{typeLabel[b.type]} · {formatDate(b.created_at)}</p>
                                 </div>
                             </div>
                             <button onClick={() => remove(b.id, b.type)} className="rounded-lg p-2 text-ink-muted hover:bg-surface-muted hover:text-red-500" aria-label="Hapus">

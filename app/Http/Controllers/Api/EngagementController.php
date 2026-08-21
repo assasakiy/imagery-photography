@@ -97,7 +97,7 @@ class EngagementController extends Controller
             'user_id' => $request->user()->id,
             'commentable_type' => $model,
             'commentable_id' => $target->id,
-            'body' => $data['body'],
+            'body' => strip_tags($data['body']),
             'status' => 'approved',
             'approved_at' => now(),
         ]);

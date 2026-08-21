@@ -29,11 +29,13 @@ class ReapStaleLogins extends Command
             }
 
             $loggedInAt = $row->logged_in_at ?: $row->created_at;
-            $now = now();
+            $closedAt = $user?->last_seen_at && $user->last_seen_at->gt($loggedInAt)
+                ? $user->last_seen_at
+                : now();
 
             $row->update([
-                'logged_out_at' => $now,
-                'duration_seconds' => (int) $loggedInAt->diffInSeconds($now),
+                'logged_out_at' => $closedAt,
+                'duration_seconds' => max(0, (int) $loggedInAt->diffInSeconds($closedAt)),
             ]);
 
             $closed++;

@@ -547,6 +547,11 @@ const csrfToken = () => {
     }
 };
 
+const escapeHTML = (str) => {
+    if (!str) return '';
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+};
+
 const renderComments = (comments) => {
     if (!commentsList) return;
     if (!comments.length) {
@@ -555,8 +560,8 @@ const renderComments = (comments) => {
     }
     commentsList.innerHTML = comments.map((c) => {
         const avatar = c.user?.avatar
-            ? `<img src="${c.user.avatar}" alt="" class="h-9 w-9 rounded-full object-cover ring-1 ring-line">`
-            : `<span class="flex h-9 w-9 items-center justify-center rounded-full bg-brand-500/15 text-xs font-bold text-brand-600 dark:text-brand-400">${(c.user?.name || '?').charAt(0).toUpperCase()}</span>`;
+            ? `<img src="${escapeHTML(c.user.avatar)}" alt="" class="h-9 w-9 rounded-full object-cover ring-1 ring-line">`
+            : `<span class="flex h-9 w-9 items-center justify-center rounded-full bg-brand-500/15 text-xs font-bold text-brand-600 dark:text-brand-400">${escapeHTML((c.user?.name || '?').charAt(0).toUpperCase())}</span>`;
         const deleteBtn = c.can_delete
             ? `<button type="button" data-comment-delete="${c.id}" class="ml-2 text-xs text-ink-muted hover:text-rose-600">Hapus</button>`
             : '';
@@ -565,11 +570,11 @@ const renderComments = (comments) => {
                 <div class="shrink-0">${avatar}</div>
                 <div class="min-w-0 flex-1">
                     <div class="flex items-baseline gap-2">
-                        <span class="text-sm font-semibold text-ink">${c.user?.name || 'Subscriber'}</span>
-                        <span class="text-xs text-ink-muted">${c.created_at_rel || ''}</span>
+                        <span class="text-sm font-semibold text-ink">${escapeHTML(c.user?.name || 'Subscriber')}</span>
+                        <span class="text-xs text-ink-muted">${escapeHTML(c.created_at_rel || '')}</span>
                         ${deleteBtn}
                     </div>
-                    <p class="mt-1 whitespace-pre-wrap text-sm text-ink">${c.body}</p>
+                    <p class="mt-1 whitespace-pre-wrap text-sm text-ink">${escapeHTML(c.body)}</p>
                 </div>
             </div>`;
     }).join('');

@@ -30,29 +30,6 @@ return new class extends Migration
 
         Schema::create('likes', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('user_id');
-            $table->morphs('likeable');
-            $table->timestamps();
-
-            $table->unique(['user_id', 'likeable_type', 'likeable_id']);
-            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
-        });
-
-        Schema::create('comments', function (Blueprint $table) {
-            $table->id();
-            $table->unsignedBigInteger('user_id');
-            $table->morphs('commentable');
-            $table->text('content');
-            $table->string('status', 20)->default('published');
-            $table->timestamp('approved_at')->nullable();
-            $table->timestamps();
-
-            $table->index(['commentable_type', 'commentable_id', 'status']);
-            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
-        });
-
-        Schema::create('likes', function (Blueprint $table) {
-            $table->id();
             $table->morphs('likeable');
             $table->unsignedBigInteger('user_id');
             $table->timestamps();

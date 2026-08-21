@@ -161,7 +161,7 @@ class User extends Authenticatable
      */
     public static function onlineThresholdSeconds(): int
     {
-        return (int) env('PRESENCE_ONLINE_THRESHOLD_SECONDS', 180);
+        return (int) config('presence.online_threshold_seconds', 180);
     }
 
     public function isOnline(?int $thresholdSeconds = null): bool
