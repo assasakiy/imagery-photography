@@ -75,7 +75,7 @@ export default function Portfolio() {
                 order: item.order || 0,
                 image_mode: item.has_local_media ? 'upload' : 'url',
                 image: null,
-                media_id: item.media_id || '',
+                media_id: '',
                 image_url: item.image_url || '',
                 use_image_url: false,
             });
@@ -88,7 +88,7 @@ export default function Portfolio() {
                 order: item.order || 0,
                 image_mode: 'upload',
                 image: null,
-                media_id: item.media_id || '',
+                media_id: '',
                 image_url: item.image_url || '',
                 use_image_url: false,
             });

@@ -112,6 +112,17 @@ class Blog extends Model implements HasMedia
         return $this->resolveCoverUrl();
     }
 
+    public function getMediumUrlAttribute(): ?string
+    {
+        try {
+            if ($media = $this->coverMedia()) {
+                return $media->getUrl('medium');
+            }
+        } catch (\Throwable $e) {}
+
+        return $this->resolveCoverUrl();
+    }
+
     public static function uniqueSlug(string $title, ?int $ignoreId = null): string
     {
         $slug = Str::slug($title) ?: 'post-' . Str::lower(Str::random(6));

@@ -55,7 +55,7 @@ const [form, setForm] = useState({
                     status: data.status || 'draft',
                     is_featured: data.is_featured || false,
                     tags: data.tags?.map(t => t.name) || [],
-                    media_id: data.media_id || null,
+                    media_id: null,
                 };
                 setForm(loaded);
                 setInitialForm(loaded);

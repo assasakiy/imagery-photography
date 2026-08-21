@@ -70,7 +70,7 @@
 
         @if ($post->resolveCoverUrl())
             <div class="mt-8 overflow-hidden rounded-2xl">
-                <img src="{{ $post->thumbnail_url }}" alt="{{ $post->title }}" class="aspect-[21/10] w-full object-cover">
+                <img src="{{ $post->medium_url }}" alt="{{ $post->title }}" width="1200" height="571" fetchpriority="high" decoding="async" sizes="(min-width: 1024px) 896px, 100vw" class="aspect-[21/10] w-full object-cover">
             </div>
         @endif
 
@@ -171,8 +171,10 @@
                 <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
                     @foreach ($related as $item)
                         <a href="{{ route('blog.show', $item->slug) }}" class="group overflow-hidden rounded-2xl border border-line bg-surface transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
-                            <div class="aspect-[16/9] overflow-hidden">
-                                <img src="{{ $item->thumbnail_url }}" alt="{{ $item->title }}" loading="lazy" class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105">
+                            <div class="aspect-[16/9] overflow-hidden bg-surface-muted">
+                                @if ($item->thumbnail_url)
+                                    <img src="{{ $item->thumbnail_url }}" alt="{{ $item->title }}" width="400" height="225" loading="lazy" decoding="async" sizes="(min-width: 768px) 33vw, 100vw" class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105">
+                                @endif
                             </div>
                             <div class="p-4">
                                 <h3 class="line-clamp-2 font-bold leading-snug text-ink transition-colors group-hover:text-brand-600 dark:group-hover:text-brand-400">{{ $item->title }}</h3>

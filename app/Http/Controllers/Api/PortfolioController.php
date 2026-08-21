@@ -4,10 +4,12 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Services\AuditLogger;
+use App\Models\MediaLibrary;
 use App\Models\Portfolio;
 use App\Support\ContentSanitizer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\ValidationException;
 
 class PortfolioController extends Controller
 {
@@ -44,7 +46,7 @@ class PortfolioController extends Controller
         if ($request->hasFile('image')) {
             $this->attachImage($portfolio, $request);
         } elseif ($request->filled('media_id')) {
-            $this->attachMedia($portfolio, (int) $request->input('media_id'));
+            $this->attachMedia($portfolio, (int) $request->input('media_id'), $request);
         }
 
         return response()->json($this->serialize($portfolio->load('categories')), 201);
@@ -67,7 +69,7 @@ class PortfolioController extends Controller
         if ($request->hasFile('image')) {
             $this->attachImage($portfolio, $request);
         } elseif ($request->filled('media_id')) {
-            $this->attachMedia($portfolio, (int) $request->input('media_id'));
+            $this->attachMedia($portfolio, (int) $request->input('media_id'), $request);
         }
 
         return response()->json($this->serialize($portfolio->load('categories')));
@@ -91,22 +93,26 @@ class PortfolioController extends Controller
         $portfolio->update(['image_url' => null]);
     }
 
-    private function attachMedia(Portfolio $portfolio, int $mediaId): void
+    private function attachMedia(Portfolio $portfolio, int $mediaId, Request $request): void
     {
         $media = \Spatie\MediaLibrary\MediaCollections\Models\Media::find($mediaId);
+        $accessible = $media
+            && $media->model_type === MediaLibrary::class
+            && str_starts_with((string) $media->mime_type, 'image/')
+            && ((int) $media->uploaded_by === (int) $request->user()->id || $media->is_public)
+            && is_file($media->getPath());
 
-        if (!$media) {
-            return;
+        if (!$accessible) {
+            throw ValidationException::withMessages(['media_id' => 'Media gambar tidak valid atau tidak dapat diakses.']);
         }
 
-        if (! is_file($media->getPath())) {
-            $portfolio->update(['image_url' => $media->getUrl()]);
-
-            return;
+        $temporary = tempnam(sys_get_temp_dir(), 'portfolio-cover-');
+        if (!$temporary || !copy($media->getPath(), $temporary)) {
+            throw ValidationException::withMessages(['media_id' => 'Media gambar gagal disalin.']);
         }
 
         $portfolio->clearMediaCollection('cover');
-        $portfolio->addMedia($media->getPath())
+        $portfolio->addMedia($temporary)
             ->usingFileName($media->file_name)
             ->toMediaCollection('cover');
 

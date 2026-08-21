@@ -39,7 +39,7 @@
                 @foreach ($portfolios as $portfolio)
                     <div class="reveal mb-5 break-inside-avoid">
                         <a href="{{ route('gallery.show', $portfolio->slug) }}" class="group relative block overflow-hidden rounded-2xl ring-1 ring-line">
-                            <img src="{{ $portfolio->thumbnail_url }}" alt="{{ $portfolio->title }}" loading="lazy" class="w-full transition-transform duration-500 group-hover:scale-105">
+                            <img src="{{ $portfolio->thumbnail_url }}" alt="{{ $portfolio->title }}" loading="lazy" decoding="async" sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw" class="w-full transition-transform duration-500 group-hover:scale-105">
                             <div class="absolute inset-0 bg-gradient-to-t from-zinc-950/70 via-transparent to-transparent sm:opacity-0 sm:transition-opacity sm:duration-300 sm:group-hover:opacity-100"></div>
                             <div class="absolute inset-x-0 bottom-0 p-4 sm:opacity-0 sm:transition-all sm:duration-300 sm:group-hover:opacity-100">
                                 <p class="text-[10px] font-semibold uppercase tracking-widest text-brand-300">{{ $portfolio->categories->isNotEmpty() ? $portfolio->categories->pluck('name')->join(', ') : '' }}</p>
