@@ -641,7 +641,7 @@ const renderComment = (comment, nested = false, parentName = '', rootId = null) 
         : `<span class="flex ${avatarSize} items-center justify-center rounded-full bg-brand-500/15 font-bold text-brand-600 dark:text-brand-400">${escapeHTML((comment.user?.name || '?').charAt(0).toUpperCase())}</span>`;
     const replyTargetId = nested ? rootId : comment.id;
     const replyBtn = commentsForm
-        ? `<button type="button" data-comment-reply="${replyTargetId}" data-comment-reply-name="${escapeHTML(comment.user?.name || 'Subscriber')}" data-comment-mention="${nested ? '1' : '0'}" class="inline-flex items-center gap-1.5 text-xs font-semibold text-brand-600 hover:underline dark:text-brand-400"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 17-5-5 5-5"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg>Balas</button>`
+        ? `<button type="button" data-comment-reply="${replyTargetId}" data-comment-reply-name="${escapeHTML(comment.user?.name || 'Subscriber')}" data-comment-reply-username="${escapeHTML(comment.user?.username || '')}" data-comment-mention="${nested ? '1' : '0'}" class="inline-flex items-center gap-1.5 text-xs font-semibold text-brand-600 hover:underline dark:text-brand-400"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 17-5-5 5-5"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg>Balas</button>`
         : '';
     const deleteBtn = comment.can_delete
         ? `<button type="button" data-comment-delete="${comment.id}" class="text-xs text-ink-muted hover:text-rose-600">Hapus</button>`
@@ -707,8 +707,11 @@ if (commentsList) {
                 const targetName = replyBtn.getAttribute('data-comment-reply-name') || 'Subscriber';
                 body.placeholder = `Tulis balasan untuk ${targetName}…`;
                 if (replyBtn.getAttribute('data-comment-mention') === '1') {
-                    const mention = `@${targetName.replace(/\s+/g, '')} `;
-                    if (!body.value.startsWith(mention)) body.value = mention + body.value;
+                    const username = replyBtn.getAttribute('data-comment-reply-username');
+                    if (username) {
+                        const mention = `@${username} `;
+                        if (!body.value.startsWith(mention)) body.value = mention + body.value;
+                    }
                 }
                 setTimeout(() => {
                     body.focus();

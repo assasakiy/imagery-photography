@@ -196,6 +196,7 @@ class EngagementController extends Controller
             'user' => [
                 'id' => $comment->user?->id,
                 'name' => $comment->user?->name ?? 'Subscriber',
+                'username' => $comment->user?->username,
                 'avatar' => $comment->user?->avatar(),
             ],
             'target' => $target ? [
@@ -209,6 +210,7 @@ class EngagementController extends Controller
                 'user' => [
                     'id' => $comment->parent->user?->id,
                     'name' => $comment->parent->user?->name ?? 'Subscriber',
+                    'username' => $comment->parent->user?->username,
                 ],
             ] : null,
             'replies' => $comment->relationLoaded('replies')
