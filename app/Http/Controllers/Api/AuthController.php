@@ -286,8 +286,9 @@ class AuthController extends Controller
     public function subscribeVerify(Request $request)
     {
         $data = $request->validate([
-            'email' => 'required|email|max:190',
-            'otp' => 'required|string',
+            'email'    => 'required|email|max:190',
+            'otp'      => 'required|string',
+            'remember' => 'boolean',
         ]);
 
         $email = strtolower(trim($data['email']));
@@ -318,7 +319,7 @@ class AuthController extends Controller
         ApiThrottle::reset('subscribe.verify', ['identifier' => $email]);
 
         Auth::login($user);
-        $this->applyRememberSession($request, false);
+        $this->applyRememberSession($request, $data['remember'] ?? false);
 
         $this->afterLogin($user, 'otp');
 
@@ -381,9 +382,10 @@ class AuthController extends Controller
     public function registerOtpVerify(Request $request)
     {
         $data = $request->validate([
-            'email' => 'required|email|max:190',
-            'otp' => 'required|string',
+            'email'    => 'required|email|max:190',
+            'otp'      => 'required|string',
             'password' => 'nullable|string|min:8|confirmed',
+            'remember' => 'boolean',
         ]);
 
         $email = strtolower(trim($data['email']));
@@ -419,7 +421,7 @@ class AuthController extends Controller
 
         Auth::login($user);
         session()->regenerate();
-        $this->applyRememberSession($request, false);
+        $this->applyRememberSession($request, $data['remember'] ?? false);
 
         $this->afterLogin($user, 'otp');
 
