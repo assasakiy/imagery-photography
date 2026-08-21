@@ -4,6 +4,10 @@
 @section('meta_description', 'Blog Sopian Lalu Imagery - tips fotografi, cerita di balik lensa, dan update terbaru.')
 
 @section('content')
+    @php
+        $hasFilters = request()->filled('category') || request()->filled('tag') || request()->filled('q');
+    @endphp
+
     @include('partials.page-hero', [
         'page' => $page,
         'badge' => 'Blog',
@@ -27,7 +31,7 @@
             </div>
         </section>
     @else
-        @if (! request()->hasAny(['category', 'tag', 'q']) && $featured->isNotEmpty())
+        @if (! $hasFilters && $featured->isNotEmpty())
             @php
                 $featuredItems = $featured->values();
                 $fallbackCount = $featuredCount - $featuredItems->count();
@@ -94,7 +98,7 @@
                     <p class="mb-1 text-xs font-semibold uppercase tracking-widest text-brand-600 dark:text-brand-400">Terbaru</p>
                     <h2 class="text-2xl font-bold tracking-tight text-ink">Artikel Terbaru</h2>
                 </div>
-                @if (request()->hasAny(['category', 'tag', 'q']))
+                @if ($hasFilters)
                     <a href="{{ route('blog') }}" class="btn-link shrink-0">Semua Artikel <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 5l7 7-7 7"/><path d="M6 5l7 7-7 7"/></svg></a>
                 @elseif ($latestTotal > $latestCount)
                     <a href="{{ route('blog.section', 'latest') }}" class="btn-link shrink-0">Lihat Semua <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 5l7 7-7 7"/><path d="M6 5l7 7-7 7"/></svg></a>
@@ -106,14 +110,14 @@
                 @endforeach
             </div>
 
-            @if (request()->hasAny(['category', 'tag', 'q']))
+            @if ($hasFilters)
                 <div class="mt-10">
                     {{ $posts->links() }}
                 </div>
             @endif
         </section>
 
-        @if (! request()->hasAny(['category', 'tag', 'q']) && $popular->isNotEmpty())
+        @if (! $hasFilters && $popular->isNotEmpty())
             <section class="border-y border-line bg-surface-muted/50">
                 <div class="container-site py-12">
                     <div class="mb-6 flex items-end justify-between gap-4">
