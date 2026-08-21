@@ -267,6 +267,7 @@ class ProjectController extends Controller
         ]);
 
         ProjectUpdate::create([
+            'project_id' => $project->id,
             'user_id' => Auth::id(),
             'message' => 'Pesanan "' . $project->name . '" telah dibuat dan dijadwalkan untuk pelaksanaan acara.',
             'type' => 'milestone',
@@ -555,6 +556,7 @@ class ProjectController extends Controller
         ]);
 
         ProjectUpdate::create([
+            'project_id' => $project->id,
             'user_id' => Auth::id(),
             'message' => match ($request->input('stage')) {
                 'start' => 'Tim sudah berada di lokasi acara — lihat foto bukti.',
@@ -620,6 +622,7 @@ class ProjectController extends Controller
         }
 
         ProjectUpdate::create([
+            'project_id' => $project->id,
             'user_id' => Auth::id(),
             'message' => $created->count() . ' foto final telah diupload.',
             'type' => 'update',
@@ -700,6 +703,7 @@ class ProjectController extends Controller
         ]);
 
         ProjectUpdate::create([
+            'project_id' => $project->id,
             'user_id' => Auth::id(),
             'message' => 'Video "' . $previewName . '" diupload (preview + original).',
             'type' => 'update',
@@ -762,6 +766,7 @@ class ProjectController extends Controller
         $request->validate(['message' => 'required|string']);
 
         ProjectUpdate::create([
+            'project_id' => $project->id,
             'user_id' => Auth::id(),
             'message' => $request->message,
             'type' => 'note',
