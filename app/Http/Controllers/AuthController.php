@@ -8,54 +8,9 @@ use App\Services\LoginTracker;
 use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 
 class AuthController extends Controller
 {
-    public function showLogin()
-    {
-        return view('landing_pages.auth.login');
-    }
-
-    public function login(Request $request)
-    {
-        $credentials = $request->validate([
-            'email' => 'required|email',
-            'password' => 'required',
-        ]);
-
-        if (Auth::attempt($credentials, app(\App\Services\RuntimeSettings::class)->loginRememberEnabled() && $request->boolean('remember'))) {
-            $request->session()->regenerate();
-
-            $this->afterLogin(Auth::user(), 'password');
-
-            return redirect()->intended('/dashboard');
-        }
-
-        $identifier = $credentials['email'] ?? '';
-        $user = \App\Models\User::where('email', $identifier)->first();
-        $logUser = $user ?? \App\Models\User::withTrashed()->where('email', $identifier)->first();
-        app(LoginTracker::class)->recordFailed($logUser, 'password', $identifier);
-        app(AuditLogger::class)->log('auth.login_failed', 'Percobaan login gagal: ' . $identifier, identifier: $identifier);
-
-        return back()->withErrors([
-            'email' => 'Email atau password salah.',
-        ])->onlyInput('email');
-    }
-
-    private function afterLogin(\App\Models\User $user, string $method): void
-    {
-        $tracker = app(LoginTracker::class);
-        $tracker->recordLogin($user, $method);
-
-        app(AuditLogger::class)->log('auth.login', 'Login sukses via ' . $method . ': ' . $user->email);
-
-        if ($tracker->isSuspicious($user)) {
-            app(NotificationService::class)->notifySuspiciousLogin($user);
-        }
-    }
-
     public function logout(Request $request)
     {
         $user = Auth::user();
@@ -98,7 +53,14 @@ class AuthController extends Controller
 
         Auth::login($accessToken->user);
 
-        $this->afterLogin($accessToken->user, 'access_token');
+        $tracker = app(LoginTracker::class);
+        $tracker->recordLogin($accessToken->user, 'access_token');
+
+        app(AuditLogger::class)->log('auth.login', 'Login sukses via access_token: ' . $accessToken->user->email);
+
+        if ($tracker->isSuspicious($accessToken->user)) {
+            app(NotificationService::class)->notifySuspiciousLogin($accessToken->user);
+        }
 
         return redirect('/dashboard')->with('success', 'Selamat datang, ' . ($accessToken->user?->name ?? 'user') . '!');
     }
