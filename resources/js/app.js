@@ -639,6 +639,9 @@ const renderComment = (comment, nested = false, parentName = '', rootId = null) 
     const avatar = comment.user?.avatar
         ? `<img src="${escapeHTML(comment.user.avatar)}" alt="" class="${avatarSize} rounded-full object-cover ring-1 ring-line">`
         : `<span class="flex ${avatarSize} items-center justify-center rounded-full bg-brand-500/15 font-bold text-brand-600 dark:text-brand-400">${escapeHTML((comment.user?.name || '?').charAt(0).toUpperCase())}</span>`;
+    const verifiedBadge = comment.user?.verified
+        ? `<span title="Akun terverifikasi" aria-label="Akun terverifikasi" class="inline-flex text-sky-500"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M23.32 12.68c.15-.44.15-.92 0-1.36l-.94-2.8a2.1 2.1 0 0 0-.8-1.08l-2.38-1.73a2.1 2.1 0 0 0-1.28-.4l-2.95.04a2.1 2.1 0 0 1-1.1-.36l-2.42-1.67a2.1 2.1 0 0 0-2.36 0L6.67 4.99a2.1 2.1 0 0 1-1.1.36l-2.95-.04a2.1 2.1 0 0 0-1.28.4L.96 7.44a2.1 2.1 0 0 0-.8 1.08l-.94 2.8a2.1 2.1 0 0 0 0 1.36l.94 2.8c.14.43.42.81.8 1.08l2.38 1.73c.38.28.83.42 1.28.4l2.95-.04c.39 0 .77.12 1.1.36l2.42 1.67a2.1 2.1 0 0 0 2.36 0l2.42-1.67c.33-.24.71-.36 1.1-.36l2.95.04c.45.02.9-.12 1.28-.4l2.38-1.73c.38-.27.66-.65.8-1.08l.94-2.8Zm-12.6 3.36-3.35-3.35 1.42-1.42 1.93 1.93 4.49-4.49 1.42 1.42-5.91 5.91Z"/></svg></span>`
+        : '';
     const replyTargetId = nested ? rootId : comment.id;
     const replyBtn = commentsForm
         ? `<button type="button" data-comment-reply="${replyTargetId}" data-comment-reply-name="${escapeHTML(comment.user?.name || 'Subscriber')}" data-comment-reply-username="${escapeHTML(comment.user?.username || '')}" data-comment-mention="${nested ? '1' : '0'}" class="inline-flex items-center gap-1.5 text-xs font-semibold text-brand-600 hover:underline dark:text-brand-400"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 17-5-5 5-5"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg>Balas</button>`
@@ -661,6 +664,7 @@ const renderComment = (comment, nested = false, parentName = '', rootId = null) 
                     ${replyLabel}
                     <div class="flex flex-wrap items-baseline gap-2">
                         <span class="text-sm font-semibold text-ink">${escapeHTML(comment.user?.name || 'Subscriber')}</span>
+                        ${verifiedBadge}
                         <span class="text-xs text-ink-muted">${escapeHTML(comment.created_at_rel || '')}</span>
                     </div>
                     <p class="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-ink">${formatCommentBody(comment.body)}</p>

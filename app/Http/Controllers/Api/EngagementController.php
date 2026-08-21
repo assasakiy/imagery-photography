@@ -74,9 +74,10 @@ class EngagementController extends Controller
 
         $comments = $target->approvedComments()
             ->whereNull('parent_id')
+            ->with('user.roles')
             ->with(['replies' => fn ($query) => $query
                 ->where('status', 'approved')
-                ->with('user')
+                ->with('user.roles')
                 ->oldest()])
             ->latest()
             ->limit(100)
@@ -198,6 +199,7 @@ class EngagementController extends Controller
                 'name' => $comment->user?->name ?? 'Subscriber',
                 'username' => $comment->user?->username,
                 'avatar' => $comment->user?->avatar(),
+                'verified' => $comment->user?->hasRole(['owner', 'admin']) ?? false,
             ],
             'target' => $target ? [
                 'type' => class_basename($comment->commentable_type),
