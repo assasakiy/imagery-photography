@@ -32,7 +32,7 @@
                 </a>
                 <div class="min-w-0 flex-1">
                     <p class="mb-2 text-sm font-semibold uppercase tracking-widest text-brand-600 dark:text-brand-400">Penulis</p>
-                    <h1 class="section-heading text-ink">@include('partials.official-team-name', ['user' => $author])</h1>
+                    <h1 class="section-heading text-ink">{{ $author->name }}</h1>
                     <p class="mt-1 text-sm font-medium text-ink-muted">&#64;{{ $author->username }}</p>
                     @if ($author->bio)
                         <p class="mt-4 max-w-2xl text-sm leading-relaxed text-ink-muted">{{ $author->bio }}</p>
