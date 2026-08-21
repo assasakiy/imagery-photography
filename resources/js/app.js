@@ -632,19 +632,22 @@ const escapeHTML = (str) => {
     return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 };
 
-const renderComment = (comment, nested = false, parentName = '') => {
+const formatCommentBody = (body) => escapeHTML(body).replace(/(^|\s)(@[\p{L}\p{N}_.-]+)/gu, '$1<span class="font-semibold text-brand-600 dark:text-brand-400">$2</span>');
+
+const renderComment = (comment, nested = false, parentName = '', rootId = null) => {
     const avatarSize = nested ? 'h-8 w-8 text-[10px]' : 'h-10 w-10 text-xs';
     const avatar = comment.user?.avatar
         ? `<img src="${escapeHTML(comment.user.avatar)}" alt="" class="${avatarSize} rounded-full object-cover ring-1 ring-line">`
         : `<span class="flex ${avatarSize} items-center justify-center rounded-full bg-brand-500/15 font-bold text-brand-600 dark:text-brand-400">${escapeHTML((comment.user?.name || '?').charAt(0).toUpperCase())}</span>`;
-    const replyBtn = commentsForm && !nested
-        ? `<button type="button" data-comment-reply="${comment.id}" data-comment-reply-name="${escapeHTML(comment.user?.name || 'Subscriber')}" class="inline-flex items-center gap-1.5 text-xs font-semibold text-brand-600 hover:underline dark:text-brand-400"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 17-5-5 5-5"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg>Balas</button>`
+    const replyTargetId = nested ? rootId : comment.id;
+    const replyBtn = commentsForm
+        ? `<button type="button" data-comment-reply="${replyTargetId}" data-comment-reply-name="${escapeHTML(comment.user?.name || 'Subscriber')}" data-comment-mention="${nested ? '1' : '0'}" class="inline-flex items-center gap-1.5 text-xs font-semibold text-brand-600 hover:underline dark:text-brand-400"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 17-5-5 5-5"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg>Balas</button>`
         : '';
     const deleteBtn = comment.can_delete
         ? `<button type="button" data-comment-delete="${comment.id}" class="text-xs text-ink-muted hover:text-rose-600">Hapus</button>`
         : '';
     const replies = !nested && comment.replies?.length
-        ? `<div class="relative ml-5 mt-4 space-y-3 border-l-2 border-brand-500/20 pl-5 sm:ml-8">${comment.replies.map((reply) => renderComment(reply, true, comment.user?.name || 'Subscriber')).join('')}</div>`
+        ? `<div class="relative ml-5 mt-4 space-y-3 border-l-2 border-brand-500/20 pl-5 sm:ml-8">${comment.replies.map((reply) => renderComment(reply, true, comment.user?.name || 'Subscriber', comment.id)).join('')}</div>`
         : '';
     const replyLabel = nested
         ? `<p class="mb-1 text-[11px] text-ink-muted">Membalas <span class="font-semibold text-brand-600 dark:text-brand-400">${escapeHTML(parentName)}</span></p>`
@@ -660,7 +663,7 @@ const renderComment = (comment, nested = false, parentName = '') => {
                         <span class="text-sm font-semibold text-ink">${escapeHTML(comment.user?.name || 'Subscriber')}</span>
                         <span class="text-xs text-ink-muted">${escapeHTML(comment.created_at_rel || '')}</span>
                     </div>
-                    <p class="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-ink">${escapeHTML(comment.body)}</p>
+                    <p class="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-ink">${formatCommentBody(comment.body)}</p>
                     ${(replyBtn || deleteBtn) ? `<div class="mt-2.5 flex items-center gap-3">${replyBtn}${deleteBtn}</div>` : ''}
                 </div>
             </div>
@@ -701,8 +704,16 @@ if (commentsList) {
             commentsForm.scrollIntoView({ behavior: 'smooth', block: 'center' });
             const body = commentsForm.querySelector('[data-comment-body]');
             if (body) {
-                body.placeholder = `Tulis balasan untuk ${replyBtn.getAttribute('data-comment-reply-name') || 'Subscriber'}…`;
-                setTimeout(() => body.focus(), 300);
+                const targetName = replyBtn.getAttribute('data-comment-reply-name') || 'Subscriber';
+                body.placeholder = `Tulis balasan untuk ${targetName}…`;
+                if (replyBtn.getAttribute('data-comment-mention') === '1') {
+                    const mention = `@${targetName.replace(/\s+/g, '')} `;
+                    if (!body.value.startsWith(mention)) body.value = mention + body.value;
+                }
+                setTimeout(() => {
+                    body.focus();
+                    body.setSelectionRange(body.value.length, body.value.length);
+                }, 300);
             }
             return;
         }
