@@ -186,7 +186,7 @@ class RecycleBinController extends Controller
 
     private function restoreSubscriber(int $id)
     {
-        $user = User::role('subscriber')->withTrashed()->findOrFail($id);
+        $user = User::role('subscriber')->whereDoesntHave('roles', fn ($q) => $q->where('name', 'client'))->withTrashed()->findOrFail($id);
         $name = $user->name;
         $user->restore();
 
@@ -197,7 +197,7 @@ class RecycleBinController extends Controller
 
     private function forceDeleteSubscriber(int $id)
     {
-        $user = User::role('subscriber')->withTrashed()->findOrFail($id);
+        $user = User::role('subscriber')->whereDoesntHave('roles', fn ($q) => $q->where('name', 'client'))->withTrashed()->findOrFail($id);
         $name = $user->name;
         $user->forceDelete();
 
@@ -209,6 +209,7 @@ class RecycleBinController extends Controller
     private function subscriberItems(): array
     {
         $users = User::role('subscriber')
+            ->whereDoesntHave('roles', fn ($q) => $q->where('name', 'client'))
             ->with(['profile', 'deletedBy:id,username', 'deletedBy.profile'])
             ->onlyTrashed()
             ->latest('deleted_at')

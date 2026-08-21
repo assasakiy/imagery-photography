@@ -80,6 +80,7 @@ class SubscriberController extends Controller
         }
 
         $user->update(['status' => 'disabled']);
+        $user->tokens()->delete();
 
         app(AuditLogger::class)->log('subscriber.disabled', 'Subscriber dinonaktifkan: ' . $user->name, $user);
 
@@ -145,6 +146,7 @@ class SubscriberController extends Controller
     public function trashed(Request $request)
     {
         $query = User::role('subscriber')
+            ->whereDoesntHave('roles', fn ($q) => $q->where('name', 'client'))
             ->with(['profile', 'deletedBy:id,username', 'deletedBy.profile'])
             ->onlyTrashed()
             ->latest('deleted_at');

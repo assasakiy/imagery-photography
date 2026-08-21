@@ -192,7 +192,7 @@ class BookingController extends Controller
         if ($authUser && $authUser->status === 'active') {
             $msg = 'Booking diterima! Pesanan Anda telah tercatat di dashboard.';
         } elseif ($authUser) {
-            $msg = 'Booking diterima! Akun Anda telah diperbarui — cek WhatsApp/Email untuk mengaktifkan akun.';
+            $msg = 'Booking diterima! Pesanan Anda telah tercatat. Hubungi kami untuk aktivasi akun.';
         } else {
             $msg = 'Booking diterima! Kami akan menghubungi Anda via WhatsApp segera. Akun klien Anda telah dibuat — cek WhatsApp/Email Anda untuk mengaktifkan akun.';
         }
