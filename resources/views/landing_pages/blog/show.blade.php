@@ -15,7 +15,11 @@
 
         <header class="border-b border-line pb-8">
             @if ($post->categories->isNotEmpty())
-                <a href="{{ route('blog.category', $post->categories->first()->slug) }}" class="chip">{{ $post->categories->first()->name }}</a>
+                <div class="flex flex-wrap gap-2">
+                    @foreach ($post->categories as $category)
+                        <a href="{{ route('blog.category', $category->slug) }}" class="chip">{{ $category->name }}</a>
+                    @endforeach
+                </div>
             @endif
             <h1 class="mt-4 text-3xl font-extrabold leading-tight tracking-tight text-ink md:text-4xl">{{ $post->title }}</h1>
 
@@ -57,37 +61,21 @@
                         {{ $post->views_count }} dilihat
                     </span>
                 @endif
-                @if ($post->tags->isNotEmpty())
-                    <span class="h-1 w-1 rounded-full bg-line"></span>
-                    <span class="flex flex-wrap gap-1.5">
-                        @foreach ($post->tags as $tag)
-                            <a href="{{ route('blog.tag', $tag->slug) }}" class="text-brand-600 hover:underline dark:text-brand-400">#{{ $tag->name }}</a>
-                        @endforeach
-                    </span>
-                @endif
+
             </div>
         </header>
 
         @if ($post->resolveCoverUrl())
-            <div class="mt-8 overflow-hidden rounded-2xl">
-                <img src="{{ $post->medium_url }}" alt="{{ $post->title }}" width="1200" height="571" fetchpriority="high" decoding="async" sizes="(min-width: 1024px) 896px, 100vw" class="aspect-[21/10] w-full object-cover">
-            </div>
+            <button type="button" data-lightbox-trigger data-title="{{ $post->title }}" data-caption="{{ $post->categories->pluck('name')->join(', ') }}" class="mt-8 block w-full cursor-zoom-in overflow-hidden rounded-2xl text-left">
+                <img src="{{ $post->medium_url }}" data-full="{{ $post->resolveCoverUrl() }}" alt="{{ $post->title }}" width="1200" height="571" fetchpriority="high" decoding="async" sizes="(min-width: 1024px) 896px, 100vw" class="aspect-[21/10] w-full object-cover transition duration-300 hover:scale-[1.01]">
+            </button>
         @endif
 
         <div class="rich-content mt-10">
             {!! content_html($post->content) !!}
         </div>
 
-        <div class="mt-10 flex flex-wrap items-center justify-between gap-4 border-t border-line pt-8">
-            <div class="flex flex-wrap items-center gap-2">
-                @foreach ($post->tags as $tag)
-                    <a href="{{ route('blog.tag', $tag->slug) }}" class="chip">#{{ $tag->name }}</a>
-                @endforeach
-            </div>
-
-            @php
-                $shareText = urlencode($post->title . "\n" . route('blog.show', $post->slug));
-            @endphp
+        <div class="mt-10 border-t border-line pt-8">
             <div class="flex flex-wrap items-center gap-2">
                 @auth
                     @php
@@ -95,8 +83,7 @@
                         $canEngage = $authUser->hasRole('subscriber') || $authUser->hasRole('client') || $authUser->hasRole('owner') || $authUser->hasRole('admin');
                     @endphp
                     @if ($canEngage)
-                        <button type="button" data-like-toggle data-id="{{ $post->id }}" data-type="blog"
-                                class="btn-outline {{ $isLiked ? 'border-rose-500/50 bg-rose-500/10 text-rose-600 dark:text-rose-400' : '' }}">
+                        <button type="button" data-like-toggle data-id="{{ $post->id }}" data-type="blog" class="btn-outline {{ $isLiked ? 'border-rose-500/50 bg-rose-500/10 text-rose-600 dark:text-rose-400' : '' }}">
                             <svg data-like-icon xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="{{ $isLiked ? 'currentColor' : 'none' }}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10v12"/><path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z"/></svg>
                             <span data-like-label>{{ $isLiked ? 'Disukai' : 'Suka' }}</span>
                             <span data-like-count class="rounded-full bg-line/60 px-1.5 text-xs">{{ $likesCount }}</span>
@@ -105,8 +92,7 @@
                             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>
                             Komentar <span data-comments-count class="rounded-full bg-line/60 px-1.5 text-xs">{{ $commentsCount }}</span>
                         </button>
-                        <button type="button" data-bookmark-toggle data-id="{{ $post->id }}" data-type="blog"
-                                class="btn-outline {{ $isBookmarked ? 'border-amber-500/50 bg-amber-500/10 text-amber-600 dark:text-amber-400' : '' }}">
+                        <button type="button" data-bookmark-toggle data-id="{{ $post->id }}" data-type="blog" class="btn-outline {{ $isBookmarked ? 'border-amber-500/50 bg-amber-500/10 text-amber-600 dark:text-amber-400' : '' }}">
                             <svg data-bookmark-icon xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="{{ $isBookmarked ? 'currentColor' : 'none' }}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>
                             <span data-bookmark-label>{{ $isBookmarked ? 'Tersimpan' : 'Simpan' }}</span>
                         </button>
@@ -118,10 +104,34 @@
                         Simpan
                     </button>
                 @endguest
-                <a href="https://wa.me/?text={{ $shareText }}" target="_blank" rel="noreferrer" class="btn-outline">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-                    Bagikan via WhatsApp
-                </a>
+            </div>
+
+            @php
+                $shareUrl = urlencode(route('blog.show', $post->slug));
+                $shareTitle = urlencode($post->title);
+                $shareText = urlencode($post->title . "\n" . route('blog.show', $post->slug));
+            @endphp
+            <div class="mt-6 grid gap-5 border-t border-line/70 pt-6 sm:grid-cols-2">
+                @if ($post->tags->isNotEmpty())
+                    <div>
+                        <p class="mb-3 text-xs font-semibold uppercase tracking-widest text-ink-muted">Tag Artikel</p>
+                        <div class="flex flex-wrap gap-2">
+                            @foreach ($post->tags as $tag)
+                                <a href="{{ route('blog.tag', $tag->slug) }}" class="chip">#{{ $tag->name }}</a>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
+                <div class="{{ $post->tags->isEmpty() ? 'sm:col-span-2' : '' }}">
+                    <p class="mb-3 text-xs font-semibold uppercase tracking-widest text-ink-muted">Bagikan Artikel</p>
+                    <div class="flex flex-wrap gap-2">
+                        <a href="https://wa.me/?text={{ $shareText }}" target="_blank" rel="noopener noreferrer" class="btn-outline text-xs">WhatsApp</a>
+                        <a href="https://www.facebook.com/sharer/sharer.php?u={{ $shareUrl }}" target="_blank" rel="noopener noreferrer" class="btn-outline text-xs">Facebook</a>
+                        <a href="https://twitter.com/intent/tweet?text={{ $shareTitle }}&amp;url={{ $shareUrl }}" target="_blank" rel="noopener noreferrer" class="btn-outline text-xs">X</a>
+                        <a href="https://www.linkedin.com/sharing/share-offsite/?url={{ $shareUrl }}" target="_blank" rel="noopener noreferrer" class="btn-outline text-xs">LinkedIn</a>
+                        <a href="https://t.me/share/url?url={{ $shareUrl }}&amp;text={{ $shareTitle }}" target="_blank" rel="noopener noreferrer" class="btn-outline text-xs">Telegram</a>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -191,4 +201,6 @@
             </div>
         </section>
     @endif
+
+    @include('components.lightbox')
 @endsection

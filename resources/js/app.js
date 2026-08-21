@@ -137,6 +137,20 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    document.querySelectorAll('.rich-content img').forEach((img) => {
+        img.classList.add('cursor-zoom-in');
+        img.setAttribute('tabindex', '0');
+        img.setAttribute('role', 'button');
+        const open = () => openLightbox(img);
+        img.addEventListener('click', open);
+        img.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                open();
+            }
+        });
+    });
+
     const closeLightbox = () => {
         if (!lightbox) return;
         lightbox.classList.add('hidden');
