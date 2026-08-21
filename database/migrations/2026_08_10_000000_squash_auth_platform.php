@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
-            $table->string('username')->nullable();
+            $table->string('username', 40)->unique();
             $table->string('email')->unique();
             $table->string('phone', 30)->nullable();
             $table->boolean('notif_inapp')->default(true);

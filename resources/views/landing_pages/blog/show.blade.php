@@ -38,7 +38,7 @@
 
             <div class="mt-5 flex flex-wrap items-center gap-3 text-sm text-ink-muted">
                 @if ($author)
-                    <a href="{{ route('blog.author', $author->id) }}" class="flex items-center gap-2.5">
+                    <a href="{{ route('blog.author', ['username' => $author->username]) }}" class="flex items-center gap-2.5">
                         @if ($authorAvatar)
                             <img src="{{ $authorAvatar }}" alt="{{ $authorName }}" loading="lazy" class="h-9 w-9 rounded-full object-cover ring-1 ring-line">
                         @else

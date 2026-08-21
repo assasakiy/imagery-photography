@@ -86,7 +86,7 @@ export default function ProfileSettings() {
             setUsernameStatus({ checking: false, available: null });
             return;
         }
-        if (!/^[a-zA-Z0-9_]+$/.test(raw)) {
+        if (!/^[a-z0-9_]{3,40}$/.test(raw) || /^\d+$/.test(raw)) {
             setUsernameStatus({ checking: false, available: false });
             return;
         }
@@ -166,7 +166,9 @@ export default function ProfileSettings() {
 
     const saveProfile = async (e) => {
         e.preventDefault();
-        const payload = { ...profile };
+        const username = (profile.username || '').trim().toLowerCase();
+        if (!username || usernameStatus.checking || usernameStatus.available === false) return;
+        const payload = { ...profile, username };
         if (avatarValue !== undefined) payload.avatar = avatarValue;
         const ok = await save(payload, 'Profil diperbarui.');
         if (ok) {
@@ -441,6 +443,7 @@ export default function ProfileSettings() {
                                 </Field>
                                 <Field
                                     label="Username"
+                                    required
                                     hint={
                                         usernameStatus.checking
                                             ? 'Memeriksa…'
@@ -454,9 +457,12 @@ export default function ProfileSettings() {
                                         <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted">@</span>
                                         <input
                                             className={`input pl-7 ${usernameStatus.available === false ? '!border-red-500' : usernameStatus.available === true ? '!border-emerald-500' : ''}`}
-                                            autoComplete="off"
+                                            autoComplete="username"
+                                            minLength={3}
+                                            maxLength={40}
+                                            required
                                             value={profile.username || ''}
-                                            onChange={(e) => setProfile({ ...profile, username: e.target.value })}
+                                            onChange={(e) => setProfile({ ...profile, username: e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '') })}
                                         />
                                         {usernameStatus.available === true && (
                                             <span className="absolute right-3 top-1/2 -translate-y-1/2 text-emerald-500">
@@ -500,7 +506,7 @@ export default function ProfileSettings() {
                                 />
                             </Field>
                             <div className="flex justify-end pt-2">
-                                <button type="submit" className="btn-primary" disabled={saving || !profileDirty}>
+                                <button type="submit" className="btn-primary" disabled={saving || !profileDirty || !profile.username?.trim() || usernameStatus.checking || usernameStatus.available === false}>
                                     <Icon name="check" size={16} /> Simpan Profil
                                 </button>
                             </div>

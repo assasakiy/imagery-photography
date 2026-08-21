@@ -25,9 +25,13 @@ class ProfileController extends Controller
     {
         $user = $request->user();
 
+        if ($request->has('username')) {
+            $request->merge(['username' => strtolower(trim((string) $request->input('username')))]);
+        }
+
         $data = $request->validate([
             'full_name' => 'sometimes|string|max:255',
-            'username' => ['sometimes', 'string', 'max:255', 'regex:/^[a-zA-Z0-9_]+$/', Rule::unique('users', 'username')->ignore($user->id)],
+            'username' => ['required_with:full_name,email,phone,bio,company,occupation,website,avatar,cover', 'string', 'min:3', 'max:40', 'regex:/^[a-z0-9_]+$/', 'not_regex:/^\d+$/', Rule::unique('users', 'username')->ignore($user->id)],
             'email' => ['sometimes', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
             'phone' => 'nullable|string|max:30',
             'bio' => 'nullable|string|max:1000',
@@ -165,12 +169,16 @@ class ProfileController extends Controller
 
     public function checkUsername(Request $request)
     {
+        $request->merge(['username' => strtolower(trim((string) $request->input('username')))]);
+
         $data = $request->validate([
-            'username' => 'required|string|max:255',
+            'username' => ['required', 'string', 'min:3', 'max:40', 'regex:/^[a-z0-9_]+$/', 'not_regex:/^\d+$/'],
         ]);
 
-        $username = trim($data['username']);
-        $available = !\App\Models\User::where('username', $username)->exists();
+        $username = strtolower(trim($data['username']));
+        $available = !\App\Models\User::withTrashed()->where('username', $username)
+            ->whereKeyNot($request->user()->id)
+            ->exists();
 
         return response()->json([
             'username' => $username,

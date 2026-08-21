@@ -153,9 +153,15 @@ class BlogController extends Controller
         return view('landing_pages.blog.show', compact('post', 'related', 'isBookmarked', 'isLiked', 'likesCount', 'commentsCount'));
     }
 
-    public function author(string $identifier)
+    public function author(string $username)
     {
-        $author = User::where('id', (int) $identifier)->firstOrFail();
+        if (ctype_digit($username)) {
+            $legacyAuthor = User::whereKey((int) $username)->firstOrFail();
+
+            return redirect()->route('blog.author', ['username' => $legacyAuthor->username], 301);
+        }
+
+        $author = User::where('username', strtolower($username))->firstOrFail();
 
         $posts = Blog::with(['author', 'categories', 'tags'])->published()
             ->where('author_id', $author->id)

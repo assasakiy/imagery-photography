@@ -22,6 +22,8 @@ class ClientRegistrationService
 
         if (!$user) {
             $user = $this->createUser($data, $role);
+        } elseif (!$user->username) {
+            $user->update(['username' => $this->uniqueUsername(null)]);
         }
 
         return $user;
@@ -37,6 +39,10 @@ class ClientRegistrationService
         if (!$user) {
             $user = $this->createUser($data, $role);
         } else {
+            if (!$user->username) {
+                $user->update(['username' => $this->uniqueUsername(null)]);
+            }
+
             if (!$user->hasRole($role)) {
                 $user->assignRole($role);
             }
@@ -153,14 +159,15 @@ class ClientRegistrationService
 
     private function uniqueUsername(?string $preferred): string
     {
-        $base = $preferred ? Str::lower(preg_replace('/[^a-z0-9_]/', '', $preferred)) : null;
-        if (!$base) {
+        $base = $preferred ? preg_replace('/[^a-z0-9_]/', '', Str::lower(trim($preferred))) : null;
+        $base = $base ? Str::limit($base, 32, '') : null;
+        if (!$base || ctype_digit($base)) {
             $base = 'user' . Str::lower(Str::random(8));
         }
 
         $username = $base;
         $i = 1;
-        while (User::where('username', $username)->exists()) {
+        while (User::withTrashed()->where('username', $username)->exists()) {
             $username = $base . $i;
             $i++;
         }

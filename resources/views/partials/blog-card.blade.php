@@ -49,7 +49,7 @@
 
     <div class="mt-auto flex items-center gap-3 border-t border-line pt-2 text-xs text-ink-muted">
         @if ($author)
-            <a href="{{ route('blog.author', $author->id) }}" class="flex min-w-0 items-center gap-1.5 no-underline transition-colors hover:text-ink">
+            <a href="{{ route('blog.author', ['username' => $author->username]) }}" class="flex min-w-0 items-center gap-1.5 no-underline transition-colors hover:text-ink">
                 @if ($authorAvatar)
                     <img src="{{ $authorAvatar }}" alt="{{ $authorName }}" loading="lazy" class="h-5 w-5 shrink-0 rounded-full object-cover">
                 @else

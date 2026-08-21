@@ -26,7 +26,7 @@
                         <p class="mt-3 max-w-2xl text-sm leading-relaxed text-ink-muted">{{ $author->bio }}</p>
                     @endif
                 </div>
-                <a href="{{ route('blog.author', $author->id) }}" class="flex h-28 w-28 shrink-0 items-center justify-center overflow-hidden rounded-3xl ring-2 ring-line">
+                <a href="{{ route('blog.author', ['username' => $author->username]) }}" class="flex h-28 w-28 shrink-0 items-center justify-center overflow-hidden rounded-3xl ring-2 ring-line">
                     @if ($authorAvatar)
                         <img src="{{ $authorAvatar }}" alt="{{ $author->name }}" class="h-full w-full object-cover">
                     @else
