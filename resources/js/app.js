@@ -650,7 +650,13 @@ const renderComment = (comment, nested = false, parentName = '', rootId = null) 
         ? `<button type="button" data-comment-delete="${comment.id}" class="text-xs text-ink-muted hover:text-rose-600">Hapus</button>`
         : '';
     const replies = !nested && comment.replies?.length
-        ? `<div class="relative ml-5 mt-4 space-y-3 border-l-2 border-brand-500/20 pl-5 sm:ml-8">${comment.replies.map((reply) => renderComment(reply, true, comment.user?.name || 'Subscriber', comment.id)).join('')}</div>`
+        ? `<div class="ml-12 mt-3 sm:ml-14">
+                <button type="button" data-replies-toggle="${comment.id}" aria-expanded="false" class="inline-flex items-center gap-1.5 text-xs font-semibold text-brand-600 hover:underline dark:text-brand-400">
+                    <svg data-replies-chevron xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="transition-transform"><path d="m6 9 6 6 6-6"/></svg>
+                    <span data-replies-label>Lihat ${comment.replies.length} balasan</span>
+                </button>
+                <div data-replies-list="${comment.id}" hidden class="relative mt-3 space-y-3 border-l-2 border-brand-500/20 pl-5">${comment.replies.map((reply) => renderComment(reply, true, comment.user?.name || 'Subscriber', comment.id)).join('')}</div>
+            </div>`
         : '';
     const replyLabel = nested
         ? `<p class="mb-1 text-[11px] text-ink-muted">Membalas <span class="font-semibold text-brand-600 dark:text-brand-400">${escapeHTML(parentName)}</span></p>`
@@ -700,6 +706,20 @@ if (commentsList) {
     loadComments();
 
     commentsList.addEventListener('click', async (e) => {
+        const toggleBtn = e.target.closest('[data-replies-toggle]');
+        if (toggleBtn) {
+            const id = toggleBtn.getAttribute('data-replies-toggle');
+            const list = commentsList.querySelector(`[data-replies-list="${id}"]`);
+            if (!list) return;
+            const opening = list.hidden;
+            list.hidden = !opening;
+            toggleBtn.setAttribute('aria-expanded', opening ? 'true' : 'false');
+            toggleBtn.querySelector('[data-replies-chevron]')?.classList.toggle('rotate-180', opening);
+            const label = toggleBtn.querySelector('[data-replies-label]');
+            if (label) label.textContent = opening ? 'Sembunyikan balasan' : `Lihat ${list.children.length} balasan`;
+            return;
+        }
+
         const replyBtn = e.target.closest('[data-comment-reply]');
         if (replyBtn && commentsForm) {
             replyParentId = Number(replyBtn.getAttribute('data-comment-reply'));
