@@ -161,6 +161,8 @@ class BlogController extends Controller
 
         $posts = Blog::with(['author', 'categories', 'tags'])->published()
             ->where('author_id', $author->id)
+            ->when(trim((string) request('category')), fn ($query, $slug) => $query
+                ->whereHas('categories', fn ($categories) => $categories->where('categories.slug', $slug)))
             ->when(trim((string) request('q')), fn ($query, $q) => $query
                 ->where(fn ($where) => $where
                     ->where('title', 'like', '%' . $q . '%')
@@ -169,7 +171,15 @@ class BlogController extends Controller
             ->paginate(9)
             ->withQueryString();
 
-        $categories = $this->activeCategories();
+        $categories = Category::where('is_system', false)
+            ->whereHas('blogs', fn ($query) => $query
+                ->published()
+                ->where('author_id', $author->id))
+            ->withCount(['blogs' => fn ($query) => $query
+                ->published()
+                ->where('author_id', $author->id)])
+            ->orderBy('name')
+            ->get();
         $tags = BlogTag::withCount('posts')->get();
 
         return view('landing_pages.blog.author', compact('author', 'posts', 'categories', 'tags'));

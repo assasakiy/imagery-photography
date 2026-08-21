@@ -60,6 +60,7 @@
     @include('partials.blog-filters', [
         'activeCategory' => request('category'),
         'searchAction' => $authorUrl,
+        'authorUsername' => $author->username,
     ])
 
     <section class="container-site py-12">
