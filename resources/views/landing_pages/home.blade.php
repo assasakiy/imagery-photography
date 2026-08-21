@@ -31,7 +31,7 @@
 
     {{-- Hero --}}
     <section class="relative flex min-h-[88vh] items-center overflow-hidden">
-        <img src="{{ $heroImage }}" alt="Hero Sopian Lalu Imagery" class="absolute inset-0 h-full w-full object-cover object-center">
+        <img src="{{ $heroImage }}" alt="Hero Sopian Lalu Imagery" width="1600" height="900" fetchpriority="high" decoding="async" class="absolute inset-0 h-full w-full object-cover object-center">
         <div class="absolute inset-0 bg-zinc-950/70 dark:bg-black/70"></div>
 
         <div class="container-site relative py-24">
@@ -69,7 +69,7 @@
         <div class="container-site grid grid-cols-1 items-center gap-12 lg:grid-cols-2">
             <div class="reveal order-2 lg:order-1">
                 <div class="relative overflow-hidden rounded-3xl ring-1 ring-line">
-                    <img src="{{ $aboutImage }}" alt="{{ $homeAboutTitle }}" class="aspect-[4/5] w-full object-cover lg:aspect-square">
+                    <img src="{{ $aboutImage }}" alt="{{ $homeAboutTitle }}" width="1200" height="1200" loading="lazy" decoding="async" class="aspect-[4/5] w-full object-cover lg:aspect-square">
                     <div class="absolute inset-0 bg-gradient-to-t from-zinc-950/30 to-transparent"></div>
                 </div>
             </div>
@@ -109,7 +109,7 @@
                 <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
                     @foreach ($portfolios as $portfolio)
                         <a href="{{ route('gallery.show', $portfolio->slug) }}" class="reveal group relative overflow-hidden rounded-2xl ring-1 ring-line">
-                            <img src="{{ $portfolio->thumbnail_url }}" alt="{{ $portfolio->title }}" loading="lazy" class="aspect-[4/5] w-full object-cover transition-transform duration-500 group-hover:scale-105">
+                            <img src="{{ $portfolio->thumbnail_url }}" alt="{{ $portfolio->title }}" width="800" height="1000" loading="lazy" decoding="async" sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw" class="aspect-[4/5] w-full object-cover transition-transform duration-500 group-hover:scale-105">
                             <div class="absolute inset-0 bg-gradient-to-t from-zinc-950/80 via-zinc-950/10 to-transparent opacity-80 transition-opacity duration-300 group-hover:opacity-100"></div>
                             <div class="absolute inset-x-0 bottom-0 translate-y-2 p-5 opacity-90 transition-transform duration-300 group-hover:translate-y-0">
                                 <p class="text-xs font-semibold uppercase tracking-widest text-brand-300">{{ $portfolio->categories->isNotEmpty() ? $portfolio->categories->pluck('name')->join(', ') : '' }}</p>
@@ -261,7 +261,7 @@
                     @foreach ($blogs as $post)
                         <a href="{{ route('blog.show', $post->slug) }}" class="reveal card group flex flex-col overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-brand-600/10">
                             <div class="aspect-[16/9] overflow-hidden">
-                                <img src="{{ $post->thumbnail_url }}" alt="{{ $post->title }}" loading="lazy" class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105">
+                                <img src="{{ $post->thumbnail_url }}" alt="{{ $post->title }}" width="400" height="250" loading="lazy" decoding="async" sizes="(min-width: 768px) 33vw, 100vw" class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105">
                             </div>
                             <div class="flex flex-1 flex-col p-5">
                                 @if ($post->categories->isNotEmpty())

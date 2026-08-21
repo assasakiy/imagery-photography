@@ -105,7 +105,7 @@ class Blog extends Model implements HasMedia
     {
         try {
             if ($media = $this->coverMedia()) {
-                return $media->getUrl('medium');
+                return $media->getUrl('thumbnail');
             }
         } catch (\Throwable $e) {}
 
