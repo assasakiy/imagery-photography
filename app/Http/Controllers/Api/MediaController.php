@@ -47,13 +47,20 @@ class MediaController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'file' => 'required|file|max:102400|mimes:jpeg,jpg,png,gif,webp,heic,heif,svg+xml,tif,tiff,bmp,mp4,mov,quicktime,pdf,mp3,wav,webm,mkv',
+            'file' => 'required|file|max:102400|mimetypes:image/jpeg,image/png,image/gif,image/webp,image/heic,image/heif,video/mp4,video/quicktime,application/pdf',
             'name' => 'nullable|string|max:255',
         ]);
 
+        $file = $request->file('file');
+        if (! $file || ! $file->isValid()) {
+            return response()->json([
+                'message' => 'File gagal diunggah. Pastikan ukuran file tidak melebihi batas server.',
+            ], 422);
+        }
+
         $library = MediaLibrary::singleton();
-        $media = $library->addMediaFromRequest('file')
-            ->usingFileName($request->file('file')->getClientOriginalName())
+        $media = $library->addMedia($file)
+            ->usingFileName($file->getClientOriginalName())
             ->toMediaCollection('library');
 
         $media->uploaded_by = $request->user()->id;
