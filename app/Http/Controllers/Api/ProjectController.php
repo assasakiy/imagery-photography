@@ -522,7 +522,7 @@ class ProjectController extends Controller
 
         // Bukti mulai/selesai sesi (Spatie collection 'proofs' — record permanen, jalur terpisah).
         $request->validate([
-            'file' => 'required|file|max:512000',
+            'file' => 'required|file|mimes:jpeg,jpg,png,webp,heic,heif|max:20480',
             'gallery_status' => 'nullable|in:preparing,preview_ready,released',
             'stage' => 'nullable|in:start,end',
         ]);
@@ -575,7 +575,7 @@ class ProjectController extends Controller
     {
         $request->validate([
             'files' => 'required|array|min:1',
-            'files.*' => 'required|file|mimes:jpeg,jpg,png,webp|max:512000',
+            'files.*' => 'required|file|mimes:jpeg,jpg,png,webp,tif,tiff,dng,cr2,cr3,nef,arw|max:512000',
         ]);
 
         $created = collect();
@@ -634,8 +634,8 @@ class ProjectController extends Controller
     public function uploadVideo(Request $request, Project $project)
     {
         $data = $request->validate([
-            'preview' => 'required|file|mimes:mp4,webm,mov|max:1024000',
-            'original' => 'required|file|mimes:mp4,webm,mov|max:2048000',
+            'preview' => 'required|file|mimes:mp4,webm,mov,mkv|max:1024000',
+            'original' => 'required|file|mimes:mp4,webm,mov,mkv|max:2048000',
         ]);
 
         $assetKey = (string) Str::uuid();
