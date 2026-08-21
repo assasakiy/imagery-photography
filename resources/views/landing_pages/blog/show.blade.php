@@ -75,6 +75,9 @@
             {!! content_html($post->content) !!}
         </div>
 
+        @php
+            $shareUrl = route('blog.show', $post->slug);
+        @endphp
         <div class="mt-10 border-t border-line pt-8">
             <div class="flex flex-wrap items-center gap-2">
                 @auth
@@ -100,34 +103,29 @@
                 @endauth
                 @guest
                     <button type="button" data-subscribe-open class="btn-outline">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10v12"/><path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z"/></svg>
+                        Suka <span class="rounded-full bg-line/60 px-1.5 text-xs">{{ $likesCount }}</span>
+                    </button>
+                    <button type="button" data-subscribe-open class="btn-outline">
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>
                         Simpan
                     </button>
                 @endguest
+                <button type="button" data-native-share data-share-title="{{ $post->title }}" data-share-text="{{ $post->excerpt ?: $post->title }}" data-share-url="{{ $shareUrl }}" class="btn-outline inline-flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.59 13.51 6.83 3.98M15.41 6.51 8.59 10.49"/></svg>
+                    <span data-share-label>Bagikan</span>
+                </button>
             </div>
-
-            @php
-                $shareUrl = route('blog.show', $post->slug);
-            @endphp
-            <div class="mt-6 grid gap-5 border-t border-line/70 pt-6 sm:grid-cols-2">
-                @if ($post->tags->isNotEmpty())
-                    <div>
-                        <p class="mb-3 text-xs font-semibold uppercase tracking-widest text-ink-muted">Tag Artikel</p>
-                        <div class="flex flex-wrap gap-2">
-                            @foreach ($post->tags as $tag)
-                                <a href="{{ route('blog.tag', $tag->slug) }}" class="chip">#{{ $tag->name }}</a>
-                            @endforeach
-                        </div>
+            @if ($post->tags->isNotEmpty())
+                <div class="mt-6 border-t border-line/70 pt-6">
+                    <p class="mb-3 text-xs font-semibold uppercase tracking-widest text-ink-muted">Tag Artikel</p>
+                    <div class="flex flex-wrap gap-2">
+                        @foreach ($post->tags as $tag)
+                            <a href="{{ route('blog.tag', $tag->slug) }}" class="chip">#{{ $tag->name }}</a>
+                        @endforeach
                     </div>
-                @endif
-                <div class="{{ $post->tags->isEmpty() ? 'sm:col-span-2' : '' }}">
-                    <p class="mb-3 text-xs font-semibold uppercase tracking-widest text-ink-muted">Bagikan Artikel</p>
-                    <button type="button" data-native-share data-share-title="{{ $post->title }}" data-share-text="{{ $post->excerpt ?: $post->title }}" data-share-url="{{ $shareUrl }}" class="btn-outline inline-flex items-center gap-2 text-xs">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.59 13.51 6.83 3.98M15.41 6.51 8.59 10.49"/></svg>
-                        <span data-share-label>Bagikan</span>
-                    </button>
                 </div>
-            </div>
+            @endif
         </div>
 
         @if (auth()->check() && (auth()->user()->hasRole('subscriber') || auth()->user()->hasRole('client') || auth()->user()->hasRole('owner') || auth()->user()->hasRole('admin')))
