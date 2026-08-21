@@ -216,14 +216,11 @@ export default function Portfolio() {
                         icon="images"
                         value={catFilter}
                         onChange={setCatFilter}
-                        options={[
-                            { key: '', label: 'Semua Kategori', icon: 'layers' },
-                            ...categories.map((c) => ({
-                                key: c.id,
-                                label: c.name,
-                                icon: CATEGORY_ICONS[c.slug] || 'check-square',
-                            })),
-                        ]}
+                        options={categories.map((c) => ({
+                            key: c.id,
+                            label: c.name,
+                            icon: CATEGORY_ICONS[c.slug] || 'check-square',
+                        }))}
                     />
                 </div>
             </div>
