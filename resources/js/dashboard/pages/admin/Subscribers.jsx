@@ -132,7 +132,7 @@ export default function Subscribers() {
         <>
             <PageHeader title="Subscriber" subtitle="Kelola pengguna yang berlangganan blog." />
 
-            <div className="mb-5 grid grid-cols-2 gap-3 xl:grid-cols-4">
+            <div className="mb-5 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
                 <div className="card p-4">
                     <p className="text-xs font-medium text-ink-muted">Total</p>
                     <p className="mt-1 text-2xl font-bold text-ink">{Number(stats.total || 0).toLocaleString('id-ID')}</p>
@@ -175,7 +175,6 @@ export default function Subscribers() {
                 </form>
                 <div className="ml-auto flex w-full flex-wrap items-center gap-1.5 md:w-auto">
                     <FilterDropdown title="Filter Status" icon="users" value={statusFilter} onChange={setStatusFilter} options={STATUS_FILTERS} />
-                    <span className="whitespace-nowrap px-2 text-sm text-ink-muted">{meta.total || 0} subscriber</span>
                 </div>
             </div>
 
