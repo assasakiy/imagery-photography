@@ -3,8 +3,10 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import api from '../../../api';
 import Icon from '../../../components/Icon';
 import { useAuth } from '../../../context/AuthContext';
-import { Field, useToast, formatRupiah, formatDate, Modal, EmptyState, Confirm } from '../../../components/ui';
+import { Field, formatRupiah, formatDate, Modal, EmptyState, Confirm } from '../../../components/ui';
 import Skeleton from '../../../components/Skeleton';
+import { toast } from '../../../lib/toast';
+import { getApiErrorMessage } from '../../../lib/errors';
 import { StatusBadge } from './Projects';
 import ScheduledStep from './steps/ScheduledStep';
 import ShootingStep from './steps/ShootingStep';
@@ -120,7 +122,6 @@ export default function ProjectDetail() {
     const thumbRef = useRef(null);
     const videoPreviewRef = useRef(null);
     const videoOriginalRef = useRef(null);
-    const { show, node } = useToast();
 
     const load = () => {
         api.get(`/projects/${id}`).then(({ data }) => setProject(data)).finally(() => setLoading(false));
@@ -207,11 +208,11 @@ export default function ProjectDetail() {
         setSaving(true);
         try {
             await api.post(`/projects/${id}/advance`);
-            show('Alur pesanan dilanjutkan.');
+            toast.success('Alur pesanan dilanjutkan.');
             setStep(null);
             await load();
         } catch (err) {
-            show(err.response?.data?.message || 'Gagal melanjutkan alur.', 'error');
+            toast.error(getApiErrorMessage(err, 'Gagal melanjutkan alur.'));
         } finally {
             setSaving(false);
         }
@@ -222,11 +223,11 @@ export default function ProjectDetail() {
         setSaving(true);
         try {
             await api.patch(`/projects/${id}/archive`);
-            show('Pesanan diarsipkan.');
+            toast.success('Pesanan diarsipkan.');
             setStep(null);
             await load();
         } catch (err) {
-            show(err.response?.data?.message || 'Gagal mengarsipkan.', 'error');
+            toast.error(getApiErrorMessage(err, 'Gagal mengarsipkan.'));
         } finally {
             setSaving(false);
         }
@@ -236,11 +237,11 @@ export default function ProjectDetail() {
         setSaving(true);
         try {
             await api.patch(`/projects/${id}/restore`);
-            show('Pesanan dipulihkan dari arsip.');
+            toast.success('Pesanan dipulihkan dari arsip.');
             setStep(null);
             await load();
         } catch (err) {
-            show(err.response?.data?.message || 'Gagal memulihkan.', 'error');
+            toast.error(getApiErrorMessage(err, 'Gagal memulihkan.'));
         } finally {
             setSaving(false);
         }
@@ -257,10 +258,10 @@ export default function ProjectDetail() {
                 video_total: Number(editForm.video_total) || 0,
                 video_done: Number(editForm.video_done) || 0,
             });
-            show('Progres editing tersimpan.', 'success');
+            toast.success('Progres editing tersimpan.');
             load();
         } catch (err) {
-            show(err.response?.data?.message || 'Gagal menyimpan progres.', 'error');
+            toast.error(getApiErrorMessage(err, 'Gagal menyimpan progres.'));
         } finally {
             setSaving(false);
         }
@@ -270,7 +271,7 @@ export default function ProjectDetail() {
         if (!editNote.trim()) return;
         await api.post(`/projects/${id}/updates`, { message: `Proses editing: ${editNote.trim()}` });
         setEditNote('');
-        show('Pembaruan ditambahkan.');
+        toast.success('Pembaruan ditambahkan.');
         load();
     };
 
@@ -292,10 +293,10 @@ export default function ProjectDetail() {
             if (editNote.trim()) msg += ` — ${editNote.trim()}`;
             await api.post(`/projects/${id}/updates`, { message: msg + '.' });
             setEditNote('');
-            show('Progres & pembaruan disimpan.', 'success');
+            toast.success('Progres & pembaruan disimpan.');
             load();
         } catch (err) {
-            show(err.response?.data?.message || 'Gagal menyimpan.', 'error');
+            toast.error(getApiErrorMessage(err, 'Gagal menyimpan.'));
         } finally {
             setSaving(false);
         }
@@ -310,14 +311,14 @@ export default function ProjectDetail() {
             data.append('file', file);
             if (stage) data.append('stage', stage);
             await api.post(`/projects/${id}/files`, data);
-            show('Foto bukti diunggah.');
+            toast.success('Foto bukti diunggah.');
             load();
         } catch (err) {
             const msg = err.response?.data?.errors?.file?.[0]
                 || err.response?.data?.message
                 || 'Gagal mengunggah file.';
             console.error('[uploadFile]', err.response?.status, err.response?.data);
-            show(msg, 'error');
+            toast.error(msg);
         } finally {
             setUploading(false);
         }
@@ -361,10 +362,10 @@ export default function ProjectDetail() {
             const data = new FormData();
             data.append('file', file);
             await api.post(`/projects/${id}/thumbnail`, data);
-            show('Thumbnail tersimpan.', 'success');
+            toast.success('Thumbnail tersimpan.');
             load();
         } catch (err) {
-            show(err.response?.data?.message || 'Gagal menyimpan thumbnail.', 'error');
+            toast.error(getApiErrorMessage(err, 'Gagal menyimpan thumbnail.'));
         } finally {
             setUploading(false);
         }
@@ -383,10 +384,10 @@ export default function ProjectDetail() {
             setPhotoQueue([]);
             setVideoForm({ preview: null, original: null });
             setUploadOpen(false);
-            show('File final diupload. Tampil di halaman Preview.', 'success');
+            toast.success('File final diupload. Tampil di halaman Preview.');
             load();
         } catch (err) {
-            show(err.response?.data?.message || 'Gagal mengupload.', 'error');
+            toast.error(getApiErrorMessage(err, 'Gagal mengupload.'));
         } finally {
             setUploading(false);
             setUploadProgress(0);
@@ -397,11 +398,11 @@ export default function ProjectDetail() {
         if (!deleteConfirm) return;
         try {
             await api.delete(`/files/${deleteConfirm.id}`);
-            show('File dihapus.', 'success');
+            toast.success('File dihapus.');
             setDeleteConfirm(null);
             load();
         } catch (err) {
-            show(err.response?.data?.message || 'Gagal menghapus file.', 'error');
+            toast.error(getApiErrorMessage(err, 'Gagal menghapus file.'));
             setDeleteConfirm(null);
         }
     };
@@ -413,11 +414,11 @@ export default function ProjectDetail() {
                 enabled: shareForm.enabled,
                 expires_in_days: shareForm.enabled && shareForm.expires_days ? Number(shareForm.expires_days) : null,
             });
-            show(shareForm.enabled ? 'Link akses diaktifkan & dikirim ke klien.' : 'Link akses dinonaktifkan.', 'success');
+            toast.success(shareForm.enabled ? 'Link akses diaktifkan & dikirim ke klien.' : 'Link akses dinonaktifkan.');
             setShareOpen(false);
             load();
         } catch (err) {
-            show(err.response?.data?.message || 'Gagal mengirim link.', 'error');
+            toast.error(getApiErrorMessage(err, 'Gagal mengirim link.'));
         } finally {
             setSharing(false);
         }
@@ -427,10 +428,10 @@ export default function ProjectDetail() {
         setSaving(true);
         try {
             await api.patch(`/redeliveries/${red.id}`, { status, fee: status === 'approved' ? Number(feeMap[red.id] || 0) : undefined });
-            show(status === 'approved' ? 'Permintaan disetujui — link akses dikirim.' : 'Permintaan ditolak.', 'success');
+            toast.success(status === 'approved' ? 'Permintaan disetujui — link akses dikirim.' : 'Permintaan ditolak.');
             load();
         } catch (err) {
-            show(err.response?.data?.message || 'Gagal mengubah permintaan.', 'error');
+            toast.error(getApiErrorMessage(err, 'Gagal mengubah permintaan.'));
         } finally {
             setSaving(false);
         }
@@ -440,12 +441,12 @@ export default function ProjectDetail() {
         setSaving(true);
         try {
             await api.post(`/projects/${id}/redelivery-requests`, { note: rerequestNote });
-            show('Permintaan unduh ulang dikirim.', 'success');
+            toast.success('Permintaan unduh ulang dikirim.');
             setRerequestOpen(false);
             setRerequestNote('');
             load();
         } catch (err) {
-            show(err.response?.data?.message || 'Gagal mengirim permintaan.', 'error');
+            toast.error(getApiErrorMessage(err, 'Gagal mengirim permintaan.'));
         } finally {
             setSaving(false);
         }
@@ -461,11 +462,11 @@ export default function ProjectDetail() {
                 service: project.package?.name || 'Layanan',
                 ...reviewForm,
             });
-            show('Review berhasil dikirim.');
+            toast.success('Review berhasil dikirim.');
             setReviewOpen(false);
             load();
         } catch {
-            show('Gagal mengirim review.', 'error');
+            toast.error('Gagal mengirim review.');
         } finally {
             setSaving(false);
         }
@@ -482,9 +483,9 @@ export default function ProjectDetail() {
     const copyPreviewLink = async () => {
         try {
             await navigator.clipboard.writeText(previewLink);
-            show('Link pratinjau disalin.', 'success');
+            toast.success('Link pratinjau disalin.');
         } catch {
-            show('Gagal menyalin link.', 'error');
+            toast.error('Gagal menyalin link.');
         }
     };
 
@@ -820,8 +821,6 @@ const ctx = {
             </Modal>
 
             <Confirm open={confirmArchive} onClose={() => setConfirmArchive(false)} onConfirm={archive} title="Arsipkan Pesanan?" message="Pesanan akan dipindahkan ke arsip. Klien masih bisa mengajukan permintaan unduh ulang." />
-
-            {node}
         </>
     );
 }

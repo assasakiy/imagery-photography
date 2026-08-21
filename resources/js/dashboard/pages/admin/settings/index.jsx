@@ -2,8 +2,10 @@ import { useEffect, useState } from 'react';
 import api from '../../../api';
 import Icon from '../../../components/Icon';
 import MediaPicker from '../../../components/MediaPicker';
-import { PageHeader, useToast } from '../../../components/ui';
+import { PageHeader } from '../../../components/ui';
 import Skeleton from '../../../components/Skeleton';
+import { toast } from '../../../lib/toast';
+import { getApiErrorMessage } from '../../../lib/errors';
 import BrandingTab from './BrandingTab';
 import IntegrasiTab from './IntegrasiTab';
 import NotificationsTab from './NotificationsTab';
@@ -30,7 +32,6 @@ export default function Settings() {
     const [openTripay, setOpenTripay] = useState(false);
     const [openGoogle, setOpenGoogle] = useState(false);
     const [openManual, setOpenManual] = useState(false);
-    const { show, node } = useToast();
 
     useEffect(() => {
         api.get('/settings')
@@ -67,7 +68,7 @@ export default function Settings() {
         try {
             await api.put('/settings', { [field]: form[field].map((e) => (e.key === key ? { ...e, enabled } : e)) });
         } catch {
-            show('Gagal menyimpan pengaturan event.', 'error');
+            toast.error('Gagal menyimpan pengaturan event.');
         }
     };
 
@@ -101,10 +102,10 @@ export default function Settings() {
             const next = normalize(reload.data);
             setForm(next);
             setBase(pickBase(next));
-            show('Pengaturan disimpan.');
+            toast.success('Pengaturan disimpan.');
         } catch (err) {
             if (err.response?.data?.errors) setErrors(err.response.data.errors);
-            else show('Gagal menyimpan pengaturan.', 'error');
+            else toast.error('Gagal menyimpan pengaturan.');
         } finally {
             setSaving(false);
         }
@@ -115,7 +116,7 @@ export default function Settings() {
             const fields = waFields.filter((f) => f.required);
             const missing = fields.filter((f) => !(waConfig[f.key] ?? '').trim());
             if (missing.length) {
-                show('Lengkapi konfigurasi WhatsApp terlebih dahulu.', 'error');
+                toast.error('Lengkapi konfigurasi WhatsApp terlebih dahulu.');
                 return;
             }
         }
@@ -127,7 +128,7 @@ export default function Settings() {
         if (v && !form.notif_email_enabled) {
             const missing = ['mail_host', 'mail_port'].filter((k) => !(form[k] || '').trim());
             if (missing.length) {
-                show('Lengkapi konfigurasi email (host & port) terlebih dahulu.', 'error');
+                toast.error('Lengkapi konfigurasi email (host & port) terlebih dahulu.');
                 return;
             }
         }
@@ -139,9 +140,9 @@ export default function Settings() {
         setTestingEmail(true);
         try {
             const { data } = await api.post('/settings/test-email');
-            show(data.message || 'Email uji terkirim.');
+            toast.success(data.message || 'Email uji terkirim.');
         } catch (err) {
-            show(err.response?.data?.message || 'Gagal mengirim email uji.', 'error');
+            toast.error(getApiErrorMessage(err, 'Gagal mengirim email uji.'));
         } finally {
             setTestingEmail(false);
         }
@@ -151,9 +152,9 @@ export default function Settings() {
         setTestingWhatsapp(true);
         try {
             const { data } = await api.post('/settings/test-whatsapp');
-            show(data.message || 'WhatsApp uji terkirim.');
+            toast.success(data.message || 'WhatsApp uji terkirim.');
         } catch (err) {
-            show(err.response?.data?.message || 'Gagal mengirim WhatsApp uji.', 'error');
+            toast.error(getApiErrorMessage(err, 'Gagal mengirim WhatsApp uji.'));
         } finally {
             setTestingWhatsapp(false);
         }
@@ -163,9 +164,9 @@ export default function Settings() {
         setTestingTripay(true);
         try {
             const { data } = await api.post('/settings/test-payment-gateway');
-            show(data.message || 'Koneksi sukses.');
+            toast.success(data.message || 'Koneksi sukses.');
         } catch (err) {
-            show(err.response?.data?.message || 'Gagal terhubung ke TriPay.', 'error');
+            toast.error(getApiErrorMessage(err, 'Gagal terhubung ke TriPay.'));
         } finally {
             setTestingTripay(false);
         }
@@ -178,7 +179,7 @@ export default function Settings() {
 
     const toggleGatewayPayment = async (v) => {
         if (v && !meta.payment_gateway_configured) {
-            show('Lengkapi konfigurasi TriPay terlebih dahulu.', 'error');
+            toast.error('Lengkapi konfigurasi TriPay terlebih dahulu.');
             return;
         }
         set('payment_gateway_enabled', v);
@@ -187,7 +188,7 @@ export default function Settings() {
 
     const toggleGoogleAuth = async (v) => {
         if (v && !(form.google_client_id || '').trim()) {
-            show('Lengkapi konfigurasi Google (Client ID) terlebih dahulu.', 'error');
+            toast.error('Lengkapi konfigurasi Google (Client ID) terlebih dahulu.');
             return;
         }
         set('google_auth_enabled', v);
@@ -196,7 +197,7 @@ export default function Settings() {
 
     const toggleWebhookChannel = async (v) => {
         if (v && !webhookUrlsValid()) {
-            show('Tambahkan URL webhook yang valid terlebih dahulu.', 'error');
+            toast.error('Tambahkan URL webhook yang valid terlebih dahulu.');
             return;
         }
         set('notif_webhook_enabled', v);
@@ -215,16 +216,16 @@ export default function Settings() {
         setTestingWebhook(true);
         try {
             const { data } = await api.post('/settings/test-webhook');
-            show(data.message || 'Webhook uji terkirim.');
+            toast.success(data.message || 'Webhook uji terkirim.');
         } catch (err) {
-            show(err.response?.data?.message || 'Gagal menguji webhook.', 'error');
+            toast.error(getApiErrorMessage(err, 'Gagal menguji webhook.'));
         } finally {
             setTestingWebhook(false);
         }
     };
 
     const ctx = {
-        form, meta, errors, saving, set, setChecked, save, dirty, dirtyColor, show,
+        form, meta, errors, saving, set, setChecked, save, dirty, dirtyColor,
         openEmail, setOpenEmail, openWa, setOpenWa,
         openTripay, setOpenTripay, openGoogle, setOpenGoogle, openManual, setOpenManual,
         toggleEmailChannel, toggleWaChannel, toggleEvent,
@@ -282,7 +283,6 @@ export default function Settings() {
                 }}
                 title={mediaFor === 'site_logo' ? 'Pilih Logo' : 'Pilih Favicon'}
             />
-            {node}
         </>
     );
 }

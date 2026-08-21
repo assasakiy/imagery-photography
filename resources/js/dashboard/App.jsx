@@ -59,6 +59,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { BadgeProvider } from './context/BadgeContext';
 import Layout from './components/Layout';
+import ToastViewport from './components/ToastViewport';
 import PageFallback from './components/PageFallback';
 import RouteErrorBoundary from './components/RouteErrorBoundary';
 import { Spinner } from './components/ui';
@@ -215,6 +216,7 @@ export default function App() {
                     <TitleSync />
                     <AppRoutes />
                 </BrowserRouter>
+                <ToastViewport />
             </AuthProvider>
         </ThemeProvider>
     );

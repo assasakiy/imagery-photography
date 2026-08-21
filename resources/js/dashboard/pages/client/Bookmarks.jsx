@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react';
 import api from '../../api';
 import Icon from '../../components/Icon';
-import { PageHeader, EmptyState, useToast, formatDate } from '../../components/ui';
+import { PageHeader, EmptyState, formatDate } from '../../components/ui';
 import Skeleton from '../../components/Skeleton';
+import { toast } from '../../lib/toast';
 
 export default function Bookmarks() {
     const [items, setItems] = useState([]);
     const [loading, setLoading] = useState(true);
-    const { show, node } = useToast();
 
     const load = () => api.get('/bookmarks').then(({ data }) => setItems(data)).finally(() => setLoading(false));
     useEffect(() => { load(); }, []);
@@ -16,7 +16,7 @@ export default function Bookmarks() {
         const item = items.find((i) => i.id === id);
         if (!item) return;
         await api.delete(`/bookmarks/${item.type}/${item.target_id}`);
-        show('Bookmark dihapus.');
+        toast.success('Bookmark dihapus.');
         load();
     };
 
@@ -49,7 +49,6 @@ export default function Bookmarks() {
             ) : (
                 <EmptyState title="Belum ada bookmark" message="Simpan artikel, galeri, atau paket favorit Anda." icon="heart" />
             )}
-            {node}
         </>
     );
 }

@@ -2,8 +2,9 @@ import { useEffect, useState, useRef } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import api from '../../api';
 import Icon from '../../components/Icon';
-import { PageHeader, useToast, formatDate, Confirm } from '../../components/ui';
+import { PageHeader, formatDate, Confirm } from '../../components/ui';
 import Skeleton from '../../components/Skeleton';
+import { toast } from '../../lib/toast';
 
 export default function ClientMessages() {
     const [searchParams] = useSearchParams();
@@ -18,7 +19,6 @@ export default function ClientMessages() {
     const [showEmoji, setShowEmoji] = useState(false);
     const [sending, setSending] = useState(false);
     const [confirmDeleteId, setConfirmDeleteId] = useState(null);
-    const { show, node } = useToast();
     const scrollRef = useRef(null);
     const fileInputRef = useRef(null);
 
@@ -58,7 +58,7 @@ export default function ClientMessages() {
             if (fileInputRef.current) fileInputRef.current.value = '';
             load();
         } catch {
-            show('Gagal mengirim pesan.', 'error');
+            toast.error('Gagal mengirim pesan.');
         } finally {
             setSending(false);
         }
@@ -69,9 +69,9 @@ export default function ClientMessages() {
         try {
             await api.delete(`/customer/messages/${id}`);
             setItems(items.filter(i => i.id !== id));
-            show('Pesan dihapus.', 'success');
+            toast.success('Pesan dihapus.');
         } catch {
-            show('Gagal menghapus pesan.', 'error');
+            toast.error('Gagal menghapus pesan.');
         }
     };
 
@@ -216,8 +216,6 @@ export default function ClientMessages() {
             </div>
 
             <Confirm open={!!confirmDeleteId} onClose={() => setConfirmDeleteId(null)} onConfirm={() => handleDelete(confirmDeleteId)} title="Hapus Pesan?" message="Pesan ini akan dihapus secara permanen." />
-
-            {node}
         </div>
     );
 }

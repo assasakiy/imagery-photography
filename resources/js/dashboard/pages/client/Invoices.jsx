@@ -3,8 +3,9 @@ import { Link } from 'react-router-dom';
 import api from '../../api';
 import Icon from '../../components/Icon';
 import PaymentModal from '../../components/PaymentModal';
-import { PageHeader, Spinner, EmptyState, useToast, formatRupiah, formatDate } from '../../components/ui';
+import { PageHeader, Spinner, EmptyState, formatRupiah, formatDate } from '../../components/ui';
 import Skeleton from '../../components/Skeleton';
+import { toast } from '../../lib/toast';
 
 const STATUS_META = {
     unpaid: { label: 'Belum Bayar', cls: 'bg-red-500/15 text-red-600 dark:text-red-400' },
@@ -19,7 +20,6 @@ export default function ClientInvoices() {
     const [selected, setSelected] = useState(null);
     const [payments, setPayments] = useState([]);
     const [paymentsLoading, setPaymentsLoading] = useState(false);
-    const { show, node } = useToast();
 
     useEffect(() => {
         api.get('/customer/invoices')
@@ -172,7 +172,6 @@ export default function ClientInvoices() {
             </div>
             </>
             )}
-            {node}
         </>
     );
 }

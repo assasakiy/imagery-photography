@@ -1,8 +1,10 @@
 import { useEffect, useState, useRef } from 'react';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import api from '../../api';
+import { toast } from '../../lib/toast';
+import { getApiErrorMessage } from '../../lib/errors';
 import Icon from '../../components/Icon';
-import { Spinner, EmptyState, Confirm, useToast, formatDate } from '../../components/ui';
+import { Spinner, EmptyState, Confirm, formatDate } from '../../components/ui';
 
 export default function Messages() {
     const { id: paramId } = useParams();
@@ -24,7 +26,6 @@ export default function Messages() {
     const [showEmoji, setShowEmoji] = useState(false);
     const [sending, setSending] = useState(false);
     
-    const { show, node } = useToast();
     const scrollRef = useRef(null);
     const fileInputRef = useRef(null);
 
@@ -64,7 +65,7 @@ export default function Messages() {
             // Perbarui daftar di kiri agar tanda "unread" hilang
             setItems(items.map(item => item.id === conv.id ? { ...item, read_at: item.read_at || new Date().toISOString() } : item));
         } catch (err) {
-            show('Gagal memuat percakapan.', 'error');
+            toast.error(getApiErrorMessage(err, 'Gagal memuat percakapan.'));
         } finally {
             setLoadingThread(false);
         }
@@ -97,7 +98,7 @@ export default function Messages() {
             }, 100);
             load(meta.current_page); // segarkan list kiri
         } catch (err) {
-            show('Gagal mengirim balasan.', 'error');
+            toast.error(getApiErrorMessage(err, 'Gagal mengirim balasan.'));
         } finally {
             setSending(false);
         }
@@ -105,7 +106,7 @@ export default function Messages() {
 
     const handleDelete = async () => {
         await api.delete(`/messages/${deleting.id}`);
-        show('Pesan dihapus.');
+        toast.success('Pesan dihapus.');
         setDeleting(null);
         if (selectedConv?.id === deleting.id) {
             setSelectedConv(null);
@@ -352,7 +353,6 @@ export default function Messages() {
             </div>
 
             <Confirm open={!!deleting} onClose={() => setDeleting(null)} onConfirm={handleDelete} />
-            {node}
         </div>
     );
 }

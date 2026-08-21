@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import api from '../../api';
 import Icon from '../../components/Icon';
-import { PageHeader, EmptyState, Modal, Field, useToast, formatDate, formatRupiah, formatTime, formatTimeInput } from '../../components/ui';
+import { PageHeader, EmptyState, Modal, Field, formatDate, formatRupiah, formatTime, formatTimeInput } from '../../components/ui';
 import Skeleton from '../../components/Skeleton';
+import { toast } from '../../lib/toast';
 
 const STATUS_META = {
     pending: { label: 'Menunggu', cls: 'bg-amber-500/15 text-amber-600 dark:text-amber-400' },
@@ -48,8 +49,6 @@ export default function Bookings() {
         api.get('/services').then(({ data }) => setServices(data));
     }, []);
 
-    const { show, node } = useToast();
-
     const load = (page = 1, search = debounced) => {
         setLoading(true);
         api.get('/bookings', { params: { page, per_page: 15, status, q: search || undefined } })
@@ -74,7 +73,7 @@ export default function Bookings() {
             const { data } = await api.get(`/bookings/${item.id}`);
             setDetail(data);
         } catch {
-            show('Gagal memuat booking.', 'error');
+            toast.error('Gagal memuat booking.');
         }
     };
 
@@ -84,7 +83,7 @@ export default function Bookings() {
         setErrors({});
         try {
             const { data } = await api.put(`/bookings/${detail.id}`, form);
-            show('Booking diperbarui.');
+            toast.success('Booking diperbarui.');
             setDetail(data);
             setEditing(false);
             load(meta.current_page);
@@ -100,12 +99,12 @@ export default function Bookings() {
         setSaving(true);
         try {
             await api.post(`/bookings/${detail.id}/reject`, { reason: rejectReason });
-            show('Booking ditolak.');
+            toast.success('Booking ditolak.');
             setRejectOpen(false);
             setDetail(null);
             load(meta.current_page);
         } catch {
-            show('Gagal menolak booking.', 'error');
+            toast.error('Gagal menolak booking.');
         } finally {
             setSaving(false);
         }
@@ -116,11 +115,11 @@ export default function Bookings() {
         setSaving(true);
         try {
             const { data } = await api.post(`/bookings/${detail.id}/confirm`);
-            show('Booking dikonfirmasi.');
+            toast.success('Booking dikonfirmasi.');
             setDetail(data);
             load(meta.current_page);
         } catch {
-            show('Gagal mengkonfirmasi booking.', 'error');
+            toast.error('Gagal mengkonfirmasi booking.');
         } finally {
             setSaving(false);
         }
@@ -143,7 +142,7 @@ export default function Bookings() {
         delete payload.service_ids;
         try {
             const { data } = await api.post(`/bookings/${detail.id}/accept`, payload);
-            show('Booking diterima & proyek dibuat.');
+            toast.success('Booking diterima & proyek dibuat.');
             setAcceptOpen(false);
             setDetail(null);
             load(meta.current_page);
@@ -461,7 +460,6 @@ export default function Bookings() {
                 </form>
                 <p className="mt-3 text-xs text-ink-muted">Aksi ini akan membuat Proyek (dan Invoice bila DP diisi). Booking akan masuk ke histori.</p>
             </Modal>
-            {node}
         </>
     );
 }

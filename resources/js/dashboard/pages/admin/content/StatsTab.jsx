@@ -1,8 +1,9 @@
 import { useEffect, useImperativeHandle, useState } from 'react';
 import api from '../../../api';
 import Icon from '../../../components/Icon';
-import { EmptyState, Modal, Confirm, Field, useToast } from '../../../components/ui';
+import { EmptyState, Modal, Confirm, Field } from '../../../components/ui';
 import Skeleton from '../../../components/Skeleton';
+import { toast } from '../../../lib/toast';
 
 const emptyForm = { label: '', value: '', suffix: '', order: 0, source: 'manual', metric: '' };
 
@@ -29,7 +30,6 @@ export default function StatsTab({ ref }) {
     const [saving, setSaving] = useState(false);
     const [deleting, setDeleting] = useState(null);
     const [previewValue, setPreviewValue] = useState(null);
-    const { show, node } = useToast();
 
     const load = () => {
         setLoading(true);
@@ -89,10 +89,10 @@ export default function StatsTab({ ref }) {
         try {
             if (editing) {
                 await api.put(`/stats/${editing.id}`, payload);
-                show('Stat diperbarui.');
+                toast.success('Stat diperbarui.');
             } else {
                 await api.post('/stats', payload);
-                show('Stat ditambahkan.');
+                toast.success('Stat ditambahkan.');
             }
             load();
             setOpen(false);
@@ -105,7 +105,7 @@ export default function StatsTab({ ref }) {
 
     const handleDelete = async () => {
         await api.delete(`/stats/${deleting.id}`);
-        show('Stat dihapus.');
+        toast.success('Stat dihapus.');
         setDeleting(null);
         load();
     };
@@ -245,7 +245,6 @@ export default function StatsTab({ ref }) {
             </Modal>
 
             <Confirm open={!!deleting} onClose={() => setDeleting(null)} onConfirm={handleDelete} />
-            {node}
         </>
     );
 }

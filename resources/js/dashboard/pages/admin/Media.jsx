@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import api from '../../api';
+import { toast } from '../../lib/toast';
+import { getApiErrorMessage } from '../../lib/errors';
 import Icon from '../../components/Icon';
-import { PageHeader, EmptyState, Confirm, useToast, Modal, ButtonSpinner } from '../../components/ui';
+import { PageHeader, EmptyState, Confirm, Modal, ButtonSpinner } from '../../components/ui';
 import Skeleton from '../../components/Skeleton';
 import MediaViewModal from '../../components/MediaViewModal';
 import MediaEditModal from '../../components/MediaEditModal';
@@ -29,7 +31,6 @@ export default function Media() {
     const [selected, setSelected] = useState(new Set());
     const [bulkConfirm, setBulkConfirm] = useState(false);
     const fileRef = useRef(null);
-    const { show, node } = useToast();
 
     const load = (page = 1) => {
         setLoading(true);
@@ -79,12 +80,11 @@ export default function Media() {
             const data = new FormData();
             data.append('file', file);
             await api.post('/media', data);
-            show('File diupload.');
+            toast.success('File diupload.');
             setUploadOpen(false);
             load(1);
         } catch (e) {
-            const msg = e?.response?.data?.message || 'Gagal upload file.';
-            show(msg, 'error');
+            toast.error(getApiErrorMessage(e, 'Gagal upload file.'));
         } finally {
             setUploading(false);
         }
@@ -93,15 +93,15 @@ export default function Media() {
     const copyUrl = async (url) => {
         try {
             await navigator.clipboard.writeText(url);
-            show('URL disalin.');
+            toast.success('URL disalin.');
         } catch {
-            show('Gagal menyalin URL.', 'error');
+            toast.error('Gagal menyalin URL.');
         }
     };
 
     const handleDelete = async () => {
         await api.delete(`/media/${deleting.id}`);
-        show('File dihapus.');
+        toast.success('File dihapus.');
         setDeleting(null);
         load(meta.current_page);
     };
@@ -109,11 +109,11 @@ export default function Media() {
     const handleBulkDelete = async () => {
         try {
             const res = await api.delete('/media/bulk', { data: { ids: [...selected] } });
-            show(`${res.data.deleted} file dihapus.`);
+            toast.success(`${res.data.deleted} file dihapus.`);
             cancelSelect();
             load(meta.current_page);
         } catch (e) {
-            show('Gagal menghapus file.', 'error');
+            toast.error(getApiErrorMessage(e, 'Gagal menghapus file.'));
         } finally {
             setBulkConfirm(false);
         }
@@ -372,7 +372,6 @@ export default function Media() {
 
             <MediaViewModal open={!!viewing} item={viewing} onClose={() => setViewing(null)} onEdit={(item) => setEditing(item)} onCopyUrl={copyUrl} />
             <MediaEditModal open={!!editing} item={editing} onClose={() => setEditing(null)} onSaved={handleSaved} />
-            {node}
         </>
     );
 }

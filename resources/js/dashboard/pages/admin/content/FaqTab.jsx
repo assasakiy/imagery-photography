@@ -3,8 +3,9 @@ import api from '../../../api';
 import Icon from '../../../components/Icon';
 import SearchableMultiSelect from '../../../components/SearchableMultiSelect';
 import RichEditor from '../../../components/RichEditor';
-import { EmptyState, Modal, Confirm, Field, useToast } from '../../../components/ui';
+import { EmptyState, Modal, Confirm, Field } from '../../../components/ui';
 import Skeleton from '../../../components/Skeleton';
+import { toast } from '../../../lib/toast';
 
 const emptyForm = { question: '', answer: '', order: 0, category_ids: [] };
 
@@ -18,7 +19,6 @@ export default function FaqTab({ ref }) {
     const [errors, setErrors] = useState({});
     const [saving, setSaving] = useState(false);
     const [deleting, setDeleting] = useState(null);
-    const { show, node } = useToast();
 
     const load = () => {
         setLoading(true);
@@ -61,10 +61,10 @@ export default function FaqTab({ ref }) {
         try {
             if (editing) {
                 await api.put(`/faqs/${editing.id}`, form);
-                show('FAQ diperbarui.');
+                toast.success('FAQ diperbarui.');
             } else {
                 await api.post('/faqs', form);
-                show('FAQ ditambahkan.');
+                toast.success('FAQ ditambahkan.');
             }
             load();
             setOpen(false);
@@ -77,7 +77,7 @@ export default function FaqTab({ ref }) {
 
     const handleDelete = async () => {
         await api.delete(`/faqs/${deleting.id}`);
-        show('FAQ dihapus.');
+        toast.success('FAQ dihapus.');
         setDeleting(null);
         load();
     };
@@ -145,7 +145,6 @@ export default function FaqTab({ ref }) {
             </Modal>
 
             <Confirm open={!!deleting} onClose={() => setDeleting(null)} onConfirm={handleDelete} />
-            {node}
         </>
     );
 }

@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import Icon from './Icon';
 
 export function Spinner({ className = 'h-8 w-8 text-brand-600' }) {
@@ -108,30 +107,6 @@ export function Field({ label, required, hint, error, children }) {
             {error && <p className="mt-1 text-xs text-red-500">{error}</p>}
         </div>
     );
-}
-
-export function useToast() {
-    const [toast, setToast] = useState(null);
-
-    const show = (message, type = 'success') => {
-        setToast({ message, type });
-        setTimeout(() => setToast(null), 4000);
-    };
-
-    const node = toast && (
-        <div className="fixed bottom-4 right-4 z-[60]">
-            <div
-                className={`flex items-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold text-white shadow-xl ${
-                    toast.type === 'error' ? 'bg-red-600' : 'bg-emerald-600'
-                }`}
-            >
-                <Icon name={toast.type === 'error' ? 'alert-triangle' : 'check'} size={18} />
-                {toast.message}
-            </div>
-        </div>
-    );
-
-    return { toast, show, node };
 }
 
 export function formatRupiah(value) {

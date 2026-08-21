@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import api from '../../api';
+import { toast } from '../../lib/toast';
 import Icon from '../../components/Icon';
-import { PageHeader, EmptyState, Modal, Confirm, Field, useToast } from '../../components/ui';
+import { PageHeader, EmptyState, Modal, Confirm, Field } from '../../components/ui';
 import Skeleton from '../../components/Skeleton';
 
 const emptyForm = { name: '', description: '' };
@@ -15,7 +16,6 @@ export default function Categories() {
     const [errors, setErrors] = useState({});
     const [saving, setSaving] = useState(false);
     const [deleting, setDeleting] = useState(null);
-    const { show, node } = useToast();
 
     const load = () => {
         setLoading(true);
@@ -47,10 +47,10 @@ export default function Categories() {
         try {
             if (editing) {
                 await api.put(`/categories/${editing.id}`, form);
-                show('Kategori diperbarui.');
+                toast.success('Kategori diperbarui.');
             } else {
                 await api.post('/categories', form);
-                show('Kategori ditambahkan.');
+                toast.success('Kategori ditambahkan.');
             }
             load();
             setOpen(false);
@@ -63,7 +63,7 @@ export default function Categories() {
 
     const handleDelete = async () => {
         await api.delete(`/categories/${deleting.id}`);
-        show('Kategori dihapus.');
+        toast.success('Kategori dihapus.');
         setDeleting(null);
         load();
     };
@@ -143,7 +143,6 @@ export default function Categories() {
             </Modal>
 
             <Confirm open={!!deleting} onClose={() => setDeleting(null)} onConfirm={handleDelete} />
-            {node}
         </>
     );
 }

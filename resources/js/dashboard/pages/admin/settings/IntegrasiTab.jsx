@@ -3,7 +3,8 @@ import jsQR from 'jsqr';
 import Icon from '../../../components/Icon';
 import Button from '../../../components/Button';
 import Toggle from '../../../components/Toggle';
-import { Field, useToast } from '../../../components/ui';
+import { Field } from '../../../components/ui';
+import { toast } from '../../../lib/toast';
 import { SMTP_FIELDS, WA_FIELDS, TRIPAY_FIELDS, GOOGLE_FIELDS, MASK, POPULAR_BANKS, POPULAR_WALLETS, QRIS_PROVIDERS } from './constants';
 import { validateQris } from '../../../utils/qris';
 
@@ -176,7 +177,7 @@ function QrisRow({ acc, onAcc, onRemove, onScanStart }) {
                 if (code && code.data) {
                     onAcc({ ...acc, qris: code.data.trim() });
                 } else {
-                    show('Gagal mendeteksi kode QR dari gambar.', 'error');
+                    toast.error('Gagal mendeteksi kode QR dari gambar.');
                 }
                 onScanStart(false);
             };
@@ -300,7 +301,6 @@ export default function IntegrasiTab({
     const [scanning, setScanning] = useState(false);
     const [groups, setGroups] = useState([]);
     const [openWebhook, setOpenWebhook] = useState(false);
-    const { show, node: toastNode } = useToast();
 
     const inferType = (label) => {
         const lbl = (label || '').toLowerCase();
@@ -809,7 +809,6 @@ export default function IntegrasiTab({
                 )}
             </div>
         </div>
-        {toastNode}
         </>
     );
 }

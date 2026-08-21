@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
 import api from '../../api';
+import { toast } from '../../lib/toast';
+import { getApiErrorMessage } from '../../lib/errors';
 import Icon from '../../components/Icon';
 import MediaPicker from '../../components/MediaPicker';
-import { PageHeader, EmptyState, Modal, Confirm, Field, useToast, formatDate } from '../../components/ui';
+import { PageHeader, EmptyState, Modal, Confirm, Field, formatDate } from '../../components/ui';
 import { SkeletonCard, SkeletonGrid } from '../../components/ui/skeleton';
 import SearchableMultiSelect from '../../components/SearchableMultiSelect';
 import CustomSelect from '../../components/CustomSelect';
@@ -35,7 +37,6 @@ export default function Portfolio() {
     const [preview, setPreview] = useState('');
     const [mediaOpen, setMediaOpen] = useState(false);
     const [viewing, setViewing] = useState(null);
-    const { show, node } = useToast();
 
     const load = (page = 1) => {
         setLoading(true);
@@ -127,17 +128,17 @@ export default function Portfolio() {
 
             if (editing) {
                 await api.post(`/portfolios/${editing.id}?_method=PUT`, data);
-                show('Portofolio diperbarui.');
+                toast.success('Portofolio diperbarui.');
             } else {
                 await api.post('/portfolios', data);
-                show('Portofolio ditambahkan.');
+                toast.success('Portofolio ditambahkan.');
             }
             load(meta.current_page);
             setEditing(null);
             setOpen(false);
         } catch (err) {
             if (err.response?.data?.errors) setErrors(err.response.data.errors);
-            else show('Gagal menyimpan portofolio.', 'error');
+            else toast.error(getApiErrorMessage(err, 'Gagal menyimpan portofolio.'));
         } finally {
             setSaving(false);
         }
@@ -145,7 +146,7 @@ export default function Portfolio() {
 
     const handleDelete = async () => {
         await api.delete(`/portfolios/${deleting.id}`);
-        show('Portofolio dipindah ke Recycle Bin.');
+        toast.success('Portofolio dipindah ke Recycle Bin.');
         setDeleting(null);
         load(meta.current_page);
     };
@@ -360,7 +361,6 @@ export default function Portfolio() {
 
             <Confirm open={!!deleting} onClose={() => setDeleting(null)} onConfirm={handleDelete} title="Hapus portofolio?" message="Karya ini dipindah ke Recycle Bin dan bisa dipulihkan." />
             <MediaPicker open={mediaOpen} onClose={() => setMediaOpen(false)} onSelect={onMediaSelect} />
-            {node}
         </>
     );
 }

@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
 import api from '../api';
 import Icon from './Icon';
-import { Modal, Field, ButtonSpinner, useToast } from './ui';
+import { Modal, Field, ButtonSpinner } from './ui';
+import { toast } from '../lib/toast';
+import { getApiErrorMessage } from '../lib/errors';
 
 export default function MediaEditModal({ open, item, onClose, onSaved }) {
     const [name, setName] = useState('');
     const [saving, setSaving] = useState(false);
-    const { show, node } = useToast();
 
     useEffect(() => {
         if (item) setName(item.name || '');
@@ -19,11 +20,11 @@ export default function MediaEditModal({ open, item, onClose, onSaved }) {
         setSaving(true);
         try {
             const { data } = await api.put(`/media/${item.id}`, { name: name.trim() });
-            show('Nama media diperbarui.');
+            toast.success('Nama media diperbarui.');
             onSaved?.(data);
             onClose();
         } catch (e) {
-            show(e?.response?.data?.message || 'Gagal memperbarui nama.', 'error');
+            toast.error(getApiErrorMessage(e, 'Gagal memperbarui nama.'));
         } finally {
             setSaving(false);
         }
@@ -43,7 +44,6 @@ export default function MediaEditModal({ open, item, onClose, onSaved }) {
 
     return (
         <Modal open={open} onClose={onClose} title="Edit Media" footer={footer}>
-            {node}
             <div className="space-y-4">
                 <div className="flex items-center gap-3 rounded-xl border border-line bg-surface-muted p-3">
                     {item.type === 'image' ? (

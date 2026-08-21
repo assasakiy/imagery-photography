@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import api from '../../api';
+import { toast } from '../../lib/toast';
 import Icon from '../../components/Icon';
-import { PageHeader, EmptyState, useToast, formatRupiah, formatDate } from '../../components/ui';
+import { PageHeader, EmptyState, formatRupiah, formatDate } from '../../components/ui';
 import Skeleton from '../../components/Skeleton';
 
 export default function Payments() {
@@ -10,7 +11,6 @@ export default function Payments() {
     const [status, setStatus] = useState('');
     const [loading, setLoading] = useState(true);
     const [acting, setActing] = useState(null);
-    const { show, node } = useToast();
 
     const load = (page = 1) => {
         setLoading(true);
@@ -30,7 +30,7 @@ export default function Payments() {
         setActing(payment.id);
         try {
             await api.patch(`/payments/${payment.id}/${action}`);
-            show(action === 'confirm' ? 'Pembayaran dikonfirmasi.' : 'Pembayaran ditolak.');
+            toast.success(action === 'confirm' ? 'Pembayaran dikonfirmasi.' : 'Pembayaran ditolak.');
             load(meta.current_page);
         } finally {
             setActing(null);
@@ -131,7 +131,6 @@ export default function Payments() {
             ) : (
                 <EmptyState title="Belum ada pembayaran" />
             )}
-            {node}
         </>
     );
 }

@@ -4,7 +4,8 @@ import api from '../../../api';
 import Icon from '../../../components/Icon';
 import MediaPicker from '../../../components/MediaPicker';
 import RichEditor from '../../../components/RichEditor';
-import { PageHeader, Field, ButtonSpinner, useToast } from '../../../components/ui';
+import { PageHeader, Field, ButtonSpinner } from '../../../components/ui';
+import { toast } from '../../../lib/toast';
 import { normalizeBlogSections, normalizeGallerySections, normalizeSections } from './sections/normalize';
 import BlogGallerySections from './sections/BlogGallerySections';
 import BookingSections from './sections/BookingSections';
@@ -35,7 +36,6 @@ export default function Editor() {
     }, [form]);
     const [options, setOptions] = useState(null);
     const [blogCounts, setBlogCounts] = useState(null);
-    const { show, node } = useToast();
 
     const updateSection = (sectionType, field, val) => {
         setForm((prev) => {
@@ -213,7 +213,7 @@ export default function Editor() {
                 setForm(initialForm);
             })
             .catch(() => {
-                show('Halaman tidak ditemukan', 'error');
+                toast.error('Halaman tidak ditemukan');
                 navigate('/dashboard/pages');
             })
             .finally(() => setLoading(false));
@@ -361,11 +361,11 @@ export default function Editor() {
                 await api.put(`/pages/${form.slug}`, payload);
             }
 
-            show('Halaman diperbarui.');
+            toast.success('Halaman diperbarui.');
             navigate('/dashboard/pages');
         } catch (err) {
             if (err.response?.data?.errors) setErrors(err.response.data.errors);
-            else show('Gagal menyimpan.', 'error');
+            else toast.error('Gagal menyimpan.');
         } finally {
             setSaving(false);
         }
@@ -485,7 +485,6 @@ export default function Editor() {
                 }}
                 title="Pilih Gambar"
             />
-            {node}
         </>
     );
 }

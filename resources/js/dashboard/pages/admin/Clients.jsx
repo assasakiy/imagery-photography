@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 import api from '../../api';
+import { toast } from '../../lib/toast';
 import Icon from '../../components/Icon';
 import MediaPicker from '../../components/MediaPicker';
 import UserDetailModal from '../../components/UserDetailModal';
 import PresenceBadge from '../../components/PresenceBadge';
-import { PageHeader, EmptyState, Modal, Confirm, Field, useToast, formatDate } from '../../components/ui';
+import { PageHeader, EmptyState, Modal, Confirm, Field, formatDate } from '../../components/ui';
 import Skeleton from '../../components/Skeleton';
 
 const emptyForm = { name: '', username: '', email: '', phone: '', company: '', occupation: '', bio: '', status: 'pending', avatar: undefined };
@@ -27,7 +28,6 @@ export default function Clients() {
     const [deleteReason, setDeleteReason] = useState('');
     const [avatarUrl, setAvatarUrl] = useState(null);
     const [mediaOpen, setMediaOpen] = useState(false);
-    const { show, node } = useToast();
 
     const openDetail = async (item) => {
         setCredLoading(true);
@@ -35,7 +35,7 @@ export default function Clients() {
             const { data } = await api.get(`/clients/${item.id}/credentials`);
             setDetail(data);
         } catch {
-            show('Gagal memuat detail.', 'error');
+            toast.error('Gagal memuat detail.');
         } finally {
             setCredLoading(false);
         }
@@ -46,11 +46,11 @@ export default function Clients() {
         setIssuing(purpose);
         try {
             const { data } = await api.post(`/clients/${detail.id}/token/${purpose}`, { send });
-            show(purpose === 'invite' ? 'Undangan dibuat & dikirim.' : 'Tautan dibuat' + (send ? ' & dikirim.' : '.'));
+            toast.success(purpose === 'invite' ? 'Undangan dibuat & dikirim.' : 'Tautan dibuat' + (send ? ' & dikirim.' : '.'));
             openDetail({ id: detail.id });
             return data;
         } catch {
-            show('Gagal membuat tautan.', 'error');
+            toast.error('Gagal membuat tautan.');
         } finally {
             setIssuing(null);
         }
@@ -58,7 +58,7 @@ export default function Clients() {
 
     const confirmDelete = async () => {
         await api.post(`/clients/${deleteTarget.id}/soft-delete`, { reason: deleteReason });
-        show('Klien dipindah ke Recycle Bin.');
+        toast.success('Klien dipindah ke Recycle Bin.');
         setDeleteTarget(null);
         setDeleteReason('');
         setDetail(null);
@@ -118,12 +118,12 @@ export default function Clients() {
         try {
             if (editing) {
                 await api.put(`/clients/${editing.id}`, form);
-                show('Klien diperbarui.');
+                toast.success('Klien diperbarui.');
                 load(meta.current_page);
                 setOpen(false);
             } else {
                 const { data } = await api.post('/clients', form);
-                show('Klien ditambahkan.');
+                toast.success('Klien ditambahkan.');
                 load(meta.current_page);
                 setOpen(false);
                 setDetail(data.credentials);
@@ -340,8 +340,6 @@ export default function Clients() {
                 onIssueToken={issueToken}
                 issuing={issuing}
             />
-
-            {node}
         </>
     );
 }

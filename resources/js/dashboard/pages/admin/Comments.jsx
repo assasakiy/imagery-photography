@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
 import api from '../../api';
+import { toast } from '../../lib/toast';
+import { getApiErrorMessage } from '../../lib/errors';
 import Icon from '../../components/Icon';
-import { PageHeader, EmptyState, Confirm, useToast, formatDate } from '../../components/ui';
+import { PageHeader, EmptyState, Confirm, formatDate } from '../../components/ui';
 import Skeleton from '../../components/Skeleton';
 
 export default function Comments() {
@@ -11,7 +13,6 @@ export default function Comments() {
     const [loading, setLoading] = useState(true);
     const [acting, setActing] = useState(null);
     const [deleting, setDeleting] = useState(null);
-    const { show, node } = useToast();
 
     const load = (page = 1) => {
         setLoading(true);
@@ -36,10 +37,10 @@ export default function Comments() {
         setActing(comment.id);
         try {
             await api.patch(`/comments/${comment.id}/moderate`, { status: next });
-            show(next === 'approved' ? 'Komentar disetujui.' : 'Komentar disembunyikan.');
+            toast.success(next === 'approved' ? 'Komentar disetujui.' : 'Komentar disembunyikan.');
             load(meta.current_page);
         } catch (err) {
-            show(err.response?.data?.message || 'Gagal mengubah status komentar.', 'error');
+            toast.error(getApiErrorMessage(err, 'Gagal mengubah status komentar.'));
         } finally {
             setActing(null);
         }
@@ -49,11 +50,11 @@ export default function Comments() {
         setActing(deleting.id);
         try {
             await api.delete(`/comments/${deleting.id}`);
-            show('Komentar dihapus.');
+            toast.success('Komentar dihapus.');
             setDeleting(null);
             load(meta.current_page);
         } catch (err) {
-            show(err.response?.data?.message || 'Gagal menghapus komentar.', 'error');
+            toast.error(getApiErrorMessage(err, 'Gagal menghapus komentar.'));
         } finally {
             setActing(null);
         }
@@ -160,7 +161,6 @@ export default function Comments() {
             )}
 
             <Confirm open={!!deleting} onClose={() => setDeleting(null)} onConfirm={handleDelete} title="Hapus komentar?" />
-            {node}
         </>
     );
 }

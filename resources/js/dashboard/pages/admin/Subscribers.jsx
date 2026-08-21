@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
 import api from '../../api';
+import { toast } from '../../lib/toast';
+import { getApiErrorMessage } from '../../lib/errors';
 import Icon from '../../components/Icon';
 import PresenceBadge from '../../components/PresenceBadge';
-import { PageHeader, EmptyState, Confirm, useToast, formatDate } from '../../components/ui';
+import { PageHeader, EmptyState, Confirm, formatDate } from '../../components/ui';
 import Skeleton from '../../components/Skeleton';
 
 export default function Subscribers() {
@@ -17,7 +19,6 @@ export default function Subscribers() {
     const [deleting, setDeleting] = useState(null);
     const [deleteReason, setDeleteReason] = useState('');
     const [actionLoading, setActionLoading] = useState(null);
-    const { show, node } = useToast();
 
     const load = (page = 1) => {
         setLoading(true);
@@ -44,7 +45,7 @@ export default function Subscribers() {
             const { data } = await api.get(`/subscribers/${item.id}`);
             setDetail(data);
         } catch {
-            show('Gagal memuat detail subscriber.', 'error');
+            toast.error('Gagal memuat detail subscriber.');
         } finally {
             setDetailLoading(false);
         }
@@ -54,11 +55,11 @@ export default function Subscribers() {
         setActionLoading(user.id);
         try {
             await api.post(`/subscribers/${user.id}/disable`);
-            show('Subscriber dinonaktifkan.');
+            toast.success('Subscriber dinonaktifkan.');
             setDetail(null);
             load(meta.current_page);
         } catch {
-            show('Gagal menonaktifkan subscriber.', 'error');
+            toast.error('Gagal menonaktifkan subscriber.');
         } finally {
             setActionLoading(null);
         }
@@ -68,11 +69,11 @@ export default function Subscribers() {
         setActionLoading(user.id);
         try {
             await api.post(`/subscribers/${user.id}/activate`);
-            show('Subscriber diaktifkan.');
+            toast.success('Subscriber diaktifkan.');
             setDetail(null);
             load(meta.current_page);
         } catch {
-            show('Gagal mengaktifkan subscriber.', 'error');
+            toast.error('Gagal mengaktifkan subscriber.');
         } finally {
             setActionLoading(null);
         }
@@ -82,10 +83,10 @@ export default function Subscribers() {
         setActionLoading(user.id);
         try {
             const { data } = await api.post(`/subscribers/${user.id}/resend-otp`);
-            show(data.message || 'OTP dikirim ulang.');
-            if (data.dev_otp) show(`Dev OTP: ${data.dev_otp}`);
+            toast.success(data.message || 'OTP dikirim ulang.');
+            if (data.dev_otp) toast.success(`Dev OTP: ${data.dev_otp}`);
         } catch (err) {
-            show(err.response?.data?.message || 'Gagal mengirim OTP.', 'error');
+            toast.error(getApiErrorMessage(err, 'Gagal mengirim OTP.'));
         } finally {
             setActionLoading(null);
         }
@@ -95,13 +96,13 @@ export default function Subscribers() {
         setActionLoading(deleting?.id);
         try {
             await api.post(`/subscribers/${deleting.id}/soft-delete`, { reason: deleteReason });
-            show('Subscriber dipindahkan ke Recycle Bin.');
+            toast.success('Subscriber dipindahkan ke Recycle Bin.');
             setDeleting(null);
             setDeleteReason('');
             setDetail(null);
             load(meta.current_page);
         } catch (err) {
-            show(err.response?.data?.message || 'Gagal menghapus subscriber.', 'error');
+            toast.error(getApiErrorMessage(err, 'Gagal menghapus subscriber.'));
         } finally {
             setActionLoading(null);
         }
@@ -376,7 +377,6 @@ export default function Subscribers() {
                     </div>
                 }
             />
-            {node}
         </>
     );
 }

@@ -2,8 +2,10 @@ import { useEffect, useRef, useState } from 'react';
 import QRCode from 'qrcode';
 import api from '../api';
 import Icon from './Icon';
-import { Modal, Field, ButtonSpinner, useToast, formatRupiah } from './ui';
+import { Modal, Field, ButtonSpinner, formatRupiah } from './ui';
 import { dynamicQris } from '../utils/qris';
+import { toast } from '../lib/toast';
+import { getApiErrorMessage } from '../lib/errors';
 
 const BANK_ICON = (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -77,7 +79,6 @@ export default function PaymentModal({ open, onClose, invoice, projectId, onPaid
     const [saving, setSaving] = useState(false);
     const [gatewayState, setGatewayState] = useState(null);
     const proofRef = useRef(null);
-    const { show, node } = useToast();
 
     useEffect(() => {
         if (open) {
@@ -136,18 +137,18 @@ export default function PaymentModal({ open, onClose, invoice, projectId, onPaid
         if (!selectedAccount || selectedType === 'qris') return;
         try {
             await navigator.clipboard.writeText(selectedAccount.number);
-            show('Nomor rekening disalin.');
+            toast.success('Nomor rekening disalin.');
         } catch {
-            show('Gagal menyalin nomor rekening.', 'error');
+            toast.error('Gagal menyalin nomor rekening.');
         }
     };
     const copyQris = async () => {
         if (!selectedAccount?.qris) return;
         try {
             await navigator.clipboard.writeText(selectedAccount.qris);
-            show('String QRIS disalin.');
+            toast.success('String QRIS disalin.');
         } catch {
-            show('Gagal menyalin kode QRIS.', 'error');
+            toast.error('Gagal menyalin kode QRIS.');
         }
     };
 
@@ -166,9 +167,9 @@ export default function PaymentModal({ open, onClose, invoice, projectId, onPaid
             } else {
                 setGatewayState({ type: 'paycode', payCode: data.pay_code, reference: data.reference });
             }
-            show('Instruksi pembayaran disiapkan.');
+            toast.success('Instruksi pembayaran disiapkan.');
         } catch (err) {
-            show(err.response?.data?.message || 'Gagal memproses pembayaran gateway.', 'error');
+            toast.error(getApiErrorMessage(err, 'Gagal memproses pembayaran gateway.'));
         } finally {
             setSaving(false);
         }
@@ -192,11 +193,11 @@ export default function PaymentModal({ open, onClose, invoice, projectId, onPaid
             ));
             if (form.proof) data.append('proof_file', form.proof);
             await api.post(`/projects/${projectId}/payments`, data);
-            show('Pembayaran dikirim untuk dikonfirmasi.');
+            toast.success('Pembayaran dikirim untuk dikonfirmasi.');
             onPaid?.();
             onClose();
         } catch (err) {
-            show(err.response?.data?.message || 'Gagal mengirim pembayaran.', 'error');
+            toast.error(getApiErrorMessage(err, 'Gagal mengirim pembayaran.'));
         } finally {
             setSaving(false);
         }
@@ -460,7 +461,6 @@ export default function PaymentModal({ open, onClose, invoice, projectId, onPaid
                     )}
                 </div>
             </Modal>
-            {node}
         </>
     );
 }

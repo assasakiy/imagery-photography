@@ -3,8 +3,10 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import api from '../../../api';
 import Icon from '../../../components/Icon';
 import { useAuth } from '../../../context/AuthContext';
-import { Field, useToast, formatRupiah, formatDate, Modal, EmptyState, Confirm } from '../../../components/ui';
+import { Field, formatRupiah, formatDate, Modal, EmptyState, Confirm } from '../../../components/ui';
 import Skeleton from '../../../components/Skeleton';
+import { toast } from '../../../lib/toast';
+import { getApiErrorMessage } from '../../../lib/errors';
 import { StatusBadge } from './Orders';
 import ScheduledStep from './steps/ScheduledStep';
 import ShootingStep from './steps/ShootingStep';
@@ -67,7 +69,6 @@ export default function ProjectDetail() {
     const [reviewOpen, setReviewOpen] = useState(false);
     const [reviewForm, setReviewForm] = useState({ rating: 5, title: '', content: '', recommend_score: 10 });
     const fileRef = useRef(null);
-    const { show, node } = useToast();
 
     const load = () => {
         api.get(`/projects/${id}`).then(({ data }) => setProject(data)).finally(() => setLoading(false));
@@ -109,11 +110,11 @@ export default function ProjectDetail() {
         if (!deleteConfirm) return;
         try {
             await api.delete(`/files/${deleteConfirm.id}`);
-            show('File dihapus.', 'success');
+            toast.success('File dihapus.');
             setDeleteConfirm(null);
             load();
         } catch (err) {
-            show(err.response?.data?.message || 'Gagal menghapus file.', 'error');
+            toast.error(getApiErrorMessage(err, 'Gagal menghapus file.'));
             setDeleteConfirm(null);
         }
     };
@@ -125,11 +126,11 @@ export default function ProjectDetail() {
                 enabled: shareForm.enabled,
                 expires_in_days: shareForm.enabled && shareForm.expires_days ? Number(shareForm.expires_days) : null,
             });
-            show(shareForm.enabled ? 'Link akses diaktifkan & dikirim ke klien.' : 'Link akses dinonaktifkan.', 'success');
+            toast.success(shareForm.enabled ? 'Link akses diaktifkan & dikirim ke klien.' : 'Link akses dinonaktifkan.');
             setShareOpen(false);
             load();
         } catch (err) {
-            show(err.response?.data?.message || 'Gagal mengirim link.', 'error');
+            toast.error(getApiErrorMessage(err, 'Gagal mengirim link.'));
         } finally {
             setSharing(false);
         }
@@ -139,10 +140,10 @@ export default function ProjectDetail() {
         setSaving(true);
         try {
             await api.patch(`/redeliveries/${red.id}`, { status, fee: status === 'approved' ? Number(feeMap[red.id] || 0) : undefined });
-            show(status === 'approved' ? 'Permintaan disetujui — link akses dikirim.' : 'Permintaan ditolak.', 'success');
+            toast.success(status === 'approved' ? 'Permintaan disetujui — link akses dikirim.' : 'Permintaan ditolak.');
             load();
         } catch (err) {
-            show(err.response?.data?.message || 'Gagal mengubah permintaan.', 'error');
+            toast.error(getApiErrorMessage(err, 'Gagal mengubah permintaan.'));
         } finally {
             setSaving(false);
         }
@@ -152,12 +153,12 @@ export default function ProjectDetail() {
         setSaving(true);
         try {
             await api.post(`/projects/${id}/redelivery-requests`, { note: rerequestNote });
-            show('Permintaan unduh ulang dikirim.', 'success');
+            toast.success('Permintaan unduh ulang dikirim.');
             setRerequestOpen(false);
             setRerequestNote('');
             load();
         } catch (err) {
-            show(err.response?.data?.message || 'Gagal mengirim permintaan.', 'error');
+            toast.error(getApiErrorMessage(err, 'Gagal mengirim permintaan.'));
         } finally {
             setSaving(false);
         }
@@ -192,15 +193,15 @@ export default function ProjectDetail() {
             };
             if (existingReview) {
                 await api.put('/reviews/my', payload);
-                show('Review Anda diperbarui.');
+                toast.success('Review Anda diperbarui.');
             } else {
                 await api.post('/reviews', payload);
-                show('Review berhasil dikirim.');
+                toast.success('Review berhasil dikirim.');
             }
             setReviewOpen(false);
             load();
         } catch (err) {
-            show(err.response?.data?.message || 'Gagal mengirim review.', 'error');
+            toast.error(getApiErrorMessage(err, 'Gagal mengirim review.'));
         } finally {
             setSaving(false);
         }
@@ -217,9 +218,9 @@ export default function ProjectDetail() {
     const copyPreviewLink = async () => {
         try {
             await navigator.clipboard.writeText(previewLink);
-            show('Link pratinjau disalin.', 'success');
+            toast.success('Link pratinjau disalin.');
         } catch {
-            show('Gagal menyalin link.', 'error');
+            toast.error('Gagal menyalin link.');
         }
     };
 
@@ -404,8 +405,6 @@ export default function ProjectDetail() {
                     </Field>
                 </form>
             </Modal>
-
-            {node}
         </>
     );
 }

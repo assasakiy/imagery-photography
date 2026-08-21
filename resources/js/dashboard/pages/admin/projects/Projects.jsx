@@ -3,8 +3,9 @@ import { Link } from 'react-router-dom';
 import api from '../../../api';
 import Icon from '../../../components/Icon';
 import { useAuth } from '../../../context/AuthContext';
-import { PageHeader, EmptyState, Modal, Field, useToast, formatRupiah, formatDate, formatTimeInput } from '../../../components/ui';
+import { PageHeader, EmptyState, Modal, Field, formatRupiah, formatDate, formatTimeInput } from '../../../components/ui';
 import Skeleton from '../../../components/Skeleton';
+import { toast } from '../../../lib/toast';
 
 export const statusOptions = [
     { value: 'scheduled', label: 'Dijadwalkan', color: 'bg-amber-500/15 text-amber-600 dark:text-amber-400' },
@@ -60,7 +61,6 @@ export default function Projects() {
     const [errors, setErrors] = useState({});
     const [saving, setSaving] = useState(false);
     const [createdCreds, setCreatedCreds] = useState(null);
-    const { show, node } = useToast();
 
     const load = (page = 1) => {
         setLoading(true);
@@ -132,7 +132,7 @@ export default function Projects() {
             delete payload.end_time;
             if (editing) {
                 await api.put(`/projects/${editing.id}`, payload);
-                show('Project diperbarui.');
+                toast.success('Project diperbarui.');
                 load(meta.current_page);
                 setOpen(false);
             } else {
@@ -145,7 +145,7 @@ export default function Projects() {
                     payload.user_id = '';
                 }
                 const { data } = await api.post('/projects', payload);
-                show('Project dibuat.');
+                toast.success('Project dibuat.');
                 setCreatedCreds(data.credentials);
                 load(meta.current_page);
                 setOpen(false);
@@ -160,9 +160,9 @@ export default function Projects() {
     const copyCreds = async (text) => {
         try {
             await navigator.clipboard.writeText(text);
-            show('Kredensial disalin.');
+            toast.success('Kredensial disalin.');
         } catch {
-            show('Gagal menyalin.', 'error');
+            toast.error('Gagal menyalin.');
         }
     };
 
@@ -543,8 +543,6 @@ export default function Projects() {
                     </div>
                 )}
             </Modal>
-
-            {node}
         </>
     );
 }

@@ -2,11 +2,13 @@ import { useEffect, useState } from 'react';
 import api from '../../api';
 import Icon from '../../components/Icon';
 import MediaPicker from '../../components/MediaPicker';
-import { PageHeader, Field, Modal, useToast, ButtonSpinner } from '../../components/ui';
+import { PageHeader, Field, Modal, ButtonSpinner } from '../../components/ui';
 import Skeleton from '../../components/Skeleton';
 import { useAuth } from '../../context/AuthContext';
 import SocialSelect from './landing/sections/SocialSelect';
 import { SOCIAL_PLATFORMS, SocialLogo } from './landing/sections/socialPlatforms';
+import { toast } from '../../lib/toast';
+import { getApiErrorMessage } from '../../lib/errors';
 
 const ROLE_LABEL = { owner: 'Pemilik', admin: 'Dashboard Admin', client: 'Portal Klien' };
 
@@ -45,7 +47,6 @@ function Toggle({ checked, onChange, label, desc }) {
 
 export default function ProfileSettings() {
     const { user, refresh } = useAuth();
-    const { show, node } = useToast();
 
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -146,11 +147,11 @@ export default function ProfileSettings() {
         try {
             await api.put('/profile', payload);
             await refresh();
-            show(successMsg);
+            toast.success(successMsg);
             return true;
         } catch (err) {
             if (err.response?.data?.errors) setErrors(err.response.data.errors);
-            else show('Gagal menyimpan.', 'error');
+            else toast.error('Gagal menyimpan.');
             return false;
         } finally {
             setSaving(false);
@@ -239,9 +240,9 @@ export default function ProfileSettings() {
             setCoverUrl(pendingCover.url);
             setPendingCover(null);
             await refresh();
-            show('Banner diperbarui.');
+            toast.success('Banner diperbarui.');
         } catch (e) {
-            show(e?.response?.data?.message || 'Gagal menyimpan banner.', 'error');
+            toast.error(getApiErrorMessage(e, 'Gagal menyimpan banner.'));
         } finally {
             setSaving(false);
         }
@@ -259,9 +260,9 @@ export default function ProfileSettings() {
             setPendingCover(null);
             setCoverRemoveOpen(false);
             await refresh();
-            show('Banner dihapus.');
+            toast.success('Banner dihapus.');
         } catch (e) {
-            show(e?.response?.data?.message || 'Gagal menghapus banner.', 'error');
+            toast.error(getApiErrorMessage(e, 'Gagal menghapus banner.'));
         } finally {
             setSaving(false);
         }
@@ -280,9 +281,9 @@ export default function ProfileSettings() {
             setAvatarUrl(pendingAvatar.url);
             setPendingAvatar(null);
             await refresh();
-            show('Foto profil diperbarui.');
+            toast.success('Foto profil diperbarui.');
         } catch (e) {
-            show(e?.response?.data?.message || 'Gagal menyimpan foto profil.', 'error');
+            toast.error(getApiErrorMessage(e, 'Gagal menyimpan foto profil.'));
         } finally {
             setSaving(false);
         }
@@ -301,9 +302,9 @@ export default function ProfileSettings() {
             setPendingAvatar(null);
             setRemoveOpen(false);
             await refresh();
-            show('Foto profil dihapus.');
+            toast.success('Foto profil dihapus.');
         } catch (e) {
-            show(e?.response?.data?.message || 'Gagal menghapus foto profil.', 'error');
+            toast.error(getApiErrorMessage(e, 'Gagal menghapus foto profil.'));
         } finally {
             setSaving(false);
         }
@@ -315,13 +316,13 @@ export default function ProfileSettings() {
         setErrors({});
         try {
             await api.delete('/profile', { data: { password: deletePass } });
-            show('Akun dihapus. Mengarahkan ke halaman masuk…');
+            toast.success('Akun dihapus. Mengarahkan ke halaman masuk…');
             setTimeout(() => {
                 window.location.href = '/login';
             }, 1200);
         } catch (err) {
             if (err.response?.data?.errors) setErrors(err.response.data.errors);
-            else show('Gagal menghapus akun.', 'error');
+            else toast.error('Gagal menghapus akun.');
             setDeleting(false);
         }
     };
@@ -756,13 +757,11 @@ export default function ProfileSettings() {
                             </button>
                         )}
                     </div>
-                </div>
-            </div>
+                 </div>
+             </div>
 
-            {node}
-
-            <Modal
-                open={viewOpen}
+             <Modal
+                 open={viewOpen}
                 onClose={() => setViewOpen(false)}
                 title={pendingAvatar ? 'Pratinjau Foto Baru' : 'Lihat Foto Profil'}
                 footer={

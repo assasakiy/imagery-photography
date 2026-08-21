@@ -4,10 +4,12 @@ import api from '../../../api';
 import Icon from '../../../components/Icon';
 import RichEditor from '../../../components/RichEditor';
 import MediaPicker from '../../../components/MediaPicker';
-import { useToast, ButtonSpinner } from '../../../components/ui';
+import { ButtonSpinner } from '../../../components/ui';
 import { SkeletonForm } from '../../../components/ui/skeleton';
 import SearchableMultiSelect from '../../../components/SearchableMultiSelect';
 import CustomSelect from '../../../components/CustomSelect';
+import { toast } from '../../../lib/toast';
+import { getApiErrorMessage } from '../../../lib/errors';
 
 export default function CreateEditBlog() {
     const { id } = useParams();
@@ -18,7 +20,6 @@ export default function CreateEditBlog() {
     const [saving, setSaving] = useState(false);
     const [categories, setCategories] = useState([]);
     const [errors, setErrors] = useState({});
-    const { show, node } = useToast();
 
 const [form, setForm] = useState({
         title: '',
@@ -60,7 +61,7 @@ const [form, setForm] = useState({
                 setInitialForm(loaded);
                 setCoverPreview(data.thumbnail_url || data.cover_url || data.image_url || '');
             }).catch(() => {
-                show('Gagal memuat artikel', 'error');
+                toast.error('Gagal memuat artikel');
                 navigate('/dashboard/blog');
             }).finally(() => setLoading(false));
         } else {
@@ -95,17 +96,17 @@ const [form, setForm] = useState({
         try {
             if (isEdit) {
                 await api.put(`/blog/${id}`, payload);
-                show('Artikel berhasil diperbarui.');
+                toast.success('Artikel berhasil diperbarui.');
             } else {
                 await api.post('/blog', payload);
-                show('Artikel berhasil diterbitkan.');
+                toast.success('Artikel berhasil diterbitkan.');
             }
             navigate('/dashboard/blog');
         } catch (err) {
             if (err.response?.data?.errors) {
                 setErrors(err.response.data.errors);
             } else {
-                show(err.response?.data?.message || 'Gagal menyimpan artikel.', 'error');
+                toast.error(getApiErrorMessage(err, 'Gagal menyimpan artikel.'));
             }
         } finally {
             setSaving(false);
@@ -376,7 +377,6 @@ const [form, setForm] = useState({
                 onSelect={onSelectCover}
                 title="Pilih Gambar Cover"
             />
-            {node}
         </div>
     );
 }

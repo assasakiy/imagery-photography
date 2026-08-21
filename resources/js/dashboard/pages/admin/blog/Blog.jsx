@@ -2,8 +2,9 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../../../api';
 import Icon from '../../../components/Icon';
-import { PageHeader, EmptyState, Confirm, useToast, formatDate } from '../../../components/ui';
+import { PageHeader, EmptyState, Confirm, formatDate } from '../../../components/ui';
 import Skeleton from '../../../components/Skeleton';
+import { toast } from '../../../lib/toast';
 
 export default function Blog() {
     const [items, setItems] = useState([]);
@@ -12,7 +13,6 @@ export default function Blog() {
     const [q, setQ] = useState('');
     const [status, setStatus] = useState('');
     const [deleting, setDeleting] = useState(null);
-    const { show, node } = useToast();
 
     const load = () => {
         setLoading(true);
@@ -31,11 +31,11 @@ export default function Blog() {
     const performDelete = async () => {
         try {
             await api.delete(`/blog/${deleting.id}`);
-            show('Artikel dipindah ke Recycle Bin.');
+            toast.success('Artikel dipindah ke Recycle Bin.');
             setDeleting(null);
             load();
         } catch {
-            show('Gagal menghapus artikel.', 'error');
+            toast.error('Gagal menghapus artikel.');
         }
     };
 
@@ -163,7 +163,6 @@ export default function Blog() {
                 confirmText="Ya, Hapus Artikel"
                 danger
             />
-            {node}
         </>
     );
 }

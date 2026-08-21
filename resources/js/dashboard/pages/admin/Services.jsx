@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
 import api from '../../api';
+import { toast } from '../../lib/toast';
+import { getApiErrorMessage } from '../../lib/errors';
 import Icon from '../../components/Icon';
-import { PageHeader, EmptyState, Modal, Confirm, Field, useToast, formatRupiah } from '../../components/ui';
+import { PageHeader, EmptyState, Modal, Confirm, Field, formatRupiah } from '../../components/ui';
 import Skeleton from '../../components/Skeleton';
 
 const VIEWS = [
@@ -43,8 +45,6 @@ export default function Services() {
     const [pkgSaving, setPkgSaving] = useState(false);
     const [pkgDeleting, setPkgDeleting] = useState(null);
 
-    const { show, node } = useToast();
-
     const loadAll = () => {
         setLoading(true);
         Promise.all([
@@ -55,7 +55,7 @@ export default function Services() {
                 setServices(s.data);
                 setPackages(p.data);
             })
-            .catch(() => show('Gagal memuat data layanan.', 'error'))
+            .catch(() => toast.error('Gagal memuat data layanan.'))
             .finally(() => setLoading(false));
     };
 
@@ -75,23 +75,23 @@ export default function Services() {
         try {
             if (svcEditing) {
                 await api.put(`/services/${svcEditing.id}`, svcForm);
-                show('Layanan satuan diperbarui.');
+                toast.success('Layanan satuan diperbarui.');
             } else {
                 await api.post('/services', svcForm);
-                show('Layanan satuan ditambahkan.');
+                toast.success('Layanan satuan ditambahkan.');
             }
             setSvcOpen(false);
             loadAll();
         } catch (err) {
             if (err.response?.data?.errors) setSvcErrors(err.response.data.errors);
-            else show('Gagal menyimpan.', 'error');
+            else toast.error(getApiErrorMessage(err, 'Gagal menyimpan.'));
         } finally {
             setSvcSaving(false);
         }
     };
     const handleSvcDelete = async () => {
         await api.delete(`/services/${svcDeleting.id}`);
-        show('Layanan satuan dihapus.');
+        toast.success('Layanan satuan dihapus.');
         setSvcDeleting(null);
         loadAll();
     };
@@ -143,23 +143,23 @@ export default function Services() {
         try {
             if (pkgEditing) {
                 await api.put(`/packages/${pkgEditing.id}`, pkgForm);
-                show('Paket diperbarui.');
+                toast.success('Paket diperbarui.');
             } else {
                 await api.post('/packages', pkgForm);
-                show('Paket ditambahkan.');
+                toast.success('Paket ditambahkan.');
             }
             setPkgOpen(false);
             loadAll();
         } catch (err) {
             if (err.response?.data?.errors) setPkgErrors(err.response.data.errors);
-            else show('Gagal menyimpan paket.', 'error');
+            else toast.error(getApiErrorMessage(err, 'Gagal menyimpan paket.'));
         } finally {
             setPkgSaving(false);
         }
     };
     const handlePkgDelete = async () => {
         await api.delete(`/packages/${pkgDeleting.id}`);
-        show('Paket dihapus.');
+        toast.success('Paket dihapus.');
         setPkgDeleting(null);
         loadAll();
     };
@@ -478,7 +478,6 @@ export default function Services() {
 
             <Confirm open={!!svcDeleting} onClose={() => setSvcDeleting(null)} onConfirm={handleSvcDelete} title="Hapus layanan satuan?" message="Paket yang memakai layanan ini juga akan ikut berubah." />
             <Confirm open={!!pkgDeleting} onClose={() => setPkgDeleting(null)} onConfirm={handlePkgDelete} title="Hapus paket?" message="Project yang sudah memakai paket ini tetap memakai snapshot harga." />
-            {node}
         </>
     );
 }

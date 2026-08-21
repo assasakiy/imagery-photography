@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import api from '../../api';
 import Icon from '../../components/Icon';
-import { PageHeader, EmptyState, useToast, Confirm, formatDate } from '../../components/ui';
+import { PageHeader, EmptyState, Confirm, formatDate } from '../../components/ui';
 import Skeleton from '../../components/Skeleton';
+import { toast } from '../../lib/toast';
 
 const TYPE_LABEL = { client: 'Klien', blog: 'Blog', portfolio: 'Portofolio', subscriber: 'Subscriber' };
 const CONTENT_TYPES = ['blog', 'portfolio'];
@@ -13,7 +14,6 @@ export default function RecycleBin() {
     const [loading, setLoading] = useState(true);
     const [target, setTarget] = useState(null);
     const [action, setAction] = useState(null);
-    const { show, node } = useToast();
 
     const load = () => {
         setLoading(true);
@@ -27,11 +27,11 @@ export default function RecycleBin() {
     const restore = async () => {
         try {
             await api.post(`/recycle-bin/${target.type}/${target.id}/restore`);
-            show(target.type === 'client' ? 'Klien beserta datanya dipulihkan.' : 'Item dipulihkan.');
+            toast.success(target.type === 'client' ? 'Klien beserta datanya dipulihkan.' : 'Item dipulihkan.');
             setTarget(null);
             load();
         } catch {
-            show('Gagal memulihkan.', 'error');
+            toast.error('Gagal memulihkan.');
             setTarget(null);
         }
     };
@@ -39,11 +39,11 @@ export default function RecycleBin() {
     const forceDelete = async () => {
         try {
             await api.delete(`/recycle-bin/${target.type}/${target.id}`);
-            show('Item dihapus permanen.', 'error');
+            toast.error('Item dihapus permanen.');
             setTarget(null);
             load();
         } catch {
-            show('Gagal menghapus permanen.', 'error');
+            toast.error('Gagal menghapus permanen.');
             setTarget(null);
         }
     };
@@ -182,7 +182,6 @@ export default function RecycleBin() {
                           : 'Item beserta cover dan seluruh file terkait akan dihapus permanen dan tidak bisa dikembalikan.'
                 }
             />
-            {node}
         </>
     );
 }

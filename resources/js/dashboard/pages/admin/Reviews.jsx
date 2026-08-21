@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../../api';
+import { toast } from '../../lib/toast';
+import { getApiErrorMessage } from '../../lib/errors';
 import Icon from '../../components/Icon';
-import { PageHeader, EmptyState, Modal, Confirm, Field, useToast, formatDate } from '../../components/ui';
+import { PageHeader, EmptyState, Modal, Confirm, Field, formatDate } from '../../components/ui';
 import Skeleton from '../../components/Skeleton';
 
 function Stars({ value, size = 18 }) {
@@ -26,7 +28,6 @@ export default function Reviews() {
     const [acting, setActing] = useState(null);
     const [editing, setEditing] = useState(null);
     const [deleting, setDeleting] = useState(null);
-    const { show, node } = useToast();
 
     const load = (page = 1) => {
         setLoading(true);
@@ -60,11 +61,11 @@ export default function Reviews() {
                 title: editing.title,
                 content: editing.content,
             });
-            show('Review diperbarui.');
+            toast.success('Review diperbarui.');
             setEditing(null);
             load(meta.current_page);
         } catch (err) {
-            show(err.response?.data?.message || 'Gagal memperbarui review.', 'error');
+            toast.error(getApiErrorMessage(err, 'Gagal memperbarui review.'));
         } finally {
             setActing(null);
         }
@@ -74,7 +75,7 @@ export default function Reviews() {
         setActing(deleting.id);
         try {
             await api.delete(`/reviews/${deleting.id}`);
-            show('Review dihapus.');
+            toast.success('Review dihapus.');
             setDeleting(null);
             load(meta.current_page);
         } finally {
@@ -224,7 +225,6 @@ export default function Reviews() {
             </Modal>
 
             <Confirm open={!!deleting} onClose={() => setDeleting(null)} onConfirm={handleDelete} title="Hapus review?" />
-            {node}
         </>
     );
 }

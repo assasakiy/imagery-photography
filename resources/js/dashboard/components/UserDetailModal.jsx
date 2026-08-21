@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import Icon from './Icon';
-import { Spinner, EmptyState, useToast } from './ui';
+import { Spinner, EmptyState } from './ui';
+import { toast } from '../lib/toast';
 
 const SOCIAL_LINKS = [
     { key: 'social_facebook', slug: 'facebook', label: 'Facebook' },
@@ -16,7 +17,6 @@ const STATUS_META = {
 };
 
 export default function UserDetailModal({ open, onClose, data, loading, onIssueToken, issuing, showProjects = true }) {
-    const { show, node } = useToast();
     const navigate = useNavigate();
 
     if (!open) return null;
@@ -31,7 +31,7 @@ export default function UserDetailModal({ open, onClose, data, loading, onIssueT
     const copy = async (text) => {
         try {
             await navigator.clipboard.writeText(text);
-            show('Disalin ke clipboard.');
+            toast.success('Disalin ke clipboard.');
         } catch {
             const ta = document.createElement('textarea');
             ta.value = text;
@@ -39,7 +39,7 @@ export default function UserDetailModal({ open, onClose, data, loading, onIssueT
             ta.select();
             document.execCommand('copy');
             document.body.removeChild(ta);
-            show('Disalin ke clipboard.');
+            toast.success('Disalin ke clipboard.');
         }
     };
 
@@ -76,12 +76,12 @@ export default function UserDetailModal({ open, onClose, data, loading, onIssueT
             const issued = await onIssueToken?.(purpose, false);
             const url = issued?.url;
             if (!url) {
-                show('Gagal menyiapkan tautan.', 'error');
+                toast.error('Gagal menyiapkan tautan.');
                 return;
             }
             await copy(isNew ? buildInviteMessage(url) : buildRecoveryMessage(url));
         } catch {
-            show('Gagal menyiapkan tautan.', 'error');
+            toast.error('Gagal menyiapkan tautan.');
         }
     };
 
@@ -223,7 +223,6 @@ export default function UserDetailModal({ open, onClose, data, loading, onIssueT
                     </div>
                 </div>
             </div>
-            {node}
         </>
     );
 }

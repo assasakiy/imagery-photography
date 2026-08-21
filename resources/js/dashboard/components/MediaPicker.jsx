@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import api from '../api';
 import Icon from './Icon';
-import { Modal, Spinner, EmptyState, useToast, ButtonSpinner } from './ui';
+import { Modal, Spinner, EmptyState, ButtonSpinner } from './ui';
+import { toast } from '../lib/toast';
 
 const TABS = [
     { key: 'library', label: 'Media Library', icon: 'images' },
@@ -21,7 +22,6 @@ export default function MediaPicker({ open, onClose, onSelect, title = 'Pilih Me
     const [urlText, setUrlText] = useState('');
     const [selected, setSelected] = useState(null);
     const fileRef = useRef(null);
-    const { show, node } = useToast();
 
     const loadLibrary = (page = 1) => {
         setLoading(true);
@@ -53,11 +53,11 @@ export default function MediaPicker({ open, onClose, onSelect, title = 'Pilih Me
             const { data: media } = await api.post('/media', data);
             setSelected({ source: 'upload', mediaId: media.id, url: media.url, thumbnail_url: media.thumbnail_url });
             loadLibrary(1);
-            show('File diupload.');
+            toast.success('File diupload.');
         } catch (e) {
             const msg = e?.response?.data?.errors?.file?.[0] || e?.response?.data?.message || 'Gagal upload file.';
             console.error('[media-picker upload]', e?.response?.status, e?.response?.data);
-            show(msg, 'error');
+            toast.error(msg);
         } finally {
             setUploading(false);
         }
@@ -76,10 +76,10 @@ export default function MediaPicker({ open, onClose, onSelect, title = 'Pilih Me
             const { data: media } = await api.post('/media/import', { url: urlText.trim() });
             setSelected({ source: 'url', mediaId: media.id, url: media.url, thumbnail_url: media.thumbnail_url });
             loadLibrary(1);
-            show('Media diimpor ke Library.');
+            toast.success('Media diimpor ke Library.');
         } catch (e) {
             const msg = e?.response?.data?.message || 'Gagal mengimpor URL.';
-            show(msg, 'error');
+            toast.error(msg);
         } finally {
             setImporting(false);
         }
@@ -238,7 +238,6 @@ export default function MediaPicker({ open, onClose, onSelect, title = 'Pilih Me
                     </button>
                 </div>
             )}
-            {node}
         </Modal>
     );
 }

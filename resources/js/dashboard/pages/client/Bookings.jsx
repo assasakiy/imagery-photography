@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import api from '../../api';
 import Icon from '../../components/Icon';
-import { PageHeader, EmptyState, formatDate, formatRupiah, Modal, Field, useToast, Confirm } from '../../components/ui';
+import { PageHeader, EmptyState, formatDate, formatRupiah, Modal, Field, Confirm } from '../../components/ui';
 import Skeleton from '../../components/Skeleton';
+import { toast } from '../../lib/toast';
 
 const STATUS_META = {
     pending: { label: 'Menunggu', cls: 'bg-amber-500/15 text-amber-600 dark:text-amber-400' },
@@ -22,7 +23,6 @@ export default function ClientBookings() {
     const [saving, setSaving] = useState(false);
     const [form, setForm] = useState({ service_ids: [], start_time: '08:00', end_time: '12:00' });
     const [canceling, setCanceling] = useState(null);
-    const { show, node } = useToast();
 
     const load = () => {
         setLoading(true);
@@ -49,15 +49,15 @@ export default function ClientBookings() {
             delete payload.start_time;
             delete payload.end_time;
             await api.post('/customer/bookings', payload);
-            show('Booking berhasil dikirim.');
+            toast.success('Booking berhasil dikirim.');
             setCreateOpen(false);
             setForm({ service_ids: [], start_time: '08:00', end_time: '12:00' });
             load();
         } catch (err) {
             if (err.response?.data?.errors?.service_ids) {
-                show(err.response.data.errors.service_ids[0], 'error');
+                toast.error(err.response.data.errors.service_ids[0]);
             } else {
-                show('Gagal mengirim booking.', 'error');
+                toast.error('Gagal mengirim booking.');
             }
         } finally {
             setSaving(false);
@@ -67,11 +67,11 @@ export default function ClientBookings() {
     const handleCancel = async () => {
         try {
             await api.post(`/customer/bookings/${canceling.id}/cancel`);
-            show('Booking dibatalkan.');
+            toast.success('Booking dibatalkan.');
             setCanceling(null);
             load();
         } catch {
-            show('Gagal membatalkan.', 'error');
+            toast.error('Gagal membatalkan.');
         }
     };
 
@@ -181,7 +181,6 @@ export default function ClientBookings() {
             </Modal>
 
             <Confirm open={!!canceling} onClose={() => setCanceling(null)} onConfirm={handleCancel} title="Batalkan Booking?" message="Booking ini akan dibatalkan dan tidak akan dilanjutkan ke pesanan." confirmText="Batalkan" />
-            {node}
         </>
     );
 }

@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { toast } from './lib/toast';
 
 const api = axios.create({
     baseURL: '/api',
@@ -35,7 +36,8 @@ api.interceptors.response.use(
             }
         }
         if (error.response?.status === 401 && !authUrls.some((u) => url.includes(u))) {
-            window.location.href = '/login';
+            toast.warning('Sesi kamu berakhir, silakan login lagi.');
+            setTimeout(() => { window.location.href = '/login'; }, 800);
         }
         return Promise.reject(error);
     },

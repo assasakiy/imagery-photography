@@ -3,8 +3,10 @@ import { useParams, Link } from 'react-router-dom';
 import api from '../../api';
 import Icon from '../../components/Icon';
 import { useAuth } from '../../context/AuthContext';
-import { EmptyState, Modal, Confirm, Field, ButtonSpinner, useToast, formatDate, formatRupiah } from '../../components/ui';
+import { EmptyState, Modal, Confirm, Field, ButtonSpinner, formatDate, formatRupiah } from '../../components/ui';
 import Skeleton from '../../components/Skeleton';
+import { toast } from '../../lib/toast';
+import { getApiErrorMessage } from '../../lib/errors';
 
 function formatBytes(bytes) {
     if (bytes === null || bytes === undefined) return '-';
@@ -31,7 +33,6 @@ export default function PreviewDetail() {
     const [downloading, setDownloading] = useState(false);
     const [feeMap, setFeeMap] = useState({});
     const [saving, setSaving] = useState(false);
-    const { show, node } = useToast();
 
     const load = () => {
         setLoading(true);
@@ -85,9 +86,9 @@ export default function PreviewDetail() {
     const copyText = async (text, label) => {
         try {
             await navigator.clipboard.writeText(text);
-            show(`${label} disalin.`, 'success');
+            toast.success(`${label} disalin.`);
         } catch {
-            show('Gagal menyalin.', 'error');
+            toast.error('Gagal menyalin.');
         }
     };
 
@@ -105,7 +106,7 @@ export default function PreviewDetail() {
         [...selected].forEach((fileId, i) => {
             setTimeout(() => downloadFile(fileId), i * 400);
         });
-        show(`${selected.size} file HD diunduh.`, 'success');
+        toast.success(`${selected.size} file HD diunduh.`);
     };
 
     // Cek status dulu (fetch ringan); terus giliran unduh via href NATIVE (stream ke disk, bukan blob RAM).
@@ -116,7 +117,7 @@ export default function PreviewDetail() {
             for (let i = 0; i < 60; i++) {
                 const { data } = await api.get(`/projects/${project.id}/download-status`);
                 if (!data.ready) {
-                    show(data.message || 'Belum ada file untuk diunduh.', 'error');
+                    toast.error(data.message || 'Belum ada file untuk diunduh.');
                     return;
                 }
                 if (data.kind !== '') break;
@@ -124,7 +125,7 @@ export default function PreviewDetail() {
             }
             window.location.href = `/api/projects/${project.id}/download-zip`;
         } catch (err) {
-            show(err.response?.data?.message || 'Gagal menyiapkan unduhan.', 'error');
+            toast.error(getApiErrorMessage(err, 'Gagal menyiapkan unduhan.'));
         } finally {
             setDownloading(false);
         }
@@ -138,11 +139,11 @@ export default function PreviewDetail() {
         if (!removing) return;
         try {
             await api.delete(`/files/${removing.id}`);
-            show('File dihapus.', 'success');
+            toast.success('File dihapus.');
             setRemoving(null);
             load();
         } catch (err) {
-            show(err.response?.data?.message || 'Gagal menghapus file.', 'error');
+            toast.error(getApiErrorMessage(err, 'Gagal menghapus file.'));
             setRemoving(null);
         }
     };
@@ -150,12 +151,12 @@ export default function PreviewDetail() {
     const handleBulkDelete = async () => {
         try {
             await api.delete('/files/bulk', { data: { ids: [...selected] } });
-            show('File dihapus.', 'success');
+            toast.success('File dihapus.');
             setBulkOpen(false);
             cancelSelect();
             load();
         } catch (err) {
-            show(err.response?.data?.message || 'Gagal menghapus file.', 'error');
+            toast.error(getApiErrorMessage(err, 'Gagal menghapus file.'));
             setBulkOpen(false);
         }
     };
@@ -164,12 +165,12 @@ export default function PreviewDetail() {
         setRequesting(true);
         try {
             await api.post(`/projects/${project.id}/redelivery-requests`, { note: requestNote });
-            show('Permintaan unduh ulang dikirim. Admin akan meninjau.', 'success');
+            toast.success('Permintaan unduh ulang dikirim. Admin akan meninjau.');
             setRequestOpen(false);
             setRequestNote('');
             load();
         } catch (err) {
-            show(err.response?.data?.message || 'Gagal mengirim permintaan.', 'error');
+            toast.error(getApiErrorMessage(err, 'Gagal mengirim permintaan.'));
         } finally {
             setRequesting(false);
         }
@@ -179,10 +180,10 @@ export default function PreviewDetail() {
         setSaving(true);
         try {
             await api.patch(`/redeliveries/${red.id}`, { status, fee: status === 'approved' ? Number(feeMap[red.id] || 0) : undefined });
-            show(status === 'approved' ? 'Permintaan disetujui — link akses dikirim.' : 'Permintaan ditolak.', 'success');
+            toast.success(status === 'approved' ? 'Permintaan disetujui — link akses dikirim.' : 'Permintaan ditolak.');
             load();
         } catch (err) {
-            show(err.response?.data?.message || 'Gagal mengubah permintaan.', 'error');
+            toast.error(getApiErrorMessage(err, 'Gagal mengubah permintaan.'));
         } finally {
             setSaving(false);
         }
@@ -435,7 +436,6 @@ export default function PreviewDetail() {
 
             <Confirm open={!!removing} onClose={() => setRemoving(null)} onConfirm={handleRemoveFile} title="Hapus file?" message={`File "${removing?.name || ''}" akan dihapus dari server.`} />
             <Confirm open={bulkOpen} onClose={() => setBulkOpen(false)} onConfirm={handleBulkDelete} title="Hapus file terpilih?" message={`${selected.size} file aset akan dihapus dari server.`} />
-            {node}
         </>
     );
 }

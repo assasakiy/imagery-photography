@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import api from '../../../api';
 import Icon from '../../../components/Icon';
-import { PageHeader, EmptyState, Modal, Confirm, Field, useToast } from '../../../components/ui';
+import { PageHeader, EmptyState, Modal, Confirm, Field } from '../../../components/ui';
 import Skeleton from '../../../components/Skeleton';
+import { toast } from '../../../lib/toast';
 
 const emptyForm = { name: '' };
 
@@ -15,7 +16,6 @@ export default function BlogTags() {
     const [errors, setErrors] = useState({});
     const [saving, setSaving] = useState(false);
     const [deleting, setDeleting] = useState(null);
-    const { show, node } = useToast();
 
     const load = () => {
         setLoading(true);
@@ -47,10 +47,10 @@ export default function BlogTags() {
         try {
             if (editing) {
                 await api.put(`/blog-tags/${editing.id}`, form);
-                show('Tag diperbarui.');
+                toast.success('Tag diperbarui.');
             } else {
                 await api.post('/blog-tags', form);
-                show('Tag ditambahkan.');
+                toast.success('Tag ditambahkan.');
             }
             load();
             setOpen(false);
@@ -63,7 +63,7 @@ export default function BlogTags() {
 
     const handleDelete = async () => {
         await api.delete(`/blog-tags/${deleting.id}`);
-        show('Tag dihapus.');
+        toast.success('Tag dihapus.');
         setDeleting(null);
         load();
     };
@@ -115,7 +115,6 @@ export default function BlogTags() {
             </Modal>
 
             <Confirm open={!!deleting} onClose={() => setDeleting(null)} onConfirm={handleDelete} />
-            {node}
         </>
     );
 }

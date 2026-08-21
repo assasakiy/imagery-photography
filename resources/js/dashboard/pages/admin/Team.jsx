@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
 import api from '../../api';
+import { toast } from '../../lib/toast';
+import { getApiErrorMessage } from '../../lib/errors';
 import Icon from '../../components/Icon';
 import MediaPicker from '../../components/MediaPicker';
 import UserDetailModal from '../../components/UserDetailModal';
 import PresenceBadge from '../../components/PresenceBadge';
-import { PageHeader, EmptyState, Modal, Confirm, Field, useToast } from '../../components/ui';
+import { PageHeader, EmptyState, Modal, Confirm, Field } from '../../components/ui';
 import Skeleton from '../../components/Skeleton';
 
 const EMPTY_ADMIN = { name: '', username: '', email: '', phone: '', company: '', occupation: '', bio: '', status: 'pending', avatar: undefined };
@@ -23,7 +25,6 @@ function AdminTab() {
     const [avatarUrl, setAvatarUrl] = useState(null);
     const [mediaOpen, setMediaOpen] = useState(false);
     const [deleting, setDeleting] = useState(null);
-    const { show, node } = useToast();
 
     const load = () => {
         api.get('/team')
@@ -41,7 +42,7 @@ function AdminTab() {
             const { data } = await api.get(`/team/${item.id}/credentials`);
             setDetail(data);
         } catch {
-            show('Gagal memuat detail.', 'error');
+            toast.error('Gagal memuat detail.');
         } finally {
             setCredLoading(false);
         }
@@ -52,11 +53,11 @@ function AdminTab() {
         setIssuing(purpose);
         try {
             const { data } = await api.post(`/team/${detail.id}/token/${purpose}`, { send });
-            show(purpose === 'invite' ? 'Undangan dibuat & dikirim.' : 'Tautan dibuat' + (send ? ' & dikirim.' : '.'));
+            toast.success(purpose === 'invite' ? 'Undangan dibuat & dikirim.' : 'Tautan dibuat' + (send ? ' & dikirim.' : '.'));
             openDetail({ id: detail.id });
             return data;
         } catch {
-            show('Gagal membuat tautan.', 'error');
+            toast.error('Gagal membuat tautan.');
         } finally {
             setIssuing(null);
         }
@@ -102,7 +103,7 @@ function AdminTab() {
             if (editing) {
                 await api.put(`/team/${editing.id}`, form);
                 setDetail(null);
-                show('Admin diperbarui.');
+                toast.success('Admin diperbarui.');
                 setOpen(false);
                 setForm(EMPTY_ADMIN);
                 load();
@@ -115,7 +116,7 @@ function AdminTab() {
             }
         } catch (err) {
             if (err.response?.data?.errors) setErrors(err.response.data.errors);
-            else show('Gagal menyimpan admin.', 'error');
+            else toast.error(getApiErrorMessage(err, 'Gagal menyimpan admin.'));
         } finally {
             setSaving(false);
         }
@@ -123,7 +124,7 @@ function AdminTab() {
 
     const handleDelete = async () => {
         await api.delete(`/team/${deleting.id}`);
-        show('Admin dihapus.');
+        toast.success('Admin dihapus.');
         setDeleting(null);
         load();
     };
@@ -276,7 +277,6 @@ function AdminTab() {
             />
 
             <Confirm open={!!deleting} onClose={() => setDeleting(null)} onConfirm={handleDelete} title="Hapus admin?" message="Admin ini tidak akan bisa login lagi." />
-            {node}
         </>
     );
 }
