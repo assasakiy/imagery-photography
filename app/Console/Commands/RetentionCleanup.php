@@ -14,42 +14,31 @@ class RetentionCleanup extends Command
 
     public function handle(): int
     {
-        $retentionDays = app(\App\Services\RuntimeSettings::class)->fileRetentionDays();
+        $retentionDays = (int) app(\App\Services\RuntimeSettings::class)->get('file_retention_days', '0');
 
-        if ($retentionDays === 0) {
+        if ($retentionDays <= 0) {
             $this->info("File retention disetel ke 'selamanya' — tidak ada pembersihan otomatis.");
             return self::SUCCESS;
         }
 
-        $cutoff = now()->copy()->subDays($retentionDays);
+        $cutoff = now()->subDays($retentionDays);
         $count = 0;
 
-        Project::whereNotIn('status', ['archived', 'completed'])
-            ->get()
-            ->each(function (Project $project) use ($cutoff, &$count) {
-                $projectFiles = $project->files;
-                foreach ($projectFiles as $file) {
-                    if ($file->media) {
-                        $file->media->delete();
-                    }
-                    $file->delete();
-                }
-                $count += $projectFiles->count();
-            });
-
-        // Also check completed/archived projects
+        // Hanya project yang SUDAH archived/completed DAN updated_at sudah melewati cutoff
         Project::whereIn('status', ['archived', 'completed'])
             ->where('updated_at', '<', $cutoff)
             ->get()
-            ->each(function (Project $project) use ($cutoff, &$count) {
-                $projectFiles = $project->files;
-                foreach ($projectFiles as $file) {
-                    if ($file->media) {
-                        $file->media->delete();
-                    }
-                    $file->delete();
-                }
-                $count += $projectFiles->count();
+            ->each(function (Project $project) use (&$count) {
+                ProjectFile::where('project_id', $project->id)
+                    ->with('media')
+                    ->get()
+                    ->each(function (ProjectFile $file) use (&$count) {
+                        if ($file->media) {
+                            $file->media->delete();
+                        }
+                        $file->delete();
+                        $count++;
+                    });
             });
 
         $this->info("Selesai: {$count} file project dibersihkan (retention {$retentionDays} hari).");

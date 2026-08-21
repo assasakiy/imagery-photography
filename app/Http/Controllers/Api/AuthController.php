@@ -54,7 +54,9 @@ class AuthController extends Controller
         $remember = $settings->loginRememberEnabled() && ($data['remember'] ?? false);
 
         if ($remember) {
-            $request->session()->put('login_remember_days', $settings->loginRememberDays());
+            $days = $settings->loginRememberDays();
+            $request->session()->put('login_remember_days', $days);
+            $request->session()->put('login_remember_expires_at', now()->addDays($days)->timestamp);
         }
 
         Auth::login($user, $remember);
