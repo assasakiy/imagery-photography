@@ -263,9 +263,9 @@
             </div>
         </div>
 
-        <div class="mt-8 flex flex-col items-center justify-between gap-4 border-t border-line/70 pt-6 text-sm text-ink-muted sm:flex-row">
+        <div class="mt-8 flex flex-col items-center gap-2 border-t border-line/70 pt-6 text-center text-sm text-ink-muted">
             <p>&copy; {{ date('Y') }} {{ $siteName }}. Semua hak dilindungi.</p>
-            <div class="flex items-center gap-4">
+            <div class="flex items-center justify-center gap-4">
                 <a href="{{ route('privacy') }}" class="transition-colors hover:text-brand-600 hover:underline hover:underline-offset-4 hover:decoration-brand-600 dark:hover:text-brand-400">Privasi</a>
                 <span class="text-line">•</span>
                 <a href="{{ route('terms') }}" class="transition-colors hover:text-brand-600 hover:underline hover:underline-offset-4 hover:decoration-brand-600 dark:hover:text-brand-400">Term</a>
