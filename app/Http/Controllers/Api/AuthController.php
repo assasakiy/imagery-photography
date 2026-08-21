@@ -50,16 +50,9 @@ class AuthController extends Controller
 
         ApiThrottle::reset('auth.login', ['identifier' => $identifier]);
 
-        $settings = app(RuntimeSettings::class);
-        $remember = $settings->loginRememberEnabled() && ($data['remember'] ?? false);
-
-        if ($remember) {
-            $days = $settings->loginRememberDays();
-            $request->session()->put('login_remember_days', $days);
-            $request->session()->put('login_remember_expires_at', now()->addDays($days)->timestamp);
-        }
-
+        $remember = ($data['remember'] ?? false);
         Auth::login($user, $remember);
+        $this->applyRememberSession($request, $remember);
 
         $this->afterLogin($user, 'password');
 
@@ -211,7 +204,8 @@ class AuthController extends Controller
     {
         $data = $request->validate([
             'identifier' => 'required|string',
-            'otp' => 'required|string',
+            'otp'        => 'required|string',
+            'remember'   => 'boolean',
         ]);
 
         $user = $this->resolveUser($data['identifier']);
@@ -230,6 +224,7 @@ class AuthController extends Controller
         ApiThrottle::reset('otp.verify', ['identifier' => $data['identifier']]);
 
         Auth::login($user);
+        $this->applyRememberSession($request, $data['remember'] ?? false);
 
         $this->afterLogin($user, 'otp');
 
@@ -323,6 +318,7 @@ class AuthController extends Controller
         ApiThrottle::reset('subscribe.verify', ['identifier' => $email]);
 
         Auth::login($user);
+        $this->applyRememberSession($request, false);
 
         $this->afterLogin($user, 'otp');
 
@@ -423,6 +419,7 @@ class AuthController extends Controller
 
         Auth::login($user);
         session()->regenerate();
+        $this->applyRememberSession($request, false);
 
         $this->afterLogin($user, 'otp');
 
@@ -534,6 +531,16 @@ class AuthController extends Controller
         );
 
         return response()->json(['message' => 'Akun berhasil diaktifkan. Silakan masuk.']);
+    }
+
+    private function applyRememberSession(Request $request, bool $remember): void
+    {
+        $settings = app(RuntimeSettings::class);
+        if ($remember && $settings->loginRememberEnabled()) {
+            $days = $settings->loginRememberDays();
+            $request->session()->put('login_remember_days', $days);
+            $request->session()->put('login_remember_expires_at', now()->addDays($days)->timestamp);
+        }
     }
 
     private function userPayload($user): array

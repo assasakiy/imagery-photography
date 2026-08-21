@@ -36,6 +36,13 @@ class ApiThrottle
         $overrides = $overrides ? json_decode($overrides, true) : [];
         $override = $overrides[$policy] ?? [];
 
+        // login_attempts_max + login_attempts_lockout_minutes bridge ke auth.login
+        if ($policy === 'auth.login') {
+            $settings = app(\App\Services\RuntimeSettings::class);
+            $override['limit'] = $override['limit'] ?? $settings->loginAttemptsMax();
+            $override['period'] = $override['period'] ?? ($settings->loginAttemptsLockoutMinutes() * 60);
+        }
+
         return [
             'limit' => $override['limit'] ?? $default['limit'],
             'periode' => $override['period'] ?? $default['periode'],
@@ -90,6 +97,8 @@ class ApiThrottle
 
         if (!empty($override['limit'])) {
             $raw = $override['limit'];
+        } elseif ($policy === 'auth.login') {
+            $raw = app(\App\Services\RuntimeSettings::class)->loginAttemptsMax();
         }
 
         $floor = $cfg['floor'] ?? 1;

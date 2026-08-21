@@ -23,7 +23,7 @@ class VisitTracker
     public function handle(Request $request): void
     {
         try {
-            if (!app(RuntimeSettings::class)->get('analytics_enabled', '1')) {
+            if (!app(RuntimeSettings::class)->analyticsEnabled()) {
                 return;
             }
 
