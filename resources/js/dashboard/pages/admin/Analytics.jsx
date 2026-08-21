@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import api from '../../api';
+import { toast } from '../../lib/toast';
 import Icon from '../../components/Icon';
 import { PageHeader, EmptyState, Spinner } from '../../components/ui';
 
@@ -164,6 +165,7 @@ export default function Analytics() {
                 setAccounts(a.data);
                 setBehavior(b.data);
             })
+            .catch(() => toast.error('Gagal memuat analitik.'))
             .finally(() => setLoading(false));
     }, []);
 

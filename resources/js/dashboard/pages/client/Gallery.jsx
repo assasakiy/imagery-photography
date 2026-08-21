@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../../api';
+import { toast } from '../../lib/toast';
 import Icon from '../../components/Icon';
 import { PageHeader, EmptyState, formatLongDate } from '../../components/ui';
 import Skeleton from '../../components/Skeleton';
@@ -12,6 +13,7 @@ export default function Preview() {
     useEffect(() => {
         api.get('/customer/gallery')
             .then(({ data }) => setItems(data))
+            .catch(() => toast.error('Gagal memuat galeri.'))
             .finally(() => setLoading(false));
     }, []);
 

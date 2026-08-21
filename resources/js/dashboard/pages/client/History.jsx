@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import api from '../../api';
+import { toast } from '../../lib/toast';
 import Icon from '../../components/Icon';
 import { PageHeader, EmptyState, formatDate } from '../../components/ui';
 import Skeleton from '../../components/Skeleton';
@@ -20,6 +21,7 @@ export default function History() {
     useEffect(() => {
         api.get('/history', { params: { limit: 50 } })
             .then(({ data }) => setItems(data))
+            .catch(() => toast.error('Gagal memuat riwayat.'))
             .finally(() => setLoading(false));
     }, []);
 

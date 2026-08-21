@@ -136,6 +136,7 @@ export default function ProfileSettings() {
                     otpChannel: otpLoaded,
                 });
             })
+            .catch(() => toast.error('Gagal memuat profil.'))
             .finally(() => setLoading(false));
     }, []);
 

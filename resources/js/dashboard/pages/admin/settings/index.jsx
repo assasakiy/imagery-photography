@@ -41,6 +41,7 @@ export default function Settings() {
                 setForm(loaded);
                 setBase(pickBase(loaded));
             })
+            .catch(() => toast.error('Gagal memuat pengaturan.'))
             .finally(() => setLoading(false));
     }, []);
 
