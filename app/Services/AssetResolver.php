@@ -19,7 +19,7 @@ class AssetResolver
      * Resolve a raw image value ("media:{id}", URL, or empty) into a display URL.
      * Empty falls back to the provided default URL.
      */
-    public static function resolveImageValue(string $value, string $defaultUrl): string
+    public static function resolveImageValue(string $value, string $defaultUrl, ?string $conversion = null): string
     {
         if (empty($value)) {
             return $defaultUrl;
@@ -30,7 +30,9 @@ class AssetResolver
             $media = \Spatie\MediaLibrary\MediaCollections\Models\Media::find($id);
 
             if ($media) {
-                return $media->getUrl();
+                return $conversion && $media->hasGeneratedConversion($conversion)
+                    ? $media->getUrl($conversion)
+                    : $media->getUrl();
             }
         }
 
@@ -48,7 +50,7 @@ class AssetResolver
     /**
      * Resolve a page image from $page->images[]. Falls back to default URL.
      */
-    public static function pageImage(\App\Models\Page $page, string $key, string $defaultUrl): string
+    public static function pageImage(\App\Models\Page $page, string $key, string $defaultUrl, ?string $conversion = null): string
     {
         $images = is_array($page->images) ? $page->images : (is_string($page->images) ? json_decode($page->images, true) : []);
 
@@ -56,7 +58,7 @@ class AssetResolver
             return $defaultUrl;
         }
 
-        return static::resolveImageValue((string) $images[$key], $defaultUrl);
+        return static::resolveImageValue((string) $images[$key], $defaultUrl, $conversion);
     }
 
     public static function portfolioCoverUrl(Portfolio $portfolio): string

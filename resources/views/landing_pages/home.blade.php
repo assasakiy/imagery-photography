@@ -5,8 +5,8 @@
 
 @section('content')
     @php
-        $heroImage = \App\Services\AssetResolver::pageImage($page, 'hero_image', \App\Services\AssetResolver::DEFAULT_HERO_IMAGE);
-        $aboutImage = \App\Services\AssetResolver::pageImage($page, 'about_image', \App\Services\AssetResolver::DEFAULT_ABOUT_IMAGE);
+        $heroImage = \App\Services\AssetResolver::pageImage($page, 'hero_image', \App\Services\AssetResolver::DEFAULT_HERO_IMAGE, 'hero');
+        $aboutImage = \App\Services\AssetResolver::pageImage($page, 'about_image', \App\Services\AssetResolver::DEFAULT_ABOUT_IMAGE, 'preview');
         $homeBadge = $page->badge ?: 'Photography & Videography';
         $homeTitle = $page->hero_title ?: 'Sopian Lalu Imagery';
         $homeSubtitle = $page->hero_subtitle ?: 'Mengabadikan momen berharga Anda menjadi warisan visual.';
@@ -31,7 +31,7 @@
 
     {{-- Hero --}}
     <section class="relative flex min-h-[88vh] items-center overflow-hidden">
-        <img src="{{ $heroImage }}" alt="Hero Sopian Lalu Imagery" width="1600" height="900" fetchpriority="high" decoding="async" class="absolute inset-0 h-full w-full object-cover object-center">
+        <img src="{{ $heroImage }}" alt="Hero Sopian Lalu Imagery" width="1600" height="900" fetchpriority="high" decoding="async" onload="this.classList.remove('blur-sm','scale-[1.02]')" class="absolute inset-0 h-full w-full scale-[1.02] object-cover object-center blur-sm transition duration-500">
         <div class="absolute inset-0 bg-zinc-950/70 dark:bg-black/70"></div>
 
         <div class="container-site relative py-24">

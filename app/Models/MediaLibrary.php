@@ -28,6 +28,16 @@ class MediaLibrary extends Model implements HasMedia
             ->width(600)
             ->format('webp')
             ->nonQueued();
+
+        $this->addMediaConversion('hero')
+            ->width(1600)
+            ->format('webp')
+            ->nonQueued();
+
+        $this->addMediaConversion('preview')
+            ->width(1200)
+            ->format('webp')
+            ->nonQueued();
     }
 
     public static function singleton(): self

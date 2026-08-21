@@ -228,7 +228,7 @@ export default function MediaPicker({ open, onClose, onSelect, title = 'Pilih Me
 
             {selected && (
                 <div className="mt-4 flex items-center gap-3 rounded-xl border border-line bg-surface-muted p-3">
-                    <img src={selected.url} alt="Pilihan" className="h-14 w-14 rounded-lg object-cover" />
+                    <img src={selected.thumbnail_url || selected.url} alt="Pilihan" loading="lazy" decoding="async" className="h-14 w-14 rounded-lg object-cover" />
                     <div className="min-w-0 flex-1">
                         <p className="text-sm font-semibold text-ink">Media terpilih</p>
                         <p className="truncate text-xs text-ink-muted">{selected.url}</p>

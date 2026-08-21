@@ -340,7 +340,7 @@ class RuntimeSettings
 
     public function siteLogo(): string
     {
-        return AssetResolver::resolveImageValue($this->get('site_logo') ?? '', AssetResolver::DEFAULT_LOGO_IMAGE);
+        return AssetResolver::resolveImageValue($this->get('site_logo') ?? '', AssetResolver::DEFAULT_LOGO_IMAGE, 'thumbnail');
     }
 
     public function siteFavicon(): string

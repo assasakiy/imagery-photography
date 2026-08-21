@@ -298,13 +298,13 @@ export default function Editor() {
                     imageKeys.forEach((key) => {
                         const img = form.images[key];
                         if (img) {
-                            if (img.source === 'url') {
-                                formData.append(`images[${key}]`, img.url);
-                            } else if (img.source === 'library') {
+                            if (Number.isInteger(Number(img.mediaId)) && Number(img.mediaId) > 0) {
                                 formData.append(`images[${key}]`, `media:${img.mediaId}`);
+                            } else if (img.source === 'url') {
+                                formData.append(`images[${key}]`, img.url);
                             } else if (typeof img === 'string') {
                                 formData.append(`images[${key}]`, img);
-                            } else {
+                            } else if (img instanceof File) {
                                 formData.append(`new_images[${key}]`, img);
                             }
                         }
