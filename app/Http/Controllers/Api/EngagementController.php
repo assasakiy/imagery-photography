@@ -9,6 +9,7 @@ use App\Models\Like;
 use App\Models\Package;
 use App\Models\Portfolio;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 class EngagementController extends Controller
 {
@@ -72,6 +73,11 @@ class EngagementController extends Controller
         $target = $model::findOrFail($id);
 
         $comments = $target->approvedComments()
+            ->whereNull('parent_id')
+            ->with(['replies' => fn ($query) => $query
+                ->where('status', 'approved')
+                ->with('user')
+                ->oldest()])
             ->latest()
             ->limit(100)
             ->get()
@@ -87,17 +93,41 @@ class EngagementController extends Controller
         $data = $request->validate([
             'type' => 'required|string|in:blog,portfolio,package',
             'id' => 'required|integer',
+            'parent_id' => 'nullable|integer|exists:comments,id',
             'body' => 'required|string|min:2|max:2000',
         ]);
 
         $model = $this->resolveModel($data['type']);
         $target = $model::findOrFail($data['id']);
+        $body = trim(strip_tags($data['body']));
+
+        if (mb_strlen($body) < 2) {
+            throw ValidationException::withMessages(['body' => 'Komentar minimal 2 karakter.']);
+        }
+
+        $parent = null;
+        if (!empty($data['parent_id'])) {
+            $parent = Comment::whereKey($data['parent_id'])
+                ->where('commentable_type', $model)
+                ->where('commentable_id', $target->id)
+                ->where('status', 'approved')
+                ->first();
+
+            if (!$parent) {
+                throw ValidationException::withMessages(['parent_id' => 'Komentar induk tidak valid.']);
+            }
+
+            if ($parent->parent_id) {
+                throw ValidationException::withMessages(['parent_id' => 'Balasan hanya dapat dibuat satu tingkat.']);
+            }
+        }
 
         $comment = Comment::create([
             'user_id' => $request->user()->id,
             'commentable_type' => $model,
             'commentable_id' => $target->id,
-            'body' => strip_tags($data['body']),
+            'parent_id' => $parent?->id,
+            'body' => $body,
             'status' => 'approved',
             'approved_at' => now(),
         ]);
@@ -131,7 +161,8 @@ class EngagementController extends Controller
 
         $status = $data['status'] ?? 'all';
 
-        $comments = Comment::with('user', 'commentable')
+        $comments = Comment::with('user', 'commentable', 'parent.user')
+            ->withCount('replies')
             ->when($status !== 'all', fn ($q) => $q->where('status', $status))
             ->latest()
             ->paginate(20);
@@ -159,6 +190,7 @@ class EngagementController extends Controller
 
         return [
             'id' => $comment->id,
+            'parent_id' => $comment->parent_id,
             'body' => $comment->body,
             'status' => $comment->status,
             'user' => [
@@ -171,6 +203,18 @@ class EngagementController extends Controller
                 'id' => $target->id,
                 'title' => $target->title ?? $target->name ?? 'Konten',
             ] : null,
+            'parent' => $comment->relationLoaded('parent') && $comment->parent ? [
+                'id' => $comment->parent->id,
+                'body' => $comment->parent->body,
+                'user' => [
+                    'id' => $comment->parent->user?->id,
+                    'name' => $comment->parent->user?->name ?? 'Subscriber',
+                ],
+            ] : null,
+            'replies' => $comment->relationLoaded('replies')
+                ? $comment->replies->map(fn ($reply) => $this->serializeComment($reply, $viewer))->values()
+                : [],
+            'replies_count' => $comment->replies_count ?? ($comment->relationLoaded('replies') ? $comment->replies->count() : 0),
             'created_at' => $comment->created_at,
             'created_at_rel' => $comment->created_at?->diffForHumans(),
             'can_delete' => $viewer && ($viewer->id === $comment->user_id || $viewer->hasRole('owner') || $viewer->hasRole('admin')),

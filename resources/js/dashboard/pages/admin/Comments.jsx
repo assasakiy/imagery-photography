@@ -107,7 +107,15 @@ export default function Comments() {
                                             <span>· {item.target.title}</span>
                                         </div>
                                     )}
+                                    {item.parent && (
+                                        <div className="mt-2 rounded-lg border-l-2 border-brand-500/30 bg-surface-muted px-3 py-2 text-xs text-ink-muted">
+                                            Balasan untuk <span className="font-semibold text-ink">{item.parent.user?.name || 'Subscriber'}</span>: {item.parent.body}
+                                        </div>
+                                    )}
                                     <p className="mt-2 text-sm leading-relaxed text-ink">{item.body}</p>
+                                    {!item.parent_id && item.replies_count > 0 && (
+                                        <p className="mt-2 text-xs font-medium text-brand-600 dark:text-brand-400">{item.replies_count} balasan</p>
+                                    )}
                                     <div className="mt-2 text-xs text-ink-muted">
                                         <span className="flex items-center gap-1"><Icon name="calendar" size={13} /> {formatDate(item.created_at)}</span>
                                     </div>
@@ -161,7 +169,13 @@ export default function Comments() {
                 <EmptyState icon="message-circle" title="Belum ada komentar" message="Komentar dari blog, portofolio, dan paket akan muncul di sini." />
             )}
 
-            <Confirm open={!!deleting} onClose={() => setDeleting(null)} onConfirm={handleDelete} title="Hapus komentar?" />
+            <Confirm
+                open={!!deleting}
+                onClose={() => setDeleting(null)}
+                onConfirm={handleDelete}
+                title="Hapus komentar?"
+                message={deleting?.replies_count ? `${deleting.replies_count} balasan di bawah komentar ini juga akan dihapus.` : undefined}
+            />
         </>
     );
 }

@@ -138,6 +138,10 @@
                 <h2 class="mb-6 text-2xl font-bold text-ink">Komentar</h2>
 
                 <form data-comment-form class="mb-8 rounded-2xl border border-line bg-surface p-4">
+                    <div data-comment-reply-context hidden class="mb-3 flex items-center justify-between rounded-xl bg-brand-500/10 px-3 py-2 text-sm text-ink">
+                        <span>Membalas <strong data-comment-reply-name></strong></span>
+                        <button type="button" data-comment-reply-cancel class="text-xs font-semibold text-brand-600 hover:underline dark:text-brand-400">Batal</button>
+                    </div>
                     <textarea data-comment-body name="body" rows="3" required minlength="2" maxlength="2000"
                               placeholder="Tulis komentar Anda…"
                               class="w-full resize-y rounded-xl border border-line bg-zinc-50 px-4 py-3 text-sm text-ink placeholder:text-ink-muted focus:border-brand-500 focus:outline-none dark:bg-zinc-900 dark:text-zinc-100"></textarea>

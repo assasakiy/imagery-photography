@@ -614,6 +614,10 @@ if (likeToggle) {
 const commentsList = document.querySelector('[data-comments-list]');
 const commentsForm = document.querySelector('[data-comment-form]');
 const commentsCountEl = document.querySelector('[data-comments-count]');
+const replyContext = commentsForm?.querySelector('[data-comment-reply-context]');
+const replyName = commentsForm?.querySelector('[data-comment-reply-name]');
+const replyCancel = commentsForm?.querySelector('[data-comment-reply-cancel]');
+let replyParentId = null;
 
 const csrfToken = () => {
     try {
@@ -628,32 +632,44 @@ const escapeHTML = (str) => {
     return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 };
 
+const renderComment = (comment, nested = false) => {
+    const avatar = comment.user?.avatar
+        ? `<img src="${escapeHTML(comment.user.avatar)}" alt="" class="h-9 w-9 rounded-full object-cover ring-1 ring-line">`
+        : `<span class="flex h-9 w-9 items-center justify-center rounded-full bg-brand-500/15 text-xs font-bold text-brand-600 dark:text-brand-400">${escapeHTML((comment.user?.name || '?').charAt(0).toUpperCase())}</span>`;
+    const replyBtn = commentsForm && !nested
+        ? `<button type="button" data-comment-reply="${comment.id}" data-comment-reply-name="${escapeHTML(comment.user?.name || 'Subscriber')}" class="text-xs font-semibold text-brand-600 hover:underline dark:text-brand-400">Balas</button>`
+        : '';
+    const deleteBtn = comment.can_delete
+        ? `<button type="button" data-comment-delete="${comment.id}" class="text-xs text-ink-muted hover:text-rose-600">Hapus</button>`
+        : '';
+    const replies = !nested && comment.replies?.length
+        ? `<div class="mt-3 space-y-3 border-l-2 border-brand-500/20 pl-4">${comment.replies.map((reply) => renderComment(reply, true)).join('')}</div>`
+        : '';
+
+    return `
+        <div data-comment-id="${comment.id}" class="${nested ? 'rounded-xl bg-surface-muted/60 p-3' : 'rounded-2xl border border-line bg-surface p-4'}">
+            <div class="flex gap-3">
+                <div class="shrink-0">${avatar}</div>
+                <div class="min-w-0 flex-1">
+                    <div class="flex flex-wrap items-baseline gap-2">
+                        <span class="text-sm font-semibold text-ink">${escapeHTML(comment.user?.name || 'Subscriber')}</span>
+                        <span class="text-xs text-ink-muted">${escapeHTML(comment.created_at_rel || '')}</span>
+                    </div>
+                    <p class="mt-1 whitespace-pre-wrap text-sm text-ink">${escapeHTML(comment.body)}</p>
+                    ${(replyBtn || deleteBtn) ? `<div class="mt-2 flex items-center gap-3">${replyBtn}${deleteBtn}</div>` : ''}
+                </div>
+            </div>
+            ${replies}
+        </div>`;
+};
+
 const renderComments = (comments) => {
     if (!commentsList) return;
     if (!comments.length) {
         commentsList.innerHTML = '<p class="text-sm text-ink-muted">Belum ada komentar. Jadilah yang pertama.</p>';
         return;
     }
-    commentsList.innerHTML = comments.map((c) => {
-        const avatar = c.user?.avatar
-            ? `<img src="${escapeHTML(c.user.avatar)}" alt="" class="h-9 w-9 rounded-full object-cover ring-1 ring-line">`
-            : `<span class="flex h-9 w-9 items-center justify-center rounded-full bg-brand-500/15 text-xs font-bold text-brand-600 dark:text-brand-400">${escapeHTML((c.user?.name || '?').charAt(0).toUpperCase())}</span>`;
-        const deleteBtn = c.can_delete
-            ? `<button type="button" data-comment-delete="${c.id}" class="ml-2 text-xs text-ink-muted hover:text-rose-600">Hapus</button>`
-            : '';
-        return `
-            <div class="flex gap-3 rounded-2xl border border-line bg-surface p-4">
-                <div class="shrink-0">${avatar}</div>
-                <div class="min-w-0 flex-1">
-                    <div class="flex items-baseline gap-2">
-                        <span class="text-sm font-semibold text-ink">${escapeHTML(c.user?.name || 'Subscriber')}</span>
-                        <span class="text-xs text-ink-muted">${escapeHTML(c.created_at_rel || '')}</span>
-                        ${deleteBtn}
-                    </div>
-                    <p class="mt-1 whitespace-pre-wrap text-sm text-ink">${escapeHTML(c.body)}</p>
-                </div>
-            </div>`;
-    }).join('');
+    commentsList.innerHTML = comments.map((comment) => renderComment(comment)).join('');
 };
 
 const loadComments = async () => {
@@ -672,24 +688,35 @@ if (commentsList) {
     loadComments();
 
     commentsList.addEventListener('click', async (e) => {
-        const btn = e.target.closest('[data-comment-delete]');
-        if (!btn) return;
-        const id = btn.getAttribute('data-comment-delete');
-        if (!confirm('Hapus komentar ini?')) return;
+        const replyBtn = e.target.closest('[data-comment-reply]');
+        if (replyBtn && commentsForm) {
+            replyParentId = Number(replyBtn.getAttribute('data-comment-reply'));
+            if (replyName) replyName.textContent = replyBtn.getAttribute('data-comment-reply-name') || 'Subscriber';
+            if (replyContext) replyContext.hidden = false;
+            commentsForm.querySelector('[data-comment-body]')?.focus();
+            return;
+        }
+
+        const deleteBtn = e.target.closest('[data-comment-delete]');
+        if (!deleteBtn) return;
+        const id = deleteBtn.getAttribute('data-comment-delete');
+        if (!confirm('Hapus komentar ini? Balasan di bawahnya juga akan terhapus.')) return;
         try {
             const res = await fetch(`/api/comments/${id}`, {
                 method: 'DELETE',
                 headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest', 'X-XSRF-TOKEN': csrfToken() },
             });
-            if (res.ok) {
-                btn.closest('[data-comment-delete]')?.parentElement?.parentElement?.parentElement?.remove();
-                loadComments();
-            }
+            if (res.ok) loadComments();
         } catch (err) {
             /* ignore */
         }
     });
 }
+
+replyCancel?.addEventListener('click', () => {
+    replyParentId = null;
+    if (replyContext) replyContext.hidden = true;
+});
 
 if (commentsForm) {
     commentsForm.addEventListener('submit', async (e) => {
@@ -705,7 +732,7 @@ if (commentsForm) {
             const res = await fetch('/api/comments', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest', 'X-XSRF-TOKEN': csrfToken() },
-                body: JSON.stringify({ type: 'blog', id: Number(postId), body: body.value.trim() }),
+                body: JSON.stringify({ type: 'blog', id: Number(postId), parent_id: replyParentId, body: body.value.trim() }),
             });
             const data = await res.json();
             if (!res.ok) {
@@ -713,6 +740,8 @@ if (commentsForm) {
                 return;
             }
             body.value = '';
+            replyParentId = null;
+            if (replyContext) replyContext.hidden = true;
             if (commentsCountEl) commentsCountEl.textContent = (Number(commentsCountEl.textContent) || 0) + 1;
             loadComments();
         } catch (err) {

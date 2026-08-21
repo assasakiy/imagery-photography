@@ -45,9 +45,11 @@ return new class extends Migration
             $table->unsignedBigInteger('parent_id')->nullable();
             $table->text('body');
             $table->string('status', 20)->default('approved');
+            $table->timestamp('approved_at')->nullable();
             $table->timestamps();
 
             $table->index(['commentable_type', 'commentable_id', 'status']);
+            $table->index('parent_id');
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
             $table->foreign('parent_id')->references('id')->on('comments')->onDelete('cascade');
         });
