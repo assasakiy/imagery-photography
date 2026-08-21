@@ -118,6 +118,13 @@ export default function Subscribers() {
         { key: 'disabled', label: 'Nonaktif', icon: 'eye-off' },
     ];
 
+    const subscriberKpis = [
+        { label: 'Total Subscriber', value: Number(stats.total || 0).toLocaleString('id-ID'), icon: 'users', color: 'bg-brand-500/15 text-brand-600 dark:text-brand-400' },
+        { label: 'Subscriber Aktif', value: Number(stats.active || 0).toLocaleString('id-ID'), icon: 'user-check', color: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400', trend: { up: true, text: `${stats.active_percentage || 0}%` } },
+        { label: 'Baru Bulan Ini', value: `+${Number(stats.new_this_month || 0).toLocaleString('id-ID')}`, icon: 'user', color: 'bg-sky-500/15 text-sky-600 dark:text-sky-400', trend: stats.new_growth_percentage !== null && stats.new_growth_percentage !== undefined ? { up: stats.new_growth_percentage >= 0, text: `${Math.abs(stats.new_growth_percentage)}%` } : null },
+        { label: 'Subscriber Nonaktif', value: Number(stats.disabled || 0).toLocaleString('id-ID'), icon: 'eye-off', color: 'bg-zinc-500/15 text-zinc-600 dark:text-zinc-400', trend: { up: false, text: `${stats.disabled_percentage || 0}%` } },
+    ];
+
     const statusBadge = (status) => {
         const map = {
             active: { label: 'Aktif', cls: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' },
@@ -132,30 +139,23 @@ export default function Subscribers() {
         <>
             <PageHeader title="Subscriber" subtitle="Kelola pengguna yang berlangganan blog." />
 
-            <div className="mb-5 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-                <div className="card p-4">
-                    <p className="text-xs font-medium text-ink-muted">Total</p>
-                    <p className="mt-1 text-2xl font-bold text-ink">{Number(stats.total || 0).toLocaleString('id-ID')}</p>
-                </div>
-                <div className="card p-4">
-                    <p className="text-xs font-medium text-ink-muted">Aktif</p>
-                    <p className="mt-1 text-2xl font-bold text-emerald-600 dark:text-emerald-400">{Number(stats.active || 0).toLocaleString('id-ID')}</p>
-                    <p className="mt-1 text-xs font-medium text-ink-muted">{stats.active_percentage || 0}%</p>
-                </div>
-                <div className="card p-4">
-                    <p className="text-xs font-medium text-ink-muted">Baru Bulan Ini</p>
-                    <p className="mt-1 text-2xl font-bold text-brand-600 dark:text-brand-400">+{Number(stats.new_this_month || 0).toLocaleString('id-ID')}</p>
-                    {stats.new_growth_percentage !== null && stats.new_growth_percentage !== undefined && (
-                        <p className={`mt-1 text-xs font-semibold ${stats.new_growth_percentage >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>
-                            {stats.new_growth_percentage >= 0 ? '↑' : '↓'} {Math.abs(stats.new_growth_percentage)}%
-                        </p>
-                    )}
-                </div>
-                <div className="card p-4">
-                    <p className="text-xs font-medium text-ink-muted">Nonaktif</p>
-                    <p className="mt-1 text-2xl font-bold text-zinc-500">{Number(stats.disabled || 0).toLocaleString('id-ID')}</p>
-                    <p className="mt-1 text-xs font-medium text-ink-muted">{stats.disabled_percentage || 0}%</p>
-                </div>
+            <div className="mb-5 grid grid-cols-2 gap-4 lg:grid-cols-4">
+                {subscriberKpis.map((kpi) => (
+                    <div key={kpi.label} className="card p-4">
+                        <div className="flex items-start justify-between">
+                            <div className={`flex h-9 w-9 items-center justify-center rounded-lg ${kpi.color}`}>
+                                <Icon name={kpi.icon} size={18} />
+                            </div>
+                            {kpi.trend && (
+                                <span className={`badge ${kpi.trend.up ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' : 'bg-red-500/15 text-red-600 dark:text-red-400'}`}>
+                                    <Icon name="trending-up" size={11} className={kpi.trend.up ? '' : 'rotate-180'} /> {kpi.trend.text}
+                                </span>
+                            )}
+                        </div>
+                        <p className="mt-3 text-xl font-bold text-ink">{kpi.value}</p>
+                        <p className="mt-0.5 text-xs text-ink-muted">{kpi.label}</p>
+                    </div>
+                ))}
             </div>
 
             <div className="mb-4 flex flex-wrap items-center gap-x-1.5 gap-y-2">
