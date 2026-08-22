@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import api, { ensureCsrf } from '../../api';
 import Icon from '../../components/Icon';
@@ -22,6 +22,7 @@ export default function Login() {
     const [otpCode, setOtpCode] = useState('');
     const [otpSent, setOtpSent] = useState(false);
     const [otpLoading, setOtpLoading] = useState(false);
+    const [cooldown, setCooldown] = useState(0);
     const [errors, setErrors] = useState({});
     const [loading, setLoading] = useState(false);
     const notice = location.state?.notice;
@@ -31,6 +32,14 @@ export default function Login() {
     const otpLabel = otpCfg.whatsapp && otpCfg.email ? 'Email / No. WhatsApp' : otpCfg.whatsapp ? 'No. WhatsApp' : 'Email';
     const otpPlaceholder = otpCfg.whatsapp && otpCfg.email ? 'email@contoh.com / 08xxxxxxxxxx' : otpCfg.whatsapp ? '08xxxxxxxxxx' : 'email@contoh.com';
 
+    
+
+    useEffect(() => {
+        if (cooldown <= 0) return;
+        const timer = setTimeout(() => setCooldown((c) => c - 1), 1000);
+        return () => clearTimeout(timer);
+    }, [cooldown]);
+
     const sendOtp = async (e) => {
         e.preventDefault();
         setErrors({});
@@ -39,6 +48,7 @@ export default function Login() {
             await ensureCsrf();
             await api.post('/send-otp', { identifier: otpPhone });
             setOtpSent(true);
+            setCooldown(60);
         } catch (err) {
             setErrors({ form: err?.response?.data?.message || 'Gagal mengirim OTP.' });
         } finally {
@@ -253,9 +263,22 @@ export default function Login() {
                                     />
                                 </div>
                             )}
-                            <Button type="submit" icon={otpSent ? 'check' : 'send'} loading={otpLoading} disabled={otpLoading} className="w-full">
-                                {otpSent ? 'Verifikasi & Masuk' : 'Kirim OTP'}
+                            <Button type="submit" icon={otpSent ? 'check' : 'send'} loading={otpLoading} disabled={otpLoading || (otpSent === false && cooldown > 0)} className="w-full">
+                                {otpSent ? 'Verifikasi & Masuk' : cooldown > 0 ? `Tunggu (${cooldown}s)` : 'Kirim OTP'}
                             </Button>
+                            {otpSent && (
+                                <p className="text-center text-xs text-ink-muted">
+                                    Belum menerima kode?{' '}
+                                    <button 
+                                        type="button" 
+                                        disabled={cooldown > 0 || otpLoading} 
+                                        onClick={sendOtp}
+                                        className="font-medium text-brand-600 hover:underline disabled:text-ink-muted disabled:no-underline dark:text-brand-400"
+                                    >
+                                        {cooldown > 0 ? `Tunggu (${cooldown}s)` : 'Kirim ulang'}
+                                    </button>
+                                </p>
+                            )}
                         </form>
                     )}
 

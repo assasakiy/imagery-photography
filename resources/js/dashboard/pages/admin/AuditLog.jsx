@@ -44,7 +44,7 @@ const LINK_STATUS_META = {
     cancelled: { label: 'Dibatalkan', cls: 'bg-red-500/15 text-red-600 dark:text-red-400' },
 };
 
-const PURPOSE_LABEL = { invite: 'Undangan', recovery: 'Recovery', project: 'Akses Proyek' };
+const PURPOSE_LABEL = { invite: 'Undangan', recovery: 'Recovery', project: 'Akses Proyek', subscribe: 'Subs. Aktivasi', otp_login: 'OTP Login' };
 
 function linkStatusMeta(it) {
     if (it.used_at || it.status === 'accepted') {
@@ -364,11 +364,16 @@ export default function AuditLog() {
                                     </td>
                                     <td>
                                         <button
-                                            className="max-w-[220px] truncate font-mono text-xs text-brand-600 dark:text-brand-400 hover:underline"
-                                            title={it.url}
-                                            onClick={() => { navigator.clipboard.writeText(it.url).then(() => {}); }}
+                                            className="group flex max-w-[220px] items-center gap-1.5 font-mono text-xs text-brand-600 dark:text-brand-400 hover:underline"
+                                            title="Salin Tautan"
+                                            onClick={() => { 
+                                                navigator.clipboard.writeText(it.url).then(() => {
+                                                    toast.success('Tautan disalin ke clipboard');
+                                                }); 
+                                            }}
                                         >
-                                            {it.url || it.token}
+                                            <span className="truncate">{it.token}</span>
+                                            <Icon name="copy" size={12} className="shrink-0 opacity-0 transition-opacity group-hover:opacity-100" />
                                         </button>
                                     </td>
                                     <td className="whitespace-nowrap text-xs text-ink-muted">{it.expires_at ? formatDateTime(it.expires_at) : '-'}</td>

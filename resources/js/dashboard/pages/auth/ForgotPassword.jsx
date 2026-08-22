@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api, { ensureCsrf } from '../../api';
 import Icon from '../../components/Icon';
@@ -11,6 +11,7 @@ export default function ForgotPassword() {
     const [identifier, setIdentifier] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+    const [cooldown, setCooldown] = useState(0);
 
     const otpCfg = APP.otp || { whatsapp: false, email: false };
     const waEnabled = otpCfg.whatsapp;
@@ -20,6 +21,14 @@ export default function ForgotPassword() {
     const inputLabel = waEnabled && emailEnabled ? 'Email / No. WhatsApp' : waEnabled ? 'No. WhatsApp' : 'Email';
     const inputPlaceholder = waEnabled && emailEnabled ? 'email@contoh.com / 08xxxx' : waEnabled ? '08xxxxxxxxxx' : 'email@contoh.com';
 
+    
+
+    useEffect(() => {
+        if (cooldown <= 0) return;
+        const timer = setTimeout(() => setCooldown((c) => c - 1), 1000);
+        return () => clearTimeout(timer);
+    }, [cooldown]);
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
@@ -27,6 +36,7 @@ export default function ForgotPassword() {
         try {
             await ensureCsrf();
             await api.post('/forgot', { identifier });
+            setCooldown(60);
             navigate('/login', { state: { notice: `Tautan dan kode reset telah dikirim ke ${availableChannels} Anda.` } });
         } catch (err) {
             setError(err?.response?.data?.message || 'Gagal mengirim. Periksa kembali.');
@@ -71,8 +81,8 @@ export default function ForgotPassword() {
                                 <label className="label">{inputLabel}</label>
                                 <input className="input" value={identifier} onChange={(e) => setIdentifier(e.target.value)} placeholder={inputPlaceholder} required />
                             </div>
-                            <Button type="submit" icon="send" loading={loading} disabled={loading} className="w-full">
-                                Kirim Tautan Reset
+                            <Button type="submit" icon="send" loading={loading} disabled={loading || cooldown > 0} className="w-full">
+                                {cooldown > 0 ? `Tunggu (${cooldown}s)` : 'Kirim Tautan Reset'}
                             </Button>
                         </form>
                     )}

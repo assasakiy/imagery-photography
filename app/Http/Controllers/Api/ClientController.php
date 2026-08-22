@@ -157,6 +157,30 @@ class ClientController extends Controller
 
         $creator = $request->user();
 
+        if (!$request->boolean('send')) {
+            $existing = ClientAccessToken::where('user_id', $user->id)
+                ->where('purpose', $purpose)
+                ->where('status', 'pending')
+                ->valid()
+                ->latest()
+                ->first();
+
+            if ($existing) {
+                app(AuditLogger::class)->log('client.token_reused', 'Token ' . $purpose . ' digunakan ulang (salin) utk ' . $user->name, $existing);
+                return response()->json([
+                    'url' => $existing->url,
+                    'purpose' => $existing->purpose,
+                    'expires_at' => $existing->expires_at,
+                    'sent' => false,
+                ]);
+            }
+        }
+
+        ClientAccessToken::where('user_id', $user->id)
+            ->where('purpose', $purpose)
+            ->where('status', 'pending')
+            ->update(['status' => 'cancelled']);
+
         $token = ClientAccessToken::createToken(
             $user,
             $purpose,

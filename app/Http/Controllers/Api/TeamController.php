@@ -153,6 +153,32 @@ class TeamController extends Controller
 
         $creator = $request->user();
 
+        // Jika hanya salin link (send = false), usahakan re-use token yang masih valid.
+        if (!$request->boolean('send')) {
+            $existing = \App\Models\ClientAccessToken::where('user_id', $user->id)
+                ->where('purpose', $purpose)
+                ->where('status', 'pending')
+                ->valid()
+                ->latest()
+                ->first();
+
+            if ($existing) {
+                app(AuditLogger::class)->log('team.token_reused', 'Token ' . $purpose . ' digunakan ulang (salin) utk ' . $user->name, $existing);
+                return response()->json([
+                    'url' => $existing->url,
+                    'purpose' => $existing->purpose,
+                    'expires_at' => $existing->expires_at,
+                    'sent' => false,
+                ]);
+            }
+        }
+
+        // Jika dikirim ulang (send = true) ATAU tak ada yang valid, batalkan yang lama.
+        \App\Models\ClientAccessToken::where('user_id', $user->id)
+            ->where('purpose', $purpose)
+            ->where('status', 'pending')
+            ->update(['status' => 'cancelled']);
+
         $token = \App\Models\ClientAccessToken::createToken(
             $user,
             $purpose,
