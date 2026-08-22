@@ -84,7 +84,7 @@ export default function SecurityTab({ form, meta, errors, saving, set, save, dir
                         </div>
                     </div>
                     <Field label="Masa berlaku undangan akun" hint="berapa jam link aktivasi valid sebelum kadaluarsa">
-                        <select className="input" value={form.invite_expiry_hours} onChange={(e) => set('invite_expiry_hours', e.target.value)}>
+                        <select className="input" value={String(form.invite_expiry_hours)} onChange={(e) => set('invite_expiry_hours', parseInt(e.target.value, 10))}>
                             <option value="6">6 jam</option>
                             <option value="12">12 jam</option>
                             <option value="24">24 jam</option>
@@ -185,7 +185,7 @@ export default function SecurityTab({ form, meta, errors, saving, set, save, dir
                     <p className="text-xs text-ink-muted">Berapa lama file (gambar, video, dokumen) disimpan sebelum dihapus otomatis.</p>
                 </div>
                 <Field label="Lama penyimpanan" hint="0 = selamanya">
-                    <select className="input" value={form.file_retention_days} onChange={(e) => set('file_retention_days', e.target.value)}>
+                    <select className="input" value={String(form.file_retention_days)} onChange={(e) => set('file_retention_days', parseInt(e.target.value, 10))}>
                         <option value="0">Selamanya</option>
                         <option value="30">30 hari</option>
                         <option value="90">90 hari</option>
