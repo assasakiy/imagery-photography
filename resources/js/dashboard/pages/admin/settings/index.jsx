@@ -19,6 +19,7 @@ export default function Settings() {
     const [form, setForm] = useState(emptyForm);
     const [base, setBase] = useState({});
     const [meta, setMeta] = useState({});
+    const [previewUrls, setPreviewUrls] = useState({});
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [testingEmail, setTestingEmail] = useState(false);
@@ -234,7 +235,7 @@ export default function Settings() {
         testGateway, testingTripay,
         toggleManualPayment, toggleGatewayPayment, toggleGoogleAuth,
         waDrivers, waDriver, waFields, waConfig, setWaDriver,
-        mediaFor, setMediaFor,
+        mediaFor, setMediaFor, previewUrls, setPreviewUrls,
         webhookConfigured: !!meta.webhook_configured,
         webhookEnabled: !!meta.webhook_enabled,
         toggleWebhookChannel, testWebhook, testingWebhook,
@@ -280,7 +281,10 @@ export default function Settings() {
                 open={!!mediaFor}
                 onClose={() => setMediaFor(null)}
                 onSelect={(sel) => {
-                    if (mediaFor) set(mediaFor, pickValue(sel));
+                    if (mediaFor) {
+                        set(mediaFor, pickValue(sel));
+                        setPreviewUrls(prev => ({ ...prev, [mediaFor]: sel.thumbnail_url || sel.url }));
+                    }
                 }}
                 title={mediaFor === 'site_logo' ? 'Pilih Logo' : 'Pilih Favicon'}
             />

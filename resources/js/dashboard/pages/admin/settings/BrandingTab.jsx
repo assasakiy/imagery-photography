@@ -4,7 +4,7 @@ import RichEditor from '../../../components/RichEditor';
 import { Field } from '../../../components/ui';
 import { BRAND_PRESETS, BUSINESS_TIMEZONES, TAB_FIELDS } from './constants';
 
-export default function BrandingTab({ form, meta, errors, saving, set, save, dirty, mediaFor, setMediaFor, dirtyColor }) {
+export default function BrandingTab({ form, meta, errors, saving, set, save, dirty, mediaFor, setMediaFor, previewUrls, setPreviewUrls, dirtyColor }) {
     return (
         <div className="space-y-6">
             <div className="card w-full p-6">
@@ -25,22 +25,34 @@ export default function BrandingTab({ form, meta, errors, saving, set, save, dir
                     <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                         <Field label="Logo" hint="gambar persegi/transparan">
                             <div className="flex items-center gap-3">
-                                <img src={meta.site_logo_url} alt="Logo" className="h-16 w-16 rounded-xl border border-line bg-surface-muted object-cover" />
+                                {form.site_logo ? (
+                                    <img src={previewUrls.site_logo || meta.site_logo_url} alt="Logo" className="h-16 w-16 rounded-xl border border-line bg-surface-muted object-cover" />
+                                ) : (
+                                    <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl border border-dashed border-line bg-surface-muted text-ink-muted">
+                                        <Icon name="image" size={24} />
+                                    </div>
+                                )}
                                 <div className="space-y-2">
                                     <Button size="sm" variant="outline" icon="image" onClick={() => setMediaFor('site_logo')}>Pilih Logo</Button>
                                     {form.site_logo && (
-                                        <Button size="xs" variant="ghost" icon="trash" onClick={() => set('site_logo', '')}>Hapus</Button>
+                                        <Button size="xs" variant="ghost" icon="trash" onClick={() => { set('site_logo', ''); setPreviewUrls(p => ({ ...p, site_logo: null })); }}>Hapus</Button>
                                     )}
                                 </div>
                             </div>
                         </Field>
                         <Field label="Favicon" hint="ikon kecil di tab browser">
                             <div className="flex items-center gap-3">
-                                <img src={meta.site_favicon_url} alt="Favicon" className="h-16 w-16 rounded-xl border border-line bg-surface-muted object-cover" />
+                                {form.site_favicon ? (
+                                    <img src={previewUrls.site_favicon || meta.site_favicon_url} alt="Favicon" className="h-16 w-16 rounded-xl border border-line bg-surface-muted object-cover" />
+                                ) : (
+                                    <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl border border-dashed border-line bg-surface-muted text-ink-muted">
+                                        <Icon name="image" size={24} />
+                                    </div>
+                                )}
                                 <div className="space-y-2">
                                     <Button size="sm" variant="outline" icon="image" onClick={() => setMediaFor('site_favicon')}>Pilih Favicon</Button>
                                     {form.site_favicon && (
-                                        <Button size="xs" variant="ghost" icon="trash" onClick={() => set('site_favicon', '')}>Hapus</Button>
+                                        <Button size="xs" variant="ghost" icon="trash" onClick={() => { set('site_favicon', ''); setPreviewUrls(p => ({ ...p, site_favicon: null })); }}>Hapus</Button>
                                     )}
                                 </div>
                             </div>
