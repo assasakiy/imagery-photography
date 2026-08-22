@@ -21,6 +21,13 @@ const STATUS_META = {
 
 export default function UserDetailModal({ open, onClose, data, loading, onIssueToken, issuing, showProjects = true }) {
     const navigate = useNavigate();
+    const [cooldown, setCooldown] = useState(0);
+
+    useEffect(() => {
+        if (cooldown <= 0) return;
+        const timer = setTimeout(() => setCooldown((c) => c - 1), 1000);
+        return () => clearTimeout(timer);
+    }, [cooldown]);
 
     if (!open) return null;
 
@@ -30,8 +37,6 @@ export default function UserDetailModal({ open, onClose, data, loading, onIssueT
 
     const siteName = window.APP_CONFIG?.siteName || 'Sopian Lalu Imagery';
     const loginUrl = `${window.location.origin}/login`;
-
-    const [cooldown, setCooldown] = useState(0);
 
     const copy = async (text) => {
         try {
@@ -75,12 +80,6 @@ export default function UserDetailModal({ open, onClose, data, loading, onIssueT
         ].join('\n');
 
     const handleSend = () => onIssueToken?.(purpose, true);
-
-    useEffect(() => {
-        if (cooldown <= 0) return;
-        const timer = setTimeout(() => setCooldown((c) => c - 1), 1000);
-        return () => clearTimeout(timer);
-    }, [cooldown]);
 
     const handleCopy = async () => {
         try {
