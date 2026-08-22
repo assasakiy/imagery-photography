@@ -1,5 +1,26 @@
 import Icon from './Icon';
 
+export function ScreenLoader() {
+    return (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-surface">
+            <div className="flex flex-col items-center gap-6">
+                <div className="relative flex h-16 w-16 items-center justify-center">
+                    <div className="absolute inset-0 rounded-full border-4 border-brand-500/20"></div>
+                    <div className="absolute inset-0 animate-spin rounded-full border-4 border-transparent border-t-brand-500 border-r-brand-500"></div>
+                    <div className="h-8 w-8 animate-pulse rounded-lg bg-brand-500/20">
+                        {window.APP_CONFIG?.logo ? (
+                            <img src={window.APP_CONFIG.logo} alt="Loading" className="h-full w-full object-cover rounded-lg" />
+                        ) : null}
+                    </div>
+                </div>
+                <div className="text-sm font-semibold tracking-widest text-ink-muted animate-pulse">
+                    MEMUAT...
+                </div>
+            </div>
+        </div>
+    );
+}
+
 export function Spinner({ className = 'h-8 w-8 text-brand-600' }) {
     return (
         <div className="flex items-center justify-center p-8">

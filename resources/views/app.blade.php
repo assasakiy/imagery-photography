@@ -42,7 +42,30 @@
             },
         };
     </script>
-    <div id="app"></div>
+    <div id="app">
+        <!-- Initial Loading State -->
+        <div style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:var(--bg-surface, #ffffff);z-index:9999;" id="initial-loader">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:1.5rem;">
+                <div style="position:relative;display:flex;height:4rem;width:4rem;align-items:center;justify-content:center;">
+                    <!-- Outer rotating ring -->
+                    <div style="position:absolute;inset:0;border-radius:50%;border:3px solid transparent;border-top-color:var(--brand-500, #7c3aed);border-right-color:var(--brand-500, #7c3aed);opacity:0.2;"></div>
+                    <div style="position:absolute;inset:0;border-radius:50%;border:3px solid transparent;border-top-color:var(--brand-500, #7c3aed);animation:spin 1s linear infinite;"></div>
+                    <!-- Inner logo/icon placeholder -->
+                    <div style="height:2rem;width:2rem;border-radius:0.5rem;background-color:var(--brand-500, #7c3aed);opacity:0.1;"></div>
+                    @if($siteLogo)
+                        <img src="{{ $siteLogo }}" alt="Loading" style="position:absolute;height:2rem;width:2rem;object-fit:cover;border-radius:0.5rem;" />
+                    @endif
+                </div>
+                <div style="font-family:ui-sans-serif, system-ui, sans-serif;font-size:0.875rem;font-weight:500;letter-spacing:0.05em;color:var(--text-muted, #71717a);animation:pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;">MEMUAT...</div>
+            </div>
+        </div>
+        <style>
+            .dark #initial-loader { background: #09090b !important; }
+            .dark #initial-loader div { color: #a1a1aa !important; }
+            @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+            @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
+        </style>
+    </div>
     @vite('resources/js/dashboard.jsx')
 </body>
 </html>
