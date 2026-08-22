@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import Icon from '../../../components/Icon';
 import Button from '../../../components/Button';
 import Toggle from '../../../components/Toggle';
-import { Field } from '../../../components/ui';
+import { Field, PasswordInput } from '../../../components/ui';
 import { SMTP_FIELDS, WA_FIELDS, TRIPAY_FIELDS, GOOGLE_FIELDS, MASK, POPULAR_BANKS, POPULAR_WALLETS } from './constants';
 import { AccountsSection, uid } from './integrations/AccountComponents';
 
@@ -195,7 +195,7 @@ export default function IntegrasiTab({
                                 <input className="input" autoComplete="off" value={form.mail_username} onChange={(e) => set('mail_username', e.target.value)} />
                             </Field>
                             <Field label="Password" hint="opsional">
-                                <input className="input" type="password" autoComplete="new-password" placeholder={form.mail_password === MASK ? '••••••••' : ''} value={form.mail_password === MASK ? '' : form.mail_password} onChange={(e) => set('mail_password', e.target.value)} />
+                                <PasswordInput autoComplete="new-password" placeholder={form.mail_password === MASK ? '••••••••' : ''} value={form.mail_password === MASK ? '' : form.mail_password} onChange={(e) => set('mail_password', e.target.value)} />
                             </Field>
                             <Field label="Dari (email)" hint="opsional" error={errors.mail_from_address?.[0]}>
                                 <input className="input" type="email" value={form.mail_from_address} onChange={(e) => set('mail_from_address', e.target.value)} />
@@ -285,9 +285,7 @@ export default function IntegrasiTab({
                                 if (f.type === 'password') {
                                     return (
                                         <Field key={f.key} label={f.label} required={f.required} hint={f.help}>
-                                            <input
-                                                className="input"
-                                                type="password"
+                                            <PasswordInput
                                                 autoComplete="new-password"
                                                 placeholder={masked ? MASK : ''}
                                                 value={masked ? '' : val}
@@ -427,9 +425,7 @@ export default function IntegrasiTab({
                                 <input className="input" value={tripayCfg.merchant_code} onChange={(e) => set('payment_tripay_config', { ...tripayCfg, merchant_code: e.target.value })} />
                             </Field>
                             <Field label="API Key" required>
-                                <input
-                                    className="input"
-                                    type="password"
+                                <PasswordInput
                                     autoComplete="new-password"
                                     placeholder={tripayCfg.api_key === MASK ? '••••••••' : ''}
                                     value={tripayCfg.api_key === MASK ? '' : tripayCfg.api_key}
@@ -437,9 +433,7 @@ export default function IntegrasiTab({
                                 />
                             </Field>
                             <Field label="Private Key" required>
-                                <input
-                                    className="input"
-                                    type="password"
+                                <PasswordInput
                                     autoComplete="new-password"
                                     placeholder={tripayCfg.private_key === MASK ? '••••••••' : ''}
                                     value={tripayCfg.private_key === MASK ? '' : tripayCfg.private_key}
@@ -507,7 +501,7 @@ export default function IntegrasiTab({
                                 <input className="input" autoComplete="off" value={form.google_client_id} onChange={(e) => set('google_client_id', e.target.value)} placeholder="xxxxxxxx.apps.googleusercontent.com" />
                             </Field>
                             <Field label="Client Secret" hint="opsional" error={errors.google_client_secret?.[0]}>
-                                <input className="input" type="password" autoComplete="new-password" placeholder={form.google_client_secret === MASK ? '••••••••' : ''} value={form.google_client_secret === MASK ? '' : form.google_client_secret} onChange={(e) => set('google_client_secret', e.target.value)} />
+                                <PasswordInput autoComplete="new-password" placeholder={form.google_client_secret === MASK ? '••••••••' : ''} value={form.google_client_secret === MASK ? '' : form.google_client_secret} onChange={(e) => set('google_client_secret', e.target.value)} />
                             </Field>
                             <div className="sm:col-span-2">
                                 <Field label="URL Redirect (Callback)" hint="opsional" error={errors.google_redirect_url?.[0]}>

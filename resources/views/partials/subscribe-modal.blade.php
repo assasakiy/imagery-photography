@@ -51,11 +51,21 @@
                 <p class="text-sm text-ink-muted">Email terverifikasi. Buat kata sandi untuk melengkapi pendaftaran Anda.</p>
                 <div>
                     <label for="subscribe-password" class="mb-1.5 block text-sm font-medium text-ink">Kata Sandi <span class="text-red-500">*</span></label>
-                    <input id="subscribe-password" name="password" type="password" required placeholder="Min. 8 karakter" class="input w-full" data-subscribe-password>
+                    <div class="relative w-full">
+                        <input id="subscribe-password" name="password" type="password" required placeholder="Min. 8 karakter" class="input w-full pr-12" data-subscribe-password>
+                        <button type="button" class="absolute right-3 top-1/2 -translate-y-1/2 text-ink-muted hover:text-ink focus:outline-none" data-pw-toggle>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-eye"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                        </button>
+                    </div>
                 </div>
                 <div>
                     <label for="subscribe-password-confirm" class="mb-1.5 block text-sm font-medium text-ink">Ulangi Kata Sandi <span class="text-red-500">*</span></label>
-                    <input id="subscribe-password-confirm" name="password_confirmation" type="password" required placeholder="Ulangi kata sandi" class="input w-full" data-subscribe-password-confirm>
+                    <div class="relative w-full">
+                        <input id="subscribe-password-confirm" name="password_confirmation" type="password" required placeholder="Ulangi kata sandi" class="input w-full pr-12" data-subscribe-password-confirm>
+                        <button type="button" class="absolute right-3 top-1/2 -translate-y-1/2 text-ink-muted hover:text-ink focus:outline-none" data-pw-toggle>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="lucide lucide-eye"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                        </button>
+                    </div>
                 </div>
                 <p class="text-xs" data-subscribe-password-error style="color:#ef4444"></p>
                 <button type="submit" class="btn-primary w-full" data-subscribe-password-submit>Simpan & Masuk</button>

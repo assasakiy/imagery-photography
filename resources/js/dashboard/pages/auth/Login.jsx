@@ -7,6 +7,8 @@ import Button from '../../components/Button';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 
+import { PasswordInput } from '../../components/ui';
+
 const APP = window.APP_CONFIG || {};
 
 export default function Login() {
@@ -185,25 +187,12 @@ export default function Login() {
                                 <label htmlFor="password" className="label">
                                     Kata Sandi <span className="text-red-500">*</span>
                                 </label>
-                                <div className="relative">
-                                    <input
-                                        id="password"
-                                        type={showPassword ? 'text' : 'password'}
-                                        required
-                                        className="input pr-12"
-                                        placeholder="••••••••"
-                                        value={password}
-                                        onChange={(e) => setPassword(e.target.value)}
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowPassword((s) => !s)}
-                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-muted hover:text-ink"
-                                        aria-label={showPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'}
-                                    >
-                                        <Icon name={showPassword ? 'eye-off' : 'eye'} size={20} />
-                                    </button>
-                                </div>
+                                <PasswordInput
+                                    id="password"
+                                    required
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                />
                                 {errors.password && <p className="mt-1 text-xs text-red-500">{errors.password[0]}</p>}
                             </div>
 

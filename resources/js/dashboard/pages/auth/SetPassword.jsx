@@ -4,6 +4,7 @@ import api, { ensureCsrf } from '../../api';
 import Icon from '../../components/Icon';
 import Button from '../../components/Button';
 import { useAuth } from '../../context/AuthContext';
+import { PasswordInput } from '../../components/ui';
 
 const APP = window.APP_CONFIG || {};
 
@@ -67,11 +68,11 @@ export default function SetPassword() {
                         <form onSubmit={handleSubmit} className="space-y-4">
                             <div>
                                 <label className="label">Kata Sandi</label>
-                                <input className="input" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={8} />
+                                <PasswordInput value={password} onChange={(e) => setPassword(e.target.value)} required minLength={8} autoComplete="new-password" />
                             </div>
                             <div>
                                 <label className="label">Ulangi Kata Sandi</label>
-                                <input className="input" type="password" value={confirm} onChange={(e) => setConfirm(e.target.value)} required />
+                                <PasswordInput value={confirm} onChange={(e) => setConfirm(e.target.value)} required autoComplete="new-password" />
                             </div>
                             <Button type="submit" icon="check" loading={loading} disabled={loading} className="w-full">
                                 Aktifkan Akun

@@ -187,6 +187,34 @@ export function Field({ label, required, hint, error, children }) {
     );
 }
 
+export function PasswordInput({ value, onChange, placeholder = '••••••••', minLength, required, className = '', id, name, autoComplete = 'current-password' }) {
+    const [show, setShow] = useState(false);
+    return (
+        <div className="relative w-full">
+            <input
+                id={id}
+                name={name}
+                type={show ? 'text' : 'password'}
+                required={required}
+                minLength={minLength}
+                autoComplete={autoComplete}
+                className={`input pr-12 w-full ${className}`}
+                placeholder={placeholder}
+                value={value}
+                onChange={onChange}
+            />
+            <button
+                type="button"
+                onClick={() => setShow((s) => !s)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-muted hover:text-ink focus:outline-none"
+                aria-label={show ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'}
+            >
+                <Icon name={show ? 'eye-off' : 'eye'} size={20} />
+            </button>
+        </div>
+    );
+}
+
 export function formatRupiah(value) {
     if (value === null || value === undefined || value === '') return '-';
     return 'Rp ' + Number(value).toLocaleString('id-ID');

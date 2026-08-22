@@ -1,6 +1,6 @@
 import Icon from '../../../components/Icon';
 import Avatar from '../../../components/Avatar';
-import { Modal, Field, ButtonSpinner } from '../../../components/ui';
+import { Modal, Field, ButtonSpinner, PasswordInput } from '../../../components/ui';
 
 export function AvatarViewModal({ open, onClose, pendingAvatar, avatarUrl, profile, saving, onConfirm, onCancel, onEdit, onRemove }) {
     return (
@@ -161,7 +161,7 @@ export function DeleteAccountModal({ open, onClose, deleting, errors, deletePass
                 </p>
                 <div className="mt-4">
                     <Field label="Kata sandi" required error={errors.password?.[0]}>
-                        <input className="input" type="password" value={deletePass} onChange={(e) => setDeletePass(e.target.value)} required />
+                        <PasswordInput value={deletePass} onChange={(e) => setDeletePass(e.target.value)} required />
                     </Field>
                 </div>
             </form>
