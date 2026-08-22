@@ -10,6 +10,7 @@ use App\Services\RuntimeSettings;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Laravel\Socialite\Facades\Socialite;
+use Laravel\Socialite\Two\GoogleProvider;
 
 class GoogleAuthController extends Controller
 {
@@ -21,8 +22,7 @@ class GoogleAuthController extends Controller
             abort(404);
         }
 
-        return Socialite::driver('google')
-            ->setConfig($this->config($settings))
+        return Socialite::buildProvider(GoogleProvider::class, $this->config($settings))
             ->redirect();
     }
 
@@ -35,8 +35,7 @@ class GoogleAuthController extends Controller
         }
 
         try {
-            $googleUser = Socialite::driver('google')
-                ->setConfig($this->config($settings))
+            $googleUser = Socialite::buildProvider(GoogleProvider::class, $this->config($settings))
                 ->user();
         } catch (\Throwable $e) {
             Log::warning('google auth failed', ['error' => $e->getMessage()]);
