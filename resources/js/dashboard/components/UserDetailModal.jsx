@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { copyToClipboard } from '../lib/clipboard';
 import { useNavigate } from 'react-router-dom';
 import Icon from './Icon';
@@ -30,6 +30,8 @@ export default function UserDetailModal({ open, onClose, data, loading, onIssueT
 
     const siteName = window.APP_CONFIG?.siteName || 'Sopian Lalu Imagery';
     const loginUrl = `${window.location.origin}/login`;
+
+    const [cooldown, setCooldown] = useState(0);
 
     const copy = async (text) => {
         try {
