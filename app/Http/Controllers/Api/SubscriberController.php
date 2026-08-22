@@ -121,37 +121,30 @@ class SubscriberController extends Controller
         return response()->json($this->serialize($user));
     }
 
-    public function resendOtp(Request $request, User $user)
+    public function resendActivation(Request $request, User $user)
     {
         if (!$user->hasRole('subscriber')) {
             abort(404);
         }
 
         if ($user->status === 'active') {
-            return response()->json(['message' => 'Akun sudah aktif, tidak perlu OTP.'], 422);
+            return response()->json(['message' => 'Akun sudah aktif.'], 422);
         }
-
-        $otp = (string) random_int(100000, 999999);
-        session()->put('otp_' . $user->id, ['code' => Hash::make($otp), 'expires_at' => now()->addMinutes(5)]);
-        session()->put('otp_target_' . $user->id, $user->email);
-        session()->put('subscribe_pending_' . $user->id, true); // Pastikan bernilai true
 
         $reg  = app(\App\Services\ClientRegistrationService::class);
         $link = $reg->issueSubscribeLink($user);
 
-        // Paksa ke Email untuk resend OTP subscriber awal.
-        app(NotificationService::class)->sendOtp($user, $user->phone ?? $user->email, $otp, $user->email);
+        // Paksa ke Email untuk resend aktivasi (bisa diganti jika mendukung WA murni)
         app(NotificationService::class)->send(
             \App\Services\NotificationType::ACCOUNT_INVITE,
             $user,
             ['name' => $user->name, 'url' => $link->url, 'channel_override' => 'email']
         );
 
-        app(AuditLogger::class)->log('subscriber.otp_resent', 'OTP+link dikirim ulang ke subscriber: ' . $user->email, $user);
+        app(AuditLogger::class)->log('subscriber.activation_resent', 'Link aktivasi dikirim ulang ke subscriber: ' . $user->email, $user);
 
         return response()->json([
-            'message' => 'OTP dikirim ulang ke ' . ($user->phone ?? $user->email),
-            'dev_otp' => config('app.env') !== 'production' ? $otp : null,
+            'message' => 'Tautan aktivasi telah dikirim ulang ke ' . ($user->phone ?? $user->email)
         ]);
     }
 

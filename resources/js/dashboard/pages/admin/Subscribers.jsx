@@ -83,14 +83,13 @@ export default function Subscribers() {
         }
     };
 
-    const handleResendOtp = async (user) => {
+    const handleResendActivation = async (user) => {
         setActionLoading(user.id);
         try {
-            const { data } = await api.post(`/subscribers/${user.id}/resend-otp`);
-            toast.success(data.message || 'OTP dikirim ulang.');
-            if (data.dev_otp) toast.success(`Dev OTP: ${data.dev_otp}`);
+            const { data } = await api.post(`/subscribers/${user.id}/resend-activation`);
+            toast.success(data.message || 'Tautan aktivasi dikirim ulang.');
         } catch (err) {
-            toast.error(getApiErrorMessage(err, 'Gagal mengirim OTP.'));
+            toast.error(getApiErrorMessage(err, 'Gagal mengirim tautan.'));
         } finally {
             setActionLoading(null);
         }
@@ -344,9 +343,9 @@ export default function Subscribers() {
                                         <button
                                             className="btn-outline text-xs"
                                             disabled={actionLoading === detail.id}
-                                            onClick={() => handleResendOtp(detail)}
+                                            onClick={() => handleResendActivation(detail)}
                                         >
-                                            <Icon name="mail" size={14} className="mr-1" /> {actionLoading === detail.id ? 'Mengirim...' : 'Kirim Ulang OTP'}
+                                            <Icon name="link" size={14} className="mr-1" /> {actionLoading === detail.id ? 'Mengirim...' : 'Kirim Link Aktivasi'}
                                         </button>
                                     )}
                                     {!detail.is_client && detail.status !== 'pending' && (

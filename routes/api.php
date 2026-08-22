@@ -128,7 +128,7 @@ Route::middleware(['web', 'auth:sanctum', 'maintenance'])->group(function () {
         Route::get('/subscribers/{user}', [SubscriberController::class, 'show']);
         Route::post('/subscribers/{user}/disable', [SubscriberController::class, 'disable']);
         Route::post('/subscribers/{user}/activate', [SubscriberController::class, 'activate']);
-        Route::post('/subscribers/{user}/resend-otp', [SubscriberController::class, 'resendOtp']);
+        Route::post('/subscribers/{user}/resend-activation', [SubscriberController::class, 'resendActivation']);
         Route::post('/subscribers/{user}/soft-delete', [SubscriberController::class, 'softDelete']);
         Route::post('/subscribers/{user}/restore', [SubscriberController::class, 'restore']);
         Route::delete('/subscribers/{user}/force-delete', [SubscriberController::class, 'forceDelete']);
