@@ -111,21 +111,29 @@ export default function PreviewDetail() {
         toast.success(`${selected.size} file HD diunduh.`);
     };
 
-    // Cek status dulu (fetch ringan); terus giliran unduh via href NATIVE (stream ke disk, bukan blob RAM).
+    // Bangun ZIP via axios (JSON), lalu unduh lewat url ?ready=1 — stream native ke disk, bukan blob RAM.
     const startDownloadZip = async () => {
         if (downloading) return;
         setDownloading(true);
         try {
-            for (let i = 0; i < 60; i++) {
+            // Zip yang sudah jadi -> pakai ulang tanpa rebuild.
+            try {
                 const { data } = await api.get(`/projects/${project.id}/download-status`);
-                if (!data.ready) {
-                    toast.error(data.message || 'Belum ada file untuk diunduh.');
+                if (data.status === 'ready' && data.url) {
+                    toast.success('ZIP siap — unduhan dimulai.');
+                    window.location.href = data.url;
                     return;
                 }
-                if (data.kind !== '') break;
-                await new Promise((r) => setTimeout(r, 2000));
+            } catch {
+                /* status gagal -> lanjut bangun baru */
             }
-            window.location.href = `/api/projects/${project.id}/download-zip`;
+            const { data } = await api.get(`/projects/${project.id}/download-zip`);
+            if (data.status === 'ready' && data.url) {
+                toast.success('ZIP siap — unduhan dimulai.');
+                window.location.href = data.url;
+            } else {
+                toast.error('Belum ada file untuk diunduh.');
+            }
         } catch (err) {
             toast.error(getApiErrorMessage(err, 'Gagal menyiapkan unduhan.'));
         } finally {
@@ -224,7 +232,7 @@ export default function PreviewDetail() {
                                 <button
                                     className="btn-primary"
                                     disabled={!canDownload || (selecting && selected.size === 0)}
-                                    onClick={() => (selecting && selected.size ? downloadSelected() : (window.location.href = `/api/projects/${project.id}/download-zip`))}
+                                    onClick={() => (selecting && selected.size ? downloadSelected() : startDownloadZip())}
                                 >
                                     <Icon name="download" size={16} /> {selecting && selected.size ? `Download HD (${selected.size})` : 'Download ZIP'}
                                 </button>

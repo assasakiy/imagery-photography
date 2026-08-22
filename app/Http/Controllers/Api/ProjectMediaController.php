@@ -46,14 +46,18 @@ class ProjectMediaController extends Controller
 
         $isProof = $stage === 'start' || $stage === 'end';
 
-        $pf = $project->files()->create([
+        // gallery_status kolom NOT NULL (default 'preparing') — hanya diset eksplisit untuk bukti.
+        $attributes = [
             'original_name' => $file->getClientOriginalName(),
             'filename' => $file->getClientOriginalName(),
             'category' => $category,
             // Bukti sesi selalu variant 'record' (dipakai accessor url ProjectFile).
             'variant' => $isProof ? 'record' : ($stage ?: 'original'),
-            'gallery_status' => $isProof ? ($request->input('gallery_status') ?? 'preview_ready') : null,
-        ]);
+        ];
+        if ($isProof) {
+            $attributes['gallery_status'] = $request->input('gallery_status') ?? 'preview_ready';
+        }
+        $pf = $project->files()->create($attributes);
 
         try {
             if ($category === 'proof') {
@@ -229,6 +233,8 @@ class ProjectMediaController extends Controller
             if (Storage::disk('local')->exists($path)) {
                 return response()->json(['status' => 'ready', 'url' => url('/api/projects/' . $project->id . '/download-zip?ready=1')]);
             }
+            cache()->forget($jobId);
+            return response()->json(['status' => 'none']);
         }
         
         if ($progress) {
