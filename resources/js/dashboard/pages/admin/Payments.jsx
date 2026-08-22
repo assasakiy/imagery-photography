@@ -86,8 +86,8 @@ export default function Payments() {
                                     <td className="text-sm text-ink-muted">{p.method === 'gateway' ? 'Gateway' : 'Manual'}</td>
                                     <td><span className={badge(p.status)}>{statusLabel(p.status)}</span></td>
                                     <td>
-                                        {p.proof_file ? (
-                                            <a href={`/storage/${p.proof_file}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-sm text-brand-600 hover:underline dark:text-brand-400">
+                                        {p.proof_url ? (
+                                            <a href={p.proof_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-sm text-brand-600 hover:underline dark:text-brand-400">
                                                 Lihat <Icon name="eye" size={14} />
                                             </a>
                                         ) : (

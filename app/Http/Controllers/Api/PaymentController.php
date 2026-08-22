@@ -239,18 +239,17 @@ class PaymentController extends Controller
             'proof_file' => 'nullable|file|max:10240',
         ]);
 
-        if ($request->hasFile('proof_file')) {
-            $data['proof_file'] = $request->file('proof_file')->store('payment-proofs/' . $project->id, 'public');
-        }
-
         $payment = Payment::create([
             'project_id' => $project->id,
             'amount' => $data['amount'],
             'method' => $data['method'],
             'status' => 'pending',
-            'proof_file' => $data['proof_file'] ?? null,
             'notes' => $data['notes'] ?? null,
         ]);
+
+        if ($request->hasFile('proof_file')) {
+            $payment->addMediaFromRequest('proof_file')->toMediaCollection('payment_proof');
+        }
 
         app(NotificationService::class)->webhook('payment.submitted', [
             'payment_id' => $payment->id,
