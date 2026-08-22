@@ -474,12 +474,14 @@ class SettingsController extends Controller
     private function loginMethodsPayload(RuntimeSettings $settings): array
     {
         $active = $settings->globalLoginMethods();
+        
+        $hasChannel = $settings->channelAvailable('email') || $settings->channelAvailable('whatsapp');
 
         return [
             'password' => in_array('password', $active, true),
-            'otp' => in_array('otp', $active, true),
-            'google' => in_array('google', $active, true),
-            'token' => in_array('token', $active, true),
+            'otp'      => $hasChannel && in_array('otp', $active, true),
+            'google'   => in_array('google', $active, true),
+            'token'    => $hasChannel && in_array('token', $active, true),
         ];
     }
 

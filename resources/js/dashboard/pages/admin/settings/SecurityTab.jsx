@@ -20,9 +20,9 @@ export default function SecurityTab({ form, meta, errors, saving, set, save, dir
     const rateLimitsBase = meta.rate_limits || {};
 
     const methods = Object.entries(form.login_methods_global || {}).filter(([method]) => {
-        if (method === 'password' || method === 'token') return true;
-        // OTP hanya muncul jika channel (email atau WA) TERSEDIA (dikonfigurasi + diaktifkan admin)
-        if (method === 'otp') return meta.email_available || meta.whatsapp_available;
+        if (method === 'password') return true;
+        // OTP dan Access Link (token) hanya muncul jika channel (email atau WA) TERSEDIA (dikonfigurasi + diaktifkan admin)
+        if (method === 'otp' || method === 'token') return meta.email_available || meta.whatsapp_available;
         if (method === 'google') return meta.google_auth_enabled && meta.google_client_id;
         return false;
     });

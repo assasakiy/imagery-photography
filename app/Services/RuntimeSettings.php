@@ -368,20 +368,24 @@ class RuntimeSettings
         $raw = $this->get('login_methods_global');
 
         if (!$raw) {
-            return ['password', 'otp', 'google', 'token'];
+            $methods = ['password', 'otp', 'google', 'token'];
+        } else {
+            $decoded = json_decode($raw, true);
+            if (is_array($decoded)) {
+                $methods = array_keys(array_filter($decoded, fn ($v) => $v === true));
+            } else {
+                $methods = ['password', 'otp', 'google', 'token'];
+            }
         }
 
-        $decoded = json_decode($raw, true);
-
-        // Normalisasi: kembalikan DAFTAR nama method yang aktif (keys),
-        // bukan objek {method: boolean}. Hal ini memperbaiki data-shape
-        // mismatch di User::canUseLoginMethod() yang menggunakan in_array()
-        // yang memeriksa *values* (boolean) bukan *keys* (string).
-        if (is_array($decoded)) {
-            return array_keys(array_filter($decoded, fn ($v) => $v === true));
+        // Metode berbasis channel komunikasi membutuhkan ketersediaan channel
+        $hasChannel = $this->channelAvailable('email') || $this->channelAvailable('whatsapp');
+        
+        if (!$hasChannel) {
+            $methods = array_diff($methods, ['otp', 'token']);
         }
 
-        return ['password', 'otp', 'google', 'token'];
+        return array_values($methods);
     }
 
     public function loginMethodEnabled(string $method): bool
