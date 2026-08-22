@@ -62,7 +62,7 @@ function TrendChart({ data = [] }) {
     );
 }
 
-function StatCard({ icon, label, value, sub, color = 'bg-brand-600/10 text-brand-600 dark:text-brand-400', trend }) {
+function StatCard({ icon, label, value, color = 'bg-brand-600/15 text-brand-600 dark:text-brand-400', trend }) {
     return (
         <div className="card p-4">
             <div className="flex items-start justify-between">
@@ -75,9 +75,8 @@ function StatCard({ icon, label, value, sub, color = 'bg-brand-600/10 text-brand
                     </span>
                 )}
             </div>
-            <p className="mt-3 text-xl font-bold text-ink">{value}</p>
-            <p className="mt-0.5 text-xs text-ink-muted">{label}</p>
-            {sub && <p className="mt-1 text-xs text-ink-muted opacity-80">{sub}</p>}
+            <p className="mt-3 text-xl font-bold text-ink truncate">{value}</p>
+            <p className="mt-0.5 text-xs text-ink-muted truncate" title={label}>{label}</p>
         </div>
     );
 }
@@ -214,34 +213,31 @@ export default function Analytics() {
                 }
             />
 
-            <div className="mb-6 grid grid-cols-2 gap-4 xl:grid-cols-4">
+            <div className="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
                 <StatCard 
                     icon="eye" 
                     label="Page Views (Hari Ini)" 
                     value={fmt(overview?.views_today)} 
                     trend={{ up: diffToday >= 0, text: `${Math.abs(diffToday)}%` }} 
-                    color="bg-brand-600/10 text-brand-600 dark:text-brand-400" 
+                    color="bg-brand-600/15 text-brand-600 dark:text-brand-400" 
                 />
                 <StatCard 
                     icon="users" 
-                    label="Unique Visitors (Hari Ini)" 
+                    label={`Unique Visitors (${fmt(overview?.visitors_total)} total)`} 
                     value={fmt(overview?.visitors_today)} 
-                    sub={`Total: ${fmt(overview?.visitors_total)}`} 
-                    color="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" 
+                    color="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400" 
                 />
                 <StatCard 
                     icon="user-check" 
-                    label="Pengguna Aktif (30 hari)" 
+                    label={`Pengguna Aktif (${fmt(overview?.total_users)} total)`} 
                     value={fmt(overview?.active_users)} 
-                    sub={`dari ${fmt(overview?.total_users)} total akun`} 
-                    color="bg-amber-500/10 text-amber-600 dark:text-amber-400" 
+                    color="bg-amber-500/15 text-amber-600 dark:text-amber-400" 
                 />
                 <StatCard 
                     icon="check-square" 
                     label="Penerimaan Cookie" 
                     value={`${consents.acceptance_rate ?? 0}%`} 
-                    sub={`${fmt(consents.all)} izin / ${fmt(consents.necessary)} tolak`} 
-                    color="bg-indigo-500/10 text-indigo-600 dark:text-indigo-400" 
+                    color="bg-indigo-500/15 text-indigo-600 dark:text-indigo-400" 
                 />
             </div>
 
