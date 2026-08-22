@@ -45,6 +45,7 @@ class ProjectMediaController extends Controller
 
         $pf = $project->files()->create([
             'original_name' => $file->getClientOriginalName(),
+            'filename' => $file->getClientOriginalName(),
             'mime_type' => $mime,
             'size_bytes' => $file->getSize(),
             'category' => $category,
@@ -53,12 +54,19 @@ class ProjectMediaController extends Controller
         ]);
 
         try {
-            $media = $project->addMedia($file)
-                             ->usingName($pf->original_name)
-                             ->usingFileName($pf->id . '_' . uniqid() . '.' . $ext)
-                             ->toMediaCollection('project_files');
-            
-            $pf->update(['media_id' => $media->id, 'path' => $media->getPath()]);
+            if ($category === 'proof') {
+                $media = $project->addMedia($file)
+                                 ->usingName($pf->original_name)
+                                 ->usingFileName($pf->id . '_' . uniqid() . '.' . $ext)
+                                 ->toMediaCollection('proofs', 'public');
+            } else {
+                $media = $project->addMedia($file)
+                                 ->usingName($pf->original_name)
+                                 ->usingFileName($pf->id . '_' . uniqid() . '.' . $ext)
+                                 ->toMediaCollection('files', 'local');
+            }
+
+            $pf->update(['media_id' => $media->id, 'filename' => $media->file_name]);
         } catch (\Exception $e) {
             $pf->delete();
             return response()->json(['message' => 'Gagal memproses file.', 'error' => $e->getMessage()], 500);
@@ -86,6 +94,7 @@ class ProjectMediaController extends Controller
             
             $pf = tap($project->files()->create([
                 'original_name' => $file->getClientOriginalName(),
+                'filename' => $file->getClientOriginalName(),
                 'mime_type' => $mime,
                 'size_bytes' => $file->getSize(),
                 'category' => 'photo',
@@ -95,8 +104,8 @@ class ProjectMediaController extends Controller
                 $media = $project->addMedia($file)
                                  ->usingName($pf->original_name)
                                  ->usingFileName($pf->id . '_' . uniqid() . '.' . $ext)
-                                 ->toMediaCollection('project_files');
-                $pf->update(['media_id' => $media->id, 'path' => $media->getPath()]);
+                                 ->toMediaCollection('files', 'local');
+                $pf->update(['media_id' => $media->id, 'filename' => $media->file_name]);
             });
             $uploaded[] = $pf;
             $project->increment('photo_done');
@@ -124,6 +133,7 @@ class ProjectMediaController extends Controller
             
             $pf = tap($project->files()->create([
                 'original_name' => $file->getClientOriginalName(),
+                'filename' => $file->getClientOriginalName(),
                 'mime_type' => $file->getClientMimeType(),
                 'size_bytes' => $file->getSize(),
                 'category' => 'video',
@@ -134,8 +144,8 @@ class ProjectMediaController extends Controller
                 $media = $project->addMedia($file)
                                  ->usingName($pf->original_name)
                                  ->usingFileName($pf->id . '_' . uniqid() . '.' . $ext)
-                                 ->toMediaCollection('project_files');
-                $pf->update(['media_id' => $media->id, 'path' => $media->getPath()]);
+                                 ->toMediaCollection('files', 'local');
+                $pf->update(['media_id' => $media->id, 'filename' => $media->file_name]);
             });
             $uploaded[] = $pf;
         }
