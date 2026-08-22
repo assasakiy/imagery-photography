@@ -62,15 +62,22 @@ function TrendChart({ data = [] }) {
     );
 }
 
-function StatCard({ icon, label, value, sub, color = 'bg-brand-600/10 text-brand-600 dark:text-brand-400' }) {
+function StatCard({ icon, label, value, sub, color = 'bg-brand-600/10 text-brand-600 dark:text-brand-400', trend }) {
     return (
-        <div className="card p-5">
-            <div className={`mb-3 flex h-11 w-11 items-center justify-center rounded-xl ${color}`}>
-                <Icon name={icon} size={22} />
+        <div className="card p-4">
+            <div className="flex items-start justify-between">
+                <div className={`flex h-9 w-9 items-center justify-center rounded-lg ${color}`}>
+                    <Icon name={icon} size={18} />
+                </div>
+                {trend && (
+                    <span className={`badge ${trend.up ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' : 'bg-red-500/15 text-red-600 dark:text-red-400'}`}>
+                        <Icon name="trending-up" size={11} className={trend.up ? '' : 'rotate-180'} /> {trend.text}
+                    </span>
+                )}
             </div>
-            <p className="text-sm text-ink-muted">{label}</p>
-            <p className="mt-1 text-2xl font-bold text-ink">{value}</p>
-            {sub && <p className="mt-1 text-xs text-ink-muted">{sub}</p>}
+            <p className="mt-3 text-xl font-bold text-ink">{value}</p>
+            <p className="mt-0.5 text-xs text-ink-muted">{label}</p>
+            {sub && <p className="mt-1 text-xs text-ink-muted opacity-80">{sub}</p>}
         </div>
     );
 }
@@ -208,10 +215,34 @@ export default function Analytics() {
             />
 
             <div className="mb-6 grid grid-cols-2 gap-4 xl:grid-cols-4">
-                <StatCard icon="eye" label="Page Views (Hari Ini)" value={fmt(overview?.views_today)} sub={`${diffToday >= 0 ? '+' : ''}${diffToday}% vs kemarin`} color="bg-brand-600/10 text-brand-600 dark:text-brand-400" />
-                <StatCard icon="users" label="Unique Visitors (Hari Ini)" value={fmt(overview?.visitors_today)} sub={`Total: ${fmt(overview?.visitors_total)}`} color="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" />
-                <StatCard icon="user-check" label="Pengguna Aktif (30 hari)" value={fmt(overview?.active_users)} sub={`dari ${fmt(overview?.total_users)} total akun`} color="bg-amber-500/10 text-amber-600 dark:text-amber-400" />
-                <StatCard icon="check-square" label="Penerimaan Cookie" value={`${consents.acceptance_rate ?? 0}%`} sub={`${fmt(consents.all)} izinkan / ${fmt(consents.necessary)} tolak`} color="bg-indigo-500/10 text-indigo-600 dark:text-indigo-400" />
+                <StatCard 
+                    icon="eye" 
+                    label="Page Views (Hari Ini)" 
+                    value={fmt(overview?.views_today)} 
+                    trend={{ up: diffToday >= 0, text: `${Math.abs(diffToday)}%` }} 
+                    color="bg-brand-600/10 text-brand-600 dark:text-brand-400" 
+                />
+                <StatCard 
+                    icon="users" 
+                    label="Unique Visitors (Hari Ini)" 
+                    value={fmt(overview?.visitors_today)} 
+                    sub={`Total: ${fmt(overview?.visitors_total)}`} 
+                    color="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" 
+                />
+                <StatCard 
+                    icon="user-check" 
+                    label="Pengguna Aktif (30 hari)" 
+                    value={fmt(overview?.active_users)} 
+                    sub={`dari ${fmt(overview?.total_users)} total akun`} 
+                    color="bg-amber-500/10 text-amber-600 dark:text-amber-400" 
+                />
+                <StatCard 
+                    icon="check-square" 
+                    label="Penerimaan Cookie" 
+                    value={`${consents.acceptance_rate ?? 0}%`} 
+                    sub={`${fmt(consents.all)} izin / ${fmt(consents.necessary)} tolak`} 
+                    color="bg-indigo-500/10 text-indigo-600 dark:text-indigo-400" 
+                />
             </div>
 
             <TrendChart data={overview?.trend || []} />
