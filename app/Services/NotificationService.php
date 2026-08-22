@@ -389,13 +389,24 @@ class NotificationService
     }
 
     /**
-     * Kanal pengiriman OTP untuk seorang user (fleksibel bila email & WA keduanya ada).
-     * Hanya kanal yang AKTIF (channelAvailable = configured + enabled) yang dipakai.
+     * Kanal pengiriman OTP untuk seorang user.
+     * Jika identifier (input dari user) eksplisit diberikan, paksa channel tersebut
+     * asalkan channel-nya aktif di konfigurasi admin. Jika tidak, fallback ke preferensi user.
      */
-    public function otpChannel(User $user): ?string
+    public function otpChannel(User $user, ?string $identifier = null): ?string
     {
         $email = $this->settings->channelAvailable('email');
         $wa = $this->settings->channelAvailable('whatsapp');
+
+        if ($identifier) {
+            $isEmail = filter_var($identifier, FILTER_VALIDATE_EMAIL);
+            if ($isEmail) {
+                return $email ? 'email' : null;
+            }
+            if (preg_match('/^[0-9+]+$/', $identifier)) {
+                return $wa ? 'whatsapp' : null;
+            }
+        }
 
         if ($email && $wa) {
             return in_array($user->notif_otp_channel, ['email', 'whatsapp'], true)
@@ -417,9 +428,14 @@ class NotificationService
     /**
      * Kirim OTP ke user lewat kanal pilihannya (wajib, tidak bisa dimatikan).
      */
-    public function sendOtp(User $user, string $phone, string $code): bool
+    public function sendOtp(User $user, string $phone, string $code, ?string $identifier = null): bool
     {
-        $channel = $this->otpChannel($user);
+        $channel = $this->otpChannel($user, $identifier);
+        
+        if (!$channel) {
+            return false;
+        }
+
         $message = "Kode OTP login Sopian Lalu Imagery Anda: *{$code}*. Berlaku 5 menit. Jangan bagikan kode ini.";
         $html = "Halo <strong>{$user->name}</strong>,<br><br>" .
                 "Kode OTP login Anda adalah: <strong>{$code}</strong>.<br><br>" .
@@ -465,6 +481,7 @@ class NotificationService
     /**
      * Kirim notifikasi generik berdasarkan jenis (NotificationType).
      * Routing channel ditentukan oleh template/kategori, bukan preferensi client.
+     * Jika ada channel_override, hanya kirim via channel tersebut (asalkan aktif).
      */
     public function send(NotificationType $type, User $user, array $data = []): void
     {
@@ -473,6 +490,17 @@ class NotificationService
         $message = $data['message'] ?? $type->waShortMessage($data);
         $html = $data['html'] ?? $message; // Gunakan html yang disediakan atau fallback ke plain message
         $event = $this->typeEvent($type);
+
+        // Jika dipaksa spesifik channel via parameter $data
+        if (!empty($data['channel_override'])) {
+            $forceChannel = $data['channel_override'];
+            if ($forceChannel === 'whatsapp' && !empty($user->phone)) {
+                $this->whatsapp($user->phone, $message, null, $user, $event);
+            } elseif ($forceChannel === 'email' && !empty($user->email)) {
+                $this->email(new \App\Mail\AlertMail($user->name, $type->subject(), $html), $user->email, $event);
+            }
+            return; // Selesai, jangan jalankan logika fallback default.
+        }
 
         $waSent = false;
 

@@ -134,11 +134,20 @@ class SubscriberController extends Controller
         $otp = (string) random_int(100000, 999999);
         session()->put('otp_' . $user->id, ['code' => Hash::make($otp), 'expires_at' => now()->addMinutes(5)]);
         session()->put('otp_target_' . $user->id, $user->email);
-        session()->put('subscribe_pending_' . $user->id, false);
+        session()->put('subscribe_pending_' . $user->id, true); // Pastikan bernilai true
 
-        app(NotificationService::class)->sendOtp($user, $user->phone ?? $user->email, $otp);
+        $reg  = app(\App\Services\ClientRegistrationService::class);
+        $link = $reg->issueSubscribeLink($user);
 
-        app(AuditLogger::class)->log('subscriber.otp_resent', 'OTP dikirim ulang ke subscriber: ' . $user->email, $user);
+        // Paksa ke Email untuk resend OTP subscriber awal.
+        app(NotificationService::class)->sendOtp($user, $user->phone ?? $user->email, $otp, $user->email);
+        app(NotificationService::class)->send(
+            \App\Services\NotificationType::ACCOUNT_INVITE,
+            $user,
+            ['name' => $user->name, 'url' => $link->url, 'channel_override' => 'email']
+        );
+
+        app(AuditLogger::class)->log('subscriber.otp_resent', 'OTP+link dikirim ulang ke subscriber: ' . $user->email, $user);
 
         return response()->json([
             'message' => 'OTP dikirim ulang ke ' . ($user->phone ?? $user->email),

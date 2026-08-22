@@ -192,11 +192,19 @@ class AuthController extends Controller
         $reg  = app(\App\Services\ClientRegistrationService::class);
         $link = $reg->issueOtpLoginLink($user);
 
-        app(NotificationService::class)->sendOtp($user, $user->phone ?? $data['identifier'], $otp);
+        // Tentukan channel override dari input identifier.
+        $channelOverride = null;
+        if (filter_var($data['identifier'], FILTER_VALIDATE_EMAIL)) {
+            $channelOverride = 'email';
+        } elseif (preg_match('/^[0-9+]+$/', $data['identifier'])) {
+            $channelOverride = 'whatsapp';
+        }
+
+        app(NotificationService::class)->sendOtp($user, $user->phone ?? $data['identifier'], $otp, $data['identifier']);
         app(NotificationService::class)->send(
             \App\Services\NotificationType::ACCOUNT_INVITE,
             $user,
-            ['name' => $user->name, 'url' => $link->url]
+            ['name' => $user->name, 'url' => $link->url, 'channel_override' => $channelOverride]
         );
 
         app(AuditLogger::class)->log('auth.otp_sent', 'OTP+link login dikirim untuk ' . ($user->email ?? $data['identifier']));
@@ -284,13 +292,13 @@ class AuthController extends Controller
             session()->put('otp_target_' . $user->id, $email);
             session()->put('subscribe_pending_' . $user->id, $isNew);
 
-            // Kirim OTP + link aktivasi bersamaan.
-            app(NotificationService::class)->sendOtp($user, $user->phone ?? $email, $otp);
+            // Kirim OTP + link aktivasi bersamaan (khusus subscribe, dipaksa via email).
+            app(NotificationService::class)->sendOtp($user, $user->phone ?? $email, $otp, $email);
             $link = $reg->issueSubscribeLink($user);
             app(NotificationService::class)->send(
                 \App\Services\NotificationType::ACCOUNT_INVITE,
                 $user,
-                ['name' => $user->name, 'url' => $link->url]
+                ['name' => $user->name, 'url' => $link->url, 'channel_override' => 'email']
             );
             app(AuditLogger::class)->log('auth.otp_sent', 'OTP+link subscribe dikirim untuk ' . $email, $user);
         } else {
@@ -493,10 +501,18 @@ class AuthController extends Controller
 
         $token = ClientAccessToken::createToken($user, 'recovery');
 
+        // Tentukan channel override dari input identifier.
+        $channelOverride = null;
+        if (filter_var($identifier, FILTER_VALIDATE_EMAIL)) {
+            $channelOverride = 'email';
+        } elseif (preg_match('/^[0-9+]+$/', $identifier)) {
+            $channelOverride = 'whatsapp';
+        }
+
         app(NotificationService::class)->send(
             NotificationType::PASSWORD_RESET,
             $user,
-            ['name' => $user->name, 'url' => $token->url]
+            ['name' => $user->name, 'url' => $token->url, 'channel_override' => $channelOverride]
         );
 
         app(AuditLogger::class)->log('auth.forgot', 'Permintaan reset password: ' . $user->email, $user);
