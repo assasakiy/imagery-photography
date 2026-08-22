@@ -21,6 +21,32 @@ class ProfileController extends Controller
         ]);
     }
 
+    public function uploadAvatar(Request $request)
+    {
+        $request->validate(['file' => 'required|image|max:10240']);
+        $user = $request->user();
+
+        $path = $request->file('file')->store('avatars', 'public');
+        $url = asset('storage/' . $path);
+
+        $user->update(['avatar' => $url]);
+
+        return response()->json(['message' => 'Foto profil diperbarui.', 'url' => $url]);
+    }
+
+    public function uploadCover(Request $request)
+    {
+        $request->validate(['file' => 'required|image|max:15360']);
+        $user = $request->user();
+
+        $path = $request->file('file')->store('covers', 'public');
+        $url = asset('storage/' . $path);
+
+        $user->update(['cover' => $url]);
+
+        return response()->json(['message' => 'Banner diperbarui.', 'url' => $url]);
+    }
+
     public function update(Request $request)
     {
         $user = $request->user();

@@ -72,6 +72,8 @@ Route::middleware(['web', 'auth:sanctum', 'maintenance'])->group(function () {
 
     Route::get('/profile', [ProfileController::class, 'show']);
     Route::put('/profile', [ProfileController::class, 'update']);
+    Route::post('/profile/avatar', [ProfileController::class, 'uploadAvatar']);
+    Route::post('/profile/cover', [ProfileController::class, 'uploadCover']);
     Route::delete('/profile', [ProfileController::class, 'destroy']);
     Route::get('/username-check', [ProfileController::class, 'checkUsername']);
 

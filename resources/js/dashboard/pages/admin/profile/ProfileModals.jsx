@@ -1,45 +1,29 @@
 import Icon from '../../../components/Icon';
 import Avatar from '../../../components/Avatar';
-import { Modal, Field, ButtonSpinner, PasswordInput } from '../../../components/ui';
+import { Modal, Field, PasswordInput } from '../../../components/ui';
 
-export function AvatarViewModal({ open, onClose, pendingAvatar, avatarUrl, profile, saving, onConfirm, onCancel, onEdit, onRemove, isAdmin }) {
+export function AvatarViewModal({ open, onClose, avatarUrl, profile, onEdit, onRemove }) {
     return (
         <Modal
             open={open}
             onClose={onClose}
-            title={pendingAvatar ? 'Pratinjau Foto Baru' : 'Lihat Foto Profil'}
+            title="Lihat Foto Profil"
             footer={
-                pendingAvatar ? (
-                    <div className="flex flex-col gap-2">
-                        <p className="text-center text-xs text-ink-muted">Simpan foto baru ini sebagai foto profil Anda?</p>
-                        <div className="flex gap-2">
-                            <button type="button" className="btn-outline flex-1" onClick={onCancel} disabled={saving}>Batal</button>
-                            <button type="button" className="btn-primary flex-1" onClick={onConfirm} disabled={saving}>
-                                {saving && <ButtonSpinner />} Konfirmasi
-                            </button>
-                        </div>
-                    </div>
-                ) : (
-                    <div className="flex justify-end gap-2">
-                        {isAdmin && (
-                            <>
-                                <button type="button" className="btn-outline" onClick={onEdit}>
-                                    <Icon name="edit" size={16} /> Ubah
-                                </button>
-                                {avatarUrl && (
-                                    <button type="button" className="btn bg-red-600 text-white hover:bg-red-700" onClick={onRemove}>
-                                        <Icon name="trash" size={16} /> Hapus
-                                    </button>
-                                )}
-                            </>
-                        )}
-                    </div>
-                )
+                <div className="flex justify-end gap-2">
+                    <button type="button" className="btn-outline" onClick={onEdit}>
+                        <Icon name="edit" size={16} /> Ubah
+                    </button>
+                    {avatarUrl && (
+                        <button type="button" className="btn bg-red-600 text-white hover:bg-red-700" onClick={onRemove}>
+                            <Icon name="trash" size={16} /> Hapus
+                        </button>
+                    )}
+                </div>
             }
         >
             <div className="flex flex-col items-center gap-4 py-2">
                 <Avatar
-                    src={pendingAvatar ? pendingAvatar.url : avatarUrl}
+                    src={avatarUrl}
                     name={profile.full_name}
                     size="2xl"
                     shape="full"
@@ -75,53 +59,35 @@ export function AvatarRemoveModal({ open, onClose, saving, onConfirm }) {
     );
 }
 
-export function CoverViewModal({ open, onClose, pendingCover, coverUrl, saving, onConfirm, onCancel, onEdit, onRemove, isAdmin }) {
+export function CoverViewModal({ open, onClose, coverUrl, onEdit, onRemove }) {
     return (
         <Modal
             open={open}
             onClose={onClose}
-            title={pendingCover ? 'Pratinjau Banner Baru' : 'Lihat Banner Profil'}
+            title="Lihat Banner Profil"
             footer={
-                pendingCover ? (
-                    <div className="flex flex-col gap-2">
-                        <p className="text-center text-xs text-ink-muted">Simpan banner baru ini?</p>
-                        <div className="flex gap-2">
-                            <button type="button" className="btn-outline flex-1" onClick={onCancel} disabled={saving}>Batal</button>
-                            <button type="button" className="btn-primary flex-1" onClick={onConfirm} disabled={saving}>
-                                {saving && <ButtonSpinner />} Konfirmasi
-                            </button>
-                        </div>
-                    </div>
-                ) : (
-                    <div className="flex justify-end gap-2">
-                        {isAdmin && (
-                            <>
-                                <button type="button" className="btn-outline" onClick={onEdit}>
-                                    <Icon name="edit" size={16} /> Ubah
-                                </button>
-                                {coverUrl && (
-                                    <button type="button" className="btn bg-red-600 text-white hover:bg-red-700" onClick={onRemove}>
-                                        <Icon name="trash" size={16} /> Hapus
-                                    </button>
-                                )}
-                            </>
-                        )}
-                    </div>
-                )
+                <div className="flex justify-end gap-2">
+                    <button type="button" className="btn-outline" onClick={onEdit}>
+                        <Icon name="edit" size={16} /> Ubah
+                    </button>
+                    {coverUrl && (
+                        <button type="button" className="btn bg-red-600 text-white hover:bg-red-700" onClick={onRemove}>
+                            <Icon name="trash" size={16} /> Hapus
+                        </button>
+                    )}
+                </div>
             }
         >
             <div className="flex flex-col items-center gap-4 py-2">
                 <div className="h-40 w-full overflow-hidden rounded-2xl bg-surface-muted ring-1 ring-line sm:h-48">
-                    {pendingCover ? (
-                        <img src={pendingCover.url} alt="Pratinjau banner" className="h-full w-full object-cover" />
-                    ) : coverUrl ? (
+                    {coverUrl ? (
                         <img src={coverUrl} alt="Banner profil" className="h-full w-full object-cover" />
                     ) : (
                         <div className="flex h-full w-full items-center justify-center bg-gradient-to-r from-brand-700 via-brand-500 to-brand-400" />
                     )}
                 </div>
                 <p className="text-sm text-ink-muted">
-                    {pendingCover ? 'Simpan banner baru ini?' : 'Banner ini ditampilkan di bagian atas profil Anda.'}
+                    Banner ini ditampilkan di bagian atas profil Anda.
                 </p>
             </div>
         </Modal>

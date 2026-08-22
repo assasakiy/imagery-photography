@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import api from '../../api';
 import Icon from '../../components/Icon';
 import Avatar from '../../components/Avatar';
@@ -44,16 +44,15 @@ export default function ProfileSettings() {
     const [avatarUrl, setAvatarUrl] = useState(null);
     const [avatarValue, setAvatarValue] = useState(undefined);
     const [coverUrl, setCoverUrl] = useState(null);
-    const [pendingCover, setPendingCover] = useState(null);
     const [coverViewOpen, setCoverViewOpen] = useState(false);
     const [coverRemoveOpen, setCoverRemoveOpen] = useState(false);
-    const [mediaTarget, setMediaTarget] = useState(null);
-    const [pendingAvatar, setPendingAvatar] = useState(null);
     const [viewOpen, setViewOpen] = useState(false);
     const [removeOpen, setRemoveOpen] = useState(false);
-    const [mediaOpen, setMediaOpen] = useState(false);
     const [deleteOpen, setDeleteOpen] = useState(false);
     const [deleting, setDeleting] = useState(false);
+
+    const avatarInputRef = useRef(null);
+    const coverInputRef = useRef(null);
 
     const [usernameStatus, setUsernameStatus] = useState({ checking: false, available: null });
 
@@ -200,29 +199,23 @@ export default function ProfileSettings() {
         setNotifEvents({ ...notifEvents, [channel]: list.includes(key) ? list.filter((k) => k !== key) : [...list, key] });
     };
 
-    const onMediaPick = (sel) => {
-        const raw = sel.source === 'url' ? sel.url.trim() : `media:${sel.mediaId}`;
-        if (mediaTarget === 'cover') {
-            setPendingCover({ value: raw, url: sel.url });
-            return;
-        }
-        setPendingAvatar({ value: raw, url: sel.thumbnail_url || sel.url });
-    };
-
-    const confirmCover = async () => {
-        if (!pendingCover) return;
+    const uploadCover = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
         setSaving(true);
         try {
-            await api.put('/profile', { cover: pendingCover.value });
-            setCoverUrl(pendingCover.url);
-            setPendingCover(null);
+            const formData = new FormData();
+            formData.append('file', file);
+            const { data } = await api.post('/profile/cover', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+            setCoverUrl(data.url);
             await refresh();
-            toast.success('Banner diperbarui.');
-        } catch (e) {
-            toast.error(getApiErrorMessage(e, 'Gagal menyimpan banner.'));
+            toast.success(data.message || 'Banner diperbarui.');
+        } catch (err) {
+            toast.error(getApiErrorMessage(err, 'Gagal mengunggah banner.'));
         } finally {
             setSaving(false);
         }
+        e.target.value = '';
     };
 
     const removeCover = async () => {
@@ -230,46 +223,45 @@ export default function ProfileSettings() {
         try {
             await api.put('/profile', { cover: '' });
             setCoverUrl(null);
-            setPendingCover(null);
             setCoverRemoveOpen(false);
             await refresh();
             toast.success('Banner dihapus.');
-        } catch (e) {
-            toast.error(getApiErrorMessage(e, 'Gagal menghapus banner.'));
+        } catch (err) {
+            toast.error(getApiErrorMessage(err, 'Gagal menghapus banner.'));
         } finally {
             setSaving(false);
         }
     };
 
-    const confirmAvatar = async () => {
-        if (!pendingAvatar) return;
+    const uploadAvatar = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
         setSaving(true);
         try {
-            await api.put('/profile', { avatar: pendingAvatar.value });
-            setAvatarValue(pendingAvatar.value);
-            setAvatarUrl(pendingAvatar.url);
-            setPendingAvatar(null);
+            const formData = new FormData();
+            formData.append('file', file);
+            const { data } = await api.post('/profile/avatar', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+            setAvatarUrl(data.url);
             await refresh();
-            toast.success('Foto profil diperbarui.');
-        } catch (e) {
-            toast.error(getApiErrorMessage(e, 'Gagal menyimpan foto profil.'));
+            toast.success(data.message || 'Foto profil diperbarui.');
+        } catch (err) {
+            toast.error(getApiErrorMessage(err, 'Gagal mengunggah foto profil.'));
         } finally {
             setSaving(false);
         }
+        e.target.value = '';
     };
 
     const removeAvatar = async () => {
         setSaving(true);
         try {
             await api.put('/profile', { avatar: '' });
-            setAvatarValue('');
             setAvatarUrl(null);
-            setPendingAvatar(null);
             setRemoveOpen(false);
             await refresh();
             toast.success('Foto profil dihapus.');
-        } catch (e) {
-            toast.error(getApiErrorMessage(e, 'Gagal menghapus foto profil.'));
+        } catch (err) {
+            toast.error(getApiErrorMessage(err, 'Gagal menghapus foto profil.'));
         } finally {
             setSaving(false);
         }
@@ -321,29 +313,23 @@ export default function ProfileSettings() {
                     ) : (
                         <div className="h-full w-full bg-gradient-to-r from-brand-700 via-brand-500 to-brand-400" />
                     )}
-                    {isAdmin && (
-                        <>
-                            <span className="absolute inset-0 hidden bg-black/40 transition-opacity lg:flex lg:items-center lg:justify-center lg:opacity-0 lg:group-hover:opacity-100">
-                                <span className="flex items-center gap-2 rounded-full bg-black/50 px-4 py-2 text-sm font-semibold text-white">
-                                    <Icon name="camera" size={16} /> Ubah Banner
-                                </span>
-                            </span>
-                            <span className="absolute bottom-3 right-3 flex h-10 w-10 items-center justify-center rounded-full bg-black/50 text-white shadow-lg backdrop-blur lg:hidden">
-                                <Icon name="camera" size={18} />
-                            </span>
-                        </>
-                    )}
+                    <span className="absolute inset-0 hidden bg-black/40 transition-opacity lg:flex lg:items-center lg:justify-center lg:opacity-0 lg:group-hover:opacity-100">
+                        <span className="flex items-center gap-2 rounded-full bg-black/50 px-4 py-2 text-sm font-semibold text-white">
+                            <Icon name="camera" size={16} /> Ubah Banner
+                        </span>
+                    </span>
+                    <span className="absolute bottom-3 right-3 flex h-10 w-10 items-center justify-center rounded-full bg-black/50 text-white shadow-lg backdrop-blur lg:hidden">
+                        <Icon name="camera" size={18} />
+                    </span>
                 </button>
                 <div className="px-5 pb-6 sm:px-8">
                     <div className="-mt-12 flex items-end justify-between sm:-mt-14">
                         <div className="relative">
                             <button type="button" onClick={() => setViewOpen(true)} className="group relative" aria-label="Lihat foto profil">
                                 <Avatar src={avatarUrl} name={profile.full_name} size="2xl" shape="full" className="ring-4 ring-surface" />
-                                {isAdmin && (
-                                    <span className="absolute inset-0 flex items-center justify-center bg-black/50 text-white opacity-0 transition-opacity group-hover:opacity-100 rounded-full">
-                                        <Icon name="camera" size={22} />
-                                    </span>
-                                )}
+                                <span className="absolute inset-0 flex items-center justify-center bg-black/50 text-white opacity-0 transition-opacity group-hover:opacity-100 rounded-full">
+                                    <Icon name="camera" size={22} />
+                                </span>
                             </button>
                         </div>
                     </div>
@@ -417,13 +403,14 @@ export default function ProfileSettings() {
                 </div>
             </div>
 
-            <AvatarViewModal open={viewOpen} onClose={() => setViewOpen(false)} pendingAvatar={pendingAvatar} avatarUrl={avatarUrl} profile={profile} saving={saving} onConfirm={confirmAvatar} onCancel={() => setPendingAvatar(null)} onEdit={() => { setMediaTarget('avatar'); setMediaOpen(true); }} onRemove={() => setRemoveOpen(true)} isAdmin={isAdmin} />
+            <AvatarViewModal open={viewOpen} onClose={() => setViewOpen(false)} avatarUrl={avatarUrl} profile={profile} onEdit={() => avatarInputRef.current?.click()} onRemove={() => setRemoveOpen(true)} />
             <AvatarRemoveModal open={removeOpen} onClose={() => setRemoveOpen(false)} saving={saving} onConfirm={removeAvatar} />
-            <CoverViewModal open={coverViewOpen} onClose={() => setCoverViewOpen(false)} pendingCover={pendingCover} coverUrl={coverUrl} saving={saving} onConfirm={confirmCover} onCancel={() => setPendingCover(null)} onEdit={() => { setMediaTarget('cover'); setMediaOpen(true); }} onRemove={() => setCoverRemoveOpen(true)} isAdmin={isAdmin} />
+            <CoverViewModal open={coverViewOpen} onClose={() => setCoverViewOpen(false)} coverUrl={coverUrl} onEdit={() => coverInputRef.current?.click()} onRemove={() => setCoverRemoveOpen(true)} />
             <CoverRemoveModal open={coverRemoveOpen} onClose={() => setCoverRemoveOpen(false)} saving={saving} onConfirm={removeCover} />
             <DeleteAccountModal open={deleteOpen} onClose={() => setDeleteOpen(false)} deleting={deleting} errors={errors} deletePass={deletePass} setDeletePass={setDeletePass} onSubmit={deleteAccount} />
 
-            {isAdmin && <MediaPicker open={mediaOpen} onClose={() => setMediaOpen(false)} onSelect={onMediaPick} title="Pilih Foto Profil" />}
+            <input type="file" ref={avatarInputRef} accept="image/*" className="hidden" onChange={uploadAvatar} />
+            <input type="file" ref={coverInputRef} accept="image/*" className="hidden" onChange={uploadCover} />
         </>
     );
 }
