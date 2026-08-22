@@ -93,12 +93,8 @@ export default function Media() {
     };
 
     const copyUrl = async (url) => {
-        try {
-            await copyToClipboard(url);
-            toast.success('URL disalin.');
-        } catch {
-            toast.error('Gagal menyalin URL.');
-        }
+        // copyToClipboard helper sudah memiliki mekanisme toast sukses/gagal di dalamnya!
+        await copyToClipboard(url, 'URL disalin.');
     };
 
     const handleDelete = async () => {
@@ -270,18 +266,18 @@ export default function Media() {
                                         ) : (
                                             <>
                                                 <div className="absolute inset-0 hidden items-center justify-center gap-2 bg-black/50 opacity-0 transition-opacity group-hover:opacity-100 md:flex">
-                                                    <button onClick={() => setViewing(item)} className="rounded-lg bg-white p-2 text-zinc-900" title="Lihat">
+                                                    <button onClick={(e) => { e.stopPropagation(); setViewing(item); }} className="rounded-lg bg-white p-2 text-zinc-900" title="Lihat">
                                                         <Icon name="eye" size={16} />
                                                     </button>
-                                                    <button onClick={() => copyUrl(item.url)} className="rounded-lg bg-white p-2 text-zinc-900" title="Salin URL">
+                                                    <button onClick={(e) => { e.stopPropagation(); copyUrl(item.url); }} className="rounded-lg bg-white p-2 text-zinc-900" title="Salin URL">
                                                         <Icon name="link" size={16} />
                                                     </button>
-                                                    <button onClick={() => setDeleting(item)} className="rounded-lg bg-red-500 p-2 text-white" title="Hapus">
+                                                    <button onClick={(e) => { e.stopPropagation(); setDeleting(item); }} className="rounded-lg bg-red-500 p-2 text-white" title="Hapus">
                                                         <Icon name="trash" size={16} />
                                                     </button>
                                                 </div>
                                                 <button
-                                                    onClick={() => setSheet(item)}
+                                                    onClick={(e) => { e.stopPropagation(); setSheet(item); }}
                                                     className="absolute right-2 top-2 rounded-full bg-white/90 p-1.5 text-zinc-700 shadow transition-colors hover:bg-white md:hidden"
                                                     title="Aksi"
                                                 >
