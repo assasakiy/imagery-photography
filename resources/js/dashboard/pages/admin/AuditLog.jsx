@@ -63,11 +63,18 @@ function formatDateTime(value) {
 }
 
 function formatDuration(seconds) {
-    if (!seconds && seconds !== 0) return '-';
+    if (seconds === null || seconds === undefined) return '-';
     if (seconds < 60) return `${seconds} dtk`;
-    const m = Math.floor(seconds / 60);
-    const s = seconds % 60;
-    return s ? `${m} mnt ${s} dtk` : `${m} mnt`;
+    const d = Math.floor(seconds / 86400);
+    const h = Math.floor((seconds % 86400) / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+
+    let parts = [];
+    if (d > 0) parts.push(`${d}h`);
+    if (h > 0) parts.push(`${h}j`);
+    if (m > 0 || (d === 0 && h === 0)) parts.push(`${m}m`);
+
+    return parts.join(' ');
 }
 
 function shortUA(ua) {
