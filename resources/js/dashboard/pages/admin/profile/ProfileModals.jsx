@@ -2,7 +2,7 @@ import Icon from '../../../components/Icon';
 import Avatar from '../../../components/Avatar';
 import { Modal, Field, ButtonSpinner, PasswordInput } from '../../../components/ui';
 
-export function AvatarViewModal({ open, onClose, pendingAvatar, avatarUrl, profile, saving, onConfirm, onCancel, onEdit, onRemove }) {
+export function AvatarViewModal({ open, onClose, pendingAvatar, avatarUrl, profile, saving, onConfirm, onCancel, onEdit, onRemove, isAdmin }) {
     return (
         <Modal
             open={open}
@@ -21,13 +21,17 @@ export function AvatarViewModal({ open, onClose, pendingAvatar, avatarUrl, profi
                     </div>
                 ) : (
                     <div className="flex justify-end gap-2">
-                        <button type="button" className="btn-outline" onClick={onEdit}>
-                            <Icon name="edit" size={16} /> Ubah
-                        </button>
-                        {avatarUrl && (
-                            <button type="button" className="btn bg-red-600 text-white hover:bg-red-700" onClick={onRemove}>
-                                <Icon name="trash" size={16} /> Hapus
-                            </button>
+                        {isAdmin && (
+                            <>
+                                <button type="button" className="btn-outline" onClick={onEdit}>
+                                    <Icon name="edit" size={16} /> Ubah
+                                </button>
+                                {avatarUrl && (
+                                    <button type="button" className="btn bg-red-600 text-white hover:bg-red-700" onClick={onRemove}>
+                                        <Icon name="trash" size={16} /> Hapus
+                                    </button>
+                                )}
+                            </>
                         )}
                     </div>
                 )
@@ -71,7 +75,7 @@ export function AvatarRemoveModal({ open, onClose, saving, onConfirm }) {
     );
 }
 
-export function CoverViewModal({ open, onClose, pendingCover, coverUrl, saving, onConfirm, onCancel, onEdit, onRemove }) {
+export function CoverViewModal({ open, onClose, pendingCover, coverUrl, saving, onConfirm, onCancel, onEdit, onRemove, isAdmin }) {
     return (
         <Modal
             open={open}
@@ -90,13 +94,17 @@ export function CoverViewModal({ open, onClose, pendingCover, coverUrl, saving, 
                     </div>
                 ) : (
                     <div className="flex justify-end gap-2">
-                        <button type="button" className="btn-outline" onClick={onEdit}>
-                            <Icon name="edit" size={16} /> Ubah
-                        </button>
-                        {coverUrl && (
-                            <button type="button" className="btn bg-red-600 text-white hover:bg-red-700" onClick={onRemove}>
-                                <Icon name="trash" size={16} /> Hapus
-                            </button>
+                        {isAdmin && (
+                            <>
+                                <button type="button" className="btn-outline" onClick={onEdit}>
+                                    <Icon name="edit" size={16} /> Ubah
+                                </button>
+                                {coverUrl && (
+                                    <button type="button" className="btn bg-red-600 text-white hover:bg-red-700" onClick={onRemove}>
+                                        <Icon name="trash" size={16} /> Hapus
+                                    </button>
+                                )}
+                            </>
                         )}
                     </div>
                 )

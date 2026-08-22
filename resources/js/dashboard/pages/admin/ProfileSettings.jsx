@@ -291,6 +291,7 @@ export default function ProfileSettings() {
     };
 
     const isOwner = user?.role === 'owner';
+    const isAdmin = ['owner', 'admin'].includes(user?.role);
     const emailActive = !!notifMeta.email_configured && notifMeta.email_enabled !== false;
     const waActive = !!notifMeta.whatsapp_configured && notifMeta.whatsapp_enabled !== false;
 
@@ -320,23 +321,29 @@ export default function ProfileSettings() {
                     ) : (
                         <div className="h-full w-full bg-gradient-to-r from-brand-700 via-brand-500 to-brand-400" />
                     )}
-                    <span className="absolute inset-0 hidden bg-black/40 transition-opacity lg:flex lg:items-center lg:justify-center lg:opacity-0 lg:group-hover:opacity-100">
-                        <span className="flex items-center gap-2 rounded-full bg-black/50 px-4 py-2 text-sm font-semibold text-white">
-                            <Icon name="camera" size={16} /> Ubah Banner
-                        </span>
-                    </span>
-                    <span className="absolute bottom-3 right-3 flex h-10 w-10 items-center justify-center rounded-full bg-black/50 text-white shadow-lg backdrop-blur lg:hidden">
-                        <Icon name="camera" size={18} />
-                    </span>
+                    {isAdmin && (
+                        <>
+                            <span className="absolute inset-0 hidden bg-black/40 transition-opacity lg:flex lg:items-center lg:justify-center lg:opacity-0 lg:group-hover:opacity-100">
+                                <span className="flex items-center gap-2 rounded-full bg-black/50 px-4 py-2 text-sm font-semibold text-white">
+                                    <Icon name="camera" size={16} /> Ubah Banner
+                                </span>
+                            </span>
+                            <span className="absolute bottom-3 right-3 flex h-10 w-10 items-center justify-center rounded-full bg-black/50 text-white shadow-lg backdrop-blur lg:hidden">
+                                <Icon name="camera" size={18} />
+                            </span>
+                        </>
+                    )}
                 </button>
                 <div className="px-5 pb-6 sm:px-8">
                     <div className="-mt-12 flex items-end justify-between sm:-mt-14">
                         <div className="relative">
                             <button type="button" onClick={() => setViewOpen(true)} className="group relative" aria-label="Lihat foto profil">
                                 <Avatar src={avatarUrl} name={profile.full_name} size="2xl" shape="full" className="ring-4 ring-surface" />
-                                <span className="absolute inset-0 flex items-center justify-center bg-black/50 text-white opacity-0 transition-opacity group-hover:opacity-100 rounded-full">
-                                    <Icon name="camera" size={22} />
-                                </span>
+                                {isAdmin && (
+                                    <span className="absolute inset-0 flex items-center justify-center bg-black/50 text-white opacity-0 transition-opacity group-hover:opacity-100 rounded-full">
+                                        <Icon name="camera" size={22} />
+                                    </span>
+                                )}
                             </button>
                         </div>
                     </div>
@@ -410,13 +417,13 @@ export default function ProfileSettings() {
                 </div>
             </div>
 
-            <AvatarViewModal open={viewOpen} onClose={() => setViewOpen(false)} pendingAvatar={pendingAvatar} avatarUrl={avatarUrl} profile={profile} saving={saving} onConfirm={confirmAvatar} onCancel={() => setPendingAvatar(null)} onEdit={() => { setMediaTarget('avatar'); setMediaOpen(true); }} onRemove={() => setRemoveOpen(true)} />
+            <AvatarViewModal open={viewOpen} onClose={() => setViewOpen(false)} pendingAvatar={pendingAvatar} avatarUrl={avatarUrl} profile={profile} saving={saving} onConfirm={confirmAvatar} onCancel={() => setPendingAvatar(null)} onEdit={() => { setMediaTarget('avatar'); setMediaOpen(true); }} onRemove={() => setRemoveOpen(true)} isAdmin={isAdmin} />
             <AvatarRemoveModal open={removeOpen} onClose={() => setRemoveOpen(false)} saving={saving} onConfirm={removeAvatar} />
-            <CoverViewModal open={coverViewOpen} onClose={() => setCoverViewOpen(false)} pendingCover={pendingCover} coverUrl={coverUrl} saving={saving} onConfirm={confirmCover} onCancel={() => setPendingCover(null)} onEdit={() => { setMediaTarget('cover'); setMediaOpen(true); }} onRemove={() => setCoverRemoveOpen(true)} />
+            <CoverViewModal open={coverViewOpen} onClose={() => setCoverViewOpen(false)} pendingCover={pendingCover} coverUrl={coverUrl} saving={saving} onConfirm={confirmCover} onCancel={() => setPendingCover(null)} onEdit={() => { setMediaTarget('cover'); setMediaOpen(true); }} onRemove={() => setCoverRemoveOpen(true)} isAdmin={isAdmin} />
             <CoverRemoveModal open={coverRemoveOpen} onClose={() => setCoverRemoveOpen(false)} saving={saving} onConfirm={removeCover} />
             <DeleteAccountModal open={deleteOpen} onClose={() => setDeleteOpen(false)} deleting={deleting} errors={errors} deletePass={deletePass} setDeletePass={setDeletePass} onSubmit={deleteAccount} />
 
-            <MediaPicker open={mediaOpen} onClose={() => setMediaOpen(false)} onSelect={onMediaPick} title="Pilih Foto Profil" />
+            {isAdmin && <MediaPicker open={mediaOpen} onClose={() => setMediaOpen(false)} onSelect={onMediaPick} title="Pilih Foto Profil" />}
         </>
     );
 }
