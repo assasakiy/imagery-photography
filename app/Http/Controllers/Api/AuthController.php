@@ -487,8 +487,8 @@ class AuthController extends Controller
             return response()->json(['message' => 'Akun tidak ditemukan.'], 422);
         }
 
-        if (!$user->isClient()) {
-            return response()->json(['message' => 'Akun bukan portal klien.'], 422);
+        if (!$user->isClient() && !$user->isSubscriber()) {
+            return response()->json(['message' => 'Akun bukan portal klien atau subscriber.'], 422);
         }
 
         $token = ClientAccessToken::createToken($user, 'recovery');

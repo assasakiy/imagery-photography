@@ -12,6 +12,14 @@ export default function ForgotPassword() {
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
 
+    const otpCfg = APP.otp || { whatsapp: false, email: false };
+    const waEnabled = otpCfg.whatsapp;
+    const emailEnabled = otpCfg.email;
+
+    const availableChannels = waEnabled && emailEnabled ? 'WhatsApp/Email' : waEnabled ? 'WhatsApp' : emailEnabled ? 'Email' : null;
+    const inputLabel = waEnabled && emailEnabled ? 'Email / No. WhatsApp' : waEnabled ? 'No. WhatsApp' : 'Email';
+    const inputPlaceholder = waEnabled && emailEnabled ? 'email@contoh.com / 08xxxx' : waEnabled ? '08xxxxxxxxxx' : 'email@contoh.com';
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
@@ -19,7 +27,7 @@ export default function ForgotPassword() {
         try {
             await ensureCsrf();
             await api.post('/forgot', { identifier });
-            navigate('/login', { state: { notice: 'Tautan dan kode reset telah dikirim ke WhatsApp/Email Anda.' } });
+            navigate('/login', { state: { notice: `Tautan dan kode reset telah dikirim ke ${availableChannels} Anda.` } });
         } catch (err) {
             setError(err?.response?.data?.message || 'Gagal mengirim. Periksa kembali.');
         } finally {
@@ -43,6 +51,13 @@ export default function ForgotPassword() {
                         <p className="mt-1 text-sm text-ink-muted">Masukkan email atau nomor WhatsApp Anda.</p>
                     </div>
 
+                    {!availableChannels ? (
+                        <div className="mb-4 flex items-center gap-2 rounded-xl bg-amber-50 px-4 py-3 text-sm font-medium text-amber-700 dark:bg-amber-500/10">
+                            <Icon name="alert-triangle" size={18} />
+                            Fitur reset kata sandi belum tersedia karena layanan email dan WhatsApp sedang dinonaktifkan.
+                        </div>
+                    ) : null}
+
                     {error && (
                         <div className="mb-4 flex items-center gap-2 rounded-xl bg-red-50 px-4 py-3 text-sm font-medium text-red-600 dark:bg-red-500/10">
                             <Icon name="alert-triangle" size={18} />
@@ -50,15 +65,17 @@ export default function ForgotPassword() {
                         </div>
                     )}
 
-                    <form onSubmit={handleSubmit} className="space-y-4">
-                        <div>
-                            <label className="label">Email / No. WhatsApp</label>
-                            <input className="input" value={identifier} onChange={(e) => setIdentifier(e.target.value)} placeholder="email@contoh.com / 08xxxx" required />
-                        </div>
-                        <Button type="submit" icon="send" loading={loading} disabled={loading} className="w-full">
-                            Kirim Tautan Reset
-                        </Button>
-                    </form>
+                    {availableChannels && (
+                        <form onSubmit={handleSubmit} className="space-y-4">
+                            <div>
+                                <label className="label">{inputLabel}</label>
+                                <input className="input" value={identifier} onChange={(e) => setIdentifier(e.target.value)} placeholder={inputPlaceholder} required />
+                            </div>
+                            <Button type="submit" icon="send" loading={loading} disabled={loading} className="w-full">
+                                Kirim Tautan Reset
+                            </Button>
+                        </form>
+                    )}
 
                     <p className="mt-6 text-center text-xs text-ink-muted">
                         <Link to="/login" className="font-medium text-brand-600 hover:underline dark:text-brand-400">
