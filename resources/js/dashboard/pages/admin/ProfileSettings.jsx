@@ -233,7 +233,7 @@ export default function ProfileSettings() {
             setPendingCover({ value: raw, url: sel.url });
             return;
         }
-        setPendingAvatar({ value: raw, url: sel.url });
+        setPendingAvatar({ value: raw, url: sel.thumbnail_url || sel.url });
     };
 
     const confirmCover = async () => {

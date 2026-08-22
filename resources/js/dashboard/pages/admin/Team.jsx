@@ -94,7 +94,7 @@ function AdminTab() {
     const onMediaPick = (sel) => {
         const raw = sel.source === 'url' ? sel.url.trim() : `media:${sel.mediaId}`;
         setForm((f) => ({ ...f, avatar: raw }));
-        setAvatarUrl(sel.url);
+        setAvatarUrl(sel.thumbnail_url || sel.url);
     };
 
     const submit = async (e) => {
