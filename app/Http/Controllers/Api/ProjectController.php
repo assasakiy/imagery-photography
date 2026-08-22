@@ -439,7 +439,7 @@ class ProjectController extends Controller
                 $project->user,
                 'Alur pesanan diperbarui',
                 "Pesanan \"{$project->name}\" kini di tahap: " . $project->statusLabel() . '.',
-                '/dashboard/projects/' . $project->id,
+                $notifications->orderUrl($project),
                 'project.advanced'
             );
         }

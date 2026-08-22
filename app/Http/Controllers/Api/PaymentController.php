@@ -317,7 +317,7 @@ class PaymentController extends Controller
                     $client,
                     'Pembayaran dikonfirmasi',
                     'Pembayaran Rp ' . number_format((float) $payment->amount, 0, ',', '.') . ' untuk project "' . $payment->project->name . '" telah dikonfirmasi.',
-                    '/dashboard/projects/' . $payment->project->id,
+                    $notifications->orderUrl($payment->project),
                     'payment.confirmed'
                 );
             }

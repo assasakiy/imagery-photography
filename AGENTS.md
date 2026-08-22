@@ -107,23 +107,10 @@ Halaman dashboard yang punya beberapa tab **WAJIB** dipisah ke folder `pages/<na
 - **Media Library**: model butuh `$fillable=['id']`; `LandingContent::setValue` pertahankan `group`; reset landing images meninggalkan media orphan (TODO).
 - **Test**: skrip di `/home/opc` (`spa_test.py`, `final_test.py`, `access_test.py`); `/etc/hosts` berisi `127.0.0.1 imagery.my.id`; `/tmp/opencode` TIDAK writable.
 
-## 13. Sesi Terbaru (Aktivitas Saat Ini) — Pemecahan File Raksasa (Refactoring) & Perbaikan UI Skeleton
-- **FullPageSkeleton Immersive:** Mengganti spinner putar kecil di awal muat dashboard dengan layar *full-page skeleton* yang mencetak kerangka sidebar, header, dan kartu-kartu metrik sebelum data `user` masuk (memperbaiki ilusi layar macet putih) (Commit `7ff7aeb` & `c0dad96`).
-- **Refactoring Komponen Skeleton:** Membuat struktur `TableSkeleton` menjadi elemen `<table>` native persis tabel data asli, dan menambahkan jejak komponen *tab bar* atas ke `FormSkeleton` agar menyerupai halaman pengaturan (Commit `7b24d3a`).
-- **Perbaikan Hooks React (#310):** Menggeser posisi import dan deklarasi state `cooldown` agar berada sebelum *early return* pada modal profil untuk menghindari React Minified Error #310 (Commit `812e53c`, `8b3f2a1`, `5964544`).
-- **Pemecahan Monolit Javascript (1067 Baris):** Mengekstrak fungsi-fungsi dari `app.js` menjadi 9 modul terpisah di `resources/js/modules/` (ui, share, lightbox, notifications, carousel, cookies, blog, comments, subscribe). `app.js` kini hanya sisa 49 baris (Commit `03a487e`).
-- **Pemecahan File React Raksasa (Tab Convention 10b):** 
-  - `ProfileSettings.jsx` (935 baris) dipecah isinya ke `profile/ProfileTab.jsx`, `SocialTab.jsx`, `PasswordTab.jsx`, `PrefsTab.jsx`, dan `ProfileModals.jsx` (Commit `31a9cdf`).
-  - `ProjectDetail.jsx` (834 baris) dicabut kelima modusnya ke `modals/ProjectModals.jsx` (Commit `20e1fd0`).
-  - `IntegrasiTab.jsx` (813 baris) dipecah komponen pembaca QRIS dan dompetnya ke `integrations/AccountComponents.jsx` (Commit `05f7ec6`).
-- **Pemecahan Controller Raksasa (ProjectController 1049 Baris):** Logika upload aset dan pembuatan arsip ZIP dicabut ke `ProjectMediaController.php`. Logika kredensial klien dan unduh-ulang dicabut ke `ProjectShareController.php`. Route API diperbarui (Commit `69d7332`).
-
-## 14. Perintah Verifikasi
-```bash
-php -l <file>.php              # lint PHP (seluruh file yang diubah)
-CI=1 npx vite build            # build frontend (public/build di-gitignore)
-php artisan test               # phpunit (composer test)
-```
-Lihat `docs/timezone_and_scheduling.md` untuk desain lengkap sistem timezone.
+## 13. Sesi Terbaru — Perbaikan Upload Aset Proyek & URL Notifikasi Klien
+- **Fix 500 upload file proyek (`fc44e22`):** Refactor `ProjectMediaController` (split dari ProjectController) meninggalkan 2 bug: kolom `project_files.filename` (NOT NULL) tidak diisi → SQL 1364; dan koleksi media salah pakai `project_files` (tidak terdaftar di model) → tanpa konversi preview/watermark, url null, disk salah. Kembalikan koleksi benar: foto/video → `files` (disk local), bukti sesi → `proofs` (public); isi `filename` saat create + update dengan `$media->file_name`.
+- **Fix gambar bukti sesi pecah/hilang (`240c205`):** Bukti disimpan dengan `variant=start/end`, padahal accessor `url` ProjectFile hanya mengembalikan URL media saat `variant=record`. Kembalikan perilaku lama: bukti selalu `variant=record`, custom properties `type=proof`, `is_public=true`, `uploaded_by`, `gallery_status=preview_ready`; pesan timeline kind manual + user_id.
+- **URL notifikasi klien ke halaman pesanan:** Semua notifikasi in-app untuk klien kini memakai helper baru `NotificationService::orderUrl($project)` → `/dashboard/pesanan/{order_no||id}` (bukan `/dashboard/projects/{id}`). Diperbaiki di: notifyPaymentConfirmed/Rejected/GalleryReady/InvoiceCreated/ProjectStatusChanged, "Alur pesanan diperbarui" (ProjectController@advance), dan "Pembayaran dikonfirmasi" (PaymentController@confirm). Notifikasi admin tetap `/dashboard/projects/`. Baris lama di tabel `notifications` (penerima role client) sudah dimigrasi via tinker.
+- **Gotcha baru:** `project_files.filename` NOT NULL tanpa default — WAJIB diisi saat create record upload. Koleksi Spatie yang dipakai model harus terdaftar di `registerMediaCollections()` (files, proofs, thumbnail) — koleksi tak dikenal = tanpa konversi + disk default.
 
 *Untuk rincian arsitektural teknis (lifecycle Media, mekanisme RBAC, dan khususnya sistem **progressive loading dashboard**), silakan baca file-file spesifik di direktori `/docs/`.*

@@ -280,7 +280,7 @@ class NotificationService
             $this->whatsapp($project->user->phone, $msg, null, $project->user, 'payment.confirmed');
         }
         $this->email(new \App\Mail\AlertMail($project->user->name, 'Pembayaran Diterima', $html), $project->user->email, 'payment.confirmed');
-        $this->inApp($project->user, 'Pembayaran Diterima', $msg, '/dashboard/pesanan/' . $project->id, 'payment.confirmed');
+        $this->inApp($project->user, 'Pembayaran Diterima', $msg, $this->orderUrl($project), 'payment.confirmed');
     }
 
     /**
@@ -300,7 +300,7 @@ class NotificationService
             $this->whatsapp($project->user->phone, $msg, null, $project->user, 'payment.rejected');
         }
         $this->email(new \App\Mail\AlertMail($project->user->name, 'Pembayaran Ditolak', $html), $project->user->email, 'payment.rejected');
-        $this->inApp($project->user, 'Pembayaran Ditolak', $msg, '/dashboard/pesanan/' . $project->id, 'payment.rejected');
+        $this->inApp($project->user, 'Pembayaran Ditolak', $msg, $this->orderUrl($project), 'payment.rejected');
     }
 
     /**
@@ -313,13 +313,13 @@ class NotificationService
         $msg = "Hasil pekerjaan untuk pesanan *{$project->name}* sudah siap! Silakan cek pratinjau di dashboard.";
         $html = "Halo <strong>{$project->user->name}</strong>,<br><br>" .
                 "Hasil pekerjaan untuk pesanan <strong>{$project->name}</strong> sudah siap!.<br><br>" .
-                "<a href='" . url('/dashboard/pesanan/' . $project->id) . "' style='background: #7c3aed; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;'>Lihat Pratinjau</a>";
+                "<a href='" . url($this->orderUrl($project)) . "' style='background: #7c3aed; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;'>Lihat Pratinjau</a>";
 
         if (!empty($project->user->phone)) {
             $this->whatsapp($project->user->phone, $msg, null, $project->user, 'order.gallery_ready');
         }
         $this->email(new \App\Mail\AlertMail($project->user->name, 'Hasil Pesanan Siap', $html), $project->user->email, 'order.gallery_ready');
-        $this->inApp($project->user, 'Hasil Pesanan Siap', $msg, '/dashboard/pesanan/' . $project->id, 'order.gallery_ready');
+        $this->inApp($project->user, 'Hasil Pesanan Siap', $msg, $this->orderUrl($project), 'order.gallery_ready');
     }
 
     /**
@@ -339,7 +339,7 @@ class NotificationService
             $this->whatsapp($project->user->phone, $msg, null, $project->user, 'billing.invoice');
         }
         $this->email(new \App\Mail\AlertMail($project->user->name, 'Invoice Baru', $html), $project->user->email, 'billing.invoice');
-        $this->inApp($project->user, 'Invoice Baru', $msg, '/dashboard/pesanan/' . $project->id, 'billing.invoice');
+        $this->inApp($project->user, 'Invoice Baru', $msg, $this->orderUrl($project), 'billing.invoice');
     }
 
     /**
@@ -356,13 +356,13 @@ class NotificationService
         $emailHtml = "Halo <strong>{$project->user->name}</strong>,<br><br>" .
                      "Status pesanan <strong>{$project->name}</strong> Anda diperbarui: <strong>{$statusLabel}</strong>.<br><br>" .
                      "<i>{$message}</i><br><br>" .
-                     "<a href='" . url('/dashboard/pesanan/' . $project->id) . "' style='background: #7c3aed; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;'>Lihat Detail</a>";
+                     "<a href='" . url($this->orderUrl($project)) . "' style='background: #7c3aed; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;'>Lihat Detail</a>";
 
         if (!empty($project->user->phone)) {
             $this->whatsapp($project->user->phone, $waMsg, null, $project->user, 'project.status_changed');
         }
         $this->email(new \App\Mail\AlertMail($project->user->name, 'Status Proyek Diperbarui', $emailHtml), $project->user->email, 'project.status_changed');
-        $this->inApp($project->user, 'Status Proyek Diperbarui', $message, '/dashboard/pesanan/' . $project->id, 'project.status_changed');
+        $this->inApp($project->user, 'Status Proyek Diperbarui', $message, $this->orderUrl($project), 'project.status_changed');
     }
 
     /**
@@ -393,6 +393,14 @@ class NotificationService
     public function toAdmins(string $title, string $message, ?string $url = null, ?string $event = null): void
     {
         $this->inApp(User::role(['admin', 'owner'])->get(), $title, $message, $url, $event);
+    }
+
+    /**
+     * URL halaman pesanan di dashboard klien (pakai nomor pesanan bila ada).
+     */
+    public function orderUrl(\App\Models\Project $project): string
+    {
+        return '/dashboard/pesanan/' . ($project->order_no ?: $project->id);
     }
 
     /**
