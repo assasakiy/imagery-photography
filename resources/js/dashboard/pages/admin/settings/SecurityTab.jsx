@@ -104,88 +104,68 @@ export default function SecurityTab({ form, meta, errors, saving, set, save, dir
                 <div className="mb-5">
                     <h2 className="font-semibold text-ink">Rate Limit Endpoint</h2>
                     <p className="text-xs text-ink-muted">
-                        Batas request per periode. Nilai minimum adalah proteksi dasar yang tidak bisa diturunkan.
-                        Ubah limit, periode, atau nonaktifkan untuk policy yang dapat dikonfigurasi.
+                        Batas request API per periode. Policy mandatory penting untuk keamanan dasar sistem.
                     </p>
                 </div>
-                <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
-                        <thead className="border-b border-line text-xs uppercase text-ink-muted">
-                            <tr>
-                                <th className="px-3 py-2 text-left font-semibold">Policy</th>
-                                <th className="px-3 py-2 text-left font-semibold">Scope</th>
-                                <th className="px-3 py-2 text-center font-semibold">Limit</th>
-                                <th className="px-3 py-2 text-center font-semibold">Periode</th>
-                                <th className="px-3 py-2 text-center font-semibold">Min</th>
-                                <th className="px-3 py-2 text-center font-semibold">Max</th>
-                                <th className="px-3 py-2 text-center font-semibold">Aktif</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {Object.entries(rateLimits).length ? Object.entries(rateLimits).map(([key, policy]) => {
-                                const isEditable = ['booking.create', 'booking.update', 'upload', 'payment', 'contact'].includes(key);
-                                const isMandatory = ['otp.send', 'otp.verify', 'auth.login', 'auth.forgot'].includes(key);
-                                return (
-                                    <tr key={key} className="border-b border-line last:border-0">
-                                        <td className="px-3 py-2 font-medium text-ink">{key}</td>
-                                        <td className="px-3 py-2 text-ink-muted">{policy.scope || '-'}</td>
-                                        <td className="px-3 py-2 text-center">
-                                            {isEditable ? (
-                                                <input
-                                                    type="number"
-                                                    className="w-16 rounded-lg border border-line bg-transparent px-2 py-1 text-center text-sm text-ink focus:border-brand-500 focus:outline-none dark:border-line-dark"
-                                                    value={policy.limit}
-                                                    min={policy.min}
-                                                    max={policy.max}
-                                                    onChange={(e) => {
-                                                        const val = parseInt(e.target.value, 10);
-                                                        if (!isNaN(val)) updateRateLimit(key, 'limit', val);
-                                                    }}
-                                                />
-                                            ) : (
-                                                <span className="text-ink-muted">{policy.limit}</span>
-                                            )}
-                                        </td>
-                                        <td className="px-3 py-2 text-center text-ink-muted">
-                                            {isEditable ? (
-                                                <input
-                                                    type="number"
-                                                    className="w-20 rounded-lg border border-line bg-transparent px-2 py-1 text-center text-sm text-ink focus:border-brand-500 focus:outline-none dark:border-line-dark"
-                                                    value={policy.period || 60}
-                                                    min={10}
-                                                    onChange={(e) => {
-                                                        const val = parseInt(e.target.value, 10);
-                                                        if (!isNaN(val)) updateRateLimit(key, 'period', val);
-                                                    }}
-                                                />
-                                            ) : (
-                                                `${policy.period}s`
-                                            )}
-                                        </td>
-                                        <td className="px-3 py-2 text-center text-ink-muted">{policy.min}</td>
-                                        <td className="px-3 py-2 text-center text-ink-muted">{policy.max || '-'}</td>
-                                        <td className="px-3 py-2 text-center">
-                                            {isEditable ? (
-                                                <Toggle
-                                                    size="sm"
-                                                    checked={policy.enabled !== false}
-                                                    onChange={(v) => updateRateLimit(key, 'enabled', v)}
-                                                />
-                                            ) : isMandatory ? (
-                                                <span className="text-xs text-ink-muted">Wajib</span>
-                                            ) : (
-                                                <Toggle size="sm" checked={policy.enabled !== false} disabled />
-                                            )}
-                                        </td>
-                                    </tr>
-                                );
-                            }) : (
-                                <tr>
-                                    <td colSpan="7" className="py-4 text-center text-ink-muted">Memuat rate limit...</td>
-                                </tr>
-                            )}
-                        </tbody>
-                    </table>
+                <div className="space-y-3">
+                    {Object.entries(rateLimits).length ? Object.entries(rateLimits).map(([key, policy]) => {
+                        const isEditable = ['booking.create', 'booking.update', 'upload', 'payment', 'contact'].includes(key);
+                        const isMandatory = ['otp.send', 'otp.verify', 'auth.login', 'auth.forgot', 'auth.register', 'subscribe.send', 'subscribe.verify', 'analytics.consent'].includes(key);
+                        return (
+                            <div key={key} className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-line px-5 py-4">
+                                <div className="min-w-0 flex-1">
+                                    <div className="flex items-center gap-2">
+                                        <p className="text-sm font-semibold text-ink">{key}</p>
+                                        {isMandatory && <span className="rounded bg-brand-500/10 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-brand-600 dark:text-brand-400">Wajib</span>}
+                                    </div>
+                                    <p className="mt-0.5 text-xs text-ink-muted">Scope: {policy.scope || 'global'}</p>
+                                </div>
+                                <div className="flex items-center gap-4">
+                                    {isEditable ? (
+                                        <div className="flex items-center gap-2">
+                                            <input
+                                                type="number"
+                                                className="w-16 rounded-lg border border-line bg-surface px-2 py-1.5 text-center text-sm text-ink focus:border-brand-500 focus:outline-none"
+                                                value={policy.limit}
+                                                min={policy.min || 1}
+                                                max={policy.max || 100}
+                                                disabled={!policy.enabled}
+                                                onChange={(e) => {
+                                                    const val = parseInt(e.target.value, 10);
+                                                    if (!isNaN(val)) updateRateLimit(key, 'limit', val);
+                                                }}
+                                            />
+                                            <span className="text-sm text-ink-muted">/</span>
+                                            <input
+                                                type="number"
+                                                className="w-20 rounded-lg border border-line bg-surface px-2 py-1.5 text-center text-sm text-ink focus:border-brand-500 focus:outline-none"
+                                                value={policy.period || 60}
+                                                min={10}
+                                                step={10}
+                                                disabled={!policy.enabled}
+                                                onChange={(e) => {
+                                                    const val = parseInt(e.target.value, 10);
+                                                    if (!isNaN(val)) updateRateLimit(key, 'period', val);
+                                                }}
+                                            />
+                                            <span className="mr-3 text-xs text-ink-muted">detik</span>
+                                        </div>
+                                    ) : (
+                                        <p className="mr-3 text-sm text-ink-muted">{policy.limit} req / {policy.period || 60} dtk</p>
+                                    )}
+                                    <Toggle
+                                        checked={isMandatory ? true : !!policy.enabled}
+                                        disabled={isMandatory}
+                                        onChange={(v) => {
+                                            if (!isMandatory) updateRateLimit(key, 'enabled', v);
+                                        }}
+                                    />
+                                </div>
+                            </div>
+                        );
+                    }) : (
+                        <p className="py-4 text-center text-sm text-ink-muted">Data rate limit tidak tersedia.</p>
+                    )}
                 </div>
                 <div className="mt-6 flex justify-end border-t border-line pt-5">
                     <Button
