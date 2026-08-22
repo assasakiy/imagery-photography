@@ -47,11 +47,12 @@ class GoogleAuthController extends Controller
         $googleEmail = strtolower(trim((string) $googleUser->getEmail()));
         $googleName = $googleUser->getName() ?: null;
 
-        $user = User::where('email', $googleEmail)->first();
+        $user = User::withTrashed()->where('email', $googleEmail)->first();
+        $isNew = false;
 
         if (!$user) {
             if (!$this->settingsAllowSubscribers()) {
-                return redirect('/login')->withErrors(['form' => 'Google tidak diizinkan untuk pendaftaran baru.']);
+                return redirect('/login')->withErrors(['form' => 'Pendaftaran baru melalui Google tidak diizinkan.']);
             }
 
             $user = app(\App\Services\ClientRegistrationService::class)->ensureUser([
@@ -60,6 +61,7 @@ class GoogleAuthController extends Controller
             ], 'subscriber');
 
             $user->update(['status' => 'active', 'activated_at' => now()]);
+            $isNew = true;
 
             // Kirim link set-password opsional di background (tidak blocking).
             try {
@@ -72,8 +74,13 @@ class GoogleAuthController extends Controller
             } catch (\Throwable) {}
         }
 
+        if ($user->trashed()) {
+            $user->restore();
+            app(AuditLogger::class)->log('auth.restored', 'Akun otomatis dipulihkan saat login via Google: ' . $user->email, $user);
+        }
+
         if (!$user->canUseLoginMethod('google')) {
-            return redirect('/login')->withErrors(['form' => 'Metode login Google nonaktif.']);
+            return redirect('/login')->withErrors(['form' => 'Metode login Google dinonaktifkan untuk akun ini.']);
         }
 
         Auth::login($user);
@@ -81,7 +88,9 @@ class GoogleAuthController extends Controller
 
         $tracker = app(LoginTracker::class);
         $tracker->recordLogin($user, 'google');
-        app(AuditLogger::class)->log('auth.login', 'Login sukses via google: ' . $user->email);
+        
+        $action = $isNew ? 'Registrasi' : 'Login';
+        app(AuditLogger::class)->log('auth.login', "{$action} sukses via google: " . $user->email);
 
         if ($tracker->isSuspicious($user)) {
             app(NotificationService::class)->notifySuspiciousLogin($user);
