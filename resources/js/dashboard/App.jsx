@@ -62,7 +62,7 @@ import Layout from './components/Layout';
 import ToastViewport from './components/ToastViewport';
 import PageFallback from './components/PageFallback';
 import RouteErrorBoundary from './components/RouteErrorBoundary';
-import { ScreenLoader } from './components/ui';
+import { Spinner } from './components/ui';
 import { pageImports } from './routes/routeImports';
 
 import Login from './pages/auth/Login';
@@ -123,7 +123,7 @@ function Protected({ children, adminOnly = false, ownerOnly = false, notStaffCas
     const { user, loading } = useAuth();
     const location = useLocation();
 
-    if (loading) return <ScreenLoader />;
+    if (loading) return <Spinner />;
     if (!user) return <Navigate to="/login" state={{ from: location }} replace />;
     if (ownerOnly && user.role !== 'owner') return <Navigate to="/dashboard" replace />;
     if (adminOnly && !STAFF_ROLES.includes(user.role)) return <Navigate to="/dashboard" replace />;
