@@ -54,6 +54,10 @@ class TeamController extends Controller
 
         $user = $result['user'];
 
+        if (!empty($data['avatar'])) {
+            $this->updateProfile($user, ['avatar' => $data['avatar']]);
+        }
+
         app(AuditLogger::class)->log('team.created', 'Admin diundang: ' . $user->name . ' (' . ($data['email'] ?? $data['phone']) . ')', $user);
 
         return response()->json([

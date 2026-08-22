@@ -300,7 +300,7 @@ export default function Clients() {
                 <form id="client-form" onSubmit={handleSubmit} className="space-y-4">
                     {editing && (
                         <div className="flex items-center gap-4">
-                            <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-brand-500/15 ring-2 ring-line">
+                            <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-full bg-brand-500/15 ring-2 ring-line">
                                 {avatarUrl ? (
                                     <img src={avatarUrl} alt="Foto profil" className="h-full w-full object-cover" />
                                 ) : (

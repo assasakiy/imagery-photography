@@ -74,6 +74,7 @@ class ClientController extends Controller
             'email' => "{$emailRule}|nullable|email|max:255|unique:users,email",
             'phone' => "{$phoneRule}|nullable|string|max:20|unique:users,phone",
             'notes' => 'nullable|string',
+            'avatar' => 'nullable|string|max:1000',
         ]);
 
         $reg = app(ClientRegistrationService::class);
@@ -91,6 +92,10 @@ class ClientController extends Controller
         );
 
         $user = $result['user'];
+
+        if (!empty($data['avatar'])) {
+            $this->updateProfile($user, ['avatar' => $data['avatar']]);
+        }
 
         app(AuditLogger::class)->log('client.created', 'Klien dibuat: ' . $user->name, $user);
 

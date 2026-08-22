@@ -381,7 +381,7 @@ export default function ProfileSettings() {
                                 aria-label="Lihat foto profil"
                             >
                                 <Avatar src={avatarUrl} name={profile.full_name} size="2xl" shape="full" className="ring-4 ring-surface" />
-                                <span className="absolute inset-0 flex items-center justify-center bg-black/50 text-white opacity-0 transition-opacity group-hover:opacity-100 rounded-xl">
+                                <span className="absolute inset-0 flex items-center justify-center bg-black/50 text-white opacity-0 transition-opacity group-hover:opacity-100 rounded-full">
                                     <Icon name="camera" size={22} />
                                 </span>
                             </button>
