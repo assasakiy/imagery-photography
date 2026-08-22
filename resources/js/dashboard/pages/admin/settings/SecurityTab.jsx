@@ -208,6 +208,39 @@ export default function SecurityTab({ form, meta, errors, saving, set, save, dir
 
             <div className="card w-full p-6">
                 <div className="mb-5">
+                    <h2 className="font-semibold text-ink">Retensi Akun (Recycle Bin)</h2>
+                    <p className="text-xs text-ink-muted">Masa tenggang sebelum akun yang dihapus akan dibersihkan permanen.</p>
+                </div>
+
+                <Field label="Masa tenggang" hint="0 = tidak pernah dihapus otomatis">
+                    <select
+                        className="input"
+                        value={String(form.account_retention_days)}
+                        onChange={(e) => set('account_retention_days', parseInt(e.target.value, 10))}
+                    >
+                        <option value="0">Tidak pernah (Manual)</option>
+                        <option value="7">7 hari</option>
+                        <option value="14">14 hari</option>
+                        <option value="30">30 hari</option>
+                        <option value="60">60 hari</option>
+                        <option value="90">90 hari</option>
+                    </select>
+                </Field>
+
+                <div className="mt-6 flex justify-end border-t border-line pt-5">
+                    <Button
+                        icon="check"
+                        loading={saving}
+                        disabled={!dirty(TAB_FIELDS.security_account)}
+                        onClick={() => save(TAB_FIELDS.security_account)}
+                    >
+                        Simpan Retensi Akun
+                    </Button>
+                </div>
+            </div>
+
+            <div className="card w-full p-6">
+                <div className="mb-5">
                     <h2 className="font-semibold text-ink">Analisis Kunjungan</h2>
                     <p className="text-xs text-ink-muted">Catat page view pengunjung situs publik untuk dashboard Analitik.</p>
                 </div>

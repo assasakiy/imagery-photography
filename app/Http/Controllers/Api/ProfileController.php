@@ -206,8 +206,22 @@ class ProfileController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
+        if ($request->user() && $request->user()->currentAccessToken()) {
+            $user->tokens()->where('id', '!=', $request->user()->currentAccessToken()->id)->delete();
+        } else {
+            $user->tokens()->delete();
+        }
+
+        \Illuminate\Support\Facades\DB::table('sessions')->where('user_id', $user->id)->delete();
+
+        if ($user->hasRole('client')) {
+            \App\Models\Project::where('user_id', $user->id)
+                ->whereNotIn('status', ['archived', 'completed'])
+                ->each(fn($p) => $p->update(['status' => 'archived']));
+        }
+
         $user->teamMember()?->delete();
-        $user->softDeleteBy('dihapus oleh user');
+        $user->softDeleteBy('dihapus oleh user sendiri');
 
         return response()->json(['ok' => true]);
     }

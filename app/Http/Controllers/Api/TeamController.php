@@ -116,6 +116,8 @@ class TeamController extends Controller
 
         $this->ensureManaged($user);
 
+        $user->tokens()->delete();
+        \Illuminate\Support\Facades\DB::table('sessions')->where('user_id', $user->id)->delete();
         $user->softDeleteBy('dihapus oleh admin');
 
         app(AuditLogger::class)->log('team.deleted', 'Admin dihapus: ' . $user->name);

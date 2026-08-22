@@ -928,7 +928,7 @@ export default function ProfileSettings() {
             >
                 <form id="delete-account-form" onSubmit={deleteAccount}>
                     <p className="text-sm text-ink-muted">
-                        Tindakan ini permanen. Masukkan kata sandi Anda untuk mengonfirmasi penghapusan akun.
+                        Tindakan ini akan menonaktifkan akun. Setelah masa jeda (grace period) berakhir, seluruh data akan dihapus permanen. Masukkan kata sandi Anda untuk mengonfirmasi.
                     </p>
                     <div className="mt-4">
                         <Field label="Kata sandi" required error={errors.password?.[0]}>

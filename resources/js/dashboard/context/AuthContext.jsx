@@ -25,7 +25,7 @@ export function AuthProvider({ children }) {
     const login = async (email, password, remember) => {
         const { data } = await api.post('/login', { email, password, remember });
         setUser(data.user);
-        return data.user;
+        return data; // Return full data object to allow caller to check flags like .restored
     };
 
     const logout = async () => {

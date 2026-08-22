@@ -67,6 +67,9 @@ export default function Login() {
                 navigate('/set-password?token=' + data.set_password_token);
                 return;
             }
+            if (data?.restored) {
+                toast.success('Akun Anda berhasil dipulihkan dari penghapusan!');
+            }
             await refresh();
             navigate('/dashboard');
         } catch (err) {
@@ -82,7 +85,10 @@ export default function Login() {
         setErrors({});
         try {
             await ensureCsrf();
-            await login(email, password, remember);
+            const res = await login(email, password, remember);
+            if (res?.restored) {
+                toast.success('Akun Anda berhasil dipulihkan dari penghapusan!');
+            }
             navigate('/dashboard');
         } catch (err) {
             const data = err.response?.data;

@@ -991,14 +991,20 @@ document.querySelectorAll('[data-scroll-comments]').forEach((btn) => {
                     }
                     if (data.require_password) {
                         // User baru — tampilkan form set-password inline.
+                        if (data.restored) {
+                            if (subscribeTitle) subscribeTitle.textContent = 'Akun Dipulihkan';
+                            const p = subscribePasswordForm?.querySelector('p');
+                            if (p) p.textContent = 'Akun lama Anda telah dipulihkan. Buat kata sandi baru.';
+                        } else {
+                            if (subscribeTitle) subscribeTitle.textContent = 'Buat Kata Sandi';
+                        }
                         subscribeSetPasswordToken = data.set_password_token;
                         subscribeOtpForm.classList.add('hidden');
                         subscribePasswordForm?.classList.remove('hidden');
-                        if (subscribeTitle) subscribeTitle.textContent = 'Buat Kata Sandi';
                         subscribePassword?.focus();
                     } else {
                         // User lama sudah active — langsung masuk, kembali ke halaman asal.
-                        if (subscribeTitle) subscribeTitle.textContent = 'Berhasil!';
+                        if (subscribeTitle) subscribeTitle.textContent = data.restored ? 'Akun Dipulihkan!' : 'Berhasil!';
                         setTimeout(() => { window.location.href = returnUrl; }, 500);
                     }
                 } catch (err) {

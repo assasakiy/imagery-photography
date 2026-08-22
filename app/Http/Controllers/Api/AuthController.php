@@ -36,7 +36,15 @@ class AuthController extends Controller
             ]);
         }
 
-        $user = $this->resolveUser($identifier);
+        // Cek user yang mungkin trashed
+        $user = $this->resolveUser($identifier, true);
+
+        if ($user && $user->trashed() && $user->canUseLoginMethod('password') && Hash::check($data['password'], $user->password)) {
+            $this->restoreIfTrashed($user);
+        } else if ($user && $user->trashed()) {
+             // Jika trashed tapi kredensial salah, seolah-olah tidak ada (biarkan flow gagal standar berjalan)
+             $user = null;
+        }
 
         if (!$user || !$user->canUseLoginMethod('password') || !Hash::check($data['password'], $user->password)) {
             $logUser = $user ?? $this->resolveUser($identifier, true);
@@ -70,6 +78,15 @@ class AuthController extends Controller
 
         if ($tracker->isSuspicious($user)) {
             app(NotificationService::class)->notifySuspiciousLogin($user);
+        }
+    }
+
+    private function restoreIfTrashed(\App\Models\User $user): void
+    {
+        if ($user->trashed()) {
+            $user->restore();
+            app(\App\Services\AuditLogger::class)->log('auth.restored', 'Akun otomatis dipulihkan saat login/registrasi ulang: ' . $user->email, $user);
+            session()->put('just_restored', true); // Untuk memberikan notifikasi ke user via endpoint response
         }
     }
 
@@ -146,7 +163,11 @@ class AuthController extends Controller
 
         $this->afterLogin($user, 'password');
 
-        return response()->json(['user' => $this->userPayload($user)]);
+        $payload = ['user' => $this->userPayload($user)];
+        if (session()->pull('just_restored')) {
+            $payload['restored'] = true;
+        }
+        return response()->json($payload);
     }
 
     public function logout(Request $request)
@@ -176,7 +197,14 @@ class AuthController extends Controller
             'identifier' => 'required|string',
         ]);
 
-        $user = $this->resolveUser($data['identifier']);
+        // Cek user yang mungkin trashed
+        $user = $this->resolveUser($data['identifier'], true);
+
+        if ($user && $user->trashed() && $user->canUseLoginMethod('otp')) {
+            $this->restoreIfTrashed($user);
+        } else if ($user && $user->trashed()) {
+            $user = null;
+        }
 
         if (!$user || !$user->canUseLoginMethod('otp')) {
             $logUser = $user ?? $this->resolveUser($data['identifier'], true);
@@ -246,7 +274,11 @@ class AuthController extends Controller
         $this->applyRememberSession($request, $data['remember'] ?? false);
         $this->afterLogin($user, 'otp');
 
-        return response()->json(['user' => $this->userPayload($user)]);
+        $payload = ['user' => $this->userPayload($user)];
+        if (session()->pull('just_restored')) {
+            $payload['restored'] = true;
+        }
+        return response()->json($payload);
     }
 
     /**
@@ -352,7 +384,11 @@ class AuthController extends Controller
         $this->afterLogin($user, 'otp');
         app(AuditLogger::class)->log('auth.subscribe_activated', 'Subscriber login via OTP: ' . $email, $user);
 
-        return response()->json(['user' => $this->userPayload($user)]);
+        $payload = ['user' => $this->userPayload($user)];
+        if (session()->pull('just_restored')) {
+            $payload['restored'] = true;
+        }
+        return response()->json($payload);
     }
 
     /**
@@ -454,7 +490,11 @@ class AuthController extends Controller
 
         $this->afterLogin($user, 'otp');
 
-        return response()->json(['user' => $this->userPayload($user)]);
+        $payload = ['user' => $this->userPayload($user)];
+        if (session()->pull('just_restored')) {
+            $payload['restored'] = true;
+        }
+        return response()->json($payload);
     }
 
     public function whatsappStatus()
@@ -670,7 +710,11 @@ class AuthController extends Controller
         $this->afterLogin($user, 'otp');
         app(AuditLogger::class)->log('auth.otp_link_consumed', 'Link OTP login diklik: ' . $user->email, $user);
 
-        return response()->json(['user' => $this->userPayload($user)]);
+        $payload = ['user' => $this->userPayload($user)];
+        if (session()->pull('just_restored')) {
+            $payload['restored'] = true;
+        }
+        return response()->json($payload);
     }
 
     private function applyRememberSession(Request $request, bool $remember): void
