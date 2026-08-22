@@ -1,6 +1,6 @@
 import React from 'react';
 
-export default function Avatar({ src, name, size = 'md', shape = 'xl', className = '' }) {
+export default function Avatar({ src, name, size = 'md', shape = 'full', className = '' }) {
     const sizeClasses = {
         xs: 'h-6 w-6 text-[10px]',
         sm: 'h-8 w-8 text-xs',

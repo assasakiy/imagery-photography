@@ -155,7 +155,7 @@ function AdminTab() {
                         <div key={item.id} className="card p-5">
                             <div className="flex items-start justify-between gap-2">
                                 <div className="flex items-center gap-3">
-                                    <Avatar src={item.avatar} name={item.name} size="lg" shape="xl" />
+                                    <Avatar src={item.avatar} name={item.name} size="lg" shape="full" />
                                     <div className="min-w-0">
                                         <p className="truncate font-bold text-ink">{item.name}</p>
                                         <p className="truncate text-xs text-ink-muted">{item.email || item.phone || 'Tanpa kontak'}</p>

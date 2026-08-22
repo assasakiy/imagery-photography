@@ -199,7 +199,7 @@ export default function Subscribers() {
                                 <tr key={item.id} className="transition-colors hover:bg-surface-muted/50">
                                     <td className="px-4 py-3">
                                         <div className="flex items-center gap-3">
-                                            <Avatar src={item.avatar} name={item.name} size="md" shape="xl" />
+                                            <Avatar src={item.avatar} name={item.name} size="md" shape="full" />
                                             <div className="min-w-0">
                                                 <p className="truncate font-semibold text-ink">{item.name}</p>
                                                 <p className="truncate text-xs text-ink-muted">{item.email}</p>
@@ -259,7 +259,7 @@ export default function Subscribers() {
                         ) : (
                             <div className="px-6 py-4 space-y-4">
                                 <div className="flex items-center gap-4">
-                                    <Avatar src={detail.avatar} name={detail.name} size="xl" shape="xl" />
+                                    <Avatar src={detail.avatar} name={detail.name} size="xl" shape="full" />
                                     <div>
                                         <p className="text-lg font-bold text-ink">{detail.name}</p>
                                         <p className="text-sm text-ink-muted">{detail.email}</p>

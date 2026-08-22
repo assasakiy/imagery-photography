@@ -236,7 +236,7 @@ export default function Clients() {
                                 <tr key={item.id}>
                                     <td>
                                         <div className="flex items-center gap-3">
-                                            <Avatar src={item.avatar} name={item.name} size="md" shape="xl" />
+                                            <Avatar src={item.avatar} name={item.name} size="md" shape="full" />
                                             <div className="min-w-0">
                                                 <p className="truncate font-medium text-ink">{item.name}</p>
                                                 <p className="truncate text-xs text-ink-muted">{item.email}</p>

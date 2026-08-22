@@ -118,7 +118,7 @@ export default function UserDetailModal({ open, onClose, data, loading, onIssueT
                         ) : data ? (
                             <div className="space-y-6">
                                 <div className="flex items-start gap-4">
-                                    <Avatar src={data.avatar} name={data.name} size="xl" shape="xl" />
+                                    <Avatar src={data.avatar} name={data.name} size="xl" shape="full" />
                                     <div className="min-w-0 flex-1">
                                         <div className="flex flex-wrap items-center gap-2">
                                             <p className="truncate text-lg font-bold text-ink">{data.name}</p>

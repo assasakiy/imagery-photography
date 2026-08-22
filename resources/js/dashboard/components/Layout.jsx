@@ -316,7 +316,7 @@ export default function Layout() {
                                 className="flex items-center gap-2 rounded-xl p-1.5 pr-2 text-ink transition-colors hover:bg-surface-muted"
                                 aria-label="Menu profil"
                             >
-                                <Avatar src={user?.avatar} name={user?.name} size="sm" shape="xl" className="ring-2 ring-brand-500/30" />
+                                <Avatar src={user?.avatar} name={user?.name} size="sm" shape="full" className="ring-2 ring-brand-500/30" />
                                 <span className="hidden max-w-[120px] truncate text-sm font-semibold md:block">{user?.name}</span>
                                 <Icon
                                     name="chevron-down"

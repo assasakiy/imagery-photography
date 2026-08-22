@@ -25,7 +25,7 @@ class UserProfile extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function resolveMediaValue(string $field): ?string
+    public function resolveMediaValue(string $field, string $conversion = ''): ?string
     {
         $value = $this->{$field};
 
@@ -35,7 +35,7 @@ class UserProfile extends Model
                 $media = \Spatie\MediaLibrary\MediaCollections\Models\Media::find($mediaId);
 
                 if ($media) {
-                    return $media->getUrl();
+                    return $conversion && $media->hasGeneratedConversion($conversion) ? $media->getUrl($conversion) : $media->getUrl();
                 }
             }
 
@@ -47,11 +47,11 @@ class UserProfile extends Model
 
     public function avatarUrl(): ?string
     {
-        return $this->resolveMediaValue('avatar');
+        return $this->resolveMediaValue('avatar', 'thumbnail');
     }
 
     public function coverUrl(): ?string
     {
-        return $this->resolveMediaValue('cover');
+        return $this->resolveMediaValue('cover', 'hero');
     }
 }

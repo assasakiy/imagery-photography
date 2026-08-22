@@ -380,7 +380,7 @@ export default function ProfileSettings() {
                                 className="group relative"
                                 aria-label="Lihat foto profil"
                             >
-                                <Avatar src={avatarUrl} name={profile.full_name} size="2xl" shape="xl" className="ring-4 ring-surface" />
+                                <Avatar src={avatarUrl} name={profile.full_name} size="2xl" shape="full" className="ring-4 ring-surface" />
                                 <span className="absolute inset-0 flex items-center justify-center bg-black/50 text-white opacity-0 transition-opacity group-hover:opacity-100 rounded-xl">
                                     <Icon name="camera" size={22} />
                                 </span>
@@ -798,7 +798,7 @@ export default function ProfileSettings() {
                         src={pendingAvatar ? pendingAvatar.url : avatarUrl} 
                         name={profile.full_name} 
                         size="2xl" 
-                        shape="xl" 
+                        shape="full" 
                         className="!h-40 !w-40 ring-4 ring-line" 
                     />
                     <div className="text-center">
