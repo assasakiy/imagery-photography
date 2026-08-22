@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import api from '../../api';
 import Icon from '../../components/Icon';
+import Avatar from '../../components/Avatar';
 import MediaPicker from '../../components/MediaPicker';
 import { PageHeader, Field, Modal, ButtonSpinner } from '../../components/ui';
 import Skeleton from '../../components/Skeleton';
@@ -376,17 +377,11 @@ export default function ProfileSettings() {
                             <button
                                 type="button"
                                 onClick={() => setViewOpen(true)}
-                                className="group relative h-24 w-24 overflow-hidden rounded-full bg-surface-muted ring-4 ring-surface sm:h-28 sm:w-28"
+                                className="group relative"
                                 aria-label="Lihat foto profil"
                             >
-                                {avatarUrl ? (
-                                    <img src={avatarUrl} alt={profile.full_name} className="h-full w-full object-cover" />
-                                ) : (
-                                    <span className="flex h-full w-full items-center justify-center text-3xl font-bold text-brand-600 dark:text-brand-400">
-                                        {initials}
-                                    </span>
-                                )}
-                                <span className="absolute inset-0 flex items-center justify-center bg-black/50 text-white opacity-0 transition-opacity group-hover:opacity-100">
+                                <Avatar src={avatarUrl} name={profile.full_name} size="2xl" shape="xl" className="ring-4 ring-surface" />
+                                <span className="absolute inset-0 flex items-center justify-center bg-black/50 text-white opacity-0 transition-opacity group-hover:opacity-100 rounded-xl">
                                     <Icon name="camera" size={22} />
                                 </span>
                             </button>
@@ -799,17 +794,13 @@ export default function ProfileSettings() {
                 }
             >
                 <div className="flex flex-col items-center gap-4 py-2">
-                    <div className="h-40 w-40 overflow-hidden rounded-full bg-surface-muted ring-4 ring-line">
-                        {pendingAvatar ? (
-                            <img src={pendingAvatar.url} alt="Pratinjau" className="h-full w-full object-cover" />
-                        ) : avatarUrl ? (
-                            <img src={avatarUrl} alt={profile.full_name} className="h-full w-full object-cover" />
-                        ) : (
-                            <span className="flex h-full w-full items-center justify-center text-6xl font-bold text-brand-600 dark:text-brand-400">
-                                {initials}
-                            </span>
-                        )}
-                    </div>
+                    <Avatar 
+                        src={pendingAvatar ? pendingAvatar.url : avatarUrl} 
+                        name={profile.full_name} 
+                        size="2xl" 
+                        shape="xl" 
+                        className="!h-40 !w-40 ring-4 ring-line" 
+                    />
                     <div className="text-center">
                         <p className="text-lg font-semibold text-ink">{profile.full_name || '…'}</p>
                         <p className="text-sm text-ink-muted">{profile.email || ''}</p>

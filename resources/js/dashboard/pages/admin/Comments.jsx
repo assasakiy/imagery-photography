@@ -3,6 +3,7 @@ import api from '../../api';
 import { toast } from '../../lib/toast';
 import { getApiErrorMessage } from '../../lib/errors';
 import Icon from '../../components/Icon';
+import Avatar from '../../components/Avatar';
 import { PageHeader, EmptyState, Confirm, formatDate } from '../../components/ui';
 import Skeleton from '../../components/Skeleton';
 
@@ -88,13 +89,7 @@ export default function Comments() {
                             <div className="flex flex-wrap items-start justify-between gap-3">
                                 <div className="min-w-0 flex-1">
                                     <div className="flex flex-wrap items-center gap-2">
-                                        {item.user?.avatar ? (
-                                            <img src={item.user.avatar} alt="" className="h-6 w-6 rounded-full object-cover" />
-                                        ) : (
-                                            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-brand-500/20 text-[10px] font-bold text-brand-600 dark:text-brand-400">
-                                                {(item.user?.name || 'S').charAt(0).toUpperCase()}
-                                            </span>
-                                        )}
+                                        <Avatar src={item.user?.avatar} name={item.user?.name || 'Subscriber'} size="xs" shape="xl" />
                                         <p className="font-bold text-ink">{item.user?.name || 'Subscriber'}</p>
                                         {item.status === 'hidden' && (
                                             <span className="chip chip-active !px-2 !py-0.5 text-[10px]">Disembunyikan</span>

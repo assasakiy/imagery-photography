@@ -3,6 +3,7 @@ import api from '../../api';
 import { toast } from '../../lib/toast';
 import { getApiErrorMessage } from '../../lib/errors';
 import Icon from '../../components/Icon';
+import Avatar from '../../components/Avatar';
 import MediaPicker from '../../components/MediaPicker';
 import UserDetailModal from '../../components/UserDetailModal';
 import PresenceBadge from '../../components/PresenceBadge';
@@ -235,13 +236,7 @@ export default function Clients() {
                                 <tr key={item.id}>
                                     <td>
                                         <div className="flex items-center gap-3">
-                                            {item.avatar ? (
-                                                <img src={item.avatar} alt="" className="h-9 w-9 shrink-0 rounded-full object-cover" />
-                                            ) : (
-                                                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-500/15 text-brand-600 dark:text-brand-400">
-                                                    <Icon name="user" size={16} />
-                                                </div>
-                                            )}
+                                            <Avatar src={item.avatar} name={item.name} size="md" shape="xl" />
                                             <div className="min-w-0">
                                                 <p className="truncate font-medium text-ink">{item.name}</p>
                                                 <p className="truncate text-xs text-ink-muted">{item.email}</p>
@@ -305,7 +300,7 @@ export default function Clients() {
                 <form id="client-form" onSubmit={handleSubmit} className="space-y-4">
                     {editing && (
                         <div className="flex items-center gap-4">
-                            <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-full bg-brand-500/15 ring-2 ring-line">
+                            <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-brand-500/15 ring-2 ring-line">
                                 {avatarUrl ? (
                                     <img src={avatarUrl} alt="Foto profil" className="h-full w-full object-cover" />
                                 ) : (

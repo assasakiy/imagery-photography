@@ -3,6 +3,7 @@ import api from '../../api';
 import { toast } from '../../lib/toast';
 import { getApiErrorMessage } from '../../lib/errors';
 import Icon from '../../components/Icon';
+import Avatar from '../../components/Avatar';
 import PresenceBadge from '../../components/PresenceBadge';
 import FilterDropdown from '../../components/FilterDropdown';
 import { PageHeader, EmptyState, Confirm, formatDate } from '../../components/ui';
@@ -198,13 +199,7 @@ export default function Subscribers() {
                                 <tr key={item.id} className="transition-colors hover:bg-surface-muted/50">
                                     <td className="px-4 py-3">
                                         <div className="flex items-center gap-3">
-                                            {item.avatar ? (
-                                                <img src={item.avatar} alt="" className="h-9 w-9 rounded-full object-cover" />
-                                            ) : (
-                                                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-500/20 text-xs font-bold text-brand-600 dark:text-brand-400">
-                                                    {(item.name || '?').charAt(0).toUpperCase()}
-                                                </span>
-                                            )}
+                                            <Avatar src={item.avatar} name={item.name} size="md" shape="xl" />
                                             <div className="min-w-0">
                                                 <p className="truncate font-semibold text-ink">{item.name}</p>
                                                 <p className="truncate text-xs text-ink-muted">{item.email}</p>
@@ -264,13 +259,7 @@ export default function Subscribers() {
                         ) : (
                             <div className="px-6 py-4 space-y-4">
                                 <div className="flex items-center gap-4">
-                                    {detail.avatar ? (
-                                        <img src={detail.avatar} alt="" className="h-14 w-14 rounded-full object-cover" />
-                                    ) : (
-                                        <span className="flex h-14 w-14 items-center justify-center rounded-full bg-brand-500/20 text-xl font-bold text-brand-600 dark:text-brand-400">
-                                            {(detail.name || '?').charAt(0).toUpperCase()}
-                                        </span>
-                                    )}
+                                    <Avatar src={detail.avatar} name={detail.name} size="xl" shape="xl" />
                                     <div>
                                         <p className="text-lg font-bold text-ink">{detail.name}</p>
                                         <p className="text-sm text-ink-muted">{detail.email}</p>

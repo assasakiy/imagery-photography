@@ -3,6 +3,7 @@ import api from '../../api';
 import { toast } from '../../lib/toast';
 import { getApiErrorMessage } from '../../lib/errors';
 import Icon from '../../components/Icon';
+import Avatar from '../../components/Avatar';
 import MediaPicker from '../../components/MediaPicker';
 import UserDetailModal from '../../components/UserDetailModal';
 import PresenceBadge from '../../components/PresenceBadge';
@@ -154,9 +155,7 @@ function AdminTab() {
                         <div key={item.id} className="card p-5">
                             <div className="flex items-start justify-between gap-2">
                                 <div className="flex items-center gap-3">
-                                    <div className="flex h-11 w-11 items-center justify-center rounded-full bg-brand-500/20 text-lg font-bold text-brand-600 dark:text-brand-400">
-                                        {item.name.charAt(0).toUpperCase()}
-                                    </div>
+                                    <Avatar src={item.avatar} name={item.name} size="lg" shape="xl" />
                                     <div className="min-w-0">
                                         <p className="truncate font-bold text-ink">{item.name}</p>
                                         <p className="truncate text-xs text-ink-muted">{item.email || item.phone || 'Tanpa kontak'}</p>
@@ -213,7 +212,7 @@ function AdminTab() {
             >
                 <form id="admin-form" onSubmit={submit} className="space-y-4">
                     <div className="flex items-center gap-4">
-                        <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-full bg-brand-500/15 ring-2 ring-line">
+                        <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-brand-500/15 ring-2 ring-line">
                             {avatarUrl ? (
                                 <img src={avatarUrl} alt="Foto profil" className="h-full w-full object-cover" />
                             ) : (

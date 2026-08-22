@@ -1,6 +1,7 @@
 import { copyToClipboard } from '../lib/clipboard';
 import { useNavigate } from 'react-router-dom';
 import Icon from './Icon';
+import Avatar from './Avatar';
 import { Spinner, EmptyState } from './ui';
 import { toast } from '../lib/toast';
 
@@ -117,13 +118,7 @@ export default function UserDetailModal({ open, onClose, data, loading, onIssueT
                         ) : data ? (
                             <div className="space-y-6">
                                 <div className="flex items-start gap-4">
-                                    <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-full bg-brand-500/15 ring-2 ring-line">
-                                        {data.avatar ? (
-                                            <img src={data.avatar} alt={data.name} className="h-full w-full object-cover" />
-                                        ) : (
-                                            <span className="text-xl font-bold text-brand-600 dark:text-brand-400">{initials}</span>
-                                        )}
-                                    </div>
+                                    <Avatar src={data.avatar} name={data.name} size="xl" shape="xl" />
                                     <div className="min-w-0 flex-1">
                                         <div className="flex flex-wrap items-center gap-2">
                                             <p className="truncate text-lg font-bold text-ink">{data.name}</p>
