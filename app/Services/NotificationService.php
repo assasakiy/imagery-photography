@@ -361,8 +361,8 @@ class NotificationService
         if (!empty($project->user->phone)) {
             $this->whatsapp($project->user->phone, $waMsg, null, $project->user, 'project.status_changed');
         }
-        $this->email(new \App\Mail\AlertMail($project->user->name, 'Status Proyek Diperbarui', $emailHtml), $project->user->email, 'project.status_changed');
-        $this->inApp($project->user, 'Status Proyek Diperbarui', $message, $this->orderUrl($project), 'project.status_changed');
+        $this->email(new \App\Mail\AlertMail($project->user->name, 'Status Pesanan Diperbarui', $emailHtml), $project->user->email, 'project.status_changed');
+        $this->inApp($project->user, 'Status Pesanan Diperbarui', $message, $this->orderUrl($project), 'project.status_changed');
     }
 
     /**

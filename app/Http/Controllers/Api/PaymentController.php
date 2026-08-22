@@ -316,7 +316,7 @@ class PaymentController extends Controller
                 $notifications->inApp(
                     $client,
                     'Pembayaran dikonfirmasi',
-                    'Pembayaran Rp ' . number_format((float) $payment->amount, 0, ',', '.') . ' untuk project "' . $payment->project->name . '" telah dikonfirmasi.',
+                    'Pembayaran Rp ' . number_format((float) $payment->amount, 0, ',', '.') . ' untuk pesanan "' . $payment->project->name . '" telah dikonfirmasi.',
                     $notifications->orderUrl($payment->project),
                     'payment.confirmed'
                 );
