@@ -62,6 +62,8 @@ class SettingsController extends Controller
             'whatsapp_configured' => $settings->whatsappConfigured(),
             'email_enabled' => $settings->channelEnabled('email'),
             'whatsapp_enabled' => $settings->channelEnabled('whatsapp'),
+            'email_available' => $settings->channelAvailable('email'),
+            'whatsapp_available' => $settings->channelAvailable('whatsapp'),
             'webhook_configured' => count($settings->webhookUrls()) > 0,
             'webhook_enabled' => $settings->channelEnabled('webhook'),
             'email_events' => app(NotificationService::class)->channelEvents('email'),

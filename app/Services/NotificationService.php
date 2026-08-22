@@ -38,7 +38,7 @@ class NotificationService
      * Event yang WAJIB dikirim ke pemilik akun (keamanan akun).
      * Tidak bisa dimatikan oleh admin maupun user.
      */
-    public const MANDATORY_EVENTS = ['auth.otp', 'auth.login'];
+    public const MANDATORY_EVENTS = ['auth.otp', 'auth.login', 'auth.magic_link', 'auth.invite'];
 
     /**
      * Event yang berlaku untuk tiap kanal.
@@ -235,6 +235,13 @@ class NotificationService
             Log::info('WhatsApp skipped: user disabled WhatsApp notifications.', ['phone' => $phone]);
 
             return false;
+        }
+
+        // Normalisasi nomor telepon: hapus karakter non-angka (kecuali +), ubah awalan 0 menjadi 62, hilangkan +62 menjadi 62.
+        // Fonnte dan sebagian besar WA Gateway Indonesia lebih stabil menerima angka 62 atau 08. 
+        $phone = preg_replace('/[^0-9]/', '', $phone);
+        if (str_starts_with($phone, '0')) {
+            $phone = '62' . substr($phone, 1);
         }
 
         return $this->whatsapp->send($phone, $message, $driver)->success;

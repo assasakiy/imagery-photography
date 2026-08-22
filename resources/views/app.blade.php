@@ -37,8 +37,8 @@
             businessTimezone: @json($shellSettings->timezone()),
             otp: {
                 enabled: @json($shellSettings->loginMethodEnabled('otp')),
-                whatsapp: @json($shellSettings->channelEnabled('whatsapp')),
-                email: @json($shellSettings->channelEnabled('email')),
+                whatsapp: @json($shellSettings->channelAvailable('whatsapp')),
+                email: @json($shellSettings->channelAvailable('email')),
             },
         };
     </script>
