@@ -1,5 +1,49 @@
 import Icon from './Icon';
 
+export function FullPageSkeleton() {
+    return (
+        <div className="flex h-screen w-full bg-surface">
+            {/* Sidebar Skeleton (Hidden on mobile) */}
+            <div className="hidden w-[280px] shrink-0 flex-col border-r border-line bg-surface md:flex">
+                <div className="flex h-16 items-center gap-3 border-b border-line px-6">
+                    <div className="h-10 w-10 shrink-0 animate-pulse rounded-xl bg-surface-muted"></div>
+                    <div className="h-4 w-32 animate-pulse rounded bg-surface-muted"></div>
+                </div>
+                <div className="flex-1 space-y-4 p-4">
+                    <div className="h-4 w-16 animate-pulse rounded bg-surface-muted"></div>
+                    <div className="space-y-2">
+                        {[1, 2, 3, 4, 5].map(i => (
+                            <div key={i} className="flex h-10 items-center gap-3 rounded-xl px-3">
+                                <div className="h-5 w-5 animate-pulse rounded bg-surface-muted"></div>
+                                <div className="h-4 w-24 animate-pulse rounded bg-surface-muted"></div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
+            {/* Main Content Skeleton */}
+            <div className="flex min-w-0 flex-1 flex-col">
+                {/* Header Skeleton */}
+                <div className="sticky top-0 z-20 flex h-16 shrink-0 items-center justify-between border-b border-line bg-surface/95 px-4 backdrop-blur sm:px-8">
+                    <div className="h-6 w-32 animate-pulse rounded bg-surface-muted"></div>
+                    <div className="flex items-center gap-4">
+                        <div className="h-8 w-8 animate-pulse rounded-full bg-surface-muted"></div>
+                    </div>
+                </div>
+                {/* Content Area Skeleton */}
+                <div className="flex-1 p-4 sm:p-8">
+                    <div className="mb-6 h-8 w-48 animate-pulse rounded bg-surface-muted"></div>
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                        {[1, 2, 3, 4].map(i => (
+                            <div key={i} className="h-32 animate-pulse rounded-2xl bg-surface-muted border border-line"></div>
+                        ))}
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}
+
 export function Spinner({ className = 'h-8 w-8 text-brand-600' }) {
     return (
         <div className="flex items-center justify-center p-8">
