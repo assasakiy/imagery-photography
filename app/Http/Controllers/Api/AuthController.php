@@ -245,7 +245,7 @@ class AuthController extends Controller
             'remember'   => 'boolean',
         ]);
 
-        $user   = $this->resolveUser($data['identifier']);
+        $user   = $this->resolveUser($data['identifier'], true);
         $stored = session()->get('otp_' . $user?->id);
 
         if (!$user || !$stored || !Hash::check($data['otp'], $stored['code']) || now()->greaterThan($stored['expires_at'])) {
@@ -258,6 +258,8 @@ class AuthController extends Controller
         $reg = app(\App\Services\ClientRegistrationService::class);
         $reg->invalidateOtpAndLinks($user);
         ApiThrottle::reset('otp.verify', ['identifier' => $data['identifier']]);
+
+        $this->restoreIfTrashed($user);
 
         if ($user->status === 'pending') {
             // Belum punya password — wajib set-password dulu.
@@ -351,7 +353,7 @@ class AuthController extends Controller
         ]);
 
         $email = strtolower(trim($data['email']));
-        $user  = $this->resolveUser($email);
+        $user  = $this->resolveUser($email, true);
         $reg   = app(\App\Services\ClientRegistrationService::class);
 
         $stored = session()->get('otp_' . $user?->id);
