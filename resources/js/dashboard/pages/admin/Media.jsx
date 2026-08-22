@@ -1,3 +1,4 @@
+import { copyToClipboard } from '../../lib/clipboard';
 import { useEffect, useRef, useState } from 'react';
 import api from '../../api';
 import { toast } from '../../lib/toast';
@@ -93,7 +94,7 @@ export default function Media() {
 
     const copyUrl = async (url) => {
         try {
-            await navigator.clipboard.writeText(url);
+            await copyToClipboard(url);
             toast.success('URL disalin.');
         } catch {
             toast.error('Gagal menyalin URL.');

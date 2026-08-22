@@ -200,12 +200,7 @@ class AuthController extends Controller
             $channelOverride = 'whatsapp';
         }
 
-        app(NotificationService::class)->sendOtp($user, $user->phone ?? $data['identifier'], $otp, $data['identifier']);
-        app(NotificationService::class)->send(
-            \App\Services\NotificationType::ACCOUNT_INVITE,
-            $user,
-            ['name' => $user->name, 'url' => $link->url, 'channel_override' => $channelOverride]
-        );
+        app(NotificationService::class)->sendOtp($user, $user->phone ?? $data['identifier'], $otp, $data['identifier'], $link->url, 'login');
 
         app(AuditLogger::class)->log('auth.otp_sent', 'OTP+link login dikirim untuk ' . ($user->email ?? $data['identifier']));
 
@@ -293,13 +288,9 @@ class AuthController extends Controller
             session()->put('subscribe_pending_' . $user->id, $isNew);
 
             // Kirim OTP + link aktivasi bersamaan (khusus subscribe, dipaksa via email).
-            app(NotificationService::class)->sendOtp($user, $user->phone ?? $email, $otp, $email);
             $link = $reg->issueSubscribeLink($user);
-            app(NotificationService::class)->send(
-                \App\Services\NotificationType::ACCOUNT_INVITE,
-                $user,
-                ['name' => $user->name, 'url' => $link->url, 'channel_override' => 'email']
-            );
+            app(NotificationService::class)->sendOtp($user, $user->phone ?? $email, $otp, $email, $link->url, 'subscribe');
+            
             app(AuditLogger::class)->log('auth.otp_sent', 'OTP+link subscribe dikirim untuk ' . $email, $user);
         } else {
             $otp = null;
@@ -403,7 +394,7 @@ class AuthController extends Controller
         session()->put('otp_target_' . $user->id, $email);
         session()->put('register_pending_' . $user->id, $isNew);
 
-        app(NotificationService::class)->sendOtp($user, $user->phone ?? $email, $otp);
+        app(NotificationService::class)->sendOtp($user, $user->phone ?? $email, $otp, $email, null, 'subscribe');
 
         app(AuditLogger::class)->log('auth.otp_sent', 'OTP registrasi client dikirim untuk ' . $email, $user);
 
@@ -501,23 +492,52 @@ class AuthController extends Controller
 
         $token = ClientAccessToken::createToken($user, 'recovery');
 
-        // Tentukan channel override dari input identifier.
-        $channelOverride = null;
-        if (filter_var($identifier, FILTER_VALIDATE_EMAIL)) {
-            $channelOverride = 'email';
-        } elseif (preg_match('/^[0-9+]+$/', $identifier)) {
-            $channelOverride = 'whatsapp';
+        $otp = (string) random_int(100000, 999999);
+        session()->put('recovery_otp_' . $user->id, ['code' => Hash::make($otp), 'expires_at' => now()->addMinutes(5)]);
+
+        app(NotificationService::class)->sendOtp($user, $user->phone ?? $identifier, $otp, $identifier, $token->url, 'recovery');
+
+        app(AuditLogger::class)->log('auth.forgot', 'Permintaan reset password (OTP+Link): ' . $user->email, $user);
+
+        return response()->json([
+            'message' => 'Tautan dan kode OTP reset kata sandi telah dikirim.',
+            'dev_otp' => config('app.env') !== 'production' ? $otp : null,
+        ]);
+    }
+
+    public function verifyForgotOtp(Request $request)
+    {
+        $data = $request->validate([
+            'identifier' => 'required|string',
+            'otp'        => 'required|string',
+        ]);
+
+        $user   = $this->resolveUser($data['identifier']);
+        $stored = session()->pull('recovery_otp_' . $user?->id);
+
+        if (!$user || !$stored || !Hash::check($data['otp'], $stored['code']) || now()->greaterThan($stored['expires_at'])) {
+            app(AuditLogger::class)->log('auth.forgot_otp_failed', 'Verifikasi OTP reset gagal: ' . $data['identifier']);
+            return response()->json(['message' => 'Kode OTP salah atau kadaluarsa.'], 422);
         }
 
-        app(NotificationService::class)->send(
-            NotificationType::PASSWORD_RESET,
-            $user,
-            ['name' => $user->name, 'url' => $token->url, 'channel_override' => $channelOverride]
-        );
+        // OTP Valid. Karena Recovery Link sudah terbuat sebelumnya (saat forgot), 
+        // kita cari token recovery milik user ini yang masih pending.
+        $token = \App\Models\ClientAccessToken::where('user_id', $user->id)
+            ->where('purpose', 'recovery')
+            ->valid()
+            ->where('status', 'pending')
+            ->latest()
+            ->first();
 
-        app(AuditLogger::class)->log('auth.forgot', 'Permintaan reset password: ' . $user->email, $user);
+        if (!$token) {
+            return response()->json(['message' => 'Sesi recovery tidak valid, harap minta ulang.'], 422);
+        }
 
-        return response()->json(['message' => 'Tautan reset kata sandi telah dikirim ke WhatsApp/Email Anda.']);
+        app(AuditLogger::class)->log('auth.forgot_otp_success', 'OTP reset valid: ' . $user->email, $user);
+
+        return response()->json([
+            'recovery_token' => $token->token,
+        ]);
     }
 
     private function resolvePasswordToken(string $token): ?\App\Models\ClientAccessToken

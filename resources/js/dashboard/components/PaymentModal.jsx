@@ -1,3 +1,4 @@
+import { copyToClipboard } from '../lib/clipboard';
 import { useEffect, useRef, useState } from 'react';
 import QRCode from 'qrcode';
 import api from '../api';
@@ -136,8 +137,7 @@ export default function PaymentModal({ open, onClose, invoice, projectId, onPaid
     const copyRekening = async () => {
         if (!selectedAccount || selectedType === 'qris') return;
         try {
-            await navigator.clipboard.writeText(selectedAccount.number);
-            toast.success('Nomor rekening disalin.');
+            await copyToClipboard(selectedAccount.number, 'Nomor rekening disalin.');
         } catch {
             toast.error('Gagal menyalin nomor rekening.');
         }
@@ -145,7 +145,7 @@ export default function PaymentModal({ open, onClose, invoice, projectId, onPaid
     const copyQris = async () => {
         if (!selectedAccount?.qris) return;
         try {
-            await navigator.clipboard.writeText(selectedAccount.qris);
+            await copyToClipboard(selectedAccount.qris);
             toast.success('String QRIS disalin.');
         } catch {
             toast.error('Gagal menyalin kode QRIS.');

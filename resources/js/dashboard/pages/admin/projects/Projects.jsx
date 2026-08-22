@@ -1,3 +1,4 @@
+import { copyToClipboard } from '../../../lib/clipboard';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../../../api';
@@ -160,7 +161,7 @@ export default function Projects() {
 
     const copyCreds = async (text) => {
         try {
-            await navigator.clipboard.writeText(text);
+            await copyToClipboard(text);
             toast.success('Kredensial disalin.');
         } catch {
             toast.error('Gagal menyalin.');

@@ -1,3 +1,4 @@
+import { copyToClipboard } from '../../lib/clipboard';
 import { useEffect, useState } from 'react';
 import api from '../../api';
 import { toast } from '../../lib/toast';
@@ -82,6 +83,8 @@ function shortUA(ua) {
     if (ua.length <= 60) return ua;
     return ua.slice(0, 58) + '…';
 }
+
+
 
 export default function AuditLog() {
     const [view, setView] = useState('login');
@@ -366,11 +369,7 @@ export default function AuditLog() {
                                         <button
                                             className="group flex max-w-[220px] items-center gap-1.5 font-mono text-xs text-brand-600 dark:text-brand-400 hover:underline"
                                             title="Salin Tautan"
-                                            onClick={() => { 
-                                                navigator.clipboard.writeText(it.url).then(() => {
-                                                    toast.success('Tautan disalin ke clipboard');
-                                                }); 
-                                            }}
+                                            onClick={() => copyToClipboard(it.url, 'Tautan disalin')}
                                         >
                                             <span className="truncate">{it.token}</span>
                                             <Icon name="copy" size={12} className="shrink-0 opacity-0 transition-opacity group-hover:opacity-100" />

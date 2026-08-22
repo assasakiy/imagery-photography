@@ -1,3 +1,4 @@
+import { copyToClipboard } from '../../lib/clipboard';
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import api from '../../api';
@@ -86,7 +87,7 @@ export default function PreviewDetail() {
 
     const copyText = async (text, label) => {
         try {
-            await navigator.clipboard.writeText(text);
+            await copyToClipboard(text);
             toast.success(`${label} disalin.`);
         } catch {
             toast.error('Gagal menyalin.');

@@ -55,7 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 if (navigator.clipboard?.writeText) {
-                    await navigator.clipboard.writeText(data.url);
+                    await copyToClipboard(data.url);
                 } else {
                     const input = document.createElement('textarea');
                     input.value = data.url;

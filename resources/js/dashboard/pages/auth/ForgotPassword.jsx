@@ -9,6 +9,8 @@ const APP = window.APP_CONFIG || {};
 export default function ForgotPassword() {
     const navigate = useNavigate();
     const [identifier, setIdentifier] = useState('');
+    const [otpSent, setOtpSent] = useState(false);
+    const [otpCode, setOtpCode] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const [cooldown, setCooldown] = useState(0);
@@ -29,6 +31,21 @@ export default function ForgotPassword() {
         return () => clearTimeout(timer);
     }, [cooldown]);
 
+    const handleVerify = async (e) => {
+        e.preventDefault();
+        setLoading(true);
+        setError('');
+        try {
+            await ensureCsrf();
+            const { data } = await api.post('/forgot/verify', { identifier, otp: otpCode });
+            navigate('/reset-password?token=' + data.recovery_token);
+        } catch (err) {
+            setError(err?.response?.data?.message || 'Kode salah.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
@@ -37,7 +54,8 @@ export default function ForgotPassword() {
             await ensureCsrf();
             await api.post('/forgot', { identifier });
             setCooldown(60);
-            navigate('/login', { state: { notice: `Tautan dan kode reset telah dikirim ke ${availableChannels} Anda.` } });
+            setOtpSent(true);
+            setError('');
         } catch (err) {
             setError(err?.response?.data?.message || 'Gagal mengirim. Periksa kembali.');
         } finally {
@@ -76,14 +94,36 @@ export default function ForgotPassword() {
                     )}
 
                     {availableChannels && (
-                        <form onSubmit={handleSubmit} className="space-y-4">
-                            <div>
-                                <label className="label">{inputLabel}</label>
-                                <input className="input" value={identifier} onChange={(e) => setIdentifier(e.target.value)} placeholder={inputPlaceholder} required />
-                            </div>
-                            <Button type="submit" icon="send" loading={loading} disabled={loading || cooldown > 0} className="w-full">
-                                {cooldown > 0 ? `Tunggu (${cooldown}s)` : 'Kirim Tautan Reset'}
+                        <form onSubmit={otpSent ? handleVerify : handleSubmit} className="space-y-4">
+                            {!otpSent ? (
+                                <div>
+                                    <label className="label">{inputLabel}</label>
+                                    <input className="input" value={identifier} onChange={(e) => setIdentifier(e.target.value)} placeholder={inputPlaceholder} required />
+                                </div>
+                            ) : (
+                                <div>
+                                    <p className="mb-4 text-sm text-ink-muted">Kode OTP dan tautan reset telah dikirim ke {availableChannels}. Masukkan kode atau klik tautan tersebut.</p>
+                                    <label className="label">Kode OTP</label>
+                                    <input className="input text-center text-xl tracking-widest" value={otpCode} onChange={(e) => setOtpCode(e.target.value)} placeholder="000000" inputMode="numeric" required />
+                                </div>
+                            )}
+                            <Button type="submit" icon={otpSent ? "check" : "send"} loading={loading} disabled={loading || (!otpSent && cooldown > 0)} className="w-full">
+                                {otpSent ? 'Verifikasi OTP' : cooldown > 0 ? `Tunggu (${cooldown}s)` : 'Kirim Tautan Reset'}
                             </Button>
+                            
+                            {otpSent && (
+                                <p className="text-center text-xs text-ink-muted mt-4">
+                                    Belum menerima kode?{' '}
+                                    <button 
+                                        type="button" 
+                                        disabled={cooldown > 0 || loading} 
+                                        onClick={handleSubmit}
+                                        className="font-medium text-brand-600 hover:underline disabled:text-ink-muted disabled:no-underline dark:text-brand-400"
+                                    >
+                                        {cooldown > 0 ? `Tunggu (${cooldown}s)` : 'Kirim ulang'}
+                                    </button>
+                                </p>
+                            )}
                         </form>
                     )}
 

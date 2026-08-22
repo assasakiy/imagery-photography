@@ -40,6 +40,7 @@ Route::middleware('web')->group(function () {
     Route::post('/verify-otp', [AuthController::class, 'verifyOtp'])->middleware('api.throttle:otp.verify');
     Route::get('/whatsapp-status', [AuthController::class, 'whatsappStatus']);
     Route::post('/forgot', [AuthController::class, 'forgot'])->middleware('api.throttle:auth.forgot');
+    Route::post('/forgot/verify', [AuthController::class, 'verifyForgotOtp'])->middleware('api.throttle:otp.verify');
     Route::post('/subscribe', [AuthController::class, 'subscribe'])->middleware('api.throttle:subscribe.send');
     Route::post('/subscribe/verify', [AuthController::class, 'subscribeVerify'])->middleware('api.throttle:subscribe.verify');
     Route::post('/register-otp', [AuthController::class, 'registerOtp'])->middleware('api.throttle:subscribe.send');

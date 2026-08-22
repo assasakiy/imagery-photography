@@ -1,3 +1,4 @@
+import { copyToClipboard } from '../../../lib/clipboard';
 import { Fragment, useEffect, useRef, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import api from '../../../api';
@@ -220,7 +221,7 @@ export default function ProjectDetail() {
 
     const copyPreviewLink = async () => {
         try {
-            await navigator.clipboard.writeText(previewLink);
+            await copyToClipboard(previewLink);
             toast.success('Link pratinjau disalin.');
         } catch {
             toast.error('Gagal menyalin link.');

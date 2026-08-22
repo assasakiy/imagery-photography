@@ -1,3 +1,4 @@
+import { copyToClipboard } from '../lib/clipboard';
 import { useNavigate } from 'react-router-dom';
 import Icon from './Icon';
 import { Spinner, EmptyState } from './ui';
@@ -30,7 +31,7 @@ export default function UserDetailModal({ open, onClose, data, loading, onIssueT
 
     const copy = async (text) => {
         try {
-            await navigator.clipboard.writeText(text);
+            await copyToClipboard(text);
             toast.success('Disalin ke clipboard.');
         } catch {
             const ta = document.createElement('textarea');
@@ -70,6 +71,12 @@ export default function UserDetailModal({ open, onClose, data, loading, onIssueT
         ].join('\n');
 
     const handleSend = () => onIssueToken?.(purpose, true);
+
+    useEffect(() => {
+        if (cooldown <= 0) return;
+        const timer = setTimeout(() => setCooldown((c) => c - 1), 1000);
+        return () => clearTimeout(timer);
+    }, [cooldown]);
 
     const handleCopy = async () => {
         try {
@@ -180,8 +187,8 @@ export default function UserDetailModal({ open, onClose, data, loading, onIssueT
                                         {' Prioritas pengiriman WhatsApp → Email. Salin untuk mengirim manual.'}
                                     </p>
                                     <div className="flex flex-wrap gap-2">
-                                        <button className="btn-primary" disabled={issuing === purpose} onClick={handleSend}>
-                                            <Icon name="send" size={16} /> {issuing === purpose ? 'Mengirim...' : isNew ? 'Kirim Undangan' : 'Kirim Recovery'}
+                                        <button className="btn-primary" disabled={issuing === purpose || cooldown > 0} onClick={handleSend}>
+                                            <Icon name="send" size={16} /> {issuing === purpose ? 'Mengirim...' : cooldown > 0 ? `Tunggu (${cooldown}s)` : isNew ? 'Kirim Undangan' : 'Kirim Recovery'}
                                         </button>
                                         <button className="btn-outline" disabled={issuing === purpose} onClick={handleCopy}>
                                             <Icon name="copy" size={16} /> Salin {isNew ? 'Undangan' : 'Recovery'}

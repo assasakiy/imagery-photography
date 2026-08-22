@@ -434,8 +434,9 @@ class NotificationService
 
     /**
      * Kirim OTP ke user lewat kanal pilihannya (wajib, tidak bisa dimatikan).
+     * Dapat menyertakan link akses (optional) dan konteks pesan ('login', 'subscribe', 'recovery').
      */
-    public function sendOtp(User $user, string $phone, string $code, ?string $identifier = null): bool
+    public function sendOtp(User $user, string $phone, string $code, ?string $identifier = null, ?string $linkUrl = null, string $context = 'login'): bool
     {
         $channel = $this->otpChannel($user, $identifier);
         
@@ -443,14 +444,37 @@ class NotificationService
             return false;
         }
 
-        $message = "Kode OTP login Sopian Lalu Imagery Anda: *{$code}*. Berlaku 5 menit. Jangan bagikan kode ini.";
+        $subject = match ($context) {
+            'subscribe' => 'Kode Aktivasi Akun',
+            'recovery'  => 'Kode Reset Kata Sandi',
+            default     => 'Kode OTP Login',
+        };
+
+        $actionTxt = match ($context) {
+            'subscribe' => "mengaktifkan akun Anda",
+            'recovery'  => "mereset kata sandi Anda",
+            default     => "masuk ke akun Anda",
+        };
+
+        $message = "Kode OTP Sopian Lalu Imagery Anda: *{$code}*. Gunakan kode ini untuk {$actionTxt}. Berlaku 5 menit. Jangan bagikan kode ini.";
         $html = "Halo <strong>{$user->name}</strong>,<br><br>" .
-                "Kode OTP login Anda adalah: <strong>{$code}</strong>.<br><br>" .
-                "Kode ini berlaku selama 5 menit. Jangan bagikan kode ini kepada siapa pun.";
+                "Kode OTP Anda adalah: <strong>{$code}</strong>.<br><br>" .
+                "Gunakan kode ini untuk {$actionTxt}. Kode berlaku selama 5 menit. Jangan bagikan kode ini kepada siapa pun.";
+
+        if ($linkUrl) {
+            $linkAction = match ($context) {
+                'subscribe' => "Atau klik link berikut untuk langsung aktivasi",
+                'recovery'  => "Atau klik link berikut untuk mereset kata sandi",
+                default     => "Atau klik link berikut untuk masuk otomatis",
+            };
+
+            $message .= "\n\n{$linkAction}:\n{$linkUrl}";
+            $html .= "<br><br><strong>{$linkAction}:</strong><br><a href=\"{$linkUrl}\">{$linkUrl}</a>";
+        }
 
         if ($channel === 'email') {
             if (empty($user->email)) return false;
-            $this->email(new \App\Mail\AlertMail($user->name, 'Kode OTP Login', $html, $code), $user->email, 'auth.otp');
+            $this->email(new \App\Mail\AlertMail($user->name, $subject, $html, $code), $user->email, 'auth.otp');
             return true;
         }
 
