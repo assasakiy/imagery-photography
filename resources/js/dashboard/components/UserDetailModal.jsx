@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { copyToClipboard } from '../lib/clipboard';
 import { useNavigate } from 'react-router-dom';
 import Icon from './Icon';
