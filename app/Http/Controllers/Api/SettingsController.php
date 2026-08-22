@@ -52,6 +52,8 @@ class SettingsController extends Controller
             'login_remember_days' => $settings->loginRememberDays(),
             'login_methods_global' => $this->loginMethodsPayload($settings),
             'file_retention_days' => (int) $settings->get('file_retention_days', 0),
+            'preview_expiry_days' => (int) $settings->get('preview_expiry_days', 30),
+            'archive_delay_days'  => (int) $settings->get('archive_delay_days', 60),
             'invite_expiry_hours' => $settings->inviteExpiryHours(),
             'maintenance_enabled' => $settings->maintenanceEnabled(),
             'maintenance_message' => $settings->maintenanceMessage(),

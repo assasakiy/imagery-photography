@@ -191,6 +191,8 @@ export function normalize(data) {
         login_remember_days: data.login_remember_days ?? 30,
         login_methods_global: data.login_methods_global ?? { password: true, otp: true, google: true, token: true },
         file_retention_days: data.file_retention_days ?? 0,
+        preview_expiry_days: data.preview_expiry_days ?? 30,
+        archive_delay_days: data.archive_delay_days ?? 60,
         invite_expiry_hours: data.invite_expiry_hours ?? 24,
         maintenance_enabled: !!data.maintenance_enabled,
         maintenance_message: data.maintenance_message || '',
