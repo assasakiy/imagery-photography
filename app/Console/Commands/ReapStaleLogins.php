@@ -35,7 +35,7 @@ class ReapStaleLogins extends Command
 
             $row->update([
                 'logged_out_at' => $closedAt,
-                'duration_seconds' => max(0, (int) $loggedInAt->diffInSeconds($closedAt)),
+                'duration_seconds' => max(0, abs($closedAt->getTimestamp() - $loggedInAt->getTimestamp())),
             ]);
 
             $closed++;

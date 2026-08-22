@@ -11,7 +11,9 @@ class LoginTracker
     {
         LoginHistory::where('user_id', $user->id)->open()->get()->each(function (LoginHistory $lh) {
             $lh->logged_out_at = now();
-            $lh->duration_seconds = $lh->logged_in_at ? max(0, now()->diffInSeconds($lh->logged_in_at)) : null;
+            $lh->duration_seconds = $lh->logged_in_at
+                ? max(0, abs($lh->logged_out_at->getTimestamp() - $lh->logged_in_at->getTimestamp()))
+                : null;
             $lh->save();
         });
 
@@ -51,7 +53,9 @@ class LoginTracker
         }
 
         $latest->logged_out_at = now();
-        $latest->duration_seconds = $latest->logged_in_at ? max(0, now()->diffInSeconds($latest->logged_in_at)) : null;
+        $latest->duration_seconds = $latest->logged_in_at
+            ? max(0, abs($latest->logged_out_at->getTimestamp() - $latest->logged_in_at->getTimestamp()))
+            : null;
         $latest->save();
     }
 
