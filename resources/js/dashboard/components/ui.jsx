@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import Icon from './Icon';
 
 export function FullPageSkeleton() {
