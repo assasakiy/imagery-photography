@@ -37,26 +37,28 @@ class AuthController extends Controller
             return redirect('/login')->withErrors(['token' => 'Link akses tidak valid atau sudah kadaluarsa.']);
         }
 
-        if ($accessToken->purpose === 'invite') {
-            $accessToken->update(['used_at' => now()]);
-
+        if ($accessToken->purpose === 'invite' || $accessToken->purpose === 'subscribe') {
+            // Jangan ubah status/used_at di sini, biarkan API setPassword() yang mengkonsumsinya.
             return redirect('/set-password?token=' . $token);
         }
 
         if ($accessToken->purpose === 'recovery') {
-            $accessToken->update(['used_at' => now()]);
-
+            // Jangan ubah status di sini, biarkan API resetPassword() yang mengkonsumsinya.
             return redirect('/reset-password?token=' . $token);
         }
 
-        $accessToken->update(['used_at' => now()]);
+        // Untuk purpose 'otp_login' dan 'project', langsung login & consume tokennya.
+        $accessToken->update(['status' => 'accepted', 'used_at' => now()]);
+        
+        // Invalidate semua link lain yang sejenis
+        app(\App\Services\ClientRegistrationService::class)->invalidateOtpAndLinks($accessToken->user);
 
         Auth::login($accessToken->user);
 
         $tracker = app(LoginTracker::class);
         $tracker->recordLogin($accessToken->user, 'access_token');
 
-        app(AuditLogger::class)->log('auth.login', 'Login sukses via access_token: ' . $accessToken->user->email);
+        app(AuditLogger::class)->log('auth.login', 'Login sukses via ' . $accessToken->purpose . ' token: ' . $accessToken->user->email);
 
         if ($tracker->isSuspicious($accessToken->user)) {
             app(NotificationService::class)->notifySuspiciousLogin($accessToken->user);
