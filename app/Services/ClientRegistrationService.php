@@ -23,11 +23,8 @@ class ClientRegistrationService
         if (!$user) {
             $user = $this->createUser($data, $role);
         } else {
-            if ($user->trashed()) {
-                $user->restore();
-                $user->update(['status' => 'pending']);
-                app(AuditLogger::class)->log('client.restored', 'Akun dipulihkan saat registrasi ulang: ' . $user->email, $user);
-            }
+            // JANGAN RESTORE DINI DISINI.
+            // Biarkan AuthController yang merestore setelah verifikasi (password/OTP) valid.
             if (!$user->username) {
                 $user->update(['username' => $this->uniqueUsername(null)]);
             }

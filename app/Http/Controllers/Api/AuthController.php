@@ -197,12 +197,11 @@ class AuthController extends Controller
             'identifier' => 'required|string',
         ]);
 
-        // Cek user yang mungkin trashed
+        // Cek user yang mungkin trashed, TAPI JANGAN RESTORE DULU!
         $user = $this->resolveUser($data['identifier'], true);
 
-        if ($user && $user->trashed() && $user->canUseLoginMethod('otp')) {
-            $this->restoreIfTrashed($user);
-        } else if ($user && $user->trashed()) {
+        if ($user && $user->trashed() && !$user->canUseLoginMethod('otp')) {
+            // Biarkan null agar gagal standar (karena tak diizinkan OTP)
             $user = null;
         }
 
@@ -367,6 +366,9 @@ class AuthController extends Controller
         // Invalidate OTP session + semua link subscribe/otp_login.
         $reg->invalidateOtpAndLinks($user);
         ApiThrottle::reset('subscribe.verify', ['identifier' => $email]);
+
+        // SEKARANG baru boleh direstore karena OTP sudah valid
+        $this->restoreIfTrashed($user);
 
         if ($user->status === 'pending') {
             // User baru: belum buat password. Return token set-password, jangan login dulu.
