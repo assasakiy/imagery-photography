@@ -29,7 +29,7 @@ class ProfileController extends Controller
         $path = $request->file('file')->store('avatars', 'public');
         $url = asset('storage/' . $path);
 
-        $user->update(['avatar' => $url]);
+        $user->profile()->updateOrCreate(['user_id' => $user->id], ['avatar' => $url]);
 
         return response()->json(['message' => 'Foto profil diperbarui.', 'url' => $url]);
     }
@@ -42,7 +42,7 @@ class ProfileController extends Controller
         $path = $request->file('file')->store('covers', 'public');
         $url = asset('storage/' . $path);
 
-        $user->update(['cover' => $url]);
+        $user->profile()->updateOrCreate(['user_id' => $user->id], ['cover' => $url]);
 
         return response()->json(['message' => 'Banner diperbarui.', 'url' => $url]);
     }
