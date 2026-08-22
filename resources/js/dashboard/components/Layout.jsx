@@ -140,6 +140,7 @@ const clientNav = [
 
 const subscribeNav = [
     { to: '/dashboard', icon: 'dashboard', label: 'Dashboard', end: true },
+    { to: '/dashboard/client-bookings', icon: 'calendar', label: 'Booking' },
     { to: '/dashboard/bookmarks', icon: 'heart', label: 'Bookmark' },
     { to: '/dashboard/history', icon: 'clock', label: 'Riwayat' },
 ];

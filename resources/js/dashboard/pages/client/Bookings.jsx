@@ -4,6 +4,7 @@ import Icon from '../../components/Icon';
 import { PageHeader, EmptyState, formatDate, formatRupiah, Modal, Field, Confirm } from '../../components/ui';
 import Skeleton from '../../components/Skeleton';
 import { toast } from '../../lib/toast';
+import { useAuth } from '../../context/AuthContext';
 
 const STATUS_META = {
     pending: { label: 'Menunggu', cls: 'bg-amber-500/15 text-amber-600 dark:text-amber-400' },
@@ -15,6 +16,7 @@ const STATUS_META = {
 };
 
 export default function ClientBookings() {
+    const { refresh } = useAuth();
     const [items, setItems] = useState([]);
     const [loading, setLoading] = useState(true);
     const [packages, setPackages] = useState([]);
@@ -54,6 +56,7 @@ export default function ClientBookings() {
             setCreateOpen(false);
             setForm({ service_ids: [], start_time: '08:00', end_time: '12:00' });
             load();
+            refresh();
         } catch (err) {
             if (err.response?.data?.errors?.service_ids) {
                 toast.error(err.response.data.errors.service_ids[0]);
