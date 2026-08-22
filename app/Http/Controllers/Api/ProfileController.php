@@ -31,7 +31,7 @@ class ProfileController extends Controller
 
         $data = $request->validate([
             'full_name' => 'sometimes|string|max:255',
-            'username' => ['required_with:full_name,email,phone,bio,company,occupation,website,avatar,cover', 'string', 'min:3', 'max:40', 'regex:/^[a-z0-9_]+$/', 'not_regex:/^\d+$/', Rule::unique('users', 'username')->ignore($user->id)],
+            'username' => ['sometimes', 'required', 'string', 'min:3', 'max:40', 'regex:/^[a-z0-9_]+$/', 'not_regex:/^\d+$/', Rule::unique('users', 'username')->ignore($user->id)],
             'email' => ['sometimes', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
             'phone' => 'nullable|string|max:30',
             'bio' => 'nullable|string|max:1000',
