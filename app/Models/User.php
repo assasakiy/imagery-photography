@@ -11,11 +11,14 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 use App\Support\SoftDeletesWithWho;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
-class User extends Authenticatable
+class User extends Authenticatable implements HasMedia
 {
     /** @use HasFactory<UserFactory> */
-    use HasApiTokens, HasFactory, HasRoles, Notifiable, SoftDeletesWithWho;
+    use HasApiTokens, HasFactory, HasRoles, Notifiable, SoftDeletesWithWho, InteractsWithMedia;
 
     protected $fillable = [
         'username',
@@ -101,13 +104,44 @@ class User extends Authenticatable
         return $this->profile?->website;
     }
 
+    public function registerMediaCollections(): void
+    {
+        $this->addMediaCollection('avatar')->singleFile();
+        $this->addMediaCollection('cover')->singleFile();
+    }
+
+    public function registerMediaConversions(?Media $media = null): void
+    {
+        $this->addMediaConversion('thumbnail')
+            ->width(600)
+            ->height(600)
+            ->format('webp')
+            ->nonQueued()
+            ->performOnCollections('avatar');
+
+        $this->addMediaConversion('hero')
+            ->width(1600)
+            ->height(1600)
+            ->format('webp')
+            ->nonQueued()
+            ->performOnCollections('cover');
+    }
+
     public function avatar(): ?string
     {
+        $media = $this->getFirstMedia('avatar');
+        if ($media) {
+            return $media->hasGeneratedConversion('thumbnail') ? $media->getUrl('thumbnail') : $media->getUrl();
+        }
         return $this->profile?->avatarUrl();
     }
 
     public function cover(): ?string
     {
+        $media = $this->getFirstMedia('cover');
+        if ($media) {
+            return $media->hasGeneratedConversion('hero') ? $media->getUrl('hero') : $media->getUrl();
+        }
         return $this->profile?->coverUrl();
     }
 

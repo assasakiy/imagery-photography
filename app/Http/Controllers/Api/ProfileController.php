@@ -22,33 +22,14 @@ class ProfileController extends Controller
         ]);
     }
 
-    private function deleteOldFile(?string $url): void
-    {
-        if (!$url) return;
-        
-        $assetUrl = asset('storage/');
-        if (str_starts_with($url, $assetUrl)) {
-            $path = substr($url, strlen($assetUrl) + 1);
-            if (Storage::disk('public')->exists($path)) {
-                Storage::disk('public')->delete($path);
-            }
-        }
-    }
-
     public function uploadAvatar(Request $request)
     {
         $request->validate(['file' => 'required|image|max:10240']);
         $user = $request->user();
 
-        $path = $request->file('file')->store('avatars', 'public');
-        $url = asset('storage/' . $path);
+        $media = $user->addMediaFromRequest('file')->toMediaCollection('avatar');
 
-        $profile = $user->profile()->firstOrNew();
-        $this->deleteOldFile($profile->avatar);
-
-        $user->profile()->updateOrCreate(['user_id' => $user->id], ['avatar' => $url]);
-
-        return response()->json(['message' => 'Foto profil diperbarui.', 'url' => $url]);
+        return response()->json(['message' => 'Foto profil diperbarui.', 'url' => $user->avatar()]);
     }
 
     public function uploadCover(Request $request)
@@ -56,15 +37,9 @@ class ProfileController extends Controller
         $request->validate(['file' => 'required|image|max:15360']);
         $user = $request->user();
 
-        $path = $request->file('file')->store('covers', 'public');
-        $url = asset('storage/' . $path);
+        $media = $user->addMediaFromRequest('file')->toMediaCollection('cover');
 
-        $profile = $user->profile()->firstOrNew();
-        $this->deleteOldFile($profile->cover);
-
-        $user->profile()->updateOrCreate(['user_id' => $user->id], ['cover' => $url]);
-
-        return response()->json(['message' => 'Banner diperbarui.', 'url' => $url]);
+        return response()->json(['message' => 'Banner diperbarui.', 'url' => $user->cover()]);
     }
 
     public function update(Request $request)
@@ -133,8 +108,8 @@ class ProfileController extends Controller
                 if ((string) $old !== (string) $value) {
                     $changes['profile.' . $key] = ['old' => $old, 'new' => $value];
                     
-                    if (($key === 'avatar' || $key === 'cover') && $old) {
-                        $this->deleteOldFile($old);
+                    if (($key === 'avatar' || $key === 'cover') && $value === '') {
+                        $user->clearMediaCollection($key);
                     }
                 }
             }
