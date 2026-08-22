@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Project;
 use App\Models\ProjectFile;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use ZipArchive;
@@ -43,14 +44,15 @@ class ProjectMediaController extends Controller
             $category = 'video';
         }
 
+        $isProof = $stage === 'start' || $stage === 'end';
+
         $pf = $project->files()->create([
             'original_name' => $file->getClientOriginalName(),
             'filename' => $file->getClientOriginalName(),
-            'mime_type' => $mime,
-            'size_bytes' => $file->getSize(),
             'category' => $category,
-            'variant' => $stage ? $stage : 'original',
-            'drive' => 'local',
+            // Bukti sesi selalu variant 'record' (dipakai accessor url ProjectFile).
+            'variant' => $isProof ? 'record' : ($stage ?: 'original'),
+            'gallery_status' => $isProof ? ($request->input('gallery_status') ?? 'preview_ready') : null,
         ]);
 
         try {
@@ -58,7 +60,11 @@ class ProjectMediaController extends Controller
                 $media = $project->addMedia($file)
                                  ->usingName($pf->original_name)
                                  ->usingFileName($pf->id . '_' . uniqid() . '.' . $ext)
+                                 ->withCustomProperties(['type' => 'proof', 'variant' => 'record'])
                                  ->toMediaCollection('proofs', 'public');
+                $media->uploaded_by = Auth::id();
+                $media->is_public = true;
+                $media->save();
             } else {
                 $media = $project->addMedia($file)
                                  ->usingName($pf->original_name)
@@ -73,8 +79,12 @@ class ProjectMediaController extends Controller
         }
 
         if ($category === 'proof') {
-            $label = $stage === 'start' ? 'Mulai Sesi' : 'Selesai Sesi';
-            $project->updates()->create(['kind' => 'system', 'message' => "Bukti lapangan diunggah: {$label}."]);
+            $message = match ($stage) {
+                'start' => 'Tim sudah berada di lokasi acara — lihat foto bukti.',
+                'end' => 'Sesi acara selesai — lihat foto bukti.',
+                default => 'Foto bukti sesi ditambahkan.',
+            };
+            $project->updates()->create(['user_id' => Auth::id(), 'kind' => 'manual', 'message' => $message]);
         } else {
             if ($category === 'photo') $project->increment('photo_done');
             if ($category === 'video') $project->increment('video_done');
