@@ -22,8 +22,15 @@ class ClientRegistrationService
 
         if (!$user) {
             $user = $this->createUser($data, $role);
-        } elseif (!$user->username) {
-            $user->update(['username' => $this->uniqueUsername(null)]);
+        } else {
+            if ($user->trashed()) {
+                $user->restore();
+                $user->update(['status' => 'pending']);
+                app(AuditLogger::class)->log('client.restored', 'Akun dipulihkan saat registrasi ulang: ' . $user->email, $user);
+            }
+            if (!$user->username) {
+                $user->update(['username' => $this->uniqueUsername(null)]);
+            }
         }
 
         return $user;
@@ -39,6 +46,12 @@ class ClientRegistrationService
         if (!$user) {
             $user = $this->createUser($data, $role);
         } else {
+            if ($user->trashed()) {
+                $user->restore();
+                $user->update(['status' => 'pending']);
+                app(AuditLogger::class)->log('client.restored', 'Akun dipulihkan saat diinvite: ' . $user->email, $user);
+            }
+            
             if (!$user->username) {
                 $user->update(['username' => $this->uniqueUsername(null)]);
             }
@@ -154,15 +167,15 @@ class ClientRegistrationService
     private function findUser(array $data): ?User
     {
         if (!empty($data['email'])) {
-            return User::where('email', $data['email'])->first();
+            return User::withTrashed()->where('email', $data['email'])->first();
         }
 
         if (!empty($data['phone'])) {
-            return User::where('phone', $data['phone'])->first();
+            return User::withTrashed()->where('phone', $data['phone'])->first();
         }
 
         if (!empty($data['username'])) {
-            return User::where('username', $data['username'])->first();
+            return User::withTrashed()->where('username', $data['username'])->first();
         }
 
         return null;
