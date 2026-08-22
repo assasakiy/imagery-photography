@@ -345,7 +345,7 @@ class RuntimeSettings
 
     public function siteFavicon(): string
     {
-        return AssetResolver::resolveImageValue($this->get('site_favicon') ?? '', asset('favicon.svg'));
+        return AssetResolver::resolveImageValue($this->get('site_favicon') ?? '', asset('favicon.svg'), 'thumbnail');
     }
 
     public function loginAttemptsMax(): int
