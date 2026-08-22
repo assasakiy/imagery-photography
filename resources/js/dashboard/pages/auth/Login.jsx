@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import api, { ensureCsrf } from '../../api';
+import { toast } from '../../lib/toast';
 import Icon from '../../components/Icon';
 import Button from '../../components/Button';
 import { useAuth } from '../../context/AuthContext';
