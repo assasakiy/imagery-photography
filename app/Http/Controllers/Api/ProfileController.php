@@ -10,6 +10,7 @@ use App\Support\ContentSanitizer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 
 class ProfileController extends Controller
@@ -21,6 +22,19 @@ class ProfileController extends Controller
         ]);
     }
 
+    private function deleteOldFile(?string $url): void
+    {
+        if (!$url) return;
+        
+        $assetUrl = asset('storage/');
+        if (str_starts_with($url, $assetUrl)) {
+            $path = substr($url, strlen($assetUrl) + 1);
+            if (Storage::disk('public')->exists($path)) {
+                Storage::disk('public')->delete($path);
+            }
+        }
+    }
+
     public function uploadAvatar(Request $request)
     {
         $request->validate(['file' => 'required|image|max:10240']);
@@ -28,6 +42,9 @@ class ProfileController extends Controller
 
         $path = $request->file('file')->store('avatars', 'public');
         $url = asset('storage/' . $path);
+
+        $profile = $user->profile()->firstOrNew();
+        $this->deleteOldFile($profile->avatar);
 
         $user->profile()->updateOrCreate(['user_id' => $user->id], ['avatar' => $url]);
 
@@ -41,6 +58,9 @@ class ProfileController extends Controller
 
         $path = $request->file('file')->store('covers', 'public');
         $url = asset('storage/' . $path);
+
+        $profile = $user->profile()->firstOrNew();
+        $this->deleteOldFile($profile->cover);
 
         $user->profile()->updateOrCreate(['user_id' => $user->id], ['cover' => $url]);
 
@@ -112,6 +132,10 @@ class ProfileController extends Controller
                 $old = $profile->{$key};
                 if ((string) $old !== (string) $value) {
                     $changes['profile.' . $key] = ['old' => $old, 'new' => $value];
+                    
+                    if (($key === 'avatar' || $key === 'cover') && $old) {
+                        $this->deleteOldFile($old);
+                    }
                 }
             }
             $user->profile()->updateOrCreate([], $profileData);
