@@ -8,12 +8,11 @@ import api from '../../../api';
 
 const METHOD_DESC = {
     password: 'Masuk dengan email dan kata sandi.',
-    token: 'Kirim link akses sekali pakai ke email.',
-    otp: 'Kode OTP sekali pakai ke email/WhatsApp.',
+    otp: 'Masuk tanpa kata sandi via kode OTP & tautan instan ke email/WhatsApp.',
     google: 'Masuk cepat dengan akun Google.',
 };
 
-const METHOD_LABEL = (method) => (method === 'token' ? 'Access Link' : method[0].toUpperCase() + method.slice(1));
+const METHOD_LABEL = (method) => (method === 'otp' ? 'OTP & Link Akses' : method[0].toUpperCase() + method.slice(1));
 
 export default function SecurityTab({ form, meta, errors, saving, set, save, dirty }) {
     const rateLimits = form.rate_limits || {};
@@ -21,8 +20,8 @@ export default function SecurityTab({ form, meta, errors, saving, set, save, dir
 
     const methods = Object.entries(form.login_methods_global || {}).filter(([method]) => {
         if (method === 'password') return true;
-        // OTP dan Access Link (token) hanya muncul jika channel (email atau WA) TERSEDIA (dikonfigurasi + diaktifkan admin)
-        if (method === 'otp' || method === 'token') return meta.email_available || meta.whatsapp_available;
+        // Hanya render representasi OTP, token akan mengikuti valuenya
+        if (method === 'otp') return meta.email_available || meta.whatsapp_available;
         if (method === 'google') return meta.google_auth_enabled && meta.google_client_id;
         return false;
     });
@@ -72,7 +71,13 @@ export default function SecurityTab({ form, meta, errors, saving, set, save, dir
                                         disabled={method === 'otp' && !isOtpConfigured}
                                         onChange={(v) => {
                                             if (method === 'otp' && !isOtpConfigured) return;
-                                            set('login_methods_global', { ...form.login_methods_global, [method]: v });
+                                            
+                                            if (method === 'otp') {
+                                                // Sinkronkan token agar sama dengan otp
+                                                set('login_methods_global', { ...form.login_methods_global, otp: v, token: v });
+                                            } else {
+                                                set('login_methods_global', { ...form.login_methods_global, [method]: v });
+                                            }
                                         }}
                                     />
                             ))}
