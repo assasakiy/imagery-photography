@@ -861,6 +861,14 @@ document.querySelectorAll('[data-scroll-comments]').forEach((btn) => {
         const subscribeOtpTarget = document.querySelector('[data-subscribe-otp-target]');
         const subscribeOtpError = document.querySelector('[data-subscribe-otp-error]');
         const subscribeTitle = document.querySelector('[data-subscribe-title]');
+        const subscribePasswordForm = document.querySelector('[data-subscribe-password-form]');
+        const subscribePassword = document.querySelector('[data-subscribe-password]');
+        const subscribePasswordConfirm = document.querySelector('[data-subscribe-password-confirm]');
+        const subscribePasswordError = document.querySelector('[data-subscribe-password-error]');
+
+        // State lintas form
+        let subscribeSetPasswordToken = null;
+        const returnUrl = window.location.href;
 
         if (subscribeModal) {
             const csrfToken = () => {
@@ -875,10 +883,16 @@ document.querySelectorAll('[data-scroll-comments]').forEach((btn) => {
             const openSubscribe = () => {
                 subscribeModal.classList.remove('hidden');
                 subscribeModal.classList.add('flex');
-                subscribeForm?.classList.remove('hidden');
-                subscribeOtpForm?.classList.add('hidden');
                 if (subscribeOtpError) subscribeOtpError.textContent = '';
-                subscribeForm?.querySelector('input')?.focus();
+                // Jika form OTP sudah aktif (OTP sudah dikirim), jangan reset ke form email.
+                const otpActive = subscribeOtpForm && !subscribeOtpForm.classList.contains('hidden');
+                const pwActive  = subscribePasswordForm && !subscribePasswordForm.classList.contains('hidden');
+                if (!otpActive && !pwActive) {
+                    subscribeForm?.classList.remove('hidden');
+                    subscribeOtpForm?.classList.add('hidden');
+                    subscribePasswordForm?.classList.add('hidden');
+                    subscribeForm?.querySelector('input')?.focus();
+                }
             };
 
             const closeSubscribe = () => {
@@ -886,6 +900,8 @@ document.querySelectorAll('[data-scroll-comments]').forEach((btn) => {
                 subscribeModal.classList.remove('flex');
                 subscribeForm?.classList.remove('hidden');
                 subscribeOtpForm?.classList.add('hidden');
+                subscribePasswordForm?.classList.add('hidden');
+                subscribeSetPasswordToken = null;
             };
 
             document.querySelectorAll('[data-subscribe-open]').forEach((btn) => {
@@ -926,6 +942,11 @@ document.querySelectorAll('[data-scroll-comments]').forEach((btn) => {
                     subscribeForm.classList.add('hidden');
                     subscribeOtpForm.classList.remove('hidden');
                     subscribeOtp?.focus();
+                    // Jika OTP masih valid dari sesi sebelumnya, beri tahu user.
+                    if (data.otp_valid && subscribeOtpError) {
+                        subscribeOtpError.style.color = '';
+                        subscribeOtpError.textContent = 'OTP sebelumnya masih berlaku. Gunakan kode yang sudah dikirim.';
+                    }
                 } catch (err) {
                     alert('Terjadi kesalahan. Coba lagi.');
                 } finally {
@@ -968,13 +989,72 @@ document.querySelectorAll('[data-scroll-comments]').forEach((btn) => {
                         if (subscribeOtpError) subscribeOtpError.textContent = data?.message || 'Kode salah.';
                         return;
                     }
-                    if (subscribeTitle) subscribeTitle.textContent = 'Berhasil Subscribe!';
-                    subscribeOtpForm.querySelector('button[type="submit"]').textContent = 'Masuk…';
-                    setTimeout(() => { window.location.href = '/dashboard'; }, 600);
+                    if (data.require_password) {
+                        // User baru — tampilkan form set-password inline.
+                        subscribeSetPasswordToken = data.set_password_token;
+                        subscribeOtpForm.classList.add('hidden');
+                        subscribePasswordForm?.classList.remove('hidden');
+                        if (subscribeTitle) subscribeTitle.textContent = 'Buat Kata Sandi';
+                        subscribePassword?.focus();
+                    } else {
+                        // User lama sudah active — langsung masuk, kembali ke halaman asal.
+                        if (subscribeTitle) subscribeTitle.textContent = 'Berhasil!';
+                        setTimeout(() => { window.location.href = returnUrl; }, 500);
+                    }
                 } catch (err) {
                     if (subscribeOtpError) subscribeOtpError.textContent = 'Terjadi kesalahan. Coba lagi.';
                 } finally {
                     if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Verifikasi & Masuk'; }
+                }
+            });
+
+            // Form set-password inline di modal.
+            subscribePasswordForm?.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const submitBtn = subscribePasswordForm.querySelector('[data-subscribe-password-submit]');
+                if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Menyimpan…'; }
+                if (subscribePasswordError) subscribePasswordError.textContent = '';
+
+                const pw  = subscribePassword?.value || '';
+                const pw2 = subscribePasswordConfirm?.value || '';
+                if (pw.length < 8) {
+                    if (subscribePasswordError) subscribePasswordError.textContent = 'Kata sandi minimal 8 karakter.';
+                    if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Simpan & Masuk'; }
+                    return;
+                }
+                if (pw !== pw2) {
+                    if (subscribePasswordError) subscribePasswordError.textContent = 'Konfirmasi kata sandi tidak cocok.';
+                    if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Simpan & Masuk'; }
+                    return;
+                }
+
+                try {
+                    const res = await fetch('/api/set-password', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            Accept: 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'X-XSRF-TOKEN': csrfToken(),
+                        },
+                        body: JSON.stringify({
+                            token: subscribeSetPasswordToken,
+                            password: pw,
+                            password_confirmation: pw2,
+                        }),
+                    });
+                    const data = await res.json();
+                    if (!res.ok) {
+                        if (subscribePasswordError) subscribePasswordError.textContent = data?.message || data?.errors?.password?.[0] || 'Gagal menyimpan kata sandi.';
+                        return;
+                    }
+                    // Sukses — akun aktif + sudah login. Kembali ke halaman asal.
+                    if (subscribeTitle) subscribeTitle.textContent = 'Akun Berhasil Dibuat!';
+                    setTimeout(() => { window.location.href = returnUrl; }, 600);
+                } catch (err) {
+                    if (subscribePasswordError) subscribePasswordError.textContent = 'Terjadi kesalahan. Coba lagi.';
+                } finally {
+                    if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Simpan & Masuk'; }
                 }
             });
         }

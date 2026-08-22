@@ -17,14 +17,16 @@ class ClientAccessToken extends Model
         ];
     }
 
-    public const PURPOSES = ['project', 'recovery', 'invite'];
+    public const PURPOSES = ['project', 'recovery', 'invite', 'subscribe', 'otp_login'];
 
     public const PURPOSES_STATUS = ['pending', 'expired', 'accepted', 'cancelled'];
 
     public const PURPOSE_LIFETIME = [
-        'project' => 86400,   // 24 jam
-        'recovery' => 1800,   // 30 menit
-        'invite' => 86400,    // 24 jam (default global; bisa dioverride expires_hours)
+        'project'   => 86400,   // 24 jam
+        'recovery'  => 1800,    // 30 menit
+        'invite'    => 86400,   // 24 jam (default global; bisa dioverride expires_hours)
+        'subscribe' => 86400,   // 24 jam — link aktivasi subscriber baru (wajib set-password)
+        'otp_login' => 900,     // 15 menit — link login OTP (setara TTL OTP)
     ];
 
     public function project()

@@ -44,8 +44,9 @@ Route::middleware('web')->group(function () {
     Route::post('/subscribe/verify', [AuthController::class, 'subscribeVerify'])->middleware('api.throttle:subscribe.verify');
     Route::post('/register-otp', [AuthController::class, 'registerOtp'])->middleware('api.throttle:subscribe.send');
     Route::post('/register-otp/verify', [AuthController::class, 'registerOtpVerify'])->middleware('api.throttle:subscribe.verify');
-    Route::post('/set-password', [AuthController::class, 'setPassword']);
-    Route::post('/reset-password', [AuthController::class, 'resetPassword']);
+     Route::post('/set-password', [AuthController::class, 'setPassword']);
+     Route::post('/reset-password', [AuthController::class, 'resetPassword']);
+     Route::post('/access-link/{token}', [AuthController::class, 'consumeAccessLink'])->middleware('api.throttle:otp.verify');
     Route::post('/analytics/consent', [AnalyticsController::class, 'consent'])->middleware('api.throttle:analytics.consent');
     Route::get('/comments/{type}/{id}', [EngagementController::class, 'comments'])->where(['type' => 'blog|portfolio|package']);
 });

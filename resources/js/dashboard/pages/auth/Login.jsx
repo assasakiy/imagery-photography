@@ -52,7 +52,11 @@ export default function Login() {
         setErrors({});
         try {
             await ensureCsrf();
-            await api.post('/verify-otp', { identifier: otpPhone, otp: otpCode });
+            const { data } = await api.post('/verify-otp', { identifier: otpPhone, otp: otpCode });
+            if (data?.require_password) {
+                navigate('/set-password?token=' + data.set_password_token);
+                return;
+            }
             await refresh();
             navigate('/dashboard');
         } catch (err) {

@@ -56,10 +56,20 @@ class GoogleAuthController extends Controller
 
             $user = app(\App\Services\ClientRegistrationService::class)->ensureUser([
                 'email' => $googleEmail,
-                'name' => $googleName,
+                'name'  => $googleName,
             ], 'subscriber');
 
             $user->update(['status' => 'active', 'activated_at' => now()]);
+
+            // Kirim link set-password opsional di background (tidak blocking).
+            try {
+                $link = app(\App\Services\ClientRegistrationService::class)->issueSubscribeLink($user);
+                app(NotificationService::class)->send(
+                    \App\Services\NotificationType::ACCOUNT_INVITE,
+                    $user,
+                    ['name' => $user->name, 'url' => $link->url]
+                );
+            } catch (\Throwable) {}
         }
 
         if (!$user->canUseLoginMethod('google')) {

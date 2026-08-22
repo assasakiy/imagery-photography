@@ -220,6 +220,18 @@ export default function Dashboard() {
     return (
         <>
             <PageHeader title="Portal Klien" subtitle={`Halo, ${user?.name}`} />
+            {user?.has_password === false && (
+                <div className="mb-4 flex items-start gap-3 rounded-2xl border border-amber-400/40 bg-amber-50/80 px-5 py-4 dark:bg-amber-500/10">
+                    <Icon name="shield" size={20} className="mt-0.5 shrink-0 text-amber-500" />
+                    <div className="min-w-0 flex-1">
+                        <p className="text-sm font-semibold text-amber-700 dark:text-amber-400">Buat kata sandi untuk akun Anda</p>
+                        <p className="mt-0.5 text-xs text-amber-600/80 dark:text-amber-500/80">Akun Anda belum memiliki kata sandi. Tambahkan agar bisa login dengan email &amp; kata sandi.</p>
+                    </div>
+                    <Link to="/dashboard/profile" className="shrink-0 rounded-xl bg-amber-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-amber-600">
+                        Buat Sekarang
+                    </Link>
+                </div>
+            )}
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
                 {cards.map((c) => (
                     <div key={c.label} className="card p-5">

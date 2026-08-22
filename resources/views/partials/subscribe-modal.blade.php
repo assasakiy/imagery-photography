@@ -42,9 +42,23 @@
                     <label for="subscribe-otp" class="mb-1.5 block text-sm font-medium text-ink">Kode OTP</label>
                     <input id="subscribe-otp" name="otp" type="text" inputmode="numeric" maxlength="6" required placeholder="000000" class="input w-full text-center text-lg tracking-[0.3em]" data-subscribe-otp>
                 </div>
-                <p class="text-xs text-ink-muted" data-subscribe-otp-error style="color:#ef4444"></p>
+                <p class="text-xs" data-subscribe-otp-error style="color:#ef4444"></p>
                 <button type="submit" class="btn-primary w-full" data-subscribe-otp-submit>Verifikasi & Masuk</button>
                 <button type="button" class="w-full text-center text-sm font-semibold text-brand-600 transition-colors hover:underline dark:text-brand-400" data-subscribe-back>Kembali</button>
+            </form>
+
+            <form id="subscribe-password-form" class="mt-6 hidden space-y-4" data-subscribe-password-form novalidate>
+                <p class="text-sm text-ink-muted">Email terverifikasi. Buat kata sandi untuk melengkapi pendaftaran Anda.</p>
+                <div>
+                    <label for="subscribe-password" class="mb-1.5 block text-sm font-medium text-ink">Kata Sandi <span class="text-red-500">*</span></label>
+                    <input id="subscribe-password" name="password" type="password" required placeholder="Min. 8 karakter" class="input w-full" data-subscribe-password>
+                </div>
+                <div>
+                    <label for="subscribe-password-confirm" class="mb-1.5 block text-sm font-medium text-ink">Ulangi Kata Sandi <span class="text-red-500">*</span></label>
+                    <input id="subscribe-password-confirm" name="password_confirmation" type="password" required placeholder="Ulangi kata sandi" class="input w-full" data-subscribe-password-confirm>
+                </div>
+                <p class="text-xs" data-subscribe-password-error style="color:#ef4444"></p>
+                <button type="submit" class="btn-primary w-full" data-subscribe-password-submit>Simpan & Masuk</button>
             </form>
         </div>
     </div>

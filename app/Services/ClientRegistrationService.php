@@ -100,11 +100,55 @@ class ClientRegistrationService
         ]);
 
         ClientAccessToken::where('user_id', $user->id)
-            ->where('purpose', 'invite')
+            ->whereIn('purpose', ['invite', 'subscribe'])
             ->where('status', 'pending')
             ->update(['status' => 'accepted', 'used_at' => now()]);
 
         app(AuditLogger::class)->log('client.activated', 'Akun diaktifkan: ' . $user->email, $user);
+    }
+
+    /**
+     * Terbitkan link aktivasi subscriber baru (purpose=subscribe, 24 jam).
+     * Invalidate link subscribe sebelumnya milik user ini.
+     */
+    public function issueSubscribeLink(User $user): ClientAccessToken
+    {
+        ClientAccessToken::where('user_id', $user->id)
+            ->where('purpose', 'subscribe')
+            ->where('status', 'pending')
+            ->update(['status' => 'cancelled']);
+
+        return ClientAccessToken::createToken($user, 'subscribe');
+    }
+
+    /**
+     * Terbitkan link login OTP (purpose=otp_login, 15 menit).
+     * Invalidate link otp_login sebelumnya milik user ini.
+     */
+    public function issueOtpLoginLink(User $user): ClientAccessToken
+    {
+        ClientAccessToken::where('user_id', $user->id)
+            ->where('purpose', 'otp_login')
+            ->where('status', 'pending')
+            ->update(['status' => 'cancelled']);
+
+        return ClientAccessToken::createToken($user, 'otp_login');
+    }
+
+    /**
+     * Invalidate semua OTP session + link subscribe/otp_login milik user ini.
+     * Dipanggil saat salah satu dari keduanya dipakai.
+     */
+    public function invalidateOtpAndLinks(User $user): void
+    {
+        ClientAccessToken::where('user_id', $user->id)
+            ->whereIn('purpose', ['subscribe', 'otp_login'])
+            ->where('status', 'pending')
+            ->update(['status' => 'cancelled', 'used_at' => now()]);
+
+        session()->forget('otp_' . $user->id);
+        session()->forget('otp_target_' . $user->id);
+        session()->forget('subscribe_pending_' . $user->id);
     }
 
     private function findUser(array $data): ?User

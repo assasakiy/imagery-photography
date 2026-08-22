@@ -3,11 +3,13 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import api, { ensureCsrf } from '../../api';
 import Icon from '../../components/Icon';
 import Button from '../../components/Button';
+import { useAuth } from '../../context/AuthContext';
 
 const APP = window.APP_CONFIG || {};
 
 export default function SetPassword() {
     const navigate = useNavigate();
+    const { refresh } = useAuth();
     const [params] = useSearchParams();
     const token = params.get('token') || '';
     const [password, setPassword] = useState('');
@@ -21,8 +23,14 @@ export default function SetPassword() {
         setError('');
         try {
             await ensureCsrf();
-            await api.post('/set-password', { token, password, password_confirmation: confirm });
-            navigate('/login', { state: { notice: 'Akun berhasil diaktifkan. Silakan masuk dengan kata sandi baru.' } });
+            const { data } = await api.post('/set-password', { token, password, password_confirmation: confirm });
+            if (data?.activated) {
+                // Subscribe flow: backend sudah login, refresh auth dan masuk dashboard.
+                await refresh();
+                navigate('/dashboard');
+            } else {
+                navigate('/login', { state: { notice: 'Akun berhasil diaktifkan. Silakan masuk dengan kata sandi baru.' } });
+            }
         } catch (err) {
             setError(err?.response?.data?.message || (err?.response?.data?.errors?.password?.[0]) || 'Gagal mengaktifkan akun.');
         } finally {
@@ -59,7 +67,7 @@ export default function SetPassword() {
                         <form onSubmit={handleSubmit} className="space-y-4">
                             <div>
                                 <label className="label">Kata Sandi</label>
-                                <input className="input" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+                                <input className="input" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={8} />
                             </div>
                             <div>
                                 <label className="label">Ulangi Kata Sandi</label>

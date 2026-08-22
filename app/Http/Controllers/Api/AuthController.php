@@ -182,7 +182,6 @@ class AuthController extends Controller
             $logUser = $user ?? $this->resolveUser($data['identifier'], true);
             app(LoginTracker::class)->recordFailed($logUser, 'otp', $data['identifier']);
             app(AuditLogger::class)->log('auth.otp_failed', 'Permintaan OTP gagal: ' . $data['identifier'], identifier: $data['identifier']);
-
             return response()->json(['message' => 'Nomor/akun tidak ditemukan.'], 422);
         }
 
@@ -190,12 +189,20 @@ class AuthController extends Controller
         session()->put('otp_' . $user->id, ['code' => Hash::make($otp), 'expires_at' => now()->addMinutes(5)]);
         session()->put('otp_target_' . $user->id, $data['identifier']);
 
-        app(NotificationService::class)->sendOtp($user, $user->phone ?? $data['identifier'], $otp);
+        $reg  = app(\App\Services\ClientRegistrationService::class);
+        $link = $reg->issueOtpLoginLink($user);
 
-        app(AuditLogger::class)->log('auth.otp_sent', 'OTP dikirim untuk ' . ($user->email ?? $data['identifier']));
+        app(NotificationService::class)->sendOtp($user, $user->phone ?? $data['identifier'], $otp);
+        app(NotificationService::class)->send(
+            \App\Services\NotificationType::ACCOUNT_INVITE,
+            $user,
+            ['name' => $user->name, 'url' => $link->url]
+        );
+
+        app(AuditLogger::class)->log('auth.otp_sent', 'OTP+link login dikirim untuk ' . ($user->email ?? $data['identifier']));
 
         return response()->json([
-            'message' => 'OTP terkirim via WhatsApp/Email (jika terkonfigurasi).',
+            'message' => 'OTP dan tautan login telah dikirim (jika terkonfigurasi).',
             'dev_otp' => config('app.env') !== 'production' ? $otp : null,
         ]);
     }
@@ -208,24 +215,32 @@ class AuthController extends Controller
             'remember'   => 'boolean',
         ]);
 
-        $user = $this->resolveUser($data['identifier']);
-
-        $stored = session()->pull('otp_' . $user?->id);
+        $user   = $this->resolveUser($data['identifier']);
+        $stored = session()->get('otp_' . $user?->id);
 
         if (!$user || !$stored || !Hash::check($data['otp'], $stored['code']) || now()->greaterThan($stored['expires_at'])) {
             $logUser = $user ?? $this->resolveUser($data['identifier'], true);
             app(LoginTracker::class)->recordFailed($logUser, 'otp', $data['identifier']);
             app(AuditLogger::class)->log('auth.otp_verify_failed', 'Verifikasi OTP gagal: ' . $data['identifier'], identifier: $data['identifier']);
-
             return response()->json(['message' => 'Kode OTP salah atau kadaluarsa.'], 422);
         }
 
-        // Reset rate limit pada verifikasi sukses (sudah dibuktikan)
+        $reg = app(\App\Services\ClientRegistrationService::class);
+        $reg->invalidateOtpAndLinks($user);
         ApiThrottle::reset('otp.verify', ['identifier' => $data['identifier']]);
+
+        if ($user->status === 'pending') {
+            // Belum punya password — wajib set-password dulu.
+            $token = $reg->issueSubscribeLink($user);
+            app(AuditLogger::class)->log('auth.otp_verified_pending', 'OTP valid, user pending, arahkan set-password: ' . $user->email);
+            return response()->json([
+                'require_password'   => true,
+                'set_password_token' => $token->token,
+            ]);
+        }
 
         Auth::login($user);
         $this->applyRememberSession($request, $data['remember'] ?? false);
-
         $this->afterLogin($user, 'otp');
 
         return response()->json(['user' => $this->userPayload($user)]);
@@ -239,23 +254,19 @@ class AuthController extends Controller
     public function subscribe(Request $request)
     {
         $data = $request->validate([
-            'name' => 'required|string|max:100',
+            'name'  => 'required|string|max:100',
             'email' => 'required|email|max:190',
         ]);
 
         $email = strtolower(trim($data['email']));
+        $reg   = app(\App\Services\ClientRegistrationService::class);
 
-        $user = $this->resolveUser($email);
+        $user  = $this->resolveUser($email);
         $isNew = false;
 
         if (!$user) {
-            $user = app(\App\Services\ClientRegistrationService::class)->ensureUser([
-                'email' => $email,
-                'name' => $data['name'],
-            ], 'subscriber');
-
+            $user  = $reg->ensureUser(['email' => $email, 'name' => $data['name']], 'subscriber');
             $isNew = true;
-
             app(AuditLogger::class)->log('auth.subscribe', 'Subscriber baru (pending) didaftarkan: ' . $email, $user);
         }
 
@@ -263,65 +274,84 @@ class AuthController extends Controller
             return response()->json(['message' => 'Login via OTP tidak aktif untuk akun ini.'], 422);
         }
 
-        $otp = (string) random_int(100000, 999999);
-        session()->put('otp_' . $user->id, ['code' => Hash::make($otp), 'expires_at' => now()->addMinutes(5)]);
-        session()->put('otp_target_' . $user->id, $email);
-        session()->put('subscribe_pending_' . $user->id, $isNew);
+        // Cek OTP sebelumnya masih valid di session — jangan buat OTP baru jika masih ada.
+        $existingOtp = session()->get('otp_' . $user->id);
+        $otpStillValid = $existingOtp && now()->lessThan($existingOtp['expires_at']);
 
-        app(NotificationService::class)->sendOtp($user, $user->phone ?? $email, $otp);
+        if (!$otpStillValid) {
+            $otp = (string) random_int(100000, 999999);
+            session()->put('otp_' . $user->id, ['code' => Hash::make($otp), 'expires_at' => now()->addMinutes(5)]);
+            session()->put('otp_target_' . $user->id, $email);
+            session()->put('subscribe_pending_' . $user->id, $isNew);
 
-        app(AuditLogger::class)->log('auth.otp_sent', 'OTP subscribe dikirim untuk ' . $email, $user);
+            // Kirim OTP + link aktivasi bersamaan.
+            app(NotificationService::class)->sendOtp($user, $user->phone ?? $email, $otp);
+            $link = $reg->issueSubscribeLink($user);
+            app(NotificationService::class)->send(
+                \App\Services\NotificationType::ACCOUNT_INVITE,
+                $user,
+                ['name' => $user->name, 'url' => $link->url]
+            );
+            app(AuditLogger::class)->log('auth.otp_sent', 'OTP+link subscribe dikirim untuk ' . $email, $user);
+        } else {
+            $otp = null;
+            app(AuditLogger::class)->log('auth.otp_reused', 'OTP subscribe masih valid, tidak dikirim ulang: ' . $email, $user);
+        }
 
         return response()->json([
-            'message' => 'Kode OTP terkirim ke ' . ($user->phone ?? $email) . ' (jika terkonfigurasi).',
-            'is_new' => $isNew,
-            'dev_otp' => config('app.env') !== 'production' ? $otp : null,
+            'message'   => 'Kode OTP dan tautan aktivasi telah dikirim ke ' . ($user->phone ?? $email) . '.',
+            'is_new'    => $isNew,
+            'otp_valid' => $otpStillValid,
+            'dev_otp'   => config('app.env') !== 'production' ? $otp : null,
         ]);
     }
 
     /**
-     * Verifikasi OTP subscribe → aktifkan akun baru (subscriber) atau langsung login
-     * jika akun sudah ada, lalu buat sesi.
+     * Verifikasi OTP subscribe.
+     * - User baru (pending): return token set-password. Akun aktif setelah set password.
+     * - User lama (sudah active): langsung login.
+     * Menggunakan OTP → invalidate OTP + link sekaligus.
      */
     public function subscribeVerify(Request $request)
     {
         $data = $request->validate([
-            'email'    => 'required|email|max:190',
-            'otp'      => 'required|string',
+            'email'   => 'required|email|max:190',
+            'otp'     => 'required|string',
             'remember' => 'boolean',
         ]);
 
         $email = strtolower(trim($data['email']));
-        $user = $this->resolveUser($email);
+        $user  = $this->resolveUser($email);
+        $reg   = app(\App\Services\ClientRegistrationService::class);
 
-        $stored = session()->pull('otp_' . $user?->id);
-        $isNew = (bool) session()->pull('subscribe_pending_' . $user?->id);
+        $stored = session()->get('otp_' . $user?->id);
+        $isNew  = (bool) session()->get('subscribe_pending_' . $user?->id);
 
         if (!$user || !$stored || !Hash::check($data['otp'], $stored['code']) || now()->greaterThan($stored['expires_at'])) {
             app(LoginTracker::class)->recordFailed($user, 'otp', $email);
             app(AuditLogger::class)->log('auth.otp_verify_failed', 'Verifikasi OTP subscribe gagal: ' . $email, $user);
-
             return response()->json(['message' => 'Kode OTP salah atau kadaluarsa.'], 422);
         }
 
-        if ($isNew && $user) {
-            $user->update([
-                'status' => 'active',
-                'activated_at' => now(),
-            ]);
-            if (!$user->hasRole('subscriber')) {
-                $user->assignRole('subscriber');
-            }
-
-            app(AuditLogger::class)->log('auth.subscribe_activated', 'Subscriber diaktifkan: ' . $email, $user);
-        }
-
+        // Invalidate OTP session + semua link subscribe/otp_login.
+        $reg->invalidateOtpAndLinks($user);
         ApiThrottle::reset('subscribe.verify', ['identifier' => $email]);
 
+        if ($user->status === 'pending') {
+            // User baru: belum buat password. Return token set-password, jangan login dulu.
+            $token = $reg->issueSubscribeLink($user);
+            app(AuditLogger::class)->log('auth.subscribe_otp_verified', 'OTP subscribe valid, menunggu set-password: ' . $email, $user);
+            return response()->json([
+                'require_password' => true,
+                'set_password_token' => $token->token,
+            ]);
+        }
+
+        // User lama (sudah active) → langsung login.
         Auth::login($user);
         $this->applyRememberSession($request, $data['remember'] ?? false);
-
         $this->afterLogin($user, 'otp');
+        app(AuditLogger::class)->log('auth.subscribe_activated', 'Subscriber login via OTP: ' . $email, $user);
 
         return response()->json(['user' => $this->userPayload($user)]);
     }
@@ -503,23 +533,36 @@ class AuthController extends Controller
     }
 
     /**
-     * Set password pertama (aktivaasi akun baru / invite). Token purpose 'invite'.
+     * Set password pertama (aktivasi akun baru via invite/subscribe).
+     * Jika token purpose 'subscribe' → aktifkan akun + auto-login.
+     * Jika token purpose 'invite' (client) → aktifkan, redirect ke login.
+     * Jika tanpa token → user sudah login (ubah password opsional Google user).
      */
     public function setPassword(Request $request)
     {
         $data = $request->validate([
-            'token' => 'nullable|string',
+            'token'    => 'nullable|string',
             'password' => 'required|string|min:8|confirmed',
         ]);
 
-        $user = null;
+        $user      = null;
+        $purpose   = null;
+        $tokenModel = null;
 
         if (!empty($data['token'])) {
-            $token = \App\Models\ClientAccessToken::where('token', $data['token'])->valid()->first();
-            if (!$token || !$token->user) {
+            $tokenModel = ClientAccessToken::where('token', $data['token'])
+                ->whereIn('purpose', ['invite', 'subscribe'])
+                ->valid()
+                ->where('status', 'pending')
+                ->with('user')
+                ->first();
+
+            if (!$tokenModel || !$tokenModel->user) {
                 return response()->json(['message' => 'Tautan aktivasi tidak valid atau sudah kadaluarsa.'], 422);
             }
-            $user = $token->user;
+
+            $user    = $tokenModel->user;
+            $purpose = $tokenModel->purpose;
         } else {
             $user = Auth::user();
             if (!$user) {
@@ -527,12 +570,71 @@ class AuthController extends Controller
             }
         }
 
-        app(\App\Services\ClientRegistrationService::class)->activate(
-            $user,
-            $data['password']
-        );
+        $reg = app(\App\Services\ClientRegistrationService::class);
+        $reg->activate($user, $data['password']);
+
+        // Subscribe flow: auto-login setelah set password, akun langsung bisa dipakai.
+        if ($purpose === 'subscribe') {
+            Auth::login($user->fresh());
+            session()->regenerate();
+            $this->afterLogin($user->fresh(), 'password');
+            app(AuditLogger::class)->log('auth.subscribe_activated', 'Subscriber diaktifkan via set-password: ' . $user->email, $user);
+            return response()->json([
+                'activated' => true,
+                'user'      => $this->userPayload($user->fresh()),
+            ]);
+        }
 
         return response()->json(['message' => 'Akun berhasil diaktifkan. Silakan masuk.']);
+    }
+
+    /**
+     * Consume link akses (purpose=subscribe atau otp_login) via URL /access/{token}.
+     * - subscribe  → return token set-password (wajib buat password)
+     * - otp_login  → auto-login
+     * Menggunakan link → invalidate OTP session + link lainnya.
+     */
+    public function consumeAccessLink(Request $request, string $token)
+    {
+        $accessToken = ClientAccessToken::where('token', $token)
+            ->whereIn('purpose', ['subscribe', 'otp_login'])
+            ->valid()
+            ->where('status', 'pending')
+            ->with('user')
+            ->first();
+
+        if (!$accessToken || !$accessToken->user) {
+            return response()->json(['message' => 'Tautan tidak valid atau sudah kadaluarsa.'], 422);
+        }
+
+        $user    = $accessToken->user;
+        $purpose = $accessToken->purpose;
+        $reg     = app(\App\Services\ClientRegistrationService::class);
+
+        // Invalidate OTP session + semua link sejenis.
+        $reg->invalidateOtpAndLinks($user);
+        // Token ini sendiri sudah di-invalidate oleh invalidateOtpAndLinks,
+        // tapi kita issue token baru untuk set-password agar tetap punya token valid.
+
+        if ($purpose === 'subscribe') {
+            // Wajib set-password — terbitkan token baru khusus untuk set-password.
+            $newToken = $reg->issueSubscribeLink($user);
+            app(AuditLogger::class)->log('auth.subscribe_link_consumed', 'Link subscribe diklik, arahkan set-password: ' . $user->email, $user);
+            return response()->json([
+                'require_password'   => true,
+                'set_password_token' => $newToken->token,
+                'name'               => $user->name,
+            ]);
+        }
+
+        // otp_login → langsung login.
+        Auth::login($user);
+        session()->regenerate();
+        $this->applyRememberSession($request, false);
+        $this->afterLogin($user, 'otp');
+        app(AuditLogger::class)->log('auth.otp_link_consumed', 'Link OTP login diklik: ' . $user->email, $user);
+
+        return response()->json(['user' => $this->userPayload($user)]);
     }
 
     private function applyRememberSession(Request $request, bool $remember): void
@@ -557,6 +659,7 @@ class AuthController extends Controller
             'permissions' => $user->getAllPermissions()->pluck('name'),
             'avatar' => $user->avatar(),
             'bio' => $user->bio,
+            'has_password' => !is_null($user->getAuthPassword()),
         ];
     }
 }
