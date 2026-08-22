@@ -8,6 +8,11 @@
 ## Tahapan Proyek (Steppers)
 Proyek bergerak **maju saja (forward-only)** melalui rute transisi state, difasilitasi oleh `STEP_ORDER` di sisi antarmuka klien & admin (`ProjectDetail.jsx`).
 
+Untuk backend, pengelolaannya dibagi ke 3 controller terpisah:
+- `ProjectController.php`: Menangani CRUD, advance alur status, dan update log.
+- `ProjectMediaController.php`: Menangani upload media (foto/video/bukti), hapus media, download ZIP, dan progress pembuatan ZIP.
+- `ProjectShareController.php`: Menangani regenerasi link akses klien, request unduh ulang (redelivery), dan review redelivery.
+
 1. **Dijadwalkan (scheduled)**: Waktu persiapan menuju hari-H acara.
 2. **Sesi Pemotretan (shooting)**: Terpicu otomatis jika `event_start` + masa tenggang (`grace_minutes`) terlewati. Admin mengunggah bukti/record foto kehadiran lapangan (masuk ke koleksi `proofs`).
 3. **Editing**: Fotografer / tim bekerja memoles foto dan video. Admin mengatur target *progres* angka editing (misal 50/100).

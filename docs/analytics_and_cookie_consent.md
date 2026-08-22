@@ -71,7 +71,7 @@ Accessor di `app/Services/RuntimeSettings.php`: `analyticsEnabled()`, `cookieBan
 
 - **Halaman Analitik**: `resources/js/dashboard/pages/admin/Analytics.jsx` (route `/dashboard/analytics`, menu "Analitik" di Layout). Stat cards (views/visitors/akun), trend chart SVG 30 hari, tab Kunjungan / Akun / Perilaku, tabel log mentah, tombol Rollup.
 - **Tab Settings**: `resources/js/dashboard/pages/admin/settings/AnalyticsTab.jsx`.
-- **Banner publik**: `resources/views/partials/cookie-consent.blade.php` + logika di `resources/js/app.js` (localStorage + fetch POST consent).
+- **Banner publik**: `resources/views/partials/cookie-consent.blade.php` + logika di `resources/js/modules/cookies.js` (localStorage + fetch POST consent).
 
 ## Privasi (UU PDP)
 

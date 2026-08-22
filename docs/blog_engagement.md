@@ -30,7 +30,7 @@ Catatan: `createUser()` sekarang public; internal memakai `array_unique(array_fi
 
 - Tabel `likes` (morph `likeable`, unique `user_id+type+id`), trait `App\Support\Likeable`.
 - API: `POST /api/likes/toggle` (`EngagementController::toggleLike`) → balikan `{ok, liked, likes_count}`. Hanya `subscriber`/`client`.
-- UI: tombol suka + counter (`data-like-toggle`) di `show.blade.php`; JS handler di `resources/js/app.js`.
+- UI: tombol suka + counter (`data-like-toggle`) di `show.blade.php`; JS handler di `resources/js/modules/blog.js`.
 
 ## 5. Komentar
 
@@ -41,7 +41,7 @@ Catatan: `createUser()` sekarang public; internal memakai `array_unique(array_fi
   - `POST /api/comments` (`storeComment`) → komentar approved langsung. Hanya `subscriber`/`client`.
   - `DELETE /api/comments/{comment}` (`destroyComment`) → pemilik atau `owner`/`admin`.
   - `GET /api/comments/moderate/list` & `PATCH /api/comments/{comment}/moderate` (status `approved|hidden`) → grup `role:owner|admin`.
-- UI: form komentar (`data-comment-form`), daftar (`data-comments-list`), counter (`data-comments-count`), scroll-to (`data-scroll-comments`) di `show.blade.php` + handler `resources/js/app.js`.
+- UI: form komentar (`data-comment-form`), daftar (`data-comments-list`), counter (`data-comments-count`), scroll-to (`data-scroll-comments`) di `show.blade.php` + handler `resources/js/modules/comments.js`.
 
 ## 6. Middleware Akses
 

@@ -107,16 +107,16 @@ Halaman dashboard yang punya beberapa tab **WAJIB** dipisah ke folder `pages/<na
 - **Media Library**: model butuh `$fillable=['id']`; `LandingContent::setValue` pertahankan `group`; reset landing images meninggalkan media orphan (TODO).
 - **Test**: skrip di `/home/opc` (`spa_test.py`, `final_test.py`, `access_test.py`); `/etc/hosts` berisi `127.0.0.1 imagery.my.id`; `/tmp/opencode` TIDAK writable.
 
-## 13. Sesi Terbaru (Aktivitas Saat Ini) — Auth, OTP, Link Akses, Rate Limit, dan Clipboard
-- **Perbaikan Format Tanggal dan Durasi Audit:** Mengubah perhitungan `LoginHistory` di backend memakai `abs()` Unix timestamp, dan di dashboard menampilkan d/j/m/dtk (Commit `3aac4b5`).
-- **Dashboard Portal Klien (Subscriber):** Menambahkan menu navigasi *Booking* untuk subscriber baru dan auto-upgrade role subscriber menjadi *client* secara transparan (Commit `0e8619e`).
-- **Sinkronisasi UI Integrasi Keamanan (OTP/Link):** Menyembunyikan dan melarang toggle metode OTP atau Access Link jika SMTP/WhatsApp belum dikonfigurasikan (Commit `0d4e134`, `09a78bf`, `12d9b50`).
-- **Retensi File / Settings State Binding:** Memperbaiki bug binding `select` tipe data integer (Retensi file dan Expired Link) agar nilainya tidak reset ke default saat browser di-refresh (Commit `720e047`, `fba83fc`).
-- **Kirim Ulang Aktivasi:** Di tabel Admin Subscriber, tombol *Resend OTP* diubah total menjadi *Kirim Link Aktivasi* untuk mencegah bug validasi token, re-use token pending yang valid, dan menghindari spam WA/Email (Commit `e48e78c`).
-- **Perbaikan Alur Web Access Link:** Mencegah link hangus prematur dari `/access/{token}`, sehingga proses set password wajib untuk akun baru 100% tervalidasi aktif setelah form disubmit (Commit `0c43558`).
-- **UI UX Rate Limit & Anti Spam:** Halaman *Keamanan Settings* kini menggunakan gaya *Tailwind v4 card switches* yang ciamik dengan kunci paten pada *mandatory policy*. Menambahkan fungsi `Cooldown (60 detik)` pada pengiriman OTP/Link Lupa Sandi dan Salin Tautan Tim untuk mencegah serangan spam.
-- **Robust Clipboard Helper:** `navigator.clipboard.writeText()` yang gagal jika diakses via port HTTP biasa tanpa SSL sekarang otomatis *fallback* menggunakan trik DOM `execCommand('copy')` global sehingga tidak akan pernah _crash_ TypeError lagi (Commit `aebd8b0`).
-- **Smart Notification Gateway & Penggabungan Pesan OTP+Link:** Filter `identifier` kini super pintar menentukan `email` vs `whatsapp` berdasarkan tipe form (angka vs alfabet). Email OTP dan Tautan Aktivasi kini menjadi 1 kesatuan bundel Notifikasi secara cerdas di seluruh titik otentikasi.
+## 13. Sesi Terbaru (Aktivitas Saat Ini) — Pemecahan File Raksasa (Refactoring) & Perbaikan UI Skeleton
+- **FullPageSkeleton Immersive:** Mengganti spinner putar kecil di awal muat dashboard dengan layar *full-page skeleton* yang mencetak kerangka sidebar, header, dan kartu-kartu metrik sebelum data `user` masuk (memperbaiki ilusi layar macet putih) (Commit `7ff7aeb` & `c0dad96`).
+- **Refactoring Komponen Skeleton:** Membuat struktur `TableSkeleton` menjadi elemen `<table>` native persis tabel data asli, dan menambahkan jejak komponen *tab bar* atas ke `FormSkeleton` agar menyerupai halaman pengaturan (Commit `7b24d3a`).
+- **Perbaikan Hooks React (#310):** Menggeser posisi import dan deklarasi state `cooldown` agar berada sebelum *early return* pada modal profil untuk menghindari React Minified Error #310 (Commit `812e53c`, `8b3f2a1`, `5964544`).
+- **Pemecahan Monolit Javascript (1067 Baris):** Mengekstrak fungsi-fungsi dari `app.js` menjadi 9 modul terpisah di `resources/js/modules/` (ui, share, lightbox, notifications, carousel, cookies, blog, comments, subscribe). `app.js` kini hanya sisa 49 baris (Commit `03a487e`).
+- **Pemecahan File React Raksasa (Tab Convention 10b):** 
+  - `ProfileSettings.jsx` (935 baris) dipecah isinya ke `profile/ProfileTab.jsx`, `SocialTab.jsx`, `PasswordTab.jsx`, `PrefsTab.jsx`, dan `ProfileModals.jsx` (Commit `31a9cdf`).
+  - `ProjectDetail.jsx` (834 baris) dicabut kelima modusnya ke `modals/ProjectModals.jsx` (Commit `20e1fd0`).
+  - `IntegrasiTab.jsx` (813 baris) dipecah komponen pembaca QRIS dan dompetnya ke `integrations/AccountComponents.jsx` (Commit `05f7ec6`).
+- **Pemecahan Controller Raksasa (ProjectController 1049 Baris):** Logika upload aset dan pembuatan arsip ZIP dicabut ke `ProjectMediaController.php`. Logika kredensial klien dan unduh-ulang dicabut ke `ProjectShareController.php`. Route API diperbarui (Commit `69d7332`).
 
 ## 14. Perintah Verifikasi
 ```bash
