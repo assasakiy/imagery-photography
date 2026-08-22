@@ -3,13 +3,16 @@ import api from '../../api';
 import Icon from '../../components/Icon';
 import Avatar from '../../components/Avatar';
 import MediaPicker from '../../components/MediaPicker';
-import { PageHeader, Field, Modal, ButtonSpinner } from '../../components/ui';
+import { PageHeader } from '../../components/ui';
 import Skeleton from '../../components/Skeleton';
 import { useAuth } from '../../context/AuthContext';
-import SocialSelect from './landing/sections/SocialSelect';
-import { SOCIAL_PLATFORMS, SocialLogo } from './landing/sections/socialPlatforms';
 import { toast } from '../../lib/toast';
 import { getApiErrorMessage } from '../../lib/errors';
+import ProfileTab from './profile/ProfileTab';
+import SocialTab from './profile/SocialTab';
+import PasswordTab from './profile/PasswordTab';
+import PrefsTab from './profile/PrefsTab';
+import { AvatarViewModal, AvatarRemoveModal, CoverViewModal, CoverRemoveModal, DeleteAccountModal } from './profile/ProfileModals';
 
 const ROLE_LABEL = { owner: 'Pemilik', admin: 'Dashboard Admin', client: 'Portal Klien' };
 
@@ -19,32 +22,6 @@ const TABS = [
     { key: 'password', label: 'Kata Sandi', icon: 'lock' },
     { key: 'prefs', label: 'Preferensi', icon: 'bell' },
 ];
-
-function Toggle({ checked, onChange, label, desc }) {
-    return (
-        <div className="flex items-center justify-between gap-4">
-            <div>
-                <p className="text-sm font-semibold text-ink">{label}</p>
-                {desc && <p className="mt-0.5 text-xs text-ink-muted">{desc}</p>}
-            </div>
-            <button
-                type="button"
-                role="switch"
-                aria-checked={checked}
-                onClick={() => onChange(!checked)}
-                className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${
-                    checked ? 'bg-brand-600' : 'bg-zinc-300 dark:bg-zinc-700'
-                }`}
-            >
-                <span
-                    className={`absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${
-                        checked ? 'translate-x-5' : ''
-                    }`}
-                />
-            </button>
-        </div>
-    );
-}
 
 export default function ProfileSettings() {
     const { user, refresh } = useAuth();
@@ -75,7 +52,6 @@ export default function ProfileSettings() {
     const [viewOpen, setViewOpen] = useState(false);
     const [removeOpen, setRemoveOpen] = useState(false);
     const [mediaOpen, setMediaOpen] = useState(false);
-    const [newOpen, setNewOpen] = useState(false);
     const [deleteOpen, setDeleteOpen] = useState(false);
     const [deleting, setDeleting] = useState(false);
 
@@ -204,10 +180,7 @@ export default function ProfileSettings() {
                     if (!events[ch].includes(e.key)) events[ch].push(e.key);
                 });
         }
-        const payload = {
-            ...prefs,
-            notif_events: events,
-        };
+        const payload = { ...prefs, notif_events: events };
         if (otpChannel) payload.notif_otp_channel = otpChannel;
         const ok = await save(payload, 'Preferensi notifikasi diperbarui.');
         if (ok) {
@@ -252,10 +225,6 @@ export default function ProfileSettings() {
         }
     };
 
-    const cancelCover = () => {
-        setPendingCover(null);
-    };
-
     const removeCover = async () => {
         setSaving(true);
         try {
@@ -270,10 +239,6 @@ export default function ProfileSettings() {
         } finally {
             setSaving(false);
         }
-    };
-
-    const openCoverView = () => {
-        setCoverViewOpen(true);
     };
 
     const confirmAvatar = async () => {
@@ -291,10 +256,6 @@ export default function ProfileSettings() {
         } finally {
             setSaving(false);
         }
-    };
-
-    const cancelAvatar = () => {
-        setPendingAvatar(null);
     };
 
     const removeAvatar = async () => {
@@ -321,9 +282,7 @@ export default function ProfileSettings() {
         try {
             await api.delete('/profile', { data: { password: deletePass } });
             toast.success('Akun dihapus. Mengarahkan ke halaman masuk…');
-            setTimeout(() => {
-                window.location.href = '/login';
-            }, 1200);
+            setTimeout(() => { window.location.href = '/login'; }, 1200);
         } catch (err) {
             if (err.response?.data?.errors) setErrors(err.response.data.errors);
             else toast.error('Gagal menghapus akun.');
@@ -332,7 +291,6 @@ export default function ProfileSettings() {
     };
 
     const isOwner = user?.role === 'owner';
-    const initials = (profile.full_name || '?').charAt(0).toUpperCase();
     const emailActive = !!notifMeta.email_configured && notifMeta.email_enabled !== false;
     const waActive = !!notifMeta.whatsapp_configured && notifMeta.whatsapp_enabled !== false;
 
@@ -353,7 +311,7 @@ export default function ProfileSettings() {
             <div className="card overflow-hidden">
                 <button
                     type="button"
-                    onClick={openCoverView}
+                    onClick={() => setCoverViewOpen(true)}
                     className="group relative block h-32 w-full overflow-hidden sm:h-40"
                     aria-label="Lihat banner profil"
                 >
@@ -374,12 +332,7 @@ export default function ProfileSettings() {
                 <div className="px-5 pb-6 sm:px-8">
                     <div className="-mt-12 flex items-end justify-between sm:-mt-14">
                         <div className="relative">
-                            <button
-                                type="button"
-                                onClick={() => setViewOpen(true)}
-                                className="group relative"
-                                aria-label="Lihat foto profil"
-                            >
+                            <button type="button" onClick={() => setViewOpen(true)} className="group relative" aria-label="Lihat foto profil">
                                 <Avatar src={avatarUrl} name={profile.full_name} size="2xl" shape="full" className="ring-4 ring-surface" />
                                 <span className="absolute inset-0 flex items-center justify-center bg-black/50 text-white opacity-0 transition-opacity group-hover:opacity-100 rounded-full">
                                     <Icon name="camera" size={22} />
@@ -387,21 +340,14 @@ export default function ProfileSettings() {
                             </button>
                         </div>
                     </div>
-
                     <div className="mt-4">
                         <div className="flex flex-wrap items-center gap-2">
                             <h2 className="text-xl font-bold text-ink sm:text-2xl">{profile.full_name || '…'}</h2>
                             <span className="badge bg-brand-600/10 text-brand-600 dark:text-brand-400">{ROLE_LABEL[user?.role] || 'Pengguna'}</span>
                         </div>
                         <p className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-ink-muted">
-                            <span className="inline-flex items-center gap-1.5">
-                                <Icon name="mail" size={14} /> {profile.email}
-                            </span>
-                            {profile.phone && (
-                                <span className="inline-flex items-center gap-1.5">
-                                    <Icon name="phone" size={14} /> {profile.phone}
-                                </span>
-                            )}
+                            <span className="inline-flex items-center gap-1.5"><Icon name="mail" size={14} /> {profile.email}</span>
+                            {profile.phone && <span className="inline-flex items-center gap-1.5"><Icon name="phone" size={14} /> {profile.phone}</span>}
                         </p>
                         {profile.bio && <p className="mt-3 max-w-2xl text-sm leading-relaxed text-ink">{profile.bio}</p>}
                     </div>
@@ -425,304 +371,10 @@ export default function ProfileSettings() {
             </div>
 
             <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
-                {/* Content */}
-                {tab === 'profile' && (
-                    <form onSubmit={saveProfile} className="card p-5 lg:col-span-2">
-                        <h3 className="mb-4 flex items-center gap-2 font-semibold text-ink">
-                            <Icon name="user" size={18} /> Informasi Profil
-                        </h3>
-                        <div className="space-y-4">
-                            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                                <Field label="Nama" required error={errors.full_name?.[0]}>
-                                    <input className="input" value={profile.full_name} onChange={(e) => setProfile({ ...profile, full_name: e.target.value })} required />
-                                </Field>
-                                <Field
-                                    label="Username"
-                                    required
-                                    hint={
-                                        usernameStatus.checking
-                                            ? 'Memeriksa…'
-                                            : usernameStatus.available === false
-                                                ? 'Username sudah dipakai.'
-                                                : 'untuk login'
-                                    }
-                                    error={errors.username?.[0] || (usernameStatus.available === false && !errors.username?.[0] ? ['Username sudah dipakai.'] : undefined)}
-                                >
-                                    <div className="relative">
-                                        <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted">@</span>
-                                        <input
-                                            className={`input pl-7 ${usernameStatus.available === false ? '!border-red-500' : usernameStatus.available === true ? '!border-emerald-500' : ''}`}
-                                            autoComplete="username"
-                                            minLength={3}
-                                            maxLength={40}
-                                            required
-                                            value={profile.username || ''}
-                                            onChange={(e) => setProfile({ ...profile, username: e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '') })}
-                                        />
-                                        {usernameStatus.available === true && (
-                                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-emerald-500">
-                                                <Icon name="check" size={16} />
-                                            </span>
-                                        )}
-                                        {usernameStatus.available === false && (
-                                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-red-500">
-                                                <Icon name="x" size={16} />
-                                            </span>
-                                        )}
-                                    </div>
-                                </Field>
-                            </div>
-                            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                                <Field label="Email" required error={errors.email?.[0]}>
-                                    <input className="input" type="email" value={profile.email} onChange={(e) => setProfile({ ...profile, email: e.target.value })} required />
-                                </Field>
-                                <Field label="Nomor Ponsel" hint="opsional" error={errors.phone?.[0]}>
-                                    <input className="input" value={profile.phone} onChange={(e) => setProfile({ ...profile, phone: e.target.value })} />
-                                </Field>
-                            </div>
-                            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                                <Field label="Perusahaan" hint="opsional" error={errors.company?.[0]}>
-                                    <input className="input" value={profile.company || ''} onChange={(e) => setProfile({ ...profile, company: e.target.value })} />
-                                </Field>
-                                <Field label="Pekerjaan" hint="opsional" error={errors.occupation?.[0]}>
-                                    <input className="input" value={profile.occupation || ''} onChange={(e) => setProfile({ ...profile, occupation: e.target.value })} />
-                                </Field>
-                            </div>
-                            <Field label="Website" hint="opsional" error={errors.website?.[0]}>
-                                <input className="input" value={profile.website || ''} onChange={(e) => setProfile({ ...profile, website: e.target.value })} />
-                            </Field>
-                            <Field label="Bio" hint="ceritakan tentang Anda" error={errors.bio?.[0]}>
-                                <textarea
-                                    className="input min-h-[100px] resize-y"
-                                    maxLength={1000}
-                                    value={profile.bio}
-                                    onChange={(e) => setProfile({ ...profile, bio: e.target.value })}
-                                    placeholder="Contoh: Fotografer & videografer berbasis di Lombok. Menyukai momen golden hour."
-                                />
-                            </Field>
-                            <div className="flex justify-end pt-2">
-                                <button type="submit" className="btn-primary" disabled={saving || !profileDirty || !profile.username?.trim() || usernameStatus.checking || usernameStatus.available === false}>
-                                    <Icon name="check" size={16} /> Simpan Profil
-                                </button>
-                            </div>
-                        </div>
-                    </form>
-                )}
-
-                {tab === 'social' && (
-                    <form onSubmit={saveSocials} className="card p-5 lg:col-span-2">
-                        <h3 className="mb-1 flex items-center gap-2 font-semibold text-ink">
-                            <Icon name="link" size={18} /> Media Sosial
-                        </h3>
-                        <p className="mb-5 text-sm text-ink-muted">Tambahkan akun sosial media Anda yang ingin ditampilkan di profil.</p>
-
-                        <div className="flex items-center justify-between">
-                            <p className="text-sm font-semibold text-ink">Daftar Sosial Media</p>
-                            <button
-                                type="button"
-                                className="btn-outline text-xs py-1.5 px-3"
-                                onClick={() => setSocials([...socials, { slug: 'instagram', url: '' }])}
-                            >
-                                <Icon name="plus" size={14} /> Tambah
-                            </button>
-                        </div>
-
-                        {socials.length === 0 ? (
-                            <div className="mt-3 rounded-lg border border-dashed border-line p-4 text-center text-sm text-ink-muted">
-                                Belum ada sosial media. Klik "Tambah" untuk mulai.
-                            </div>
-                        ) : (
-                            <div className="mt-4 space-y-3">
-                                {socials.map((row, i) => (
-                                    <div key={i} className="grid grid-cols-1 items-center gap-3 sm:grid-cols-[200px_1fr_auto]">
-                                        <SocialSelect value={row.slug || ''} onChange={(slug) => {
-                                            const next = socials.slice();
-                                            next[i] = { ...next[i], slug };
-                                            setSocials(next);
-                                        }} />
-                                        <input
-                                            className="input"
-                                            placeholder="https://..."
-                                            value={row.url || ''}
-                                            onChange={(e) => {
-                                                const next = socials.slice();
-                                                next[i] = { ...next[i], url: e.target.value };
-                                                setSocials(next);
-                                            }}
-                                        />
-                                        <button
-                                            type="button"
-                                            className="btn-outline text-red-500 !px-2.5 !py-2"
-                                            onClick={() => setSocials(socials.filter((_, x) => x !== i))}
-                                            title="Hapus"
-                                        >
-                                            <Icon name="trash" size={15} />
-                                        </button>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-
-                        {socials.length > 0 && socials.some((r) => r.url) && (
-                            <div className="mt-4 flex flex-wrap gap-2">
-                                {socials.filter((r) => r.url).map((r, i) => {
-                                    const found = SOCIAL_PLATFORMS.find((p) => p.type === r.slug);
-                                    return (
-                                        <span key={i} className="flex items-center gap-1.5 rounded-full border border-line px-2.5 py-1 text-xs text-ink-muted">
-                                            <SocialLogo type={r.slug} size={14} className="text-ink" /> {found ? found.label : r.slug}
-                                        </span>
-                                    );
-                                })}
-                            </div>
-                        )}
-
-                        <div className="flex justify-end pt-2">
-                            <button type="submit" className="btn-primary" disabled={saving || !socialsDirty}>
-                                <Icon name="check" size={16} /> Simpan Media Sosial
-                            </button>
-                        </div>
-                    </form>
-                )}
-
-                {tab === 'password' && (
-                    <form onSubmit={savePassword} className="card p-5 lg:col-span-2">
-                        <h3 className="mb-4 flex items-center gap-2 font-semibold text-ink">
-                            <Icon name="lock" size={18} /> Ubah Kata Sandi
-                        </h3>
-                        <div className="space-y-4">
-                            <Field label="Kata sandi saat ini" required error={errors.current_password?.[0]}>
-                                <input className="input" type="password" value={pass.current_password} onChange={(e) => setPass({ ...pass, current_password: e.target.value })} required />
-                            </Field>
-                            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                                <Field label="Kata sandi baru" required error={errors.password?.[0]}>
-                                    <input className="input" type="password" minLength={6} value={pass.password} onChange={(e) => setPass({ ...pass, password: e.target.value })} required />
-                                </Field>
-                                <Field label="Ulangi kata sandi baru" required error={errors.password_confirmation?.[0]}>
-                                    <input
-                                        className="input"
-                                        type="password"
-                                        value={pass.password_confirmation}
-                                        onChange={(e) => setPass({ ...pass, password_confirmation: e.target.value })}
-                                        required
-                                    />
-                                </Field>
-                            </div>
-                            <div className="flex justify-end pt-2">
-                                <button type="submit" className="btn-primary" disabled={saving || !passDirty}>
-                                    <Icon name="lock" size={16} /> Ubah Kata Sandi
-                                </button>
-                            </div>
-                        </div>
-                    </form>
-                )}
-
-                {tab === 'prefs' && (
-                    <div className="card p-5 lg:col-span-2">
-                        <h3 className="mb-1 flex items-center gap-2 font-semibold text-ink">
-                            <Icon name="bell" size={18} /> Preferensi Notifikasi
-                        </h3>
-                        <p className="mb-5 text-sm text-ink-muted">Pilih notifikasi apa saja yang ingin Anda terima. Kanal yang belum dikonfigurasi atau nonaktif tidak ditampilkan.</p>
-
-                        <div className="divide-y divide-line border-b border-line">
-                            <div className="py-3">
-                                <Toggle
-                                    checked={prefs.notif_inapp}
-                                    onChange={(v) => setPrefs({ ...prefs, notif_inapp: v })}
-                                    label="Notifikasi di dalam aplikasi"
-                                    desc="Lonceng notifikasi di dashboard dan header situs."
-                                />
-                            </div>
-                            {emailActive && (
-                                <div className="py-3">
-                                    <Toggle
-                                        checked={prefs.notif_email}
-                                        onChange={(v) => setPrefs({ ...prefs, notif_email: v })}
-                                        label="Notifikasi via Email"
-                                        desc="Undangan, pembaruan status, dan info penting lewat email."
-                                    />
-                                </div>
-                            )}
-                            {waActive && (
-                                <div className="py-3">
-                                    <Toggle
-                                        checked={prefs.notif_whatsapp}
-                                        onChange={(v) => setPrefs({ ...prefs, notif_whatsapp: v })}
-                                        label="Notifikasi via WhatsApp"
-                                        desc="Pembaruan status project dan konfirmasi pembayaran lewat WhatsApp."
-                                    />
-                                </div>
-                            )}
-                        </div>
-
-                        {!emailActive && !waActive ? (
-                            <p className="mt-5 rounded-xl border border-line bg-surface-muted/40 p-4 text-sm text-ink-muted">
-                                Kanal notifikasi email dan WhatsApp belum tersedia untuk akun Anda.
-                            </p>
-                        ) : (
-                            ['email', 'whatsapp'].map((channel) => {
-                                const isEmail = channel === 'email';
-                                const active = isEmail ? emailActive : waActive;
-
-                                if (!active) return null;
-
-                                const events = notifMeta.events?.[channel] || [];
-                                const label = isEmail ? 'Email' : 'WhatsApp';
-                                const userOn = prefs[isEmail ? 'notif_email' : 'notif_whatsapp'];
-
-                                return (
-                                    <div key={channel} className="mt-5">
-                                        <p className="mb-1 text-sm font-semibold text-ink">Event via {label}</p>
-                                        {!userOn && (
-                                            <p className="mb-2 text-xs text-ink-muted">Anda mematikan notifikasi {label} di atas.</p>
-                                        )}
-                                        <div className="divide-y divide-line rounded-xl border border-line">
-                                            {events.map((ev) => {
-                                                const on = ev.mandatory || (notifEvents[channel] || []).includes(ev.key);
-                                                return (
-                                                    <label key={ev.key} className="flex items-center justify-between gap-4 py-3 px-4">
-                                                        <div>
-                                                            <p className="text-sm font-medium text-ink">{ev.label}</p>
-                                                            <p className="font-mono text-xs text-ink-muted">{ev.key}</p>
-                                                        </div>
-                                                        <div className="flex items-center gap-2">
-                                                            {ev.mandatory && (
-                                                                <span className="badge bg-brand-600/10 text-brand-600 dark:text-brand-400">Wajib</span>
-                                                            )}
-                                                            <input
-                                                                type="checkbox"
-                                                                className="h-4 w-4 rounded border-line text-brand-600"
-                                                                checked={on}
-                                                                disabled={ev.mandatory || !userOn}
-                                                                onChange={() => toggleEvent(channel, ev.key)}
-                                                            />
-                                                        </div>
-                                                    </label>
-                                                );
-                                            })}
-                                        </div>
-                                    </div>
-                                );
-                            })
-                        )}
-
-                        {emailActive && waActive && (
-                            <div className="mt-5">
-                                <Field label="Kanal untuk kode OTP login" hint="OTP login akan dikirim ke kanal ini.">
-                                    <select className="input" value={otpChannel} onChange={(e) => setOtpChannel(e.target.value)}>
-                                        <option value="whatsapp">WhatsApp</option>
-                                        <option value="email">Email</option>
-                                    </select>
-                                </Field>
-                            </div>
-                        )}
-
-                        <div className="flex justify-end pt-4">
-                            <button type="button" className="btn-primary" disabled={saving || !prefsDirty} onClick={savePrefs}>
-                                <Icon name="check" size={16} /> Simpan Preferensi
-                            </button>
-                        </div>
-                    </div>
-                )}
+                {tab === 'profile' && <ProfileTab profile={profile} setProfile={setProfile} errors={errors} usernameStatus={usernameStatus} saving={saving} profileDirty={profileDirty} onSubmit={saveProfile} />}
+                {tab === 'social' && <SocialTab socials={socials} setSocials={setSocials} saving={saving} socialsDirty={socialsDirty} onSubmit={saveSocials} />}
+                {tab === 'password' && <PasswordTab pass={pass} setPass={setPass} errors={errors} saving={saving} passDirty={passDirty} onSubmit={savePassword} />}
+                {tab === 'prefs' && <PrefsTab prefs={prefs} setPrefs={setPrefs} notifEvents={notifEvents} toggleEvent={toggleEvent} otpChannel={otpChannel} setOtpChannel={setOtpChannel} notifMeta={notifMeta} emailActive={emailActive} waActive={waActive} saving={saving} prefsDirty={prefsDirty} onSubmit={savePrefs} />}
 
                 {/* Side summary */}
                 <div className="space-y-6">
@@ -730,15 +382,11 @@ export default function ProfileSettings() {
                         <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-ink-muted">Ringkasan Akun</h3>
                         <div className="space-y-2.5 text-sm">
                             <div className="flex items-center justify-between gap-3">
-                                <span className="flex items-center gap-2 text-ink-muted">
-                                    <Icon name="user" size={15} /> Peran
-                                </span>
+                                <span className="flex items-center gap-2 text-ink-muted"><Icon name="user" size={15} /> Peran</span>
                                 <span className="font-medium text-ink">{ROLE_LABEL[user?.role] || 'Pengguna'}</span>
                             </div>
                             <div className="flex items-center justify-between gap-3">
-                                <span className="flex items-center gap-2 text-ink-muted">
-                                    <Icon name="check" size={15} /> Status
-                                </span>
+                                <span className="flex items-center gap-2 text-ink-muted"><Icon name="check" size={15} /> Status</span>
                                 <span className="badge bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">Aktif</span>
                             </div>
                         </div>
@@ -759,175 +407,14 @@ export default function ProfileSettings() {
                             </button>
                         )}
                     </div>
-                 </div>
-             </div>
-
-             <Modal
-                 open={viewOpen}
-                onClose={() => setViewOpen(false)}
-                title={pendingAvatar ? 'Pratinjau Foto Baru' : 'Lihat Foto Profil'}
-                footer={
-                    pendingAvatar ? (
-                        <div className="flex flex-col gap-2">
-                            <p className="text-center text-xs text-ink-muted">Simpan foto baru ini sebagai foto profil Anda?</p>
-                            <div className="flex gap-2">
-                                <button type="button" className="btn-outline flex-1" onClick={cancelAvatar} disabled={saving}>
-                                    Batal
-                                </button>
-                                <button type="button" className="btn-primary flex-1" onClick={confirmAvatar} disabled={saving}>
-                                    {saving && <ButtonSpinner />} Konfirmasi
-                                </button>
-                            </div>
-                        </div>
-                    ) : (
-                        <div className="flex justify-end gap-2">
-                            <button type="button" className="btn-outline" onClick={() => { setMediaTarget('avatar'); setMediaOpen(true); }}>
-                                <Icon name="edit" size={16} /> Ubah
-                            </button>
-                            {avatarUrl && (
-                                <button type="button" className="btn bg-red-600 text-white hover:bg-red-700" onClick={() => setRemoveOpen(true)}>
-                                    <Icon name="trash" size={16} /> Hapus
-                                </button>
-                            )}
-                        </div>
-                    )
-                }
-            >
-                <div className="flex flex-col items-center gap-4 py-2">
-                    <Avatar 
-                        src={pendingAvatar ? pendingAvatar.url : avatarUrl} 
-                        name={profile.full_name} 
-                        size="2xl" 
-                        shape="full" 
-                        className="!h-40 !w-40 ring-4 ring-line" 
-                    />
-                    <div className="text-center">
-                        <p className="text-lg font-semibold text-ink">{profile.full_name || '…'}</p>
-                        <p className="text-sm text-ink-muted">{profile.email || ''}</p>
-                        {profile.bio && <p className="mt-3 max-w-xs text-sm text-ink-muted">{profile.bio}</p>}
-                    </div>
                 </div>
-            </Modal>
+            </div>
 
-            <Modal
-                open={removeOpen}
-                onClose={() => setRemoveOpen(false)}
-                title="Hapus Foto Profil"
-                footer={
-                    <div className="flex justify-end gap-2">
-                        <button type="button" className="btn-outline" onClick={() => setRemoveOpen(false)} disabled={saving}>
-                            Batal
-                        </button>
-                        <button
-                            type="button"
-                            className="btn bg-red-600 text-white hover:bg-red-700"
-                            onClick={removeAvatar}
-                            disabled={saving}
-                        >
-                            <Icon name="trash" size={16} /> {saving ? 'Menghapus…' : 'Hapus'}
-                        </button>
-                    </div>
-                }
-            >
-                <p className="text-sm text-ink-muted">Hapus foto profil Anda? Tindakan ini hanya menghapus foto profil, bukan akun.</p>
-            </Modal>
-
-            <Modal
-                open={coverViewOpen}
-                onClose={() => setCoverViewOpen(false)}
-                title={pendingCover ? 'Pratinjau Banner Baru' : 'Lihat Banner Profil'}
-                footer={
-                    pendingCover ? (
-                        <div className="flex flex-col gap-2">
-                            <p className="text-center text-xs text-ink-muted">Simpan banner baru ini?</p>
-                            <div className="flex gap-2">
-                                <button type="button" className="btn-outline flex-1" onClick={cancelCover} disabled={saving}>
-                                    Batal
-                                </button>
-                                <button type="button" className="btn-primary flex-1" onClick={confirmCover} disabled={saving}>
-                                    {saving && <ButtonSpinner />} Konfirmasi
-                                </button>
-                            </div>
-                        </div>
-                    ) : (
-                        <div className="flex justify-end gap-2">
-                            <button type="button" className="btn-outline" onClick={() => { setMediaTarget('cover'); setMediaOpen(true); }}>
-                                <Icon name="edit" size={16} /> Ubah
-                            </button>
-                            {coverUrl && (
-                                <button type="button" className="btn bg-red-600 text-white hover:bg-red-700" onClick={() => setCoverRemoveOpen(true)}>
-                                    <Icon name="trash" size={16} /> Hapus
-                                </button>
-                            )}
-                        </div>
-                    )
-                }
-            >
-                <div className="flex flex-col items-center gap-4 py-2">
-                    <div className="h-40 w-full overflow-hidden rounded-2xl bg-surface-muted ring-1 ring-line sm:h-48">
-                        {pendingCover ? (
-                            <img src={pendingCover.url} alt="Pratinjau banner" className="h-full w-full object-cover" />
-                        ) : coverUrl ? (
-                            <img src={coverUrl} alt="Banner profil" className="h-full w-full object-cover" />
-                        ) : (
-                            <div className="flex h-full w-full items-center justify-center bg-gradient-to-r from-brand-700 via-brand-500 to-brand-400" />
-                        )}
-                    </div>
-                    <p className="text-sm text-ink-muted">
-                        {pendingCover ? 'Simpan banner baru ini?' : 'Banner ini ditampilkan di bagian atas profil Anda.'}
-                    </p>
-                </div>
-            </Modal>
-
-            <Modal
-                open={coverRemoveOpen}
-                onClose={() => setCoverRemoveOpen(false)}
-                title="Hapus Banner Profil"
-                footer={
-                    <div className="flex justify-end gap-2">
-                        <button type="button" className="btn-outline" onClick={() => setCoverRemoveOpen(false)} disabled={saving}>
-                            Batal
-                        </button>
-                        <button
-                            type="button"
-                            className="btn bg-red-600 text-white hover:bg-red-700"
-                            onClick={removeCover}
-                            disabled={saving}
-                        >
-                            <Icon name="trash" size={16} /> {saving ? 'Menghapus…' : 'Hapus'}
-                        </button>
-                    </div>
-                }
-            >
-                <p className="text-sm text-ink-muted">Hapus banner profil Anda? Tindakan ini hanya menghapus banner, bukan akun.</p>
-            </Modal>
-
-            <Modal
-                open={deleteOpen}
-                onClose={() => setDeleteOpen(false)}
-                title="Hapus Akun"
-                footer={
-                    <div className="flex justify-end gap-2">
-                        <button type="button" className="btn-outline" onClick={() => setDeleteOpen(false)} disabled={deleting}>
-                            Batal
-                        </button>
-                        <button type="submit" form="delete-account-form" className="btn bg-red-600 text-white hover:bg-red-700" disabled={deleting}>
-                            <Icon name="trash" size={16} /> {deleting ? 'Menghapus…' : 'Hapus Akun'}
-                        </button>
-                    </div>
-                }
-            >
-                <form id="delete-account-form" onSubmit={deleteAccount}>
-                    <p className="text-sm text-ink-muted">
-                        Tindakan ini akan menonaktifkan akun. Setelah masa jeda (grace period) berakhir, seluruh data akan dihapus permanen. Masukkan kata sandi Anda untuk mengonfirmasi.
-                    </p>
-                    <div className="mt-4">
-                        <Field label="Kata sandi" required error={errors.password?.[0]}>
-                            <input className="input" type="password" value={deletePass} onChange={(e) => setDeletePass(e.target.value)} required />
-                        </Field>
-                    </div>
-                </form>
-            </Modal>
+            <AvatarViewModal open={viewOpen} onClose={() => setViewOpen(false)} pendingAvatar={pendingAvatar} avatarUrl={avatarUrl} profile={profile} saving={saving} onConfirm={confirmAvatar} onCancel={() => setPendingAvatar(null)} onEdit={() => { setMediaTarget('avatar'); setMediaOpen(true); }} onRemove={() => setRemoveOpen(true)} />
+            <AvatarRemoveModal open={removeOpen} onClose={() => setRemoveOpen(false)} saving={saving} onConfirm={removeAvatar} />
+            <CoverViewModal open={coverViewOpen} onClose={() => setCoverViewOpen(false)} pendingCover={pendingCover} coverUrl={coverUrl} saving={saving} onConfirm={confirmCover} onCancel={() => setPendingCover(null)} onEdit={() => { setMediaTarget('cover'); setMediaOpen(true); }} onRemove={() => setCoverRemoveOpen(true)} />
+            <CoverRemoveModal open={coverRemoveOpen} onClose={() => setCoverRemoveOpen(false)} saving={saving} onConfirm={removeCover} />
+            <DeleteAccountModal open={deleteOpen} onClose={() => setDeleteOpen(false)} deleting={deleting} errors={errors} deletePass={deletePass} setDeletePass={setDeletePass} onSubmit={deleteAccount} />
 
             <MediaPicker open={mediaOpen} onClose={() => setMediaOpen(false)} onSelect={onMediaPick} title="Pilih Foto Profil" />
         </>
