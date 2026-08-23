@@ -13,8 +13,8 @@ function TrendChart({ data = [] }) {
 
     const max = Math.max(1, ...points.map((p) => Math.max(p.views, p.visitors)));
     const W = 700;
-    const H = 220;
-    const PAD = { top: 16, right: 8, bottom: 32, left: 36 };
+    const H = 300;
+    const PAD = { top: 20, right: 8, bottom: 36, left: 36 };
     const innerW = W - PAD.left - PAD.right;
     const innerH = H - PAD.top - PAD.bottom;
     const stepX = points.length > 1 ? innerW / (points.length - 1) : 0;
@@ -49,7 +49,7 @@ function TrendChart({ data = [] }) {
                 </div>
             </div>
             <div className="pt-2">
-                <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ height: 'clamp(170px, 22vw, 230px)' }} preserveAspectRatio="none" role="img" aria-label="Tren kunjungan 30 hari">
+                <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ height: 'clamp(220px, 28vw, 300px)' }} preserveAspectRatio="none" role="img" aria-label="Tren kunjungan 30 hari">
                     <defs>
                         <linearGradient id="viewsFill" x1="0" y1="0" x2="0" y2="1">
                             <stop offset="0%" stopColor="var(--color-brand-500, #8b5cf6)" stopOpacity="0.2" />
@@ -74,9 +74,9 @@ function TrendChart({ data = [] }) {
                         </circle>
                     ))}
 
-                    <text x={viewsCoords[0].x} y={H - 6} textAnchor="middle" className="fill-ink-muted" fontSize="10" fontFamily="inherit">{points[0]?.label}</text>
-                    <text x={viewsCoords[midIdx].x} y={H - 6} textAnchor="middle" className="fill-ink-muted" fontSize="10" fontFamily="inherit">{points[midIdx]?.label}</text>
-                    <text x={viewsCoords[viewsCoords.length - 1].x} y={H - 6} textAnchor="middle" className="fill-ink-muted" fontSize="10" fontFamily="inherit">{points[points.length - 1]?.label}</text>
+                    <text x={viewsCoords[0].x} y={H - 8} textAnchor="middle" className="fill-ink-muted" fontSize="10" fontFamily="inherit">{points[0]?.label}</text>
+                    <text x={viewsCoords[midIdx].x} y={H - 8} textAnchor="middle" className="fill-ink-muted" fontSize="10" fontFamily="inherit">{points[midIdx]?.label}</text>
+                    <text x={viewsCoords[viewsCoords.length - 1].x} y={H - 8} textAnchor="middle" className="fill-ink-muted" fontSize="10" fontFamily="inherit">{points[points.length - 1]?.label}</text>
                 </svg>
             </div>
         </div>
