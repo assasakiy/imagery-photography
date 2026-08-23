@@ -14,7 +14,7 @@ function TrendChart({ data = [] }) {
     const max = Math.max(1, ...points.map((p) => Math.max(p.views, p.visitors)));
     const W = 700;
     const H = 220;
-    const PAD = { top: 16, right: 16, bottom: 32, left: 48 };
+    const PAD = { top: 16, right: 8, bottom: 32, left: 36 };
     const innerW = W - PAD.left - PAD.right;
     const innerH = H - PAD.top - PAD.bottom;
     const stepX = points.length > 1 ? innerW / (points.length - 1) : 0;
@@ -48,8 +48,8 @@ function TrendChart({ data = [] }) {
                     <span className="flex items-center gap-1.5"><span className="h-px w-4 border-t-2 border-dashed border-emerald-500" /> Unique Visitor</span>
                 </div>
             </div>
-            <div className="px-2 pt-3 pb-1 sm:px-3">
-                <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ height: 'clamp(170px, 22vw, 230px)' }} preserveAspectRatio="xMidYMid meet" role="img" aria-label="Tren kunjungan 30 hari">
+            <div className="pt-2">
+                <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ height: 'clamp(170px, 22vw, 230px)' }} preserveAspectRatio="none" role="img" aria-label="Tren kunjungan 30 hari">
                     <defs>
                         <linearGradient id="viewsFill" x1="0" y1="0" x2="0" y2="1">
                             <stop offset="0%" stopColor="var(--color-brand-500, #8b5cf6)" stopOpacity="0.2" />
