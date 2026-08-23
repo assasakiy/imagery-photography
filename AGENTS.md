@@ -107,8 +107,10 @@ Halaman dashboard yang punya beberapa tab **WAJIB** dipisah ke folder `pages/<na
 - **Media Library**: model butuh `$fillable=['id']`; `LandingContent::setValue` pertahankan `group`; reset landing images meninggalkan media orphan (TODO).
 - **Test**: skrip di `/home/opc` (`spa_test.py`, `final_test.py`, `access_test.py`); `/etc/hosts` berisi `127.0.0.1 imagery.my.id`; `/tmp/opencode` TIDAK writable.
 
-## 13. Sesi Terbaru — Penyederhanaan Aksi Detail Booking Admin
-- **Detail booking terkonfirmasi (`c9b4942`):** footer kini hanya 2 tombol rata kiri-kanan — **Tolak** (kiri, sebelumnya berlabel "Batal / Tolak") dan **Buat Proyek** (kanan). Tombol **Ubah** dihapus karena data tetap bisa disesuaikan saat mengisi form konversi proyek.
-- **Form "Terima Booking -> Buat Proyek":** tombol submit kedua diubah dari "Buat Proyek" menjadi **"Konfirmasi"** (loading: "Memproses...") agar tidak dobel dengan tombol pembuka form di detail.
+## 13. Sesi Terbaru — Semantik Aksi Booking: Tolak vs Batalkan
+- **Aturan baru (`813c042`):** "Tolak" hanya untuk booking **pending** (menjawab permintaan → status `rejected`). Booking **confirmed** tidak bisa ditolak lagi (endpoint reject diperketat, 422 bila dipaksa) — kini ada aksi **"Batalkan"** → status `cancelled`.
+- **Backend:** endpoint baru `POST /api/bookings/{booking}/cancel` (grup `role:owner|admin`, menerima pending/confirmed + reason opsional); audit `booking.cancelled_by_admin`; klien pemilik booking menerima notifikasi in-app "Booking Dibatalkan" → `/dashboard/client-bookings` (hanya bila sebelumnya confirmed). Klien tetap bisa membatalkan sendiri via cancelBooking yang sudah ada.
+- **Frontend Bookings.jsx:** footer detail confirmed kini 2 tombol rata kiri-kanan — **Batalkan** (kiri) & **Buat Proyek** (kanan); tombol Ubah dihapus. Modal konfirmasi bersifat dinamis sesuai status: judul/label alasan/tombol ("Tolak Booking"/"Alasan Penolakan" vs "Batalkan Booking"/"Alasan Pembatalan"), endpoint menyesuaikan. Submit form konversi proyek diubah dari "Buat Proyek" → **"Konfirmasi"** agar tak dobel dengan tombol pembuka form.
+- **Verifikasi curl end-to-end:** reject pada confirmed → 422; cancel → 200 status cancelled + audit + notifikasi masuk; data uji dibersihkan.
 
 *Untuk rincian arsitektural teknis (lifecycle Media, mekanisme RBAC, dan khususnya sistem **progressive loading dashboard**), silakan baca file-file spesifik di direktori `/docs/`.*
