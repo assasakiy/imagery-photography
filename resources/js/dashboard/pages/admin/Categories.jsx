@@ -4,7 +4,7 @@ import { toast } from '../../lib/toast';
 import { getApiErrorMessage } from '../../lib/errors';
 import Icon from '../../components/Icon';
 import { PageHeader, EmptyState, Modal, Confirm, Field } from '../../components/ui';
-import Skeleton, { CardGridSkeleton } from '../../components/Skeleton';
+import Skeleton, { DataTableSkeleton } from '../../components/Skeleton';
 
 const emptyForm = { name: '', description: '' };
 

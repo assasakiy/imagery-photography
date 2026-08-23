@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import api from '../../../api';
 import Icon from '../../../components/Icon';
 import { PageHeader, EmptyState, Modal, Confirm, Field } from '../../../components/ui';
-import Skeleton, { CardGridSkeleton } from '../../../components/Skeleton';
+import Skeleton, { DataTableSkeleton } from '../../../components/Skeleton';
 import { toast } from '../../../lib/toast';
 import { getApiErrorMessage } from '../../../lib/errors';
 
