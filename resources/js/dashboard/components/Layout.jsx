@@ -349,14 +349,26 @@ export default function Layout() {
                                         >
                                             <Icon name="user" size={16} /> Profil Saya
                                         </Link>
-                                        <div className="flex w-full items-center justify-between gap-2.5 rounded-xl px-3 py-2 text-sm font-medium text-ink-muted hover:bg-surface-muted transition-colors">
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                toggle();
+                                            }}
+                                            className="group flex w-full items-center justify-between gap-2.5 rounded-xl px-3 py-2 text-sm font-medium text-ink-muted transition-colors hover:bg-surface-muted hover:text-ink"
+                                        >
                                             <span className="flex items-center gap-2.5">
-                                                <Icon name={theme === 'dark' ? 'moon' : 'sun'} size={16} /> Mode Gelap
+                                                <Icon name="palette" size={16} /> Tema
                                             </span>
-                                            <div onClick={(e) => e.stopPropagation()}>
-                                                <Toggle size="sm" checked={theme === 'dark'} onChange={() => toggle()} />
+                                            <div className={`relative flex h-7 w-12 shrink-0 items-center rounded-full px-1 transition-colors duration-300 ${theme === 'dark' ? 'bg-zinc-700' : 'bg-zinc-200'}`}>
+                                                <span className={`flex h-5 w-5 items-center justify-center rounded-full bg-white shadow-sm transition-transform duration-300 ${theme === 'dark' ? 'translate-x-5 shadow-md' : 'translate-x-0'}`}>
+                                                    {theme === 'dark' ? (
+                                                        <Icon name="moon" size={12} className="text-brand-400" />
+                                                    ) : (
+                                                        <Icon name="sun" size={12} className="text-amber-500" />
+                                                    )}
+                                                </span>
                                             </div>
-                                        </div>
+                                        </button>
                                         <button
                                             onClick={handleLogout}
                                             className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-medium text-red-500 hover:bg-red-500/10"
