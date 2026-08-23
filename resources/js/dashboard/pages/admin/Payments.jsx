@@ -237,13 +237,22 @@ export default function Payments() {
                             <div>
                                 <p className="mb-2 text-xs text-ink-muted">Bukti Pembayaran</p>
                                 {detail.proof_url ? (
-                                    <a href={detail.proof_url} target="_blank" rel="noreferrer" title="Buka gambar penuh" className="block w-fit">
-                                        <img
-                                            src={detail.proof_url}
-                                            alt="Bukti pembayaran"
-                                            className="max-h-72 rounded-xl border border-line object-contain transition-opacity hover:opacity-85"
-                                        />
-                                    </a>
+                                    /\.pdf(\?|$)/i.test(detail.proof_url) ? (
+                                        <a href={detail.proof_url} target="_blank" rel="noreferrer" className="flex w-fit items-center gap-3 rounded-xl border border-line bg-surface-muted/30 p-4 transition-opacity hover:opacity-85">
+                                            <span className="flex h-12 w-12 items-center justify-center rounded-lg bg-red-500/10 text-red-600 dark:text-red-400">
+                                                <Icon name="file-text" size={22} />
+                                            </span>
+                                            <span className="text-sm font-semibold text-brand-600 underline dark:text-brand-400">Lihat Bukti (PDF)</span>
+                                        </a>
+                                    ) : (
+                                        <a href={detail.proof_url} target="_blank" rel="noreferrer" title="Buka gambar penuh" className="block w-fit">
+                                            <img
+                                                src={detail.proof_url}
+                                                alt="Bukti pembayaran"
+                                                className="max-h-72 rounded-xl border border-line object-contain transition-opacity hover:opacity-85"
+                                            />
+                                        </a>
+                                    )
                                 ) : (
                                     <div className="flex flex-col items-center gap-1 rounded-xl border border-dashed border-line bg-surface-muted/30 p-6 text-center">
                                         <Icon name="credit-card" size={22} className="text-ink-muted" />

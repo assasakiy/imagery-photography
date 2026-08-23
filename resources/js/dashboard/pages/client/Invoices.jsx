@@ -12,7 +12,16 @@ const STATUS_META = {
     awaiting_dp: { label: 'Menunggu DP', cls: 'bg-red-500/15 text-red-600 dark:text-red-400' },
     partial: { label: 'Cicilan/DP', cls: 'bg-amber-500/15 text-amber-600 dark:text-amber-400' },
     paid: { label: 'Lunas', cls: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' },
+    expired: { label: 'Kedaluwarsa', cls: 'bg-zinc-500/15 text-zinc-500 dark:text-zinc-400' },
 };
+
+/* Badge kartu selalu diturunkan dari payment_state agar konsisten dgn tombol aksi. */
+function badgeMeta(it) {
+    if (it.payment_state === 'paid') return { label: 'Lunas', cls: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' };
+    if (it.payment_state === 'pending_verification') return { label: 'Menunggu Verifikasi', cls: 'bg-amber-500/15 text-amber-600 dark:text-amber-400' };
+    if (it.payment_state === 'proof_rejected') return { label: 'Bukti Ditolak', cls: 'bg-red-500/15 text-red-600 dark:text-red-400' };
+    return STATUS_META[it.status] || { label: it.status, cls: 'bg-zinc-500/15 text-zinc-500 dark:text-zinc-400' };
+}
 
 export default function ClientInvoices() {
     const [items, setItems] = useState([]);
@@ -79,7 +88,7 @@ export default function ClientInvoices() {
                                     <p className="font-mono text-xs font-semibold text-ink-muted">{it.number.startsWith("INV-") ? it.number : `INV-${it.number}`}</p>
                                     <h3 className="mt-1 font-bold text-ink">{it.project}</h3>
                                 </div>
-                                <span className={`badge shrink-0 ${STATUS_META[it.status]?.cls}`}>{STATUS_META[it.status]?.label}</span>
+                                <span className={`badge shrink-0 ${badgeMeta(it).cls}`}>{badgeMeta(it).label}</span>
                             </div>
                             <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-ink-muted">
                                 <span className="flex items-center gap-1.5">

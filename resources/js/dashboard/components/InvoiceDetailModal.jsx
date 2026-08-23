@@ -8,6 +8,7 @@ const PAY_STATUS = {
     pending: { label: 'Menunggu Konfirmasi', dot: 'bg-amber-500', cls: 'bg-amber-500/15 text-amber-600 dark:text-amber-400' },
     confirmed: { label: 'Terkonfirmasi', dot: 'bg-emerald-500', cls: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' },
     failed: { label: 'Ditolak', dot: 'bg-red-500', cls: 'bg-red-500/15 text-red-600 dark:text-red-400' },
+    expired: { label: 'Kadaluarsa', dot: 'bg-zinc-400', cls: 'bg-zinc-500/15 text-zinc-500 dark:text-zinc-400' },
 };
 
 const INV_STATUS = {
@@ -189,18 +190,27 @@ export default function InvoiceDetailModal({ open, onClose, invoice }) {
                                                 <Icon name="calendar" size={12} /> {formatDate(p.paid_at || p.created_at)}
                                             </span>
                                         </div>
-                                        {p.proof_url && (
-                                            <a href={p.proof_url} target="_blank" rel="noreferrer" className="group mt-3 inline-flex items-center gap-2.5" title="Buka bukti pembayaran">
-                                                <img
-                                                    src={p.proof_url}
-                                                    alt="Bukti pembayaran"
-                                                    className="h-14 w-14 rounded-lg border border-line object-cover transition-opacity group-hover:opacity-80"
-                                                />
-                                                <span className="inline-flex items-center gap-1 text-xs font-medium text-brand-600 group-hover:underline dark:text-brand-400">
-                                                    <Icon name="external-link" size={12} /> Lihat Bukti
-                                                </span>
-                                            </a>
-                                        )}
+                                        {p.proof_url && (() => {
+                                            const isPdf = /\.pdf(\?|$)/i.test(p.proof_url);
+                                            return (
+                                                <a href={p.proof_url} target="_blank" rel="noreferrer" className="group mt-3 inline-flex items-center gap-2.5" title="Buka bukti pembayaran">
+                                                    {isPdf ? (
+                                                        <span className="flex h-14 w-14 items-center justify-center rounded-lg border border-line bg-red-500/10 text-red-600 dark:text-red-400">
+                                                            <Icon name="file-text" size={22} />
+                                                        </span>
+                                                    ) : (
+                                                        <img
+                                                            src={p.proof_url}
+                                                            alt="Bukti pembayaran"
+                                                            className="h-14 w-14 rounded-lg border border-line object-cover transition-opacity group-hover:opacity-80"
+                                                        />
+                                                    )}
+                                                    <span className="inline-flex items-center gap-1 text-xs font-medium text-brand-600 group-hover:underline dark:text-brand-400">
+                                                        <Icon name="external-link" size={12} /> Lihat Bukti{isPdf ? ' (PDF)' : ''}
+                                                    </span>
+                                                </a>
+                                            );
+                                        })()}
                                         {p.status === 'failed' && p.notes && (
                                             <div className="mt-3 rounded-md bg-red-500/10 p-2.5 text-xs text-red-600 dark:text-red-400">
                                                 <strong>Alasan penolakan:</strong> {p.notes}
