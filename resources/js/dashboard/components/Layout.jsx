@@ -152,7 +152,7 @@ const subscribeNav = [
     { to: '/dashboard/history', icon: 'clock', label: 'Riwayat' },
 ];
 
-const ROLE_LABEL = { owner: 'Pemilik', admin: 'Dashboard Admin', client: 'Portal Klien', subscriber: 'Portal Subscriber' };
+const ROLE_LABEL = { owner: 'Pemilik', admin: 'Admin', client: 'Klien', subscriber: 'Subscriber' };
 
 export default function Layout() {
     const { user, logout } = useAuth();

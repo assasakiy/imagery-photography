@@ -4,7 +4,7 @@ import Icon from '../../components/Icon';
 import Avatar from '../../components/Avatar';
 import MediaPicker from '../../components/MediaPicker';
 import { PageHeader } from '../../components/ui';
-import Skeleton from '../../components/Skeleton';
+import { ProfileSkeleton } from '../../components/Skeleton';
 import { useAuth } from '../../context/AuthContext';
 import { toast } from '../../lib/toast';
 import { getApiErrorMessage } from '../../lib/errors';
@@ -14,7 +14,7 @@ import PasswordTab from './profile/PasswordTab';
 import PrefsTab from './profile/PrefsTab';
 import { AvatarViewModal, AvatarRemoveModal, CoverViewModal, CoverRemoveModal, DeleteAccountModal } from './profile/ProfileModals';
 
-const ROLE_LABEL = { owner: 'Pemilik', admin: 'Dashboard Admin', client: 'Portal Klien' };
+const ROLE_LABEL = { owner: 'Pemilik', admin: 'Admin', client: 'Klien', subscriber: 'Subscriber' };
 
 function PhotoActionMenu({ open, uploading, canDelete, onClose, onView, onChange, onDelete }) {
     useEffect(() => {
@@ -187,7 +187,7 @@ export default function ProfileSettings() {
             .finally(() => setLoading(false));
     }, []);
 
-    if (loading) return <Skeleton variant="form" />;
+    if (loading) return <ProfileSkeleton />;
 
     const save = async (payload, successMsg) => {
         setSaving(true);

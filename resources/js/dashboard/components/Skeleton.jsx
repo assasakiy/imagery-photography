@@ -8,6 +8,7 @@ import ListSkeleton from './skeletons/ListSkeleton';
 import ChatSkeleton from './skeletons/ChatSkeleton';
 import DetailSkeleton from './skeletons/DetailSkeleton';
 import ChartSkeleton from './skeletons/ChartSkeleton';
+import ProfileSkeleton from './skeletons/ProfileSkeleton';
 import AvatarCardGridSkeleton from './skeletons/AvatarCardGridSkeleton';
 import CardListSkeleton from './skeletons/CardListSkeleton';
 
@@ -25,6 +26,8 @@ const SKELETON_MAP = {
     chat: ChatSkeleton,
     detail: DetailSkeleton,
     chart: ChartSkeleton,
+    ProfileSkeleton,
+    profile: ProfileSkeleton,
 };
 
 export default function Skeleton({ variant = 'card', ...props }) {
@@ -43,6 +46,7 @@ export {
     ChatSkeleton,
     DetailSkeleton,
     ChartSkeleton,
+    ProfileSkeleton,
     CardListSkeleton,
     AvatarCardGridSkeleton,
 };

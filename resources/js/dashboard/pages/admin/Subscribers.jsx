@@ -191,23 +191,23 @@ export default function Subscribers() {
                     ]}
                 />
             ) : items.length ? (
-                <div className="overflow-x-auto rounded-xl border border-line">
-                    <table className="w-full text-left text-sm">
+                <div className="card overflow-x-auto">
+                    <table className="table">
                         <thead>
-                            <tr className="border-b border-line bg-surface-muted text-xs font-semibold uppercase tracking-wider text-ink-muted">
-                                <th className="px-4 py-3">Nama</th>
-                                <th className="px-4 py-3">Status</th>
-                                <th className="px-4 py-3 text-right">Bookmark</th>
-                                <th className="px-4 py-3 text-right">Suka</th>
-                                <th className="px-4 py-3 text-right">Komentar</th>
-                                <th className="px-4 py-3">Bergabung</th>
-                                <th className="px-4 py-3 text-right">Aksi</th>
+                            <tr>
+                                <th>Nama</th>
+                                <th>Status</th>
+                                <th className="text-right">Bookmark</th>
+                                <th className="text-right">Suka</th>
+                                <th className="text-right">Komentar</th>
+                                <th>Bergabung</th>
+                                <th className="text-right">Aksi</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-line">
+                        <tbody>
                             {items.map((item) => (
-                                <tr key={item.id} className="transition-colors hover:bg-surface-muted/50">
-                                    <td className="px-4 py-3">
+                                <tr key={item.id}>
+                                    <td>
                                         <div className="flex items-center gap-3">
                                             <Avatar src={item.avatar} name={item.name} size="md" shape="full" />
                                             <div className="min-w-0">
@@ -217,7 +217,7 @@ export default function Subscribers() {
                                             </div>
                                         </div>
                                     </td>
-                                    <td className="px-4 py-3">
+                                    <td>
                                         <div className="flex flex-col gap-1">
                                             <span className="inline-flex w-fit items-center rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">Subscribe</span>
                                             {item.is_client && (
@@ -231,7 +231,7 @@ export default function Subscribers() {
                                     <td className="px-4 py-3 text-right text-ink-muted">{item.likes_count}</td>
                                     <td className="px-4 py-3 text-right text-ink-muted">{item.comments_count}</td>
                                     <td className="px-4 py-3 text-ink-muted">{formatDate(item.created_at)}</td>
-                                    <td className="px-4 py-3 text-right">
+                                    <td className="text-right">
                                         <button className="rounded-lg p-1.5 text-ink-muted hover:bg-surface-muted hover:text-brand-600" title="Detail" onClick={() => openDetail(item)}>
                                             <Icon name="eye" size={16} />
                                         </button>
