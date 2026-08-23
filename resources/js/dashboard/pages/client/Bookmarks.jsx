@@ -58,24 +58,24 @@ export default function Bookmarks() {
                         return (
                             <div key={b.id} className="card group flex flex-col overflow-hidden">
                                 {b.url ? (
-                                    <Link to={b.url} className="relative block aspect-[16/10] overflow-hidden bg-surface-muted">
+                                    <Link to={b.url} className="relative block aspect-[16/10] overflow-hidden rounded-t-xl bg-surface-muted p-3 pb-0">
                                         {b.cover_url ? (
-                                            <img src={b.cover_url} alt={b.title} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
+                                            <img src={b.cover_url} alt={b.title} className="h-full w-full rounded-lg object-cover transition-transform duration-300 group-hover:scale-105" />
                                         ) : (
                                             <div className="flex h-full items-center justify-center">
                                                 <Icon name={cfg.icon} size={36} className="text-ink-muted/40" />
                                             </div>
                                         )}
-                                        <span className={`absolute left-3 top-3 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold ${cfg.color}`}>
+                                        <span className={`absolute left-5 top-5 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold ${cfg.color}`}>
                                             <Icon name={cfg.icon} size={12} /> {cfg.label}
                                         </span>
                                     </Link>
                                 ) : (
-                                    <div className="relative block aspect-[16/10] overflow-hidden bg-surface-muted">
+                                    <div className="relative block aspect-[16/10] overflow-hidden rounded-t-xl bg-surface-muted">
                                         <div className="flex h-full items-center justify-center">
                                             <Icon name={cfg.icon} size={36} className="text-ink-muted/40" />
                                         </div>
-                                        <span className={`absolute left-3 top-3 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold ${cfg.color}`}>
+                                        <span className={`absolute left-5 top-5 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold ${cfg.color}`}>
                                             <Icon name={cfg.icon} size={12} /> {cfg.label}
                                         </span>
                                     </div>
@@ -120,10 +120,10 @@ export default function Bookmarks() {
                                             <div className="ml-auto">
                                                 <button
                                                     onClick={() => removeBookmark(b)}
-                                                    className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium text-ink-muted transition-colors hover:bg-red-500/10 hover:text-red-500"
+                                                    className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium text-brand-600 dark:text-brand-400 transition-colors hover:bg-brand-500/10"
                                                     aria-label="Hapus bookmark"
                                                 >
-                                                    <Icon name="heart" size={14} className="fill-current" />
+                                                    <Icon name="bookmark" size={14} className="fill-current" />
                                                     <span>Tersimpan</span>
                                                 </button>
                                             </div>
