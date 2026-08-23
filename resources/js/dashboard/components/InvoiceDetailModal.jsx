@@ -73,7 +73,7 @@ export default function InvoiceDetailModal({ open, onClose, invoice }) {
     const invMeta = INV_STATUS[invoice.status];
     const state = invoice.payment_state;
 
-    const payUrl = `/dashboard/client-invoices/${invoice.id}/bayar`;
+    const payUrl = `/dashboard/client-invoices/${invoice.id}/bayar${state === 'proof_rejected' ? '?step=confirm' : ''}`;
     const showCta = remaining > 0 && state !== 'pending_verification';
 
     let footer = null;
