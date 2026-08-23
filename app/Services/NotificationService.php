@@ -21,7 +21,6 @@ class NotificationService
         'project.created' => 'Proyek baru dibuat',
         'project.updated' => 'Proyek diperbarui',
         'project.status_changed' => 'Status proyek berubah',
-        'project.credentials_regenerated' => 'Kredensial klien direset',
         'payment.submitted' => 'Pembayaran dikirim klien',
         'payment.confirmed' => 'Pembayaran dikonfirmasi',
         'payment.rejected' => 'Pembayaran ditolak',
@@ -48,13 +47,13 @@ class NotificationService
         'inapp' => [
             'booking.new', 'message.new', 'review.new',
             'project.created', 'project.updated', 'project.status_changed',
-            'project.credentials_regenerated', 'payment.submitted', 'payment.confirmed',
+            'payment.submitted', 'payment.confirmed',
             'payment.rejected', 'team.invited', 'auth.login',
         ],
         'email' => [
             'booking.new', 'message.new', 'review.new',
             'project.created', 'project.updated', 'project.status_changed',
-            'project.credentials_regenerated', 'payment.submitted', 'payment.confirmed',
+            'payment.submitted', 'payment.confirmed',
             'payment.rejected', 'team.invited', 'auth.otp', 'auth.login',
             'auth.invite', 'auth.set_password', 'auth.magic_link', 'order.gallery_ready', 'billing.invoice',
         ],
@@ -67,7 +66,7 @@ class NotificationService
         'webhook' => [
             'booking.new', 'message.new', 'review.new',
             'project.created', 'project.updated', 'project.status_changed',
-            'project.credentials_regenerated', 'payment.submitted', 'payment.confirmed',
+            'payment.submitted', 'payment.confirmed',
             'payment.rejected', 'team.invited',
         ],
     ];
