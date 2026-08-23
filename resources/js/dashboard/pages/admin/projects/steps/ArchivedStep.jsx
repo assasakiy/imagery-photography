@@ -2,7 +2,7 @@ import Icon from '../../../../components/Icon';
 import { formatDate, formatRupiah } from '../../../../components/ui';
 
 export default function ArchivedStep({ ctx }) {
-    const { PanelHeader, project, isAdmin, previewLink, copyPreviewLink, setShareOpen, feeMap, setFeeMap, reviewRedelivery, setRerequestOpen, saving } = ctx;
+    const { PanelHeader, project, isAdmin, previewLink, copyPreviewLink, feeMap, setFeeMap, reviewRedelivery, setRerequestOpen, saving } = ctx;
 
     return (
         <div className="card overflow-hidden">
@@ -13,7 +13,7 @@ export default function ArchivedStep({ ctx }) {
                 subtitle="Pesanan ini telah diarsipkan."
             />
             <div className="p-5">
-                <p className="text-sm text-ink-muted">Proyek ini telah diarsipkan. Kelola permintaan unduh ulang dari klien dan berikan link akses bila disetujui.</p>
+                <p className="text-sm text-ink-muted">Proyek ini telah diarsipkan. Kelola permintaan unduh ulang dari klien.</p>
 
                 {isAdmin && (
                     <div className="mt-5 rounded-xl border border-line bg-surface-muted/30 p-4">
@@ -22,7 +22,6 @@ export default function ArchivedStep({ ctx }) {
                             <span className="min-w-0 flex-1 truncate font-mono text-xs text-ink">{previewLink}</span>
                             <button type="button" className="btn-outline shrink-0 !px-2 !py-1 text-xs" onClick={copyPreviewLink}><Icon name="copy" size={14} /> Salin</button>
                         </div>
-                        <button type="button" className="btn-primary mt-3" onClick={() => setShareOpen(true)}><Icon name="send" size={16} /> Kirim Akses</button>
                     </div>
                 )}
 

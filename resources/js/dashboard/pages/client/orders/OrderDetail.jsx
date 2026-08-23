@@ -61,9 +61,6 @@ export default function ProjectDetail() {
     const [step, setStep] = useState(null);
     const [saving, setSaving] = useState(false);
     const [deleteConfirm, setDeleteConfirm] = useState(null);
-    const [shareOpen, setShareOpen] = useState(false);
-    const [sharing, setSharing] = useState(false);
-    const [feeMap, setFeeMap] = useState({});
     const [rerequestOpen, setRerequestOpen] = useState(false);
     const [rerequestNote, setRerequestNote] = useState('');
     const [reviewOpen, setReviewOpen] = useState(false);
@@ -119,20 +116,6 @@ export default function ProjectDetail() {
         } catch (err) {
             toast.error(getApiErrorMessage(err, 'Gagal menghapus file.'));
             setDeleteConfirm(null);
-        }
-    };
-
-    const submitShareLink = async () => {
-        setSharing(true);
-        try {
-            await api.post(`/projects/${id}/send-link`);
-            toast.success('Tautan akses dikirim ke klien.');
-            setShareOpen(false);
-            load();
-        } catch (err) {
-            toast.error(getApiErrorMessage(err, 'Gagal mengirim tautan.'));
-        } finally {
-            setSharing(false);
         }
     };
 
@@ -234,7 +217,7 @@ export default function ProjectDetail() {
         isPaid, paidAt,
         setDeleteConfirm,
         openReview, existingReview, canReview, setReviewOpen, openChat,
-        setShareOpen, feeMap, setFeeMap, reviewRedelivery, setRerequestOpen,
+        feeMap, setFeeMap, reviewRedelivery, setRerequestOpen,
     };
 
     return (
@@ -368,17 +351,6 @@ export default function ProjectDetail() {
                     )}
                 </div>
             </div>
-
-            {/* SHARE LINK MODAL */}
-            <Modal open={shareOpen} onClose={() => setShareOpen(false)} title="Kirim Tautan Akses" footer={
-                <button className="btn-primary" onClick={submitShareLink} disabled={sharing}>{sharing ? 'Mengirim...' : 'Kirim Tautan'}</button>
-            }>
-                <p className="text-sm text-ink-muted">Tautan akses ke dashboard pesanan akan dikirim ke klien melalui notifikasi yang aktif.</p>
-                <div className="mt-3">
-                    <p className="mb-1 text-xs text-ink-muted">Tautan dashboard:</p>
-                    <p className="truncate rounded-lg border border-line bg-surface-muted/30 p-2 font-mono text-xs text-ink">{previewLink}</p>
-                </div>
-            </Modal>
 
             {/* DELETE FILE CONFIRM */}
             <Confirm open={!!deleteConfirm} onClose={() => setDeleteConfirm(null)} onConfirm={handleDeleteConfirm} title="Hapus File?" message="File akan dihapus secara permanen." />

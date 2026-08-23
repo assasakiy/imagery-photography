@@ -151,27 +151,6 @@ export function UploadModal({ open, onClose, uploading, uploadProgress, hasPhoto
     );
 }
 
-export function ShareModal({ open, onClose, sharing, previewLink, onSubmit }) {
-    return (
-        <Modal open={open} onClose={onClose} title="Kirim Tautan Akses" footer={
-            <div className="flex justify-end gap-2">
-                <button type="button" className="btn-outline" onClick={onClose} disabled={sharing}>Batal</button>
-                <button type="button" className="btn-primary" onClick={onSubmit} disabled={sharing}>
-                    {sharing ? 'Mengirim...' : 'Kirim Tautan'}
-                </button>
-            </div>
-        }>
-            <div className="space-y-4">
-                <p className="text-sm text-ink-muted">Tautan akses ke dashboard pesanan akan dikirim ke klien melalui notifikasi yang aktif (WhatsApp / email / dalam aplikasi).</p>
-                <div>
-                    <p className="mb-1 text-xs text-ink-muted">Tautan dashboard:</p>
-                    <p className="truncate rounded-lg border border-line bg-surface-muted/30 p-2 font-mono text-xs text-ink">{previewLink}</p>
-                </div>
-            </div>
-        </Modal>
-    );
-}
-
 export function DeleteConfirm({ open, item, onClose, onConfirm }) {
     return <Confirm open={open} onClose={onClose} onConfirm={onConfirm} title="Hapus file?" message={`File "${item?.original_name || ''}" akan dihapus dari server.`} />;
 }

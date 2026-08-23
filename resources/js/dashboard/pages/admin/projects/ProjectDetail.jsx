@@ -15,7 +15,7 @@ import EditingStep from './steps/EditingStep';
 import AwaitingPaymentStep from './steps/AwaitingPaymentStep';
 import CompletedStep from './steps/CompletedStep';
 import ArchivedStep from './steps/ArchivedStep';
-import { RerequestModal, ReviewModal, UploadModal, ShareModal, DeleteConfirm, ArchiveConfirm } from './modals/ProjectModals';
+import { RerequestModal, ReviewModal, UploadModal, DeleteConfirm, ArchiveConfirm } from './modals/ProjectModals';
 
 const STEPS = [
     { key: 'scheduled', label: 'Dijadwalkan', icon: 'calendar' },
@@ -97,8 +97,6 @@ export default function ProjectDetail() {
     const [endProof, setEndProof] = useState(false);
     const [saving, setSaving] = useState(false);
     const [deleteConfirm, setDeleteConfirm] = useState(null);
-    const [shareOpen, setShareOpen] = useState(false);
-    const [sharing, setSharing] = useState(false);
     const [feeMap, setFeeMap] = useState({});
     const [rerequestOpen, setRerequestOpen] = useState(false);
     const [rerequestNote, setRerequestNote] = useState('');
@@ -392,20 +390,6 @@ export default function ProjectDetail() {
         }
     };
 
-    const submitShareLink = async () => {
-        setSharing(true);
-        try {
-            await api.post(`/projects/${id}/send-link`);
-            toast.success('Tautan akses dikirim ke klien.');
-            setShareOpen(false);
-            load();
-        } catch (err) {
-            toast.error(getApiErrorMessage(err, 'Gagal mengirim tautan.'));
-        } finally {
-            setSharing(false);
-        }
-    };
-
     const reviewRedelivery = async (red, status) => {
         setSaving(true);
         try {
@@ -489,7 +473,7 @@ export default function ProjectDetail() {
         advance, archive, restore, saveEditProgress, saveProgressCombined,
         setUploadOpen, uploadLabel, pickAndSaveThumb, thumbFile,
         setReviewOpen, openChat,
-        setShareOpen, feeMap, setFeeMap, reviewRedelivery, setRerequestOpen,
+        feeMap, setFeeMap, reviewRedelivery, setRerequestOpen,
         setConfirmArchive,
     };
 
@@ -629,7 +613,6 @@ export default function ProjectDetail() {
             <DeleteConfirm open={!!deleteConfirm} item={deleteConfirm} onClose={() => setDeleteConfirm(null)} onConfirm={handleDeleteConfirm} />
             <ReviewModal open={reviewOpen} onClose={() => setReviewOpen(false)} saving={saving} reviewForm={reviewForm} setReviewForm={setReviewForm} onSubmit={submitReview} />
             <UploadModal open={uploadOpen} onClose={() => setUploadOpen(false)} uploading={uploading} uploadProgress={uploadProgress} hasPhoto={hasPhoto} hasVideo={hasVideo} photoQueue={photoQueue} setPhotoQueue={setPhotoQueue} thumbFile={thumbFile} setThumbFile={setThumbFile} videoForm={videoForm} setVideoForm={setVideoForm} photoRef={photoRef} videoPreviewRef={videoPreviewRef} videoOriginalRef={videoOriginalRef} PhotoThumbImg={PhotoThumbImg} onSubmit={submitUpload} />
-            <ShareModal open={shareOpen} onClose={() => setShareOpen(false)} sharing={sharing} previewLink={previewLink} onSubmit={submitShareLink} />
             <ArchiveConfirm open={confirmArchive} onClose={() => setConfirmArchive(false)} onConfirm={archive} />
         </>
     );
