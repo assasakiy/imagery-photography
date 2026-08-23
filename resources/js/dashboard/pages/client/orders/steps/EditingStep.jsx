@@ -1,3 +1,5 @@
+import Icon from '../../../../components/Icon';
+
 export default function EditingStep({ ctx }) {
     const { PanelHeader, hasPhoto, hasVideo, photoDone, photoTotal, photoPct, videoDone, videoTotal, videoPct } = ctx;
     const totalDone = photoDone + videoDone;
