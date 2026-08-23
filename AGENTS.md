@@ -107,8 +107,8 @@ Halaman dashboard yang punya beberapa tab **WAJIB** dipisah ke folder `pages/<na
 - **Media Library**: model butuh `$fillable=['id']`; `LandingContent::setValue` pertahankan `group`; reset landing images meninggalkan media orphan (TODO).
 - **Test**: skrip di `/home/opc` (`spa_test.py`, `final_test.py`, `access_test.py`); `/etc/hosts` berisi `127.0.0.1 imagery.my.id`; `/tmp/opencode` TIDAK writable.
 
-## 13. Sesi Terbaru — Efek Loading Upload Banner & Foto Profil
-- **Halaman Profil (`1b4e738`):** unggah banner & foto profil kini punya umpan balik visual di tempat — saat upload: banner diberi blur + overlay gelap dengan spinner dan teks "Mengunggah banner…"; lingkaran foto profil diberi blur + overlay spinner berputar. Selama proses, klik preview dinonaktifkan (tidak membuka modal view) dan overlay hover "Ubah" disembunyikan. State upload kini terpisah (`uploadingCover`/`uploadingAvatar`) dari `saving` form agar tidak saling mengganggu.
-- **Bonus fix:** ikon `loader` ternyata belum terdaftar di Icon.jsx (dipakai QRIS instructions tapi tak pernah tampil) — kini ditambahkan (lucide path inline).
+## 13. Sesi Terbaru — Menu Kontekstual Foto Profil & Banner
+- **Klik foto = menu aksi (`888f9ec`):** klik banner atau lingkaran foto profil di halaman Profil tidak lagi langsung membuka modal view — kini memunculkan menu **Lihat / Ubah / Hapus**. **Desktop (lg+):** dropdown muncul tepat di posisi klik (clamp ke viewport, tutup via klik-luar/Escape/konteks-menu). **Mobile/tablet:** bottom sheet meluncur dari bawah (`animate-sheet-up` + backdrop `animate-fade-in`, handle bar, tombol Batal). Item "Hapus" hanya tampil bila gambar ada; menu otomatis tak muncul saat upload berlangsung.
+- Komponen baru `PhotoActionMenu` lokal di ProfileSettings.jsx; modal view/remove lama tetap dipakai sebagai target aksi menu.
 
 *Untuk rincian arsitektural teknis (lifecycle Media, mekanisme RBAC, dan khususnya sistem **progressive loading dashboard**), silakan baca file-file spesifik di direktori `/docs/`.*
