@@ -508,6 +508,8 @@ class ProjectController extends Controller
     /** Klien mengajukan permintaan unduh ulang (proyek arsip). */
     private function createInvoice(Project $project): \App\Models\Invoice
     {
+        $existing = $project->invoice;
+
         $invoice = $project->invoice()->firstOrCreate([
             'number' => \App\Models\Invoice::nextNumber(),
             'issued_at' => now()->toDateString(),
@@ -516,6 +518,11 @@ class ProjectController extends Controller
         ]);
 
         $project->addSystemUpdate('Invoice ' . $invoice->number . ' dibuat sebesar Rp ' . number_format((float) ($project->price ?? 0), 0, ',', '.') . '.');
+
+        // Notifikasi "Invoice Baru" hanya untuk invoice yang benar-benar baru diterbitkan.
+        if (!$existing) {
+            app(NotificationService::class)->notifyInvoiceCreated($invoice);
+        }
 
         return $invoice;
     }
