@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import api from '../../api';
 import Icon from '../../components/Icon';
 import { PageHeader, EmptyState, formatDate, formatRupiah, Modal, Field, Confirm } from '../../components/ui';
-import Skeleton, { CardGridSkeleton } from '../../components/Skeleton';
+import Skeleton, { CardListSkeleton } from '../../components/Skeleton';
 import { toast } from '../../lib/toast';
 import { useAuth } from '../../context/AuthContext';
 
