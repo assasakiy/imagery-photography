@@ -107,10 +107,9 @@ Halaman dashboard yang punya beberapa tab **WAJIB** dipisah ke folder `pages/<na
 - **Media Library**: model butuh `$fillable=['id']`; `LandingContent::setValue` pertahankan `group`; reset landing images meninggalkan media orphan (TODO).
 - **Test**: skrip di `/home/opc` (`spa_test.py`, `final_test.py`, `access_test.py`); `/etc/hosts` berisi `127.0.0.1 imagery.my.id`; `/tmp/opencode` TIDAK writable.
 
-## 13. Sesi Terbaru — Semantik Aksi Booking: Tolak vs Batalkan
-- **Aturan baru (`813c042`):** "Tolak" hanya untuk booking **pending** (menjawab permintaan → status `rejected`). Booking **confirmed** tidak bisa ditolak lagi (endpoint reject diperketat, 422 bila dipaksa) — kini ada aksi **"Batalkan"** → status `cancelled`.
-- **Backend:** endpoint baru `POST /api/bookings/{booking}/cancel` (grup `role:owner|admin`, menerima pending/confirmed + reason opsional); audit `booking.cancelled_by_admin`; klien pemilik booking menerima notifikasi in-app "Booking Dibatalkan" → `/dashboard/client-bookings` (hanya bila sebelumnya confirmed). Klien tetap bisa membatalkan sendiri via cancelBooking yang sudah ada.
-- **Frontend Bookings.jsx:** footer detail confirmed kini 2 tombol rata kiri-kanan — **Batalkan** (kiri) & **Buat Proyek** (kanan); tombol Ubah dihapus. Modal konfirmasi bersifat dinamis sesuai status: judul/label alasan/tombol ("Tolak Booking"/"Alasan Penolakan" vs "Batalkan Booking"/"Alasan Pembatalan"), endpoint menyesuaikan. Submit form konversi proyek diubah dari "Buat Proyek" → **"Konfirmasi"** agar tak dobel dengan tombol pembuka form.
-- **Verifikasi curl end-to-end:** reject pada confirmed → 422; cancel → 200 status cancelled + audit + notifikasi masuk; data uji dibersihkan.
+## 13. Sesi Terbaru — Fix 500 Konversi Booking ke Proyek (Nomor Duplikat)
+- **Akar masalah (`ca66b47`):** `POST /bookings/{id}/accept` 500 — `Duplicate entry 'SLI-260823-0002' for key 'projects_order_no_unique'`. Penyebab: proyek uji lama (TEST-INV-NOTIF) hanya *soft-deleted* sehingga masih memegang nomor itu di unique index, sementara `Project::nextOrderNumber()` menghitung urutan dari query default yang menyembunyikan baris trash → nomor "dipakai ulang" → tabrakan.
+- **Fix:** `nextOrderNumber()` kini memakai `static::withTrashed()` saat mencari nomor terakhir. Model Invoice & Booking tidak soft-deletable jadi generatornya aman. Proyek uji penyebab sudah di-*force delete* (0 relasi) — nomor `SLI-260823-0002` bebas kembali; booking terkonfirmasi tinggal dikonversi ulang.
+- **Gotcha diperkuat:** semua penomoran berbasis prefix WAJIB menghitung baris soft-deleted bila kolomnya punya unique index.
 
 *Untuk rincian arsitektural teknis (lifecycle Media, mekanisme RBAC, dan khususnya sistem **progressive loading dashboard**), silakan baca file-file spesifik di direktori `/docs/`.*
