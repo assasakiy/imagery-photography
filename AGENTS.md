@@ -107,8 +107,10 @@ Halaman dashboard yang punya beberapa tab **WAJIB** dipisah ke folder `pages/<na
 - **Media Library**: model butuh `$fillable=['id']`; `LandingContent::setValue` pertahankan `group`; reset landing images meninggalkan media orphan (TODO).
 - **Test**: skrip di `/home/opc` (`spa_test.py`, `final_test.py`, `access_test.py`); `/etc/hosts` berisi `127.0.0.1 imagery.my.id`; `/tmp/opencode` TIDAK writable.
 
-## 13. Sesi Terbaru — Pemilihan Metode Bayar dengan Konfirmasi Eksplisit
-- **PayInvoiceMethodPicker didesain ulang (`d03491a`):** klik metode tidak lagi langsung lompat ke step berikutnya — kartu metode kini bersifat pilihan (indikator radio + ring brand saat terpilih). Semua grup yang aktif (Payment Gateway, Transfer Manual/QRIS/Dompet) tampil sebagai **satu daftar terpadu** dalam satu card ber-separator — tanpa tab. Di bawah daftar ada tombol **"Konfirmasi"** (disabled sampai metode dipilih) + teks bantuan metode terpilih; baru setelah konfirmasi user diarahkan ke step Instruksi.
-- Tiap opsi menampilkan ikon radio, ikon metode, nama, subtitle (nomor rekening + a.n., atau "Verifikasi otomatis oleh sistem"), dan badge "Otomatis" untuk kanal gateway. Empty state baru bila tak ada metode aktif.
+## 13. Sesi Terbaru — Detail Pesanan Klien: Tahap Editing Informatif & Tombol Tagihan Kontekstual
+- **EditingStep diperkaya (`6c352f6`):** kini ada grid statistik (Foto diedit x/y, Video diedit x/y, dan kartu highlight "File Terunggah" total), label persen pada tiap progress bar, serta catatan penjelas alur berikutnya (masuk tahap Pembayaran; file final diunduh dari Preview setelah lunas). Ikon baru `info` di Icon.jsx.
+- **AwaitingPaymentStep kontekstual:** bila tagihan lunas tombol "Bayar Tagihan" diganti **"Detail Tagihan"** (badge hijau "Lunas", banner emerald, tanpa jatuh tempo); bila belum lunas tetap **"Bayar Sekarang"** (banner amber + sisa tagihan + jatuh tempo). Kedua tombol kini mengarah ke invoice pesanan terkait, bukan daftar: bayar → `/dashboard/client-invoices/{invoiceId}/bayar`; detail → `/dashboard/client-invoices?detail={id}`.
+- **Deep-link detail invoice:** halaman Tagihan klien membaca query `?detail={id}` dan langsung membuka `InvoiceDetailModal` invoice tersebut (param dibersihkan saat modal ditutup). API `GET /projects/{id}` kini menyertakan `invoice.id`.
+- **Verifikasi:** build sukses; curl `/api/projects/1` (milik klien) mengembalikan `invoice.id`; akses proyek milik orang lain tetap 403.
 
 *Untuk rincian arsitektural teknis (lifecycle Media, mekanisme RBAC, dan khususnya sistem **progressive loading dashboard**), silakan baca file-file spesifik di direktori `/docs/`.*
