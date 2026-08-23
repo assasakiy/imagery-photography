@@ -18,7 +18,6 @@ const STATUS_META = {
 export default function ClientInvoices() {
     const [items, setItems] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [selected, setSelected] = useState(null);
     const [detail, setDetail] = useState(null);
 
     useEffect(() => {
@@ -27,12 +26,6 @@ export default function ClientInvoices() {
             .catch(() => toast.error('Gagal memuat data.'))
             .finally(() => setLoading(false));
     }, []);
-
-    const reloadInvoices = () => {
-        api.get('/customer/invoices')
-            .then(({ data }) => setItems(data))
-            .catch(() => {});
-    };
 
     const totalOutstanding = items.reduce((sum, it) => sum + Number(it.remaining || 0), 0);
 

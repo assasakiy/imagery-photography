@@ -36,6 +36,7 @@ export const pageImports = {
     '/dashboard/pesanan/:id': () => import('../pages/client/orders/OrderDetail'),
     '/dashboard/client-bookings': () => import('../pages/client/Bookings'),
     '/dashboard/client-invoices': () => import('../pages/client/Invoices'),
+    '/dashboard/client-invoices/pay': () => import('../pages/client/PayInvoice'),
     '/dashboard/client-messages': () => import('../pages/client/Messages'),
     '/dashboard/client-gallery': () => import('../pages/client/Gallery'),
     '/dashboard/bookmarks': () => import('../pages/client/Bookmarks'),

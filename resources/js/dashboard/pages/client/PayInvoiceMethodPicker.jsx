@@ -3,7 +3,8 @@ import api from '../../api';
 import Icon from '../../components/Icon';
 import Skeleton from '../../components/Skeleton';
 import { toast } from '../../lib/toast';
-import { BANK_ICON, WALLET_ICON, channelIcon, formatRupiah } from '../../lib/paymentHelpers';
+import { BANK_ICON, WALLET_ICON, channelIcon } from '../../lib/paymentHelpers';
+import { formatRupiah } from '../../components/ui';
 
 export default function PayInvoiceMethodPicker({ invoice, onSelectMethod }) {
     const [methods, setMethods] = useState({ manual: { enabled: true, account_name: '', groups: [] }, gateway: { enabled: false, channels: [] } });
