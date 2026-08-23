@@ -14,7 +14,7 @@ function TrendChart({ data = [] }) {
     const max = Math.max(1, ...points.map((p) => Math.max(p.views, p.visitors)));
     const W = 640;
     const H = 200;
-    const PAD = { top: 20, right: 16, bottom: 28, left: 40 };
+    const PAD = { top: 16, right: 12, bottom: 24, left: 44 };
     const innerW = W - PAD.left - PAD.right;
     const innerH = H - PAD.top - PAD.bottom;
     const stepX = points.length > 1 ? innerW / (points.length - 1) : 0;
@@ -36,21 +36,21 @@ function TrendChart({ data = [] }) {
     });
 
     return (
-        <div className="card overflow-hidden">
-            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-line px-5 py-4">
+        <div className="card">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-line px-5 py-3.5">
                 <h2 className="flex items-center gap-2 font-bold text-ink">
                     <Icon name="trending-up" size={16} /> Tren Kunjungan 30 Hari
                 </h2>
                 <div className="flex items-center gap-4 text-xs font-medium text-ink-muted">
-                    <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-brand-500" /> Page Views</span>
-                    <span className="flex items-center gap-1.5"><span className="h-0.5 w-4 border-t-2 border-dashed border-emerald-500" /> Unique Visitor</span>
+                    <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-brand-500" /> Page Views</span>
+                    <span className="flex items-center gap-1.5"><span className="h-px w-4 border-t-2 border-dashed border-emerald-500" /> Unique Visitor</span>
                 </div>
             </div>
-            <div className="px-3 py-4">
-                <svg viewBox={`0 0 ${W} ${H}`} className="h-56 w-full" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Tren kunjungan 30 hari">
+            <div className="px-1 pt-2 pb-1 sm:px-2">
+                <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ height: 'clamp(160px, 24vw, 220px)' }} preserveAspectRatio="xMidYMid meet" role="img" aria-label="Tren kunjungan 30 hari">
                     <defs>
                         <linearGradient id="viewsFill" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="var(--color-brand-500, #8b5cf6)" stopOpacity="0.25" />
+                            <stop offset="0%" stopColor="var(--color-brand-500, #8b5cf6)" stopOpacity="0.2" />
                             <stop offset="100%" stopColor="var(--color-brand-500, #8b5cf6)" stopOpacity="0" />
                         </linearGradient>
                     </defs>
@@ -58,7 +58,7 @@ function TrendChart({ data = [] }) {
                     {gridYs.map((g, i) => (
                         <g key={i}>
                             <line x1={PAD.left} y1={g.y} x2={W - PAD.right} y2={g.y} className="stroke-line" strokeWidth="1" strokeDasharray={i === 0 ? '' : '3 3'} />
-                            <text x={PAD.left - 8} y={g.y + 3.5} textAnchor="end" className="fill-ink-muted text-[9px]" style={{ fontFamily: 'inherit' }}>{g.label}</text>
+                            <text x={PAD.left - 6} y={g.y + 3} textAnchor="end" className="fill-ink-muted" fontSize="9" fontFamily="inherit">{g.label}</text>
                         </g>
                     ))}
 
@@ -67,16 +67,16 @@ function TrendChart({ data = [] }) {
                     <path d={visitorsPath} fill="none" strokeWidth="1.5" className="stroke-emerald-500" strokeDasharray="5 4" strokeLinecap="round" strokeLinejoin="round" />
 
                     {viewsCoords.map((c) => (
-                        <circle key={c.date} cx={c.x} cy={c.y} r="3.5" className="fill-white stroke-brand-500 dark:fill-zinc-900" strokeWidth="2">
+                        <circle key={c.date} cx={c.x} cy={c.y} r="3" className="fill-white stroke-brand-500 dark:fill-zinc-900" strokeWidth="2">
                             <title>{`${c.date}: ${fmt(c.views)} views / ${fmt(c.visitors)} visitor`}</title>
                         </circle>
                     ))}
                 </svg>
-                <div className="mt-2 flex justify-between px-1 text-[10px] text-ink-muted">
-                    <span>{points[0]?.label}</span>
-                    <span className="hidden sm:inline">{points[Math.floor(points.length / 2)]?.label}</span>
-                    <span>{points[points.length - 1]?.label}</span>
-                </div>
+            </div>
+            <div className="flex justify-between px-5 pb-3 text-[10px] text-ink-muted">
+                <span>{points[0]?.label}</span>
+                <span className="hidden sm:inline">{points[Math.floor(points.length / 2)]?.label}</span>
+                <span>{points[points.length - 1]?.label}</span>
             </div>
         </div>
     );
