@@ -101,6 +101,7 @@ const RecycleBin = lazy(pageImports['/dashboard/recycle-bin']);
 const ProfileSettings = lazy(pageImports['/dashboard/profile']);
 const ClientBookings = lazy(pageImports['/dashboard/client-bookings']);
 const ClientInvoices = lazy(pageImports['/dashboard/client-invoices']);
+const PayInvoice = lazy(pageImports['/dashboard/client/PayInvoice']);
 const Preview = lazy(pageImports['/dashboard/preview']);
 const PreviewDetail = lazy(pageImports['/dashboard/preview/:id']);
 const ClientMessages = lazy(pageImports['/dashboard/client-messages']);
@@ -175,6 +176,7 @@ function AppRoutes() {
                 <Route path="pesanan/:id" element={withSuspense(<Protected notStaffCase><OrderDetail /></Protected>, 'form')} />
                 <Route path="client-bookings" element={withSuspense(<Protected notStaffCase><ClientBookings /></Protected>, 'table')} />
                 <Route path="client-invoices" element={withSuspense(<Protected notStaffCase><ClientInvoices /></Protected>, 'table')} />
+                <Route path="client-invoices/:id/bayar" element={withSuspense(<Protected notStaffCase><PayInvoice /></Protected>, 'form')} />
                 <Route path="preview" element={withSuspense(<Preview />, 'card')} />
                 <Route path="preview/:id" element={withSuspense(<PreviewDetail />, 'form')} />
                 <Route path="client-messages" element={withSuspense(<Protected notStaffCase><ClientMessages /></Protected>, 'table')} />

@@ -127,10 +127,10 @@ export default function ClientInvoices() {
 
                                 {it.payment_state === 'proof_rejected' && (
                                     <>
-                                        <button className="btn-primary flex-1 justify-center py-2" onClick={() => setSelected(it)}>
+                                        <Link to={`/dashboard/client-invoices/${it.id}/bayar`} className="btn-primary flex-1 justify-center py-2">
                                             <Icon name="upload" size={14} />
                                             Upload Ulang Bukti
-                                        </button>
+                                        </Link>
                                         <button className="btn-outline flex-1 justify-center py-2" onClick={() => setDetail(it)}>
                                             <Icon name="eye" size={14} />
                                             Lihat Ditolak
@@ -140,10 +140,10 @@ export default function ClientInvoices() {
 
                                 {it.payment_state === 'unpaid' && (
                                     <>
-                                        <button className="btn-primary flex-1 justify-center py-2" onClick={() => setSelected(it)}>
+                                        <Link to={`/dashboard/client-invoices/${it.id}/bayar`} className="btn-primary flex-1 justify-center py-2">
                                             <Icon name="credit-card" size={14} />
                                             Bayar Sekarang
-                                        </button>
+                                        </Link>
                                         <button className="btn-outline flex-1 justify-center py-2" onClick={() => setDetail(it)}>
                                             <Icon name="eye" size={14} />
                                             Detail Tagihan
@@ -163,19 +163,15 @@ export default function ClientInvoices() {
             ) : (
                 <EmptyState title="Belum ada tagihan" message="Tagihan akan muncul setelah Anda memiliki pesanan." icon="credit-card" />
             )}
+            </>
+            )}
 
             <PaymentModal
-                open={!!selected}
-                onClose={() => setSelected(null)}
-                invoice={selected}
-                projectId={selected?.project_id}
-                onPaid={reloadInvoices}
+                open={false} // Disabled, left for fallback/rollback if needed
+                onClose={() => {}}
             />
 
             <InvoiceDetailModal open={!!detail} onClose={() => setDetail(null)} invoice={detail} />
-
-            </>
-            )}
         </>
     );
 }
