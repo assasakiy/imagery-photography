@@ -8,6 +8,7 @@ use App\Services\LoginTracker;
 use App\Services\NotificationService;
 use App\Services\RuntimeSettings;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Laravel\Socialite\Facades\Socialite;
 use Laravel\Socialite\Two\GoogleProvider;
@@ -82,6 +83,8 @@ class GoogleAuthController extends Controller
             return redirect('/login')->withErrors(['form' => 'Metode login Google dinonaktifkan untuk akun ini.']);
         }
 
+        $this->syncGoogleAvatar($user, $googleUser);
+
         Auth::login($user);
         session()->regenerate();
 
@@ -120,5 +123,40 @@ class GoogleAuthController extends Controller
             'client_secret' => $settings->googleClientSecret(),
             'redirect' => $settings->googleRedirectUrl(),
         ];
+    }
+
+    private function syncGoogleAvatar(User $user, $googleUser): void
+    {
+        if ($user->getFirstMedia('avatar')) {
+            return;
+        }
+
+        $photoUrl = $googleUser->getAvatar();
+        if (empty($photoUrl)) {
+            return;
+        }
+
+        try {
+            $response = Http::timeout(10)->withOptions(['CURLOPT_IPRESOLVE' => CURL_IPRESOLVE_V4])->get($photoUrl);
+            if ($response->successful()) {
+                $ext = match ($response->header('content-type')) {
+                    'image/png' => 'png',
+                    'image/gif' => 'gif',
+                    default => 'jpg',
+                };
+                $filename = "google-avatar-{$user->id}.{$ext}";
+                $tmpPath = storage_path("app/tmp/{$filename}");
+                @mkdir(dirname($tmpPath), 0755, true);
+                file_put_contents($tmpPath, $response->body());
+
+                $user->addMedia($tmpPath)
+                    ->usingName('Google Avatar')
+                    ->toMediaCollection('avatar');
+
+                @unlink($tmpPath);
+            }
+        } catch (\Throwable $e) {
+            Log::warning('google avatar sync failed', ['user_id' => $user->id, 'error' => $e->getMessage()]);
+        }
     }
 }
