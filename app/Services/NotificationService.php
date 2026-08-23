@@ -35,6 +35,7 @@ class NotificationService
         'redelivery.requested' => 'Permintaan unduh ulang',
         'booking.accepted' => 'Booking disetujui & dijadwalkan',
         'project.advanced' => 'Pesanan melaju ke tahap baru',
+        'redelivery.reviewed' => 'Unduh ulang disetujui/ditolak',
     ];
 
     /**
@@ -54,6 +55,7 @@ class NotificationService
             'payment.rejected', 'team.invited', 'auth.login',
             'redelivery.requested',
             'booking.accepted', 'project.advanced',
+            'redelivery.reviewed',
         ],
         'email' => [
             'booking.new', 'message.new', 'review.new',
@@ -63,6 +65,7 @@ class NotificationService
             'auth.invite', 'auth.set_password', 'auth.magic_link', 'order.gallery_ready', 'billing.invoice',
             'redelivery.requested',
             'booking.accepted', 'project.advanced',
+            'redelivery.reviewed',
         ],
         'whatsapp' => [
             'booking.new', 'message.new', 'review.new',
@@ -71,6 +74,7 @@ class NotificationService
             'auth.invite', 'auth.set_password', 'auth.magic_link', 'order.gallery_ready', 'billing.invoice',
             'redelivery.requested',
             'booking.accepted', 'project.advanced',
+            'redelivery.reviewed',
         ],
         'webhook' => [
             'booking.new', 'message.new', 'review.new',
@@ -79,6 +83,7 @@ class NotificationService
             'payment.rejected', 'team.invited',
             'redelivery.requested',
             'booking.accepted', 'project.advanced',
+            'redelivery.reviewed',
         ],
     ];
 

@@ -132,19 +132,21 @@ class ProjectShareController extends Controller
             }
 
             if (!empty($project->user->phone)) {
-                app(NotificationService::class)->whatsapp($project->user->phone, $waMsg, null, $project->user);
+                app(NotificationService::class)->whatsapp($project->user->phone, $waMsg, null, $project->user, 'redelivery.reviewed');
             }
 
             app(NotificationService::class)->email(
                 new \App\Mail\AlertMail($name, 'Status Unduh Ulang', $emailHtml),
-                $project->user->email
+                $project->user->email,
+                'redelivery.reviewed'
             );
 
             app(NotificationService::class)->inApp(
                 $project->user,
                 'Status Unduh Ulang',
                 "Permintaan unduh ulang {$project->name} {$statusStr}.",
-                $url
+                $url,
+                'redelivery.reviewed'
             );
         }
 
