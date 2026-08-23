@@ -7,7 +7,7 @@ import { BANK_ICON, WALLET_ICON, channelIcon, inferType } from '../../lib/paymen
 import { formatRupiah } from '../../components/ui';
 
 export default function PayInvoiceMethodPicker({ invoice, onSelectMethod }) {
-    const [methods, setMethods] = useState({ manual: { enabled: true, account_name: '', groups: [] }, gateway: { enabled: false, channels: [] } });
+    const [methods, setMethods] = useState({ manual: { enabled: true, groups: [] }, gateway: { enabled: false, channels: [] } });
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -71,7 +71,7 @@ export default function PayInvoiceMethodPicker({ invoice, onSelectMethod }) {
                                                 key={iIdx}
                                                 onClick={() => onSelectMethod({ 
                                                     type: 'manual', 
-                                                    data: { group, item: it, gtype, account_name: methods.manual.account_name } 
+                                                    data: { group, item: it, gtype, account_name: it.holder } 
                                                 })}
                                                 className="flex flex-col items-start gap-1 rounded-lg border border-line bg-surface p-4 text-left transition-all hover:border-brand-500 hover:bg-brand-50/50 dark:hover:bg-brand-500/10"
                                             >
