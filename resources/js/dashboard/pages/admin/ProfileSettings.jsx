@@ -398,7 +398,7 @@ export default function ProfileSettings() {
                         <Icon name="camera" size={18} />
                     </span>
                 </button>
-                <div className="px-5 pb-6 sm:px-8">
+                <div className="relative z-10 px-5 pb-6 sm:px-8">
                     <div className="-mt-12 flex items-end justify-between sm:-mt-14">
                         <div className="relative">
                             <button type="button" onClick={(e) => { if (!uploadingAvatar) setAvatarMenu({ x: e.clientX, y: e.clientY }); }} className="group relative" aria-label="Menu foto profil">
