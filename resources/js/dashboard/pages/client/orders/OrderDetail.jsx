@@ -355,6 +355,24 @@ export default function ProjectDetail() {
                 )}
             </div>
 
+            {/* CATATAN RIWAYAT */}
+            <div className="card p-4 sm:p-5">
+                <h3 className="mb-4 flex items-center gap-2 font-semibold text-ink"><Icon name="clock" size={16} /> Catatan Riwayat</h3>
+                <div className="relative ml-1 space-y-5 border-l-2 border-line/50 pl-4 sm:ml-2 sm:pl-5">
+                    {(project.updates || []).slice().sort((a, b) => new Date(a.created_at) - new Date(b.created_at)).length ? (
+                        project.updates.slice().sort((a, b) => new Date(a.created_at) - new Date(b.created_at)).map((u) => (
+                            <div key={u.id} className="relative min-w-0">
+                                <span className={`absolute -left-[23px] top-1.5 h-2.5 w-2.5 rounded-full ring-4 ring-surface sm:-left-[27px] ${u.kind === 'system' ? 'bg-brand-500' : 'bg-zinc-400 dark:bg-zinc-600'}`} />
+                                <p className={`break-words text-sm ${u.kind === 'system' ? 'text-ink' : 'text-ink-muted'}`}>{u.message}</p>
+                                <p className="mt-0.5 flex flex-wrap text-xs text-ink-muted/80">{u.kind === 'system' ? 'Update' : u.user || 'Tim'} · {formatDate(u.created_at)}</p>
+                            </div>
+                        ))
+                    ) : (
+                        <p className="text-sm text-ink-muted">Belum ada riwayat tercatat.</p>
+                    )}
+                </div>
+            </div>
+
             {/* SHARE LINK MODAL */}
             <Modal open={shareOpen} onClose={() => setShareOpen(false)} title="Kirim Link Akses" footer={
                 <button className="btn-primary" onClick={submitShareLink} disabled={sharing}>{sharing ? 'Mengirim...' : 'Kirim'}</button>
