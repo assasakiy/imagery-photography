@@ -102,6 +102,18 @@
                                         Dashboard
                                     </a>
                                 @endif
+                                <button type="button" data-theme-toggle aria-label="Ganti tema" class="group flex w-full items-center justify-between gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-ink-muted transition-colors hover:bg-surface-muted hover:text-ink">
+                                    <span class="flex items-center gap-2.5">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.92 0 1.36-.79 1.23-1.67-.12-.83.56-1.57 1.4-1.57.8 0 1.45.62 1.45 1.42 0 .8.65 1.42 1.45 1.42 2.65 0 4.87-2.15 4.87-4.8 0-5.5-4.5-10-10-10Z"/></svg>
+                                        Tema
+                                    </span>
+                                    <span class="pointer-events-none relative flex h-7 w-12 shrink-0 items-center rounded-full bg-zinc-200 px-1 transition-colors duration-300 dark:bg-zinc-700">
+                                        <span class="flex h-5 w-5 items-center justify-center rounded-full bg-white shadow-sm transition-transform duration-300 dark:translate-x-5 dark:shadow-md">
+                                            <svg data-icon="sun" xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-amber-500 dark:hidden"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+                                            <svg data-icon="moon" xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden text-brand-400 dark:block"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+                                        </span>
+                                    </span>
+                                </button>
                                 <form method="POST" action="{{ route('logout') }}">
                                     @csrf
                                     <button type="submit" class="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-red-500 transition-colors hover:bg-surface-muted">
@@ -121,12 +133,14 @@
                     </div>
                 @endguest
 
+                @guest
                 <button type="button" data-theme-toggle aria-label="Ganti tema" class="relative hidden h-8 w-14 shrink-0 items-center rounded-full bg-zinc-200 px-1 transition-colors duration-300 dark:bg-zinc-700 lg:flex">
                     <span class="flex h-6 w-6 items-center justify-center rounded-full bg-white shadow-sm transition-transform duration-300 dark:translate-x-6 dark:shadow-md">
                         <svg data-icon="sun" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-amber-500 dark:hidden"><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" /></svg>
                         <svg data-icon="moon" xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden text-indigo-400 dark:block"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" /></svg>
                     </span>
                 </button>
+                @endguest
 
                 <button type="button" data-menu-toggle aria-label="Buka menu" aria-expanded="false" class="rounded-lg p-2 text-ink-muted transition-colors hover:bg-surface-muted hover:text-ink lg:hidden">
                     <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16" /></svg>
