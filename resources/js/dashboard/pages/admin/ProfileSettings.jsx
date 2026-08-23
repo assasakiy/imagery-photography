@@ -16,6 +16,80 @@ import { AvatarViewModal, AvatarRemoveModal, CoverViewModal, CoverRemoveModal, D
 
 const ROLE_LABEL = { owner: 'Pemilik', admin: 'Dashboard Admin', client: 'Portal Klien' };
 
+function PhotoActionMenu({ open, uploading, canDelete, onClose, onView, onChange, onDelete }) {
+    useEffect(() => {
+        if (!open) return;
+        const onKey = (e) => { if (e.key === 'Escape') onClose(); };
+        window.addEventListener('keydown', onKey);
+        return () => window.removeEventListener('keydown', onKey);
+    }, [open, onClose]);
+
+    if (!open || uploading) return null;
+
+    const items = [
+        { key: 'view', label: 'Lihat', icon: 'eye', action: onView },
+        { key: 'change', label: 'Ubah', icon: 'upload', action: onChange },
+        ...(canDelete ? [{ key: 'delete', label: 'Hapus', icon: 'trash', danger: true, action: onDelete }] : []),
+    ];
+
+    const run = (fn) => { onClose(); fn(); };
+    const left = Math.min(open.x, window.innerWidth - 210);
+    const top = Math.min(open.y, window.innerHeight - 190);
+
+    return (
+        <>
+            {/* Desktop: dropdown di posisi klik */}
+            <div className="fixed inset-0 z-40 hidden lg:block" onClick={onClose} onContextMenu={(e) => { e.preventDefault(); onClose(); }} />
+            <div
+                className="fixed z-50 hidden min-w-[190px] overflow-hidden rounded-xl border border-line bg-surface py-1.5 shadow-2xl lg:block"
+                style={{ left, top }}
+                role="menu"
+            >
+                {items.map((it) => (
+                    <button
+                        key={it.key}
+                        type="button"
+                        role="menuitem"
+                        onClick={() => run(it.action)}
+                        className={`flex w-full items-center gap-2.5 px-4 py-2.5 text-left text-sm font-medium transition-colors hover:bg-surface-muted ${
+                            it.danger ? 'text-red-600 dark:text-red-400' : 'text-ink'
+                        }`}
+                    >
+                        <Icon name={it.icon} size={16} /> {it.label}
+                    </button>
+                ))}
+            </div>
+
+            {/* Mobile/tablet: bottom sheet */}
+            <div className="fixed inset-0 z-50 lg:hidden">
+                <div className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-fade-in" onClick={onClose} />
+                <div className="animate-sheet-up absolute inset-x-0 bottom-0 rounded-t-2xl border-t border-line bg-surface p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-2xl">
+                    <div className="mx-auto mb-2 h-1 w-10 rounded-full bg-line" />
+                    {items.map((it) => (
+                        <button
+                            key={it.key}
+                            type="button"
+                            onClick={() => run(it.action)}
+                            className={`flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm font-semibold transition-colors hover:bg-surface-muted ${
+                                it.danger ? 'text-red-600 dark:text-red-400' : 'text-ink'
+                            }`}
+                        >
+                            <Icon name={it.icon} size={18} /> {it.label}
+                        </button>
+                    ))}
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        className="btn-outline mt-2 w-full justify-center py-3 text-sm"
+                    >
+                        Batal
+                    </button>
+                </div>
+            </div>
+        </>
+    );
+}
+
 const TABS = [
     { key: 'profile', label: 'Profil', icon: 'user' },
     { key: 'social', label: 'Media Sosial', icon: 'link' },
@@ -48,6 +122,8 @@ export default function ProfileSettings() {
     const [coverRemoveOpen, setCoverRemoveOpen] = useState(false);
     const [uploadingCover, setUploadingCover] = useState(false);
     const [uploadingAvatar, setUploadingAvatar] = useState(false);
+    const [coverMenu, setCoverMenu] = useState(null);
+    const [avatarMenu, setAvatarMenu] = useState(null);
     const [viewOpen, setViewOpen] = useState(false);
     const [removeOpen, setRemoveOpen] = useState(false);
     const [deleteOpen, setDeleteOpen] = useState(false);
@@ -306,9 +382,9 @@ export default function ProfileSettings() {
             <div className="card overflow-hidden">
                 <button
                     type="button"
-                    onClick={() => !uploadingCover && setCoverViewOpen(true)}
+                    onClick={(e) => { if (!uploadingCover) setCoverMenu({ x: e.clientX, y: e.clientY }); }}
                     className="group relative block h-32 w-full overflow-hidden sm:h-40"
-                    aria-label="Lihat banner profil"
+                    aria-label="Menu banner profil"
                 >
                     {coverUrl ? (
                         <img src={coverUrl} alt="" className={`h-full w-full object-cover transition-all ${uploadingCover ? 'scale-105 blur-sm' : ''}`} />
@@ -332,7 +408,7 @@ export default function ProfileSettings() {
                 <div className="px-5 pb-6 sm:px-8">
                     <div className="-mt-12 flex items-end justify-between sm:-mt-14">
                         <div className="relative">
-                            <button type="button" onClick={() => !uploadingAvatar && setViewOpen(true)} className="group relative" aria-label="Lihat foto profil">
+                            <button type="button" onClick={(e) => { if (!uploadingAvatar) setAvatarMenu({ x: e.clientX, y: e.clientY }); }} className="group relative" aria-label="Menu foto profil">
                                 <Avatar src={avatarUrl} name={profile.full_name} size="2xl" shape="full" className={`ring-4 ring-surface transition-all ${uploadingAvatar ? 'blur-[2px]' : ''}`} />
                                 {uploadingAvatar ? (
                                     <span className="absolute inset-0 flex items-center justify-center rounded-full bg-black/60 text-white backdrop-blur-[1px]" title="Mengunggah foto…">
@@ -415,6 +491,25 @@ export default function ProfileSettings() {
                     </div>
                 </div>
             </div>
+
+            <PhotoActionMenu
+                open={coverMenu}
+                uploading={uploadingCover}
+                canDelete={!!coverUrl}
+                onClose={() => setCoverMenu(null)}
+                onView={() => setCoverViewOpen(true)}
+                onChange={() => coverInputRef.current?.click()}
+                onDelete={() => setCoverRemoveOpen(true)}
+            />
+            <PhotoActionMenu
+                open={avatarMenu}
+                uploading={uploadingAvatar}
+                canDelete={!!avatarUrl}
+                onClose={() => setAvatarMenu(null)}
+                onView={() => setViewOpen(true)}
+                onChange={() => avatarInputRef.current?.click()}
+                onDelete={() => setRemoveOpen(true)}
+            />
 
             <AvatarViewModal open={viewOpen} onClose={() => setViewOpen(false)} avatarUrl={avatarUrl} profile={profile} onEdit={() => avatarInputRef.current?.click()} onRemove={() => setRemoveOpen(true)} />
             <AvatarRemoveModal open={removeOpen} onClose={() => setRemoveOpen(false)} saving={saving} onConfirm={removeAvatar} />
