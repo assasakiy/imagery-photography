@@ -237,6 +237,10 @@ class PaymentController extends Controller
             'method' => 'required|in:manual_transfer,gateway',
             'notes' => 'nullable|string',
             'proof_file' => 'nullable|file|max:10240',
+            'channel_type' => 'nullable|string|max:20',
+            'channel_label' => 'nullable|string|max:100',
+            'account_number' => 'nullable|string|max:50',
+            'account_name' => 'nullable|string|max:100',
         ]);
 
         $payment = Payment::create([
@@ -245,6 +249,10 @@ class PaymentController extends Controller
             'method' => $data['method'],
             'status' => 'pending',
             'notes' => $data['notes'] ?? null,
+            'channel_type' => $data['channel_type'] ?? null,
+            'channel_label' => $data['channel_label'] ?? null,
+            'account_number' => $data['account_number'] ?? null,
+            'account_name' => $data['account_name'] ?? null,
         ]);
 
         if ($request->hasFile('proof_file')) {

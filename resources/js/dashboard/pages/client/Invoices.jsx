@@ -173,7 +173,7 @@ export default function ClientInvoices() {
 
                                 {it.payment_state === 'proof_rejected' && (
                                     <>
-                                        <Link to={`/dashboard/client-invoices/${it.id}/bayar`} className="btn-primary flex-1 justify-center py-2">
+                                        <Link to={`/dashboard/client-invoices/${it.id}/bayar?step=confirm`} className="btn-primary flex-1 justify-center py-2">
                                             <Icon name="upload" size={14} />
                                             Upload Ulang Bukti
                                         </Link>

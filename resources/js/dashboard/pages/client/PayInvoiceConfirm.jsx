@@ -52,6 +52,11 @@ export default function PayInvoiceConfirm({ invoice, method, onSuccess }) {
 
         data.append('proof_file', form.proof);
 
+        data.append('channel_type', method.data.gtype || '');
+        data.append('channel_label', method.data.item.merchant || method.data.item.name || '');
+        data.append('account_number', method.data.item.number || '');
+        data.append('account_name', method.data.item.holder || '');
+
         try {
             await api.post(`/projects/${invoice.project_id}/payments`, data, {
                 headers: { 'Content-Type': 'multipart/form-data' },

@@ -195,6 +195,10 @@ class CustomerController extends Controller
                         'id' => $latestPayment->id,
                         'status' => $latestPayment->status,
                         'notes' => $latestPayment->notes,
+                        'channel_type' => $latestPayment->channel_type,
+                        'channel_label' => $latestPayment->channel_label,
+                        'account_number' => $latestPayment->account_number,
+                        'account_name' => $latestPayment->account_name,
                     ] : null,
                 ];
             });

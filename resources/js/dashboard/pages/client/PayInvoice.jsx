@@ -35,13 +35,31 @@ export default function PayInvoice() {
             .finally(() => setLoading(false));
     }, [id]);
 
-    // Restore state from previous attempts if user navigates via browser back
+    // Restore state from previous attempts if user navigates via browser back.
+    // For proof_rejected: reconstruct selectedMethod from structured channel data
+    // so user lands directly on confirm step.
     useEffect(() => {
         if (step !== 'method' && !selectedMethod) {
-            // Can't be on instruction/confirm if no method selected. Redirect to start.
-            setSearchParams({ step: 'method' });
+            const lp = invoice?.latest_payment;
+            if (invoice?.payment_state === 'proof_rejected' && lp?.channel_type) {
+                setSelectedMethod({
+                    type: 'manual',
+                    data: {
+                        gtype: lp.channel_type,
+                        item: {
+                            name: lp.channel_label,
+                            number: lp.account_number,
+                            holder: lp.account_name,
+                            merchant: lp.channel_type === 'qris' ? lp.channel_label : null,
+                        },
+                        account_name: lp.account_name,
+                    },
+                });
+            } else {
+                setSearchParams({ step: 'method' });
+            }
         }
-    }, [step, selectedMethod, setSearchParams]);
+    }, [step, selectedMethod, invoice, setSearchParams]);
 
     const setStep = (newStep) => setSearchParams({ step: newStep });
 

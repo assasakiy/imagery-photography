@@ -10,7 +10,7 @@ class Payment extends Model implements HasMedia
 {
     use InteractsWithMedia;
 
-    protected $fillable = ['project_id', 'amount', 'method', 'gateway', 'gateway_ref', 'gateway_method', 'checkout_url', 'status', 'notes', 'paid_at'];
+    protected $fillable = ['project_id', 'amount', 'method', 'gateway', 'gateway_ref', 'gateway_method', 'checkout_url', 'status', 'notes', 'paid_at', 'channel_type', 'channel_label', 'account_number', 'account_name'];
 
     protected $appends = ['proof_url', 'proof_mime'];
 
