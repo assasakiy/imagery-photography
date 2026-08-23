@@ -27,7 +27,8 @@ class ProjectShareController extends Controller
                     $project->user->phone,
                     "Halo {$name}, silakan akses pesanan *{$project->name}* Anda di dashboard:\n{$url}",
                     null,
-                    $project->user
+                    $project->user,
+                    'project.access_link_sent'
                 );
             }
 
@@ -39,14 +40,16 @@ class ProjectShareController extends Controller
                     "Silakan akses pesanan <strong>{$project->name}</strong> Anda di dashboard.<br><br>" .
                     "<a href='{$url}' style='background: #7c3aed; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;'>Lihat Pesanan</a>"
                 ),
-                $project->user->email
+                $project->user->email,
+                'project.access_link_sent'
             );
 
             app(NotificationService::class)->inApp(
                 $project->user,
                 'Tautan Akses Pesanan',
                 "Tautan akses pesanan {$project->name} telah dikirim.",
-                $url
+                $url,
+                'project.access_link_sent'
             );
         }
 
