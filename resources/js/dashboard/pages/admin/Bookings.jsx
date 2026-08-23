@@ -270,11 +270,8 @@ export default function Bookings() {
                     </div>
                 ) : detail?.status === 'confirmed' ? (
                     <div className="flex w-full justify-between gap-2">
-                        <button className="btn-outline text-red-600 hover:bg-red-50 hover:text-red-700 hover:border-red-200" onClick={() => setRejectOpen(true)}>Batal / Tolak</button>
-                        <div className="flex gap-2">
-                            <button className="btn-outline" onClick={startEdit}>Ubah</button>
-                            <button className="btn-primary" onClick={startAccept}>Buat Proyek</button>
-                        </div>
+                        <button className="btn-outline text-red-600 hover:bg-red-50 hover:text-red-700 hover:border-red-200" onClick={() => setRejectOpen(true)}>Tolak</button>
+                        <button className="btn-primary" onClick={startAccept}>Buat Proyek</button>
                     </div>
                 ) : null
             }>
@@ -352,7 +349,7 @@ export default function Bookings() {
             <Modal open={acceptOpen} onClose={() => setAcceptOpen(false)} title="Terima Booking -> Buat Proyek" wide footer={
                 <div className="flex justify-end gap-2">
                     <button className="btn-outline" onClick={() => setAcceptOpen(false)}>Batal</button>
-                    <button className="btn-primary" onClick={handleAccept} disabled={saving}>{saving ? 'Membuat...' : 'Buat Proyek'}</button>
+                    <button className="btn-primary" onClick={handleAccept} disabled={saving}>{saving ? 'Memproses...' : 'Konfirmasi'}</button>
                 </div>
             }>
                 <form id="accept-form" className="grid grid-cols-1 gap-4 sm:grid-cols-2">
