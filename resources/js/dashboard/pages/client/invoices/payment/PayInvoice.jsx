@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useParams, useSearchParams, useNavigate, Link } from 'react-router-dom';
-import api from '../../api';
-import Icon from '../../components/Icon';
-import { FormSkeleton } from '../../components/Skeleton';
-import { getApiErrorMessage } from '../../lib/errors';
-import { toast } from '../../lib/toast';
+import api from '../../../../api';
+import Icon from '../../../../components/Icon';
+import { FormSkeleton } from '../../../../components/Skeleton';
+import { getApiErrorMessage } from '../../../../lib/errors';
+import { toast } from '../../../../lib/toast';
+import { inferType } from '../../../../lib/paymentHelpers';
 
 import PayInvoiceMethodPicker from './PayInvoiceMethodPicker';
 import PayInvoiceInstructions from './PayInvoiceInstructions';
@@ -36,14 +37,14 @@ export default function PayInvoice() {
     }, [id]);
 
     // Restore state from previous attempts if user navigates via browser back.
-    // For proof_rejected: reconstruct selectedMethod from structured channel data
-    // so user lands directly on confirm step.
+    // For proof_rejected: reconstruct selectedMethod from structured channel data,
+    // then fetch fresh payment methods to enrich QRIS payload (avoid stale/missing qris string).
     useEffect(() => {
-        if (loading) return; // wait for invoice fetch to complete
+        if (loading) return;
         if (step !== 'method' && !selectedMethod) {
             const lp = invoice?.latest_payment;
             if (invoice?.payment_state === 'proof_rejected' && lp?.channel_type) {
-                setSelectedMethod({
+                const base = {
                     type: 'manual',
                     data: {
                         gtype: lp.channel_type,
@@ -55,7 +56,26 @@ export default function PayInvoice() {
                         },
                         account_name: lp.account_name,
                     },
-                });
+                };
+                // For QRIS: fetch fresh payload from payment methods API to avoid stale/missing qris string
+                if (lp.channel_type === 'qris') {
+                    api.get('/customer/payment-methods')
+                        .then(({ data }) => {
+                            const groups = data?.manual?.groups || [];
+                            const match = groups
+                                .filter(g => inferType(g) === 'qris')
+                                .flatMap(g => (g.accounts || []).map(a => ({ group: g, item: a })))
+                                .find(e => e.item.merchant === lp.channel_label);
+                            if (match) {
+                                base.data.item.qris = match.item.qris;
+                                base.data.group = match.group;
+                            }
+                            setSelectedMethod(base);
+                        })
+                        .catch(() => setSelectedMethod(base));
+                } else {
+                    setSelectedMethod(base);
+                }
             } else {
                 setSearchParams({ step: 'method' });
             }
@@ -180,7 +200,8 @@ export default function PayInvoice() {
             {step === 'method' && (
                 <PayInvoiceMethodPicker 
                     invoice={invoice} 
-                    onSelectMethod={handleMethodSelect} 
+                    onSelectMethod={handleMethodSelect}
+                    initialSelected={selectedMethod}
                 />
             )}
 
@@ -190,6 +211,7 @@ export default function PayInvoice() {
                     method={selectedMethod}
                     loading={proceeding}
                     onProceed={handleInstructionsProceed}
+                    onBack={() => setStep('method')}
                 />
             )}
 
@@ -198,6 +220,7 @@ export default function PayInvoice() {
                     invoice={invoice} 
                     method={selectedMethod} 
                     onSuccess={() => navigate('/dashboard/client-invoices')}
+                    onBack={() => setStep('method')}
                 />
             )}
         </div>

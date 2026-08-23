@@ -1,11 +1,11 @@
 import { useState, useRef } from 'react';
-import api from '../../api';
-import Icon from '../../components/Icon';
-import { Field, ButtonSpinner } from '../../components/ui';
-import { toast } from '../../lib/toast';
-import { getApiErrorMessage } from '../../lib/errors';
+import api from '../../../../api';
+import Icon from '../../../../components/Icon';
+import { Field, ButtonSpinner } from '../../../../components/ui';
+import { toast } from '../../../../lib/toast';
+import { getApiErrorMessage } from '../../../../lib/errors';
 
-export default function PayInvoiceConfirm({ invoice, method, onSuccess }) {
+export default function PayInvoiceConfirm({ invoice, method, onSuccess, onBack }) {
     const [form, setForm] = useState({ notes: '', proof: null });
     const [saving, setSaving] = useState(false);
     const proofRef = useRef(null);
@@ -131,7 +131,7 @@ export default function PayInvoiceConfirm({ invoice, method, onSuccess }) {
                     />
                 </Field>
 
-                <div className="mt-8 flex gap-3">
+                <div className="mt-8 flex flex-col gap-2">
                     <button 
                         type="submit" 
                         disabled={saving || !form.proof} 
@@ -139,6 +139,11 @@ export default function PayInvoiceConfirm({ invoice, method, onSuccess }) {
                     >
                         {saving ? <ButtonSpinner /> : 'Kirim Bukti Pembayaran'}
                     </button>
+                    {onBack && (
+                        <button type="button" onClick={onBack} className="text-center text-xs text-brand-600 hover:underline dark:text-brand-400">
+                            Ganti metode pembayaran
+                        </button>
+                    )}
                 </div>
             </form>
         </div>

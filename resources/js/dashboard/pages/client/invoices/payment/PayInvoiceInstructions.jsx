@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
-import Icon from '../../components/Icon';
-import { copyToClipboard } from '../../lib/clipboard';
-import { useQrCode, BANK_ICON, WALLET_ICON } from '../../lib/paymentHelpers';
-import { dynamicQris } from '../../utils/qris';
-import { formatRupiah, ButtonSpinner } from '../../components/ui';
+import Icon from '../../../../components/Icon';
+import { copyToClipboard } from '../../../../lib/clipboard';
+import { useQrCode, BANK_ICON, WALLET_ICON } from '../../../../lib/paymentHelpers';
+import { dynamicQris } from '../../../../utils/qris';
+import { formatRupiah, ButtonSpinner } from '../../../../components/ui';
 
-export default function PayInvoiceInstructions({ invoice, method, loading = false, onProceed }) {
+export default function PayInvoiceInstructions({ invoice, method, loading = false, onProceed, onBack }) {
     const isManual = method.type === 'manual';
     const isGateway = method.type === 'gateway';
     
@@ -99,11 +99,14 @@ export default function PayInvoiceInstructions({ invoice, method, loading = fals
                     >
                         {loading ? <ButtonSpinner /> : isGateway ? 'Lanjut ke Halaman Pembayaran' : 'Saya Sudah Transfer'}
                     </button>
-                    {!isGateway && (
-                        <p className="text-center text-xs text-ink-muted">
-                            Siapkan bukti screenshot/foto struk transfer Anda.
-                        </p>
-                    )}
+                    <div className="flex items-center justify-center gap-3 text-xs text-ink-muted">
+                        {!isGateway && <span>Siapkan bukti screenshot/foto struk transfer Anda.</span>}
+                        {onBack && (
+                            <button type="button" onClick={onBack} className="text-brand-600 hover:underline dark:text-brand-400">
+                                Ganti metode pembayaran
+                            </button>
+                        )}
+                    </div>
                 </div>
             </div>
         </div>

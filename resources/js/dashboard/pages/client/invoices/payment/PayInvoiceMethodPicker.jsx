@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
-import api from '../../api';
-import Icon from '../../components/Icon';
-import { ListSkeleton } from '../../components/Skeleton';
-import { toast } from '../../lib/toast';
-import { BANK_ICON, WALLET_ICON, channelIcon, inferType } from '../../lib/paymentHelpers';
+import api from '../../../../api';
+import Icon from '../../../../components/Icon';
+import { ListSkeleton } from '../../../../components/Skeleton';
+import { toast } from '../../../../lib/toast';
+import { BANK_ICON, WALLET_ICON, channelIcon, inferType } from '../../../../lib/paymentHelpers';
 
 function MethodOption({ selected, onClick, icon, title, subtitle, badge }) {
     return (
@@ -50,14 +50,42 @@ const AUTO_BADGE = (
     </span>
 );
 
-export default function PayInvoiceMethodPicker({ invoice, onSelectMethod }) {
+export default function PayInvoiceMethodPicker({ invoice, onSelectMethod, initialSelected }) {
     const [methods, setMethods] = useState({ manual: { enabled: true, groups: [] }, gateway: { enabled: false, channels: [] } });
     const [loading, setLoading] = useState(true);
     const [selected, setSelected] = useState(null);
 
     useEffect(() => {
         api.get('/customer/payment-methods')
-            .then(({ data }) => setMethods(data))
+            .then(({ data }) => {
+                setMethods(data);
+                // Pre-select from initialSelected (reconstructed from channel fields)
+                if (initialSelected && !selected) {
+                    const gtype = initialSelected.data?.gtype;
+                    const channelLabel = initialSelected.data?.item?.name || initialSelected.data?.item?.merchant;
+                    const accountNumber = initialSelected.data?.item?.number;
+                    if (gtype && channelLabel) {
+                        // Search in manual groups
+                        const groups = data?.manual?.groups || [];
+                        for (let gi = 0; gi < groups.length; gi++) {
+                            const g = groups[gi];
+                            const gt = inferType(g);
+                            if (gt !== gtype) continue;
+                            const accounts = g.accounts || [];
+                            for (let ai = 0; ai < accounts.length; ai++) {
+                                const it = accounts[ai];
+                                const match = gtype === 'qris'
+                                    ? (it.merchant === channelLabel)
+                                    : (it.number === accountNumber && (it.name || it.merchant) === channelLabel);
+                                if (match) {
+                                    setSelected({ key: `mn-${gi}-${ai}`, type: 'manual', data: { group: g, item: it, gtype: gt, account_name: it.holder } });
+                                    return;
+                                }
+                            }
+                        }
+                    }
+                }
+            })
             .catch(() => toast.error('Gagal memuat metode pembayaran.'))
             .finally(() => setLoading(false));
     }, []);
