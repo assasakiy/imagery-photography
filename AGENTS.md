@@ -107,7 +107,9 @@ Halaman dashboard yang punya beberapa tab **WAJIB** dipisah ke folder `pages/<na
 - **Media Library**: model butuh `$fillable=['id']`; `LandingContent::setValue` pertahankan `group`; reset landing images meninggalkan media orphan (TODO).
 - **Test**: skrip di `/home/opc` (`spa_test.py`, `final_test.py`, `access_test.py`); `/etc/hosts` berisi `127.0.0.1 imagery.my.id`; `/tmp/opencode` TIDAK writable.
 
-## 13. Sesi Terbaru — Jarak Antar Card di Detail Pesanan Klien
-- **Spacing (`f01edb2`):** kartu "Catatan Riwayat" di OrderDetail klien diberi `mt-6` agar ada jarak konsisten (24px) dengan panel tahap di atasnya — sebelumnya menempel langsung.
+## 13. Sesi Terbaru — Penutupan 3 Gap UI Tagihan
+- **Badge = payment_state (`894ed7a`):** badge kartu tagihan klien tidak lagi memakai `invoice.status` mentah — kini diturunkan dari `payment_state` (sistem yg sama dgn tombol aksi) via helper `badgeMeta()`: paid→"Lunas", pending_verification→"Menunggu Verifikasi", proof_rejected→"Bukti Ditolak"; `invoice.status` hanya dipakai utk sub-status unpaid (Belum Bayar/Menunggu DP/Cicilan/DP). Kartu tak mungkin kontradiktif lagi.
+- **Mapping expired:** `STATUS_META` (Invoices.jsx) & `PAY_STATUS` (InvoiceDetailModal.jsx) kini mengenal `expired` → "Kedaluwarsa/Kadaluarsa" (abu, bukan label mentah Inggris).
+- **Bukti PDF:** InvoiceDetailModal & admin Payments mendeteksi URL `.pdf` — render chip file merah + "Lihat Bukti (PDF)" (icon `file-text`) alih-alih `<img>` rusak; gambar tetap thumbnail.
 
 *Untuk rincian arsitektural teknis (lifecycle Media, mekanisme RBAC, dan khususnya sistem **progressive loading dashboard**), silakan baca file-file spesifik di direktori `/docs/`.*
