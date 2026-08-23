@@ -87,37 +87,56 @@ export default function Categories() {
             />
 
             {loading ? (
-                <CardGridSkeleton count={6} cols="sm:grid-cols-2 lg:grid-cols-3" ratio="photo" metaLines={2} />
+                <DataTableSkeleton
+                    columns={[
+                        { label: 'Nama', width: '25%' },
+                        { label: 'Keterangan', width: '35%' },
+                        { label: 'Artikel', width: '15%' },
+                        { label: 'Status', width: '15%', shape: 'badge' },
+                        { label: 'Aksi', width: '10%', shape: 'actions' },
+                    ]}
+                />
             ) : items.length ? (
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-                    {items.map((item) => (
-                        <div key={item.id} className="card p-5">
-                            <div className="flex items-start justify-between gap-2">
-                                <div className="min-w-0">
-                                    <div className="flex flex-wrap items-center gap-2">
-                                        <h3 className="font-bold text-ink">{item.name}</h3>
+                <div className="card overflow-x-auto">
+                    <table className="table">
+                        <thead>
+                            <tr>
+                                <th>Nama</th>
+                                <th>Keterangan</th>
+                                <th>Artikel</th>
+                                <th>Status</th>
+                                <th className="text-right">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {items.map((item) => (
+                                <tr key={item.id}>
+                                    <td className="font-bold text-ink">{item.name}</td>
+                                    <td className="text-xs text-ink-muted max-w-sm truncate" title={item.description}>{item.description || '-'}</td>
+                                    <td className="text-sm font-medium">{item.blogs_count || 0}</td>
+                                    <td>
                                         {item.is_system && (
                                             <span className="badge bg-brand-500/15 text-brand-600 dark:text-brand-400">
                                                 <Icon name="settings" size={11} /> Sistem
                                             </span>
                                         )}
-                                    </div>
-                                    {item.description && <p className="mt-1 text-sm text-ink-muted">{item.description}</p>}
-                                </div>
-                                <div className="flex gap-1">
-                                    <button onClick={() => openEdit(item)} className="rounded-lg p-1.5 text-ink-muted hover:bg-surface-muted hover:text-brand-600" aria-label="Edit">
-                                        <Icon name="edit" size={16} />
-                                    </button>
-                                    {!item.is_system && (
-                                        <button onClick={() => setDeleting(item)} className="rounded-lg p-1.5 text-ink-muted hover:bg-surface-muted hover:text-red-500" aria-label="Hapus">
-                                            <Icon name="trash" size={16} />
-                                        </button>
-                                    )}
-                                </div>
-                            </div>
-                            <p className="mt-3 text-xs text-ink-muted">{item.blogs_count} artikel</p>
-                        </div>
-                    ))}
+                                    </td>
+                                    <td>
+                                        <div className="flex justify-end gap-1">
+                                            <button onClick={() => openEdit(item)} className="rounded-lg p-1.5 text-ink-muted hover:bg-surface-muted hover:text-brand-600" aria-label="Edit" title="Edit">
+                                                <Icon name="edit" size={16} />
+                                            </button>
+                                            {!item.is_system && (
+                                                <button onClick={() => setDeleting(item)} className="rounded-lg p-1.5 text-ink-muted hover:bg-surface-muted hover:text-red-500" aria-label="Hapus" title="Hapus">
+                                                    <Icon name="trash" size={16} />
+                                                </button>
+                                            )}
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
                 </div>
             ) : (
                 <EmptyState title="Belum ada kategori" />

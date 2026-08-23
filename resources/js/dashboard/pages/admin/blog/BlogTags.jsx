@@ -87,21 +87,42 @@ export default function BlogTags() {
             />
 
             {loading ? (
-                <CardGridSkeleton count={12} cols="sm:grid-cols-2 lg:grid-cols-4" ratio="none" metaLines={2} />
+                <DataTableSkeleton
+                    columns={[
+                        { label: 'Tag', width: '50%' },
+                        { label: 'Jumlah Artikel', width: '30%' },
+                        { label: 'Aksi', width: '20%', shape: 'actions' },
+                    ]}
+                />
             ) : items.length ? (
-                <div className="flex flex-wrap gap-2">
-                    {items.map((item) => (
-                        <span key={item.id} className="card group flex items-center gap-2 px-4 py-2 text-sm">
-                            <span className="font-medium text-ink">#{item.name}</span>
-                            <span className="text-xs text-ink-muted">{item.posts_count}</span>
-                            <button onClick={() => openEdit(item)} className="rounded p-1 text-ink-muted hover:text-brand-600" aria-label="Edit">
-                                <Icon name="edit" size={14} />
-                            </button>
-                            <button onClick={() => setDeleting(item)} className="rounded p-1 text-ink-muted hover:text-red-500" aria-label="Hapus">
-                                <Icon name="trash" size={14} />
-                            </button>
-                        </span>
-                    ))}
+                <div className="card overflow-x-auto">
+                    <table className="table">
+                        <thead>
+                            <tr>
+                                <th>Tag</th>
+                                <th>Jumlah Artikel</th>
+                                <th className="text-right">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {items.map((item) => (
+                                <tr key={item.id}>
+                                    <td className="font-medium text-ink">#{item.name}</td>
+                                    <td className="text-sm">{item.posts_count || 0}</td>
+                                    <td>
+                                        <div className="flex justify-end gap-1">
+                                            <button onClick={() => openEdit(item)} className="rounded-lg p-1.5 text-ink-muted hover:bg-surface-muted hover:text-brand-600" aria-label="Edit" title="Edit">
+                                                <Icon name="edit" size={16} />
+                                            </button>
+                                            <button onClick={() => setDeleting(item)} className="rounded-lg p-1.5 text-ink-muted hover:bg-surface-muted hover:text-red-500" aria-label="Hapus" title="Hapus">
+                                                <Icon name="trash" size={16} />
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
                 </div>
             ) : (
                 <EmptyState title="Belum ada tag" />
