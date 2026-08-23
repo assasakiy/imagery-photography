@@ -4,7 +4,7 @@ import api from '../../../api';
 import { toast } from '../../../lib/toast';
 import Icon from '../../../components/Icon';
 import { PageHeader, EmptyState, formatRupiah, formatDate } from '../../../components/ui';
-import Skeleton from '../../../components/Skeleton';
+import { CardGridSkeleton } from '../../../components/Skeleton';
 
 const statusOptions = [
     { value: 'scheduled', label: 'Dijadwalkan', color: 'bg-amber-500/15 text-amber-600 dark:text-amber-400' },
@@ -51,7 +51,7 @@ export default function Orders() {
             </div>
 
             {loading ? (
-                <Skeleton variant="card" />
+                <CardGridSkeleton count={4} cols="md:grid-cols-2" ratio="none" badge metaLines={3} />
             ) : items.length ? (
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     {items.map((item) => (

@@ -87,7 +87,7 @@ export default function ClientBookings() {
                 action={<button className="btn-primary" onClick={() => setCreateOpen(true)}>Buat Booking Baru</button>}
             />
             {loading ? (
-                <CardGridSkeleton count={4} cols="md:grid-cols-2" ratio="none" badge metaLines={3} />
+                <CardListSkeleton count={4} />
             ) : items.length ? (
                 <div className="space-y-4">
                     {items.map((b) => (
