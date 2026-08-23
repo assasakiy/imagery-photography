@@ -172,6 +172,7 @@ class BookingApiController extends Controller
             'booking_id' => $booking->id,
             'project_id' => $project->id,
         ]);
+        app(NotificationService::class)->notifyBookingAccepted($booking, $project);
 
         return response()->json([
             'booking' => $booking->fresh(['user.profile', 'package']),

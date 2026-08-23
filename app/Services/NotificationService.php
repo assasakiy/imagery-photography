@@ -275,7 +275,7 @@ class NotificationService
         $title = 'Pembayaran Baru';
         $msg = "{$clientName} telah melakukan pembayaran sebesar Rp " . number_format($payment->amount, 0, ',', '.') . " untuk pesanan {$project->name}. Menunggu konfirmasi Anda.";
         
-        $admins = \App\Models\User::whereIn('role', ['admin', 'owner'])->get();
+        $admins = \App\Models\User::role(['admin', 'owner'])->get();
         foreach ($admins as $admin) {
             $this->inApp($admin, $title, $msg, '/dashboard/payments', 'payment.submitted');
         }
@@ -289,7 +289,7 @@ class NotificationService
         $msg = "Pembayaran Anda sebesar *Rp " . number_format($payment->amount, 0, ',', '.') . "* untuk pesanan *{$project->name}* telah kami terima. Terima kasih!";
         $html = "Halo <strong>{$project->user->name}</strong>,<br><br>" .
                 "Pembayaran sebesar <strong>Rp " . number_format($payment->amount, 0, ',', '.') . "</strong> untuk pesanan <strong>{$project->name}</strong> telah kami terima.<br><br>" .
-                "Terima kasih telah melakukan pembayaran.";
+                "Terima kasih atas kepercayaannya!";
 
         if (!empty($project->user->phone)) {
             $this->whatsapp($project->user->phone, $msg, null, $project->user, 'payment.confirmed');
@@ -298,9 +298,22 @@ class NotificationService
         $this->inApp($project->user, 'Pembayaran Diterima', $msg, $this->orderUrl($project), 'payment.confirmed');
     }
 
-    /**
-     * Notifikasi pembayaran ditolak.
-     */
+    public function notifyBookingAccepted(\App\Models\Booking $booking, \App\Models\Project $project): void
+    {
+        if (!$booking->user) return;
+        
+        $msg = "Kabar baik! Booking Anda *({$booking->booking_no})* telah kami setujui dan dijadwalkan sebagai pesanan *{$project->name}*. Silakan cek detailnya.";
+        $html = "Halo <strong>{$booking->user->name}</strong>,<br><br>" .
+                "Booking Anda dengan nomor <strong>{$booking->booking_no}</strong> telah disetujui dan resmi dijadwalkan (Pesanan: {$project->name}).<br><br>" .
+                "Tim kami akan segera memprosesnya. Silakan cek detail pesanan Anda pada sistem.";
+                
+        if (!empty($booking->user->phone)) {
+            $this->whatsapp($booking->user->phone, $msg, null, $booking->user, 'booking.accepted');
+        }
+        $this->email(new \App\Mail\AlertMail($booking->user->name, 'Booking Disetujui & Dijadwalkan', $html), $booking->user->email, 'booking.accepted');
+        $this->inApp($booking->user, 'Booking Dijadwalkan', $msg, $this->orderUrl($project), 'booking.accepted');
+    }
+
     public function notifyPaymentRejected(\App\Models\Payment $payment): void
     {
         $project = $payment->project;

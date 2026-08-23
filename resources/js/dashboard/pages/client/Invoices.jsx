@@ -107,7 +107,7 @@ export default function ClientInvoices() {
                             <div className="mt-4 flex flex-wrap items-end gap-2 sm:flex-nowrap">
                                 {it.payment_state === 'paid' && (
                                     <button className="btn-primary flex-1 justify-center py-2" onClick={() => setDetail(it)}>
-                                        <Icon name="check-circle" size={14} />
+                                        <Icon name="check" size={14} />
                                         Detail Pembayaran
                                     </button>
                                 )}
