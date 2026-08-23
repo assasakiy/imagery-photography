@@ -148,7 +148,7 @@ function AdminTab() {
             />
 
             {loading ? (
-                <CardGridSkeleton count={6} cols="sm:grid-cols-2 lg:grid-cols-3" ratio="square" metaLines={2} />
+                <AvatarCardGridSkeleton count={6} />
             ) : items.length ? (
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
                     {items.map((item) => (
