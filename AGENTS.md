@@ -107,8 +107,8 @@ Halaman dashboard yang punya beberapa tab **WAJIB** dipisah ke folder `pages/<na
 - **Media Library**: model butuh `$fillable=['id']`; `LandingContent::setValue` pertahankan `group`; reset landing images meninggalkan media orphan (TODO).
 - **Test**: skrip di `/home/opc` (`spa_test.py`, `final_test.py`, `access_test.py`); `/etc/hosts` berisi `127.0.0.1 imagery.my.id`; `/tmp/opencode` TIDAK writable.
 
-## 13. Sesi Terbaru — Penyempurnaan Menu & Viewer Foto Profil
-- **Viewer layar penuh (`9bc4ef3`):** aksi "Lihat" pada menu banner/foto profil kini membuka lightbox fullscreen gelap (pola sama dgn viewer preview pesanan) yang hanya menampilkan gambar — tanpa tombol Ubah/Hapus/info. `AvatarViewModal` & `CoverViewModal` di `ProfileModals.jsx` disederhanakan (props onEdit/onRemove/profile dihapus dari callsite; import Avatar tak terpakai dibuang).
-- **Tombol Batal bottom sheet dihapus (`23096dd`)** — tutup via tap backdrop.
+## 13. Sesi Terbaru — Dropdown Foto Profil: Fokus & Posisi Konsisten
+- **Posisi ter-anchor (`45513cf`):** dropdown desktop tidak lagi mengikuti posisi kursor — kini selalu muncul di **sudut kanan-bawah** elemen pemicunya (banner maupun lingkaran foto profil), dengan clamp agar tidak keluar viewport (min 8px dari tepi kiri, 190px dari kanan/bawah).
+- **Manajemen fokus:** saat menu muncul, container dropdown otomatis menerima fokus (`tabIndex=-1` + `outline-none`, focus via setTimeout) — navigasi keyboard langsung kontekstual; Escape tetap menutup menu.
 
 *Untuk rincian arsitektural teknis (lifecycle Media, mekanisme RBAC, dan khususnya sistem **progressive loading dashboard**), silakan baca file-file spesifik di direktori `/docs/`.*
