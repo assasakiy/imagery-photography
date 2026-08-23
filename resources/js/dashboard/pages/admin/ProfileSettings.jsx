@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import api from '../../api';
 import Icon from '../../components/Icon';
 import Avatar from '../../components/Avatar';
@@ -92,10 +93,11 @@ const TABS = [
 
 export default function ProfileSettings() {
     const { user, refresh } = useAuth();
+    const [searchParams] = useSearchParams();
 
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
-    const [tab, setTab] = useState('profile');
+    const [tab, setTab] = useState(() => searchParams.get('tab') || 'profile');
     const [errors, setErrors] = useState({});
     const [baseline, setBaseline] = useState(null);
 
@@ -367,7 +369,10 @@ export default function ProfileSettings() {
 
     const profileDirty = !!baseline && (JSON.stringify(profile) !== JSON.stringify(baseline.profile) || avatarValue !== undefined);
     const socialsDirty = !!baseline && !sameSocials(socials, baseline.socials);
-    const passDirty = !!pass.current_password && !!pass.password && pass.password === pass.password_confirmation;
+    const hasPassword = user?.has_password !== false;
+    const passDirty = hasPassword
+        ? (!!pass.current_password && !!pass.password && pass.password === pass.password_confirmation)
+        : (!!pass.password && pass.password === pass.password_confirmation);
     const prefsDirty = !!baseline && (
         JSON.stringify(prefs) !== JSON.stringify(baseline.prefs) ||
         JSON.stringify(notifEvents) !== JSON.stringify(baseline.notifEvents) ||
@@ -455,7 +460,7 @@ export default function ProfileSettings() {
             <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
                 {tab === 'profile' && <ProfileTab profile={profile} setProfile={setProfile} errors={errors} usernameStatus={usernameStatus} saving={saving} profileDirty={profileDirty} onSubmit={saveProfile} />}
                 {tab === 'social' && <SocialTab socials={socials} setSocials={setSocials} saving={saving} socialsDirty={socialsDirty} onSubmit={saveSocials} />}
-                {tab === 'password' && <PasswordTab pass={pass} setPass={setPass} errors={errors} saving={saving} passDirty={passDirty} onSubmit={savePassword} />}
+                {tab === 'password' && <PasswordTab pass={pass} setPass={setPass} errors={errors} saving={saving} passDirty={passDirty} onSubmit={savePassword} hasPassword={user?.has_password !== false} />}
                 {tab === 'prefs' && <PrefsTab prefs={prefs} setPrefs={setPrefs} notifEvents={notifEvents} toggleEvent={toggleEvent} otpChannel={otpChannel} setOtpChannel={setOtpChannel} notifMeta={notifMeta} emailActive={emailActive} waActive={waActive} saving={saving} prefsDirty={prefsDirty} onSubmit={savePrefs} />}
 
                 {/* Side summary */}

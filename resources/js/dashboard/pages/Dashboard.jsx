@@ -231,7 +231,7 @@ export default function Dashboard() {
                         <p className="text-sm font-semibold text-amber-700 dark:text-amber-400">Buat kata sandi untuk akun Anda</p>
                         <p className="mt-0.5 text-xs text-amber-600/80 dark:text-amber-500/80">Akun Anda belum memiliki kata sandi. Tambahkan agar bisa login dengan email &amp; kata sandi.</p>
                     </div>
-                    <Link to="/dashboard/profile" className="shrink-0 rounded-xl bg-amber-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-amber-600">
+                    <Link to="/dashboard/profile?tab=password&setup=1" className="shrink-0 rounded-xl bg-amber-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-amber-600">
                         Buat Sekarang
                     </Link>
                 </div>

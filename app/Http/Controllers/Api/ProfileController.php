@@ -77,7 +77,7 @@ class ProfileController extends Controller
             'notif_events.whatsapp' => 'nullable|array',
             'notif_events.whatsapp.*' => ['nullable', 'string', Rule::in(NotificationService::CHANNEL_EVENTS['whatsapp'])],
             'notif_otp_channel' => ['nullable', 'string', Rule::in(['email', 'whatsapp'])],
-            'current_password' => 'required_with:password|string',
+            'current_password' => $user->password ? 'required_with:password|string' : 'nullable|string',
             'password' => 'sometimes|nullable|string|min:8',
         ]);
 
@@ -86,7 +86,7 @@ class ProfileController extends Controller
         }
 
         if (isset($data['password']) && $data['password'] !== '') {
-            if (!Hash::check($data['current_password'], $user->password)) {
+            if ($user->password && !Hash::check($data['current_password'], $user->password)) {
                 return response()->json(['message' => 'Kata sandi saat ini salah.', 'errors' => ['current_password' => ['Kata sandi saat ini salah.']]], 422);
             }
 
