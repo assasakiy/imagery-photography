@@ -57,12 +57,14 @@ export default function ShootingStep({ ctx }) {
                             </button>
                             <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" className="hidden" onChange={uploadEndProof} disabled={formLocked} />
                         </div>
+                    </div>
+                )}
 
-                        <div className="mt-4">
-                            <Field label="Catatan dari lapangan" hint="opsional">
-                                <textarea className="input" placeholder="Contoh: cuaca cerah, sesi selesai lebih cepat dari jadwal..." rows="2" value={fieldNote} onChange={(e) => setFieldNote(e.target.value)} disabled={formLocked} />
-                            </Field>
-                        </div>
+                {isAdmin && !pastShooting && (
+                    <div className={proofEndUploaded ? 'mt-5 border-t border-line pt-5' : 'mt-4'}>
+                        <Field label="Catatan dari lapangan" hint="opsional">
+                            <textarea className="input" placeholder="Contoh: cuaca cerah, sesi selesai lebih cepat dari jadwal..." rows="2" value={fieldNote} onChange={(e) => setFieldNote(e.target.value)} disabled={formLocked} />
+                        </Field>
                     </div>
                 )}
 
