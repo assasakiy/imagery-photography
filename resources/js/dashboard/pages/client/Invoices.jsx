@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import api from '../../api';
 import Icon from '../../components/Icon';
 import PaymentModal from '../../components/PaymentModal';
+import InvoiceDetailModal from '../../components/InvoiceDetailModal';
 import { PageHeader, EmptyState, formatRupiah, formatDate } from '../../components/ui';
 import Skeleton from '../../components/Skeleton';
 import { toast } from '../../lib/toast';
@@ -18,6 +19,7 @@ export default function ClientInvoices() {
     const [items, setItems] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selected, setSelected] = useState(null);
+    const [detail, setDetail] = useState(null);
 
     useEffect(() => {
         api.get('/customer/invoices')
@@ -71,7 +73,7 @@ export default function ClientInvoices() {
                         <div key={it.id} className="card flex flex-col p-5">
                             <div className="flex items-start justify-between gap-2">
                                 <div>
-                                    <p className="font-mono text-xs font-semibold text-ink-muted">INV-{it.number}</p>
+                                    <p className="font-mono text-xs font-semibold text-ink-muted">{it.number.startsWith("INV-") ? it.number : `INV-${it.number}`}</p>
                                     <h3 className="mt-1 font-bold text-ink">{it.project}</h3>
                                 </div>
                                 <span className={`badge shrink-0 ${STATUS_META[it.status]?.cls}`}>{STATUS_META[it.status]?.label}</span>
@@ -95,7 +97,10 @@ export default function ClientInvoices() {
                                 </div>
                             </div>
                             <div className="mt-4 flex flex-1 items-end gap-2">
-                                <button className="btn-primary flex-1 justify-center py-2" onClick={() => setSelected(it)}>
+                                <button
+                                    className="btn-primary flex-1 justify-center py-2"
+                                    onClick={() => (it.remaining > 0 ? setSelected(it) : setDetail(it))}
+                                >
                                     <Icon name={it.remaining > 0 ? 'credit-card' : 'eye'} size={14} />
                                     {it.remaining > 0 ? 'Bayar Tagihan' : 'Lihat Tagihan'}
                                 </button>
@@ -119,6 +124,8 @@ export default function ClientInvoices() {
                 projectId={selected?.project_id}
                 onPaid={reloadInvoices}
             />
+
+            <InvoiceDetailModal open={!!detail} onClose={() => setDetail(null)} invoice={detail} />
 
             </>
             )}

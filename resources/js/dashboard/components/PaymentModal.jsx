@@ -208,7 +208,7 @@ export default function PaymentModal({ open, onClose, invoice, projectId, onPaid
             <Modal open={open} onClose={onClose} title="Bayar Tagihan" bodyClassName="p-0">
                 <div className="border-b border-line bg-surface-muted/50 p-6">
                     <div>
-                        <p className="font-mono text-xs font-semibold tracking-wide text-ink-muted">INV-{invoice.number}</p>
+                        <p className="font-mono text-xs font-semibold tracking-wide text-ink-muted">{invoice.number.startsWith("INV-") ? invoice.number : `INV-${invoice.number}`}</p>
                         <h3 className="mt-1 text-xl font-bold text-ink">{invoice.project}</h3>
                     </div>
                     <div className="mt-5 space-y-2.5">
