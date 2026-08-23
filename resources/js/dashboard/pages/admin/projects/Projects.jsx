@@ -497,7 +497,7 @@ export default function Projects() {
                                 className="btn-primary w-full"
                                 onClick={() =>
                                     copyCreds(
-                                        `Login: ${createdCreds.login_url}\nEmail: ${createdCreds.email}\nKata sandi: ${createdCreds.password}\nAkses tanpa login: ${createdCreds.access_url}`
+                                        `Login: ${createdCreds.login_url}\nEmail: ${createdCreds.email}\nKata sandi: ${createdCreds.password}\nDashboard: ${createdCreds.access_url}`
                                     )
                                 }
                             >
@@ -535,7 +535,7 @@ export default function Projects() {
                             </div>
                             <code className="block truncate text-xs font-mono text-ink">{createdCreds.password}</code>
                             <div className="mt-3 flex items-center justify-between gap-2">
-                                <span className="text-ink-muted">Tautan Akses (tanpa login)</span>
+                                <span className="text-ink-muted">Tautan Dashboard</span>
                                 <button className="icon-btn" onClick={() => copyCreds(createdCreds.access_url)} aria-label="Salin">
                                     <Icon name="link" size={14} />
                                 </button>

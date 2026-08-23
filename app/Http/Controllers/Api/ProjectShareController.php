@@ -6,81 +6,67 @@ use App\Http\Controllers\Controller;
 use App\Models\Project;
 use App\Models\Redelivery;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 use App\Services\NotificationService;
+use App\Services\RuntimeSettings;
 
 class ProjectShareController extends Controller
 {
-    public function regenerateCredentials(Request $request, Project $project)
-    {
-        $newCode = strtoupper(Str::random(8));
-        $project->update(['access_code' => $newCode]);
-
-        $project->accessTokens()->delete();
-        $token = $project->accessTokens()->create([
-            'token' => Str::random(32),
-            'purpose' => 'project',
-            'expires_at' => now()->addDays(7),
-        ]);
-
-        return response()->json([
-            'message' => 'Kredensial dan link akses baru berhasil dibuat.',
-            'access_code' => $newCode,
-            'url' => $token->url,
-        ]);
-    }
-
     public function sendAccessLink(Request $request, Project $project)
     {
-        $request->validate([
-            'enabled' => 'required|boolean',
-            'expires_in_days' => 'nullable|integer|min:1|max:365'
-        ]);
-
-        if (!$request->enabled) {
-            $project->accessTokens()->delete();
-            return response()->json(['message' => 'Link akses dinonaktifkan.']);
-        }
-
-        $project->accessTokens()->delete();
-        $days = $request->expires_in_days ?? 7;
-        
-        $token = $project->accessTokens()->create([
-            'token' => Str::random(32),
-            'purpose' => 'project',
-            'expires_at' => now()->addDays($days),
-        ]);
-
         $project->updates()->create([
             'kind' => 'system',
-            'message' => "Link akses dikirim ke klien (berlaku {$days} hari)."
+            'message' => "Tautan akses pesanan dikirim ke klien."
         ]);
 
         if ($project->user) {
-            app(NotificationService::class)->sendProjectStatus($project, $project->user);
+            $url = url(app(NotificationService::class)->orderUrl($project));
+            $name = $project->user->name;
+
+            if (!empty($project->user->phone)) {
+                app(NotificationService::class)->whatsapp(
+                    $project->user->phone,
+                    "Halo {$name}, silakan akses pesanan *{$project->name}* Anda di dashboard:\n{$url}",
+                    null,
+                    $project->user
+                );
+            }
+
+            app(NotificationService::class)->email(
+                new \App\Mail\AlertMail(
+                    $name,
+                    'Tautan Akses Pesanan',
+                    "Halo <strong>{$name}</strong>,<br><br>" .
+                    "Silakan akses pesanan <strong>{$project->name}</strong> Anda di dashboard.<br><br>" .
+                    "<a href='{$url}' style='background: #7c3aed; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;'>Lihat Pesanan</a>"
+                ),
+                $project->user->email
+            );
+
+            app(NotificationService::class)->inApp(
+                $project->user,
+                'Tautan Akses Pesanan',
+                "Tautan akses pesanan {$project->name} telah dikirim.",
+                $url
+            );
         }
 
-        return response()->json([
-            'message' => 'Link dikirim.',
-            'url' => $token->url,
-            'expires_at' => $token->expires_at
-        ]);
+        return response()->json(['message' => 'Tautan akses dikirim.']);
     }
 
     public function storeRedeliveryRequest(Request $request, Project $project)
     {
         $request->validate(['note' => 'nullable|string|max:1000']);
-        
+
         $user = auth()->user();
-        if ($project->user_id !== $user->id && $user->role !== 'admin' && $user->role !== 'owner') {
+        if ($project->user_id !== $user->id && !$user->hasRole(['admin', 'owner'])) {
             abort(403);
         }
-        
+
         if ($project->status !== 'archived') {
             abort(400, 'Hanya pesanan yang diarsipkan yang dapat diminta unduh ulang.');
         }
 
-        $redelivery = $project->redeliveryRequests()->create([
+        $redelivery = $project->redeliveries()->create([
             'user_id' => $user->id,
             'note' => $request->note,
             'status' => 'pending'
@@ -91,7 +77,12 @@ class ProjectShareController extends Controller
             'message' => "Klien mengajukan permintaan unduh ulang."
         ]);
 
-        app(NotificationService::class)->toAdmins("Permintaan Unduh Ulang ({$project->name})", "Klien meminta akses kembali ke file proyek yang sudah diarsipkan.");
+        app(NotificationService::class)->toAdmins(
+            "Permintaan Unduh Ulang ({$project->name})",
+            "Klien meminta akses kembali ke file proyek yang sudah diarsipkan.",
+            null,
+            'redelivery.requested'
+        );
 
         return response()->json($redelivery, 201);
     }
@@ -112,30 +103,51 @@ class ProjectShareController extends Controller
 
         $project = $redelivery->project;
         $statusStr = $request->status === 'approved' ? 'disetujui' : 'ditolak';
-        
+
         $project->updates()->create([
             'kind' => 'system',
             'message' => "Permintaan unduh ulang {$statusStr}."
         ]);
 
-        if ($request->status === 'approved') {
-            $project->accessTokens()->delete();
-            $token = $project->accessTokens()->create([
-                'token' => Str::random(32),
-                'purpose' => 'project',
-                'expires_at' => now()->addDays(3),
-            ]);
-            
-            if ($project->user) {
-                app(NotificationService::class)->sendProjectStatus($project, $project->user);
+        if ($project->user) {
+            $url = url(app(NotificationService::class)->orderUrl($project));
+            $name = $project->user->name;
+
+            if ($request->status === 'approved') {
+                $days = app(RuntimeSettings::class)->redeliveryAccessDays();
+                $redelivery->update(['expires_at' => now()->addDays($days)]);
+
+                $waMsg = "Halo {$name}, permintaan unduh ulang untuk *{$project->name}* {$statusStr}.\n\n" .
+                         "Akses download dibuka selama {$days} hari. Silakan unduh file melalui dashboard:\n{$url}";
+
+                $emailHtml = "Halo <strong>{$name}</strong>,<br><br>" .
+                             "Permintaan unduh ulang untuk <strong>{$project->name}</strong> {$statusStr}.<br><br>" .
+                             "Akses download dibuka selama <strong>{$days} hari</strong>.<br><br>" .
+                             "<a href='{$url}' style='background: #7c3aed; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;'>Unduh File</a>";
+            } else {
+                $waMsg = "Halo {$name}, permintaan unduh ulang untuk *{$project->name}* {$statusStr}.";
+
+                $emailHtml = "Halo <strong>{$name}</strong>,<br><br>" .
+                             "Permintaan unduh ulang untuk <strong>{$project->name}</strong> {$statusStr}.";
             }
-            
-            return response()->json([
-                'message' => 'Permintaan disetujui, link baru dikirim.',
-                'url' => $token->url
-            ]);
+
+            if (!empty($project->user->phone)) {
+                app(NotificationService::class)->whatsapp($project->user->phone, $waMsg, null, $project->user);
+            }
+
+            app(NotificationService::class)->email(
+                new \App\Mail\AlertMail($name, 'Status Unduh Ulang', $emailHtml),
+                $project->user->email
+            );
+
+            app(NotificationService::class)->inApp(
+                $project->user,
+                'Status Unduh Ulang',
+                "Permintaan unduh ulang {$project->name} {$statusStr}.",
+                $url
+            );
         }
 
-        return response()->json(['message' => 'Permintaan ditolak.']);
+        return response()->json(['message' => 'Permintaan ' . $statusStr . '.']);
     }
 }

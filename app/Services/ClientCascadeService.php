@@ -73,7 +73,6 @@ class ClientCascadeService
         $project->invoice()?->delete();
         $project->payments()->delete();
         $project->updates()->delete();
-        $project->accessTokens()->delete();
         $project->redeliveries()->delete();
         Review::where('project_id', $project->id)->delete();
         Booking::where('project_id', $project->id)->delete();

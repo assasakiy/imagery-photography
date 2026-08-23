@@ -207,7 +207,7 @@ class ProjectMediaController extends Controller
 
     public function downloadFile(Request $request, ProjectFile $file)
     {
-        if ($file->project->status === 'archived') {
+        if ($file->project->status === 'archived' && !$file->project->hasActiveRedelivery()) {
             abort(403, 'Akses dibekukan. Proyek berada di arsip.');
         }
 
@@ -246,7 +246,7 @@ class ProjectMediaController extends Controller
 
     public function downloadZip(Request $request, Project $project)
     {
-        if ($project->status === 'archived') abort(403, 'Akses dibekukan.');
+        if ($project->status === 'archived' && !$project->hasActiveRedelivery()) abort(403, 'Akses dibekukan.');
         
         $fileName = "Project_{$project->id}_Assets.zip";
         $zipPath = storage_path("app/zips/{$fileName}");

@@ -47,7 +47,7 @@ class AuthController extends Controller
             return redirect('/reset-password?token=' . $token);
         }
 
-        // Untuk purpose 'otp_login' dan 'project', langsung login & consume tokennya.
+        // Untuk purpose 'otp_login', langsung login & consume tokennya.
         $accessToken->update(['status' => 'accepted', 'used_at' => now()]);
         
         // Invalidate semua link lain yang sejenis

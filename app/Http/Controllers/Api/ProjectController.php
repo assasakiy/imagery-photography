@@ -64,7 +64,7 @@ class ProjectController extends Controller
             app(\App\Services\DeliveryService::class)->finalize($project);
         }
 
-        $project->load(['user.profile', 'files.media', 'payments', 'updates.user', 'accessTokens', 'invoice', 'booking', 'reviews', 'redeliveries']);
+        $project->load(['user.profile', 'files.media', 'payments', 'updates.user', 'invoice', 'booking', 'reviews', 'redeliveries']);
         $project->thumb_url = $project->getMedia('thumbnail')->first()?->getUrl();
 
         if ($request->user()->isClient()) {
@@ -102,7 +102,7 @@ class ProjectController extends Controller
             'video_total' => $p->video_total,
             'video_done' => $p->video_done,
             'media_types' => collect($p->pricing_snapshot['items'] ?? [])->pluck('media')->filter()->unique()->values()->all(),
-            'access_url' => $p->accessTokens()->valid()->latest('id')->first()?->url,
+            'access_url' => url('/dashboard/preview/' . $p->order_no),
             'user' => ['id' => $p->user_id, 'name' => $p->user?->name, 'username' => $p->user?->username],
             'review_allowed' => $p->isPaid() && (bool) $p->completed_at,
             'review' => $p->reviews->first() ? [

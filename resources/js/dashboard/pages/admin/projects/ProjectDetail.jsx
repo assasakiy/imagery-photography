@@ -98,7 +98,6 @@ export default function ProjectDetail() {
     const [saving, setSaving] = useState(false);
     const [deleteConfirm, setDeleteConfirm] = useState(null);
     const [shareOpen, setShareOpen] = useState(false);
-    const [shareForm, setShareForm] = useState({ enabled: true, expires_days: '7' });
     const [sharing, setSharing] = useState(false);
     const [feeMap, setFeeMap] = useState({});
     const [rerequestOpen, setRerequestOpen] = useState(false);
@@ -396,15 +395,12 @@ export default function ProjectDetail() {
     const submitShareLink = async () => {
         setSharing(true);
         try {
-            await api.post(`/projects/${id}/send-link`, {
-                enabled: shareForm.enabled,
-                expires_in_days: shareForm.enabled && shareForm.expires_days ? Number(shareForm.expires_days) : null,
-            });
-            toast.success(shareForm.enabled ? 'Link akses diaktifkan & dikirim ke klien.' : 'Link akses dinonaktifkan.');
+            await api.post(`/projects/${id}/send-link`);
+            toast.success('Tautan akses dikirim ke klien.');
             setShareOpen(false);
             load();
         } catch (err) {
-            toast.error(getApiErrorMessage(err, 'Gagal mengirim link.'));
+            toast.error(getApiErrorMessage(err, 'Gagal mengirim tautan.'));
         } finally {
             setSharing(false);
         }
@@ -463,7 +459,7 @@ export default function ProjectDetail() {
     };
 
     const previewHref = `/dashboard/preview/${project.order_no || project.id}`;
-    const previewLink = project.accessTokens?.[0]?.url || (window.location.origin + previewHref);
+    const previewLink = window.location.origin + previewHref;
     const paidAt = [...(project.payments || [])].filter((p) => p.status === 'confirmed').slice(-1)[0]?.created_at || project.completed_at || null;
 
     const copyPreviewLink = async () => {
@@ -633,7 +629,7 @@ export default function ProjectDetail() {
             <DeleteConfirm open={!!deleteConfirm} item={deleteConfirm} onClose={() => setDeleteConfirm(null)} onConfirm={handleDeleteConfirm} />
             <ReviewModal open={reviewOpen} onClose={() => setReviewOpen(false)} saving={saving} reviewForm={reviewForm} setReviewForm={setReviewForm} onSubmit={submitReview} />
             <UploadModal open={uploadOpen} onClose={() => setUploadOpen(false)} uploading={uploading} uploadProgress={uploadProgress} hasPhoto={hasPhoto} hasVideo={hasVideo} photoQueue={photoQueue} setPhotoQueue={setPhotoQueue} thumbFile={thumbFile} setThumbFile={setThumbFile} videoForm={videoForm} setVideoForm={setVideoForm} photoRef={photoRef} videoPreviewRef={videoPreviewRef} videoOriginalRef={videoOriginalRef} PhotoThumbImg={PhotoThumbImg} onSubmit={submitUpload} />
-            <ShareModal open={shareOpen} onClose={() => setShareOpen(false)} sharing={sharing} shareForm={shareForm} setShareForm={setShareForm} previewLink={previewLink} onSubmit={submitShareLink} />
+            <ShareModal open={shareOpen} onClose={() => setShareOpen(false)} sharing={sharing} previewLink={previewLink} onSubmit={submitShareLink} />
             <ArchiveConfirm open={confirmArchive} onClose={() => setConfirmArchive(false)} onConfirm={archive} />
         </>
     );

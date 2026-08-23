@@ -238,7 +238,7 @@ class CustomerController extends Controller
             });
         }
 
-        $projects = $projectsQuery->with(['files.media', 'payments', 'invoice', 'accessTokens', 'redeliveries'])->latest()->get();
+        $projects = $projectsQuery->with(['files.media', 'payments', 'invoice', 'redeliveries'])->latest()->get();
 
         return response()->json(
             $projects->filter(fn ($p) => $p->files->filter(fn ($f) => in_array($f->category, ['photo', 'video'], true) && ($f->media_id || $f->variant === 'original'))->count() > 0)
@@ -254,7 +254,7 @@ class CustomerController extends Controller
                 'preview_expired' => (bool) $p->preview_expired_at,
                 'archived' => (bool) $p->isArchived(),
                 'thumb_url' => $p->getMedia('thumbnail')->first()?->getUrl(),
-                'access_url' => $p->accessTokens()->valid()->latest('id')->first()?->url,
+                'access_url' => url('/dashboard/preview/' . $p->order_no),
                 'redeliveries' => $p->redeliveries->map(fn ($r) => [
                     'id' => $r->id,
                     'status' => $r->status,

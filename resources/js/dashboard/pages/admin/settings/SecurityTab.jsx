@@ -199,6 +199,9 @@ export default function SecurityTab({ form, meta, errors, saving, set, save, dir
                 <Field label="Masa tunggu arsip (hari)" hint="durasi sebelum arsip otomatis">
                     <input type="number" className="input" value={form.archive_delay_days} onChange={(e) => set('archive_delay_days', parseInt(e.target.value, 10))} />
                 </Field>
+                <Field label="Masa akses unduh ulang (hari)" hint="durasi download aktif setelah permintaan disetujui">
+                    <input type="number" className="input" value={form.redelivery_access_days} min={1} max={90} onChange={(e) => set('redelivery_access_days', parseInt(e.target.value, 10))} />
+                </Field>
                 <div className="mt-6 flex justify-end border-t border-line pt-5">
                     <Button icon="check" loading={saving} disabled={!dirty(TAB_FIELDS.security_file)} onClick={() => save(TAB_FIELDS.security_file)}>
                         Simpan Retensi File

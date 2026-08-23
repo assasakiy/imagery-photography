@@ -31,7 +31,7 @@ class ProcessProjectDeliveries extends Command
                 $user = $p->user;
                 if ($user) {
                     $days = max(1, (int) $p->preview_ends_at->diffInDays($now = now()));
-                    $link = $p->accessTokens()->valid()->latest('id')->first()?->url ?? url('/dashboard/preview/' . $p->id);
+                    $link = url('/dashboard/preview/' . $p->order_no);
                     app(NotificationService::class)->send(NotificationType::DOWNLOAD_LINK, $user, [
                         'name' => $user->name,
                         'link' => $link,

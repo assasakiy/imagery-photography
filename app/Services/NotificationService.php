@@ -429,7 +429,7 @@ class NotificationService
      */
     public function orderUrl(\App\Models\Project $project): string
     {
-        return '/dashboard/pesanan/' . ($project->order_no ?: $project->id);
+        return '/dashboard/preview/' . ($project->order_no ?: $project->id);
     }
 
     /**

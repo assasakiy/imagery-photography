@@ -62,7 +62,6 @@ export default function ProjectDetail() {
     const [saving, setSaving] = useState(false);
     const [deleteConfirm, setDeleteConfirm] = useState(null);
     const [shareOpen, setShareOpen] = useState(false);
-    const [shareForm, setShareForm] = useState({ enabled: true, expires_days: '7' });
     const [sharing, setSharing] = useState(false);
     const [feeMap, setFeeMap] = useState({});
     const [rerequestOpen, setRerequestOpen] = useState(false);
@@ -126,15 +125,12 @@ export default function ProjectDetail() {
     const submitShareLink = async () => {
         setSharing(true);
         try {
-            await api.post(`/projects/${id}/send-link`, {
-                enabled: shareForm.enabled,
-                expires_in_days: shareForm.enabled && shareForm.expires_days ? Number(shareForm.expires_days) : null,
-            });
-            toast.success(shareForm.enabled ? 'Link akses diaktifkan & dikirim ke klien.' : 'Link akses dinonaktifkan.');
+            await api.post(`/projects/${id}/send-link`);
+            toast.success('Tautan akses dikirim ke klien.');
             setShareOpen(false);
             load();
         } catch (err) {
-            toast.error(getApiErrorMessage(err, 'Gagal mengirim link.'));
+            toast.error(getApiErrorMessage(err, 'Gagal mengirim tautan.'));
         } finally {
             setSharing(false);
         }
@@ -216,7 +212,7 @@ export default function ProjectDetail() {
     };
 
     const previewHref = `/dashboard/preview/${project.order_no || project.id}`;
-    const previewLink = project.accessTokens?.[0]?.url || (window.location.origin + previewHref);
+    const previewLink = window.location.origin + previewHref;
     const paidAt = [...(project.payments || [])].filter((p) => p.status === 'confirmed').slice(-1)[0]?.created_at || project.completed_at || null;
 
     const copyPreviewLink = async () => {
@@ -374,20 +370,14 @@ export default function ProjectDetail() {
             </div>
 
             {/* SHARE LINK MODAL */}
-            <Modal open={shareOpen} onClose={() => setShareOpen(false)} title="Kirim Link Akses" footer={
-                <button className="btn-primary" onClick={submitShareLink} disabled={sharing}>{sharing ? 'Mengirim...' : 'Kirim'}</button>
+            <Modal open={shareOpen} onClose={() => setShareOpen(false)} title="Kirim Tautan Akses" footer={
+                <button className="btn-primary" onClick={submitShareLink} disabled={sharing}>{sharing ? 'Mengirim...' : 'Kirim Tautan'}</button>
             }>
-                <Field label="Aktifkan link akses">
-                    <select className="input" value={shareForm.enabled ? '1' : '0'} onChange={(e) => setShareForm({ ...shareForm, enabled: e.target.value === '1' })}>
-                        <option value="1">Aktif</option>
-                        <option value="0">Nonaktif</option>
-                    </select>
-                </Field>
-                {shareForm.enabled && (
-                    <Field label="Kadaluarsa (hari)" hint="opsional">
-                        <input type="number" min="1" className="input" value={shareForm.expires_days} onChange={(e) => setShareForm({ ...shareForm, expires_days: e.target.value })} />
-                    </Field>
-                )}
+                <p className="text-sm text-ink-muted">Tautan akses ke dashboard pesanan akan dikirim ke klien melalui notifikasi yang aktif.</p>
+                <div className="mt-3">
+                    <p className="mb-1 text-xs text-ink-muted">Tautan dashboard:</p>
+                    <p className="truncate rounded-lg border border-line bg-surface-muted/30 p-2 font-mono text-xs text-ink">{previewLink}</p>
+                </div>
             </Modal>
 
             {/* DELETE FILE CONFIRM */}

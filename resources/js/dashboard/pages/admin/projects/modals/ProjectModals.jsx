@@ -151,44 +151,22 @@ export function UploadModal({ open, onClose, uploading, uploadProgress, hasPhoto
     );
 }
 
-export function ShareModal({ open, onClose, sharing, shareForm, setShareForm, previewLink, onSubmit }) {
+export function ShareModal({ open, onClose, sharing, previewLink, onSubmit }) {
     return (
-        <Modal open={open} onClose={onClose} title="Kirim Akses" footer={
+        <Modal open={open} onClose={onClose} title="Kirim Tautan Akses" footer={
             <div className="flex justify-end gap-2">
                 <button type="button" className="btn-outline" onClick={onClose} disabled={sharing}>Batal</button>
                 <button type="button" className="btn-primary" onClick={onSubmit} disabled={sharing}>
-                    {sharing ? 'Mengirim...' : (shareForm.enabled ? 'Aktifkan & Kirim' : 'Nonaktifkan')}
+                    {sharing ? 'Mengirim...' : 'Kirim Tautan'}
                 </button>
             </div>
         }>
             <div className="space-y-4">
-                <button type="button" onClick={() => setShareForm({ ...shareForm, enabled: !shareForm.enabled })} className="flex w-full items-center justify-between gap-4 rounded-xl border border-line p-4 text-left hover:bg-surface-muted/30">
-                    <div>
-                        <p className="text-sm font-semibold text-ink">Link akses aktif</p>
-                        <p className="mt-0.5 text-xs text-ink-muted">Klien dapat membuka link untuk mengakses file.</p>
-                    </div>
-                    <span className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors ${shareForm.enabled ? 'bg-emerald-500' : 'bg-zinc-300 dark:bg-zinc-700'}`}>
-                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${shareForm.enabled ? 'translate-x-6' : 'translate-x-1'}`} />
-                    </span>
-                </button>
-
-                {shareForm.enabled && (
-                    <>
-                        <Field label="Masa berlaku link">
-                            <select className="input" value={shareForm.expires_days} onChange={(e) => setShareForm({ ...shareForm, expires_days: e.target.value })}>
-                                <option value="3">3 hari</option>
-                                <option value="7">7 hari</option>
-                                <option value="30">30 hari</option>
-                            </select>
-                        </Field>
-                        <div>
-                            <p className="mb-1 text-xs text-ink-muted">Link yang dikirim:</p>
-                            <p className="truncate rounded-lg border border-line bg-surface-muted/30 p-2 font-mono text-xs text-ink">{previewLink}</p>
-                        </div>
-                    </>
-                )}
-
-                <p className="text-xs text-ink-muted">Pengiriman mengikuti aturan notifikasi yang aktif (WhatsApp / email / dalam aplikasi) sesuai preferensi klien.</p>
+                <p className="text-sm text-ink-muted">Tautan akses ke dashboard pesanan akan dikirim ke klien melalui notifikasi yang aktif (WhatsApp / email / dalam aplikasi).</p>
+                <div>
+                    <p className="mb-1 text-xs text-ink-muted">Tautan dashboard:</p>
+                    <p className="truncate rounded-lg border border-line bg-surface-muted/30 p-2 font-mono text-xs text-ink">{previewLink}</p>
+                </div>
             </div>
         </Modal>
     );

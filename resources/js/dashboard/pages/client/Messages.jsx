@@ -136,7 +136,7 @@ export default function ClientMessages() {
                                                     )}
                                                     {m.project && (
                                                         <a
-                                                            href={`/dashboard/pesanan/${m.project.order_no || m.project.id}`}
+                                                            href={`/dashboard/preview/${m.project.order_no || m.project.id}`}
                                                             className={`mb-2 inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs font-semibold no-underline transition-colors ${isAdmin ? 'bg-white/60 text-brand-700 hover:bg-white' : 'bg-black/20 text-white hover:bg-black/30'}`}
                                                         >
                                                             <Icon name="tag" size={12} /> PSN-{m.project.order_no || m.project.id}

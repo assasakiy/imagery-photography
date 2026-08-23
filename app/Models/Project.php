@@ -193,11 +193,6 @@ class Project extends Model implements HasMedia
         return $this->hasMany(ProjectUpdate::class)->latest();
     }
 
-    public function accessTokens()
-    {
-        return $this->hasMany(ClientAccessToken::class);
-    }
-
     public function redeliveries()
     {
         return $this->hasMany(Redelivery::class);

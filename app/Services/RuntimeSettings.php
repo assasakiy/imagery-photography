@@ -328,6 +328,11 @@ class RuntimeSettings
         return (int) $this->get('archive_delay_days', '60');
     }
 
+    public function redeliveryAccessDays(): int
+    {
+        return (int) $this->get('redelivery_access_days', '7');
+    }
+
     public function siteTagline(): ?string
     {
         return $this->get('site_tagline') ?: null;
