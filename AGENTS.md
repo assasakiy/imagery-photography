@@ -107,10 +107,8 @@ Halaman dashboard yang punya beberapa tab **WAJIB** dipisah ke folder `pages/<na
 - **Media Library**: model butuh `$fillable=['id']`; `LandingContent::setValue` pertahankan `group`; reset landing images meninggalkan media orphan (TODO).
 - **Test**: skrip di `/home/opc` (`spa_test.py`, `final_test.py`, `access_test.py`); `/etc/hosts` berisi `127.0.0.1 imagery.my.id`; `/tmp/opencode` TIDAK writable.
 
-## 13. Sesi Terbaru — Detail Pesanan Klien: Tahap Editing Informatif & Tombol Tagihan Kontekstual
-- **EditingStep diperkaya (`6c352f6`):** kini ada grid statistik (Foto diedit x/y, Video diedit x/y, dan kartu highlight "File Terunggah" total), label persen pada tiap progress bar, serta catatan penjelas alur berikutnya (masuk tahap Pembayaran; file final diunduh dari Preview setelah lunas). Ikon baru `info` di Icon.jsx.
-- **AwaitingPaymentStep kontekstual:** bila tagihan lunas tombol "Bayar Tagihan" diganti **"Detail Tagihan"** (badge hijau "Lunas", banner emerald, tanpa jatuh tempo); bila belum lunas tetap **"Bayar Sekarang"** (banner amber + sisa tagihan + jatuh tempo). Kedua tombol kini mengarah ke invoice pesanan terkait, bukan daftar: bayar → `/dashboard/client-invoices/{invoiceId}/bayar`; detail → `/dashboard/client-invoices?detail={id}`.
-- **Deep-link detail invoice:** halaman Tagihan klien membaca query `?detail={id}` dan langsung membuka `InvoiceDetailModal` invoice tersebut (param dibersihkan saat modal ditutup). API `GET /projects/{id}` kini menyertakan `invoice.id`.
-- **Verifikasi:** build sukses; curl `/api/projects/1` (milik klien) mengembalikan `invoice.id`; akses proyek milik orang lain tetap 403.
+## 13. Sesi Terbaru — Efek Loading Upload Banner & Foto Profil
+- **Halaman Profil (`1b4e738`):** unggah banner & foto profil kini punya umpan balik visual di tempat — saat upload: banner diberi blur + overlay gelap dengan spinner dan teks "Mengunggah banner…"; lingkaran foto profil diberi blur + overlay spinner berputar. Selama proses, klik preview dinonaktifkan (tidak membuka modal view) dan overlay hover "Ubah" disembunyikan. State upload kini terpisah (`uploadingCover`/`uploadingAvatar`) dari `saving` form agar tidak saling mengganggu.
+- **Bonus fix:** ikon `loader` ternyata belum terdaftar di Icon.jsx (dipakai QRIS instructions tapi tak pernah tampil) — kini ditambahkan (lucide path inline).
 
 *Untuk rincian arsitektural teknis (lifecycle Media, mekanisme RBAC, dan khususnya sistem **progressive loading dashboard**), silakan baca file-file spesifik di direktori `/docs/`.*
