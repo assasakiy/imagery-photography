@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
 import api from '../../api';
 import Icon from '../../components/Icon';
 import { PageHeader, EmptyState, formatDate } from '../../components/ui';
@@ -58,7 +57,7 @@ export default function Bookmarks() {
                         return (
                             <div key={b.id} className="card group flex flex-col overflow-hidden">
                                 {b.url ? (
-                                    <Link to={b.url} className="relative block aspect-[16/10] overflow-hidden rounded-t-xl bg-surface-muted p-3 pb-0">
+                                    <a href={b.url} className="relative block aspect-[16/10] overflow-hidden rounded-t-xl bg-surface-muted p-3 pb-0">
                                         {b.thumbnail_url ? (
                                             <img src={b.thumbnail_url} alt={b.title} className="h-full w-full rounded-lg object-cover transition-transform duration-300 group-hover:scale-105" />
                                         ) : (
@@ -69,7 +68,7 @@ export default function Bookmarks() {
                                         <span className={`absolute left-5 top-5 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold ${cfg.color}`}>
                                             <Icon name={cfg.icon} size={12} /> {cfg.label}
                                         </span>
-                                    </Link>
+                                    </a>
                                 ) : (
                                     <div className="relative block aspect-[16/10] overflow-hidden rounded-t-xl bg-surface-muted">
                                         <div className="flex h-full items-center justify-center">
@@ -83,7 +82,7 @@ export default function Bookmarks() {
 
                                 <div className="flex flex-1 flex-col p-4">
                                     {b.url ? (
-                                        <Link to={b.url} className="line-clamp-2 text-sm font-semibold text-ink hover:text-brand-600 dark:hover:text-brand-400">{b.title}</Link>
+                                        <a href={b.url} className="line-clamp-2 text-sm font-semibold text-ink hover:text-brand-600 dark:hover:text-brand-400">{b.title}</a>
                                     ) : (
                                         <p className="line-clamp-2 text-sm font-semibold text-ink">{b.title}</p>
                                     )}
@@ -108,13 +107,13 @@ export default function Bookmarks() {
                                             </button>
 
                                             {b.url && b.type === 'blog' && (
-                                                <Link
-                                                    to={b.url}
+                                                <a
+                                                    href={b.url}
                                                     className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium text-ink-muted transition-colors hover:bg-surface-muted hover:text-ink"
                                                 >
                                                     <Icon name="message-circle" size={14} />
                                                     <span>{b.comments_count}</span>
-                                                </Link>
+                                                </a>
                                             )}
 
                                             <div className="ml-auto">
