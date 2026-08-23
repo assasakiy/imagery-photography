@@ -107,8 +107,7 @@ Halaman dashboard yang punya beberapa tab **WAJIB** dipisah ke folder `pages/<na
 - **Media Library**: model butuh `$fillable=['id']`; `LandingContent::setValue` pertahankan `group`; reset landing images meninggalkan media orphan (TODO).
 - **Test**: skrip di `/home/opc` (`spa_test.py`, `final_test.py`, `access_test.py`); `/etc/hosts` berisi `127.0.0.1 imagery.my.id`; `/tmp/opencode` TIDAK writable.
 
-## 13. Sesi Terbaru — Catatan Riwayat di Detail Pesanan Klien
-- **Timeline klien (`6cdd131`):** OrderDetail.jsx kini menampilkan kartu **"Catatan Riwayat"** identik dgn halaman admin (ProjectDetail): garis vertikal + titik berwarna (brand utk `kind=system`, abu utk catatan tim), pesan, pelaku (`Update` / nama user / `Tim`) dan tanggal — diurutkan menaik. Data sudah tersedia di payload client (`clientProjectDetail` memetakan `updates[].user` sbg **string nama**, bukan objek → JSX pakai `u.user || 'Tim'`). Diverifikasi live: GET /api/projects/1 (client) mengembalikan 15 update.
-- Fix stacking (`32f2dea`): overlay "Mengunggah banner…" (z-10) menutupi setengah atas avatar yg overlap ke banner via `-mt-12`; baris konten profil kini `relative z-10` agar selalu di atas overlay banner.
+## 13. Sesi Terbaru — Jarak Antar Card di Detail Pesanan Klien
+- **Spacing (`f01edb2`):** kartu "Catatan Riwayat" di OrderDetail klien diberi `mt-6` agar ada jarak konsisten (24px) dengan panel tahap di atasnya — sebelumnya menempel langsung.
 
 *Untuk rincian arsitektural teknis (lifecycle Media, mekanisme RBAC, dan khususnya sistem **progressive loading dashboard**), silakan baca file-file spesifik di direktori `/docs/`.*
