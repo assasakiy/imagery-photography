@@ -114,17 +114,7 @@ class ProjectController extends Controller
                 'is_published' => $p->reviews->first()->is_published,
                 'created_at' => $p->reviews->first()->created_at,
             ] : null,
-            'invoice' => $p->invoice ? [
-                'id' => $p->invoice->id,
-                'number' => $p->invoice->number,
-                'base_amount' => $p->invoice->base_amount,
-                'dp_amount' => $p->invoice->dp_amount,
-                'paid_amount' => $p->invoice->paid_amount,
-                'remaining' => $p->invoice->remaining(),
-                'status' => $p->invoice->status,
-                'issued_at' => $p->invoice->issued_at,
-                'due_at' => $p->invoice->due_at,
-            ] : null,
+            'invoice' => $p->invoice ? $this->buildInvoicePayload($p->invoice, $p->payments) : null,
             'payments' => $p->payments->map(fn ($pay) => [
                 'id' => $pay->id,
                 'amount' => $pay->amount,
@@ -537,6 +527,47 @@ class ProjectController extends Controller
         }
         $invoice->base_amount = $project->price ?? 0;
         $invoice->refreshStatus();
+    }
+
+    private function buildInvoicePayload($invoice, $payments): array
+    {
+        $remaining = $invoice->remaining();
+        $latestPayment = $payments->sortByDesc('id')->first();
+
+        $paymentState = 'unpaid';
+        if ($remaining <= 0) {
+            $paymentState = 'paid';
+        } elseif ($latestPayment) {
+            if ($latestPayment->status === 'pending') {
+                $paymentState = 'pending_verification';
+            } elseif ($latestPayment->status === 'failed') {
+                $paymentState = 'proof_rejected';
+            } elseif ($latestPayment->status === 'confirmed' && $remaining > 0) {
+                $paymentState = 'unpaid';
+            }
+        }
+
+        return [
+            'id' => $invoice->id,
+            'number' => $invoice->number,
+            'base_amount' => $invoice->base_amount,
+            'dp_amount' => $invoice->dp_amount,
+            'paid_amount' => $invoice->paid_amount,
+            'remaining' => $remaining,
+            'status' => $invoice->status,
+            'issued_at' => $invoice->issued_at,
+            'due_at' => $invoice->due_at,
+            'payment_state' => $paymentState,
+            'latest_payment' => $latestPayment ? [
+                'id' => $latestPayment->id,
+                'status' => $latestPayment->status,
+                'notes' => $latestPayment->notes,
+                'channel_type' => $latestPayment->channel_type,
+                'channel_label' => $latestPayment->channel_label,
+                'account_number' => $latestPayment->account_number,
+                'account_name' => $latestPayment->account_name,
+            ] : null,
+        ];
     }
 
 }
