@@ -13,24 +13,27 @@ function TrendChart({ data = [] }) {
 
     const max = Math.max(1, ...points.map((p) => Math.max(p.views, p.visitors)));
     const W = 640;
-    const H = 180;
-    const PAD = 24;
-    const innerW = W - PAD * 2;
-    const innerH = H - PAD * 2;
+    const H = 200;
+    const PAD = { top: 20, right: 16, bottom: 28, left: 40 };
+    const innerW = W - PAD.left - PAD.right;
+    const innerH = H - PAD.top - PAD.bottom;
     const stepX = points.length > 1 ? innerW / (points.length - 1) : 0;
 
-    const viewsCoords = points.map((p, i) => ({
-        x: PAD + i * stepX,
-        y: PAD + innerH - (p.views / max) * innerH,
-        ...p,
-    }));
-    const visitorCoords = points.map((p, i) => ({
-        x: PAD + i * stepX,
-        y: PAD + innerH - (p.visitors / max) * innerH,
-    }));
+    const toY = (v) => PAD.top + innerH - (v / max) * innerH;
+    const toX = (i) => PAD.left + i * stepX;
+
+    const viewsCoords = points.map((p, i) => ({ x: toX(i), y: toY(p.views), ...p }));
+    const visitorCoords = points.map((p, i) => ({ x: toX(i), y: toY(p.visitors) }));
 
     const viewsPath = viewsCoords.map((c, i) => `${i === 0 ? 'M' : 'L'} ${c.x} ${c.y}`).join(' ');
     const visitorsPath = visitorCoords.map((c, i) => `${i === 0 ? 'M' : 'L'} ${c.x} ${c.y}`).join(' ');
+    const areaPath = viewsPath + ` L ${viewsCoords[viewsCoords.length - 1].x} ${PAD.top + innerH} L ${viewsCoords[0].x} ${PAD.top + innerH} Z`;
+
+    const gridLines = 4;
+    const gridYs = Array.from({ length: gridLines + 1 }, (_, i) => {
+        const v = (max / gridLines) * i;
+        return { y: toY(v), label: v >= 1000 ? `${(v / 1000).toFixed(v >= 10000 ? 0 : 1)}k` : Math.round(v) };
+    });
 
     return (
         <div className="card overflow-hidden">
@@ -40,15 +43,31 @@ function TrendChart({ data = [] }) {
                 </h2>
                 <div className="flex items-center gap-4 text-xs font-medium text-ink-muted">
                     <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-brand-500" /> Page Views</span>
-                    <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-emerald-500" /> Unique Visitor</span>
+                    <span className="flex items-center gap-1.5"><span className="h-0.5 w-4 border-t-2 border-dashed border-emerald-500" /> Unique Visitor</span>
                 </div>
             </div>
             <div className="px-3 py-4">
-                <svg viewBox={`0 0 ${W} ${H}`} className="h-52 w-full" preserveAspectRatio="none" role="img" aria-label="Tren kunjungan 30 hari">
+                <svg viewBox={`0 0 ${W} ${H}`} className="h-56 w-full" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Tren kunjungan 30 hari">
+                    <defs>
+                        <linearGradient id="viewsFill" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="var(--color-brand-500, #8b5cf6)" stopOpacity="0.25" />
+                            <stop offset="100%" stopColor="var(--color-brand-500, #8b5cf6)" stopOpacity="0" />
+                        </linearGradient>
+                    </defs>
+
+                    {gridYs.map((g, i) => (
+                        <g key={i}>
+                            <line x1={PAD.left} y1={g.y} x2={W - PAD.right} y2={g.y} className="stroke-line" strokeWidth="1" strokeDasharray={i === 0 ? '' : '3 3'} />
+                            <text x={PAD.left - 8} y={g.y + 3.5} textAnchor="end" className="fill-ink-muted text-[9px]" style={{ fontFamily: 'inherit' }}>{g.label}</text>
+                        </g>
+                    ))}
+
+                    <path d={areaPath} fill="url(#viewsFill)" />
                     <path d={viewsPath} fill="none" strokeWidth="2.5" className="stroke-brand-500" strokeLinecap="round" strokeLinejoin="round" />
-                    <path d={visitorsPath} fill="none" strokeWidth="2" className="stroke-emerald-500" strokeDasharray="5 4" strokeLinecap="round" strokeLinejoin="round" />
+                    <path d={visitorsPath} fill="none" strokeWidth="1.5" className="stroke-emerald-500" strokeDasharray="5 4" strokeLinecap="round" strokeLinejoin="round" />
+
                     {viewsCoords.map((c) => (
-                        <circle key={c.date} cx={c.x} cy={c.y} r="3" className="fill-white stroke-brand-500 dark:fill-zinc-900" strokeWidth="2">
+                        <circle key={c.date} cx={c.x} cy={c.y} r="3.5" className="fill-white stroke-brand-500 dark:fill-zinc-900" strokeWidth="2">
                             <title>{`${c.date}: ${fmt(c.views)} views / ${fmt(c.visitors)} visitor`}</title>
                         </circle>
                     ))}
