@@ -107,7 +107,7 @@ Halaman dashboard yang punya beberapa tab **WAJIB** dipisah ke folder `pages/<na
 - **Media Library**: model butuh `$fillable=['id']`; `LandingContent::setValue` pertahankan `group`; reset landing images meninggalkan media orphan (TODO).
 - **Test**: skrip di `/home/opc` (`spa_test.py`, `final_test.py`, `access_test.py`); `/etc/hosts` berisi `127.0.0.1 imagery.my.id`; `/tmp/opencode` TIDAK writable.
 
-## 13. Sesi Terbaru — "Lihat Bukti" Jadi Modal Viewer
-- **In-app viewer (`ea1bb49`):** tombol/thumbnail "Lihat Bukti" di InvoiceDetailModal (klien) & admin Payments tidak lagi `target="_blank"` — kini membuka modal viewer layar penuh gelap (pola konsisten dgn viewer lain): gambar → `<img>` object-contain; PDF → `<iframe>` native (85vh). State lokal `proof`/`proofView` per komponen.
+## 13. Sesi Terbaru — Proof Mime dari Sumber Kebenaran
+- **`proof_mime` accessor (`ffe9836`):** deteksi PDF bukti bayar tak lagi menebak dari ekstensi URL (regex rapuh utk S3/signed-URL) — `Payment::getProofMimeAttribute()` membaca kolom `mime_type` Spatie media (`payment_proof`), dengan fallback legacy `proof_file` via cek ekstensi `.pdf`. Ditambah ke `$appends`. Frontend (`InvoiceDetailModal.jsx`, admin `Payments.jsx`) kini cukup `proof_mime === 'application/pdf'`. Verifikasi live: API mengembalikan `proof_mime: "image/png"`.
 
 *Untuk rincian arsitektural teknis (lifecycle Media, mekanisme RBAC, dan khususnya sistem **progressive loading dashboard**), silakan baca file-file spesifik di direktori `/docs/`.*
