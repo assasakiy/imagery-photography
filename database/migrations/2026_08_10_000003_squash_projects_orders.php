@@ -94,6 +94,10 @@ return new class extends Migration
             $table->string('gateway_method')->nullable();
             $table->text('checkout_url')->nullable();
             $table->string('status')->default('pending');
+            $table->string('channel_type', 20)->nullable();
+            $table->string('channel_label', 100)->nullable();
+            $table->string('account_number', 50)->nullable();
+            $table->string('account_name', 100)->nullable();
             $table->string('proof_file')->nullable();
             $table->text('notes')->nullable();
             $table->timestamp('paid_at')->nullable();
