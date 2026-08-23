@@ -125,7 +125,7 @@ class CustomerController extends Controller
             'status' => 'pending',
         ]);
 
-        app(\App\Services\NotificationService::class)->toAdmins('Booking Baru (Member)', 'Booking dari ' . $user->name, '/dashboard/bookings');
+        app(\App\Services\NotificationService::class)->toAdmins('Booking Baru (Member)', 'Booking dari ' . $user->name, '/dashboard/bookings', 'booking.new');
 
         return response()->json($booking);
     }
