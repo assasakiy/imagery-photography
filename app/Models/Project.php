@@ -76,7 +76,7 @@ class Project extends Model implements HasMedia
 
         $dateStr = now()->format('ymd');
         $prefix = "{$abbr}-{$dateStr}-";
-        $last = static::where('order_no', 'like', $prefix . '%')->orderByDesc('id')->value('order_no');
+        $last = static::withTrashed()->where('order_no', 'like', $prefix . '%')->orderByDesc('id')->value('order_no');
         $seq = $last ? ((int) substr($last, -4)) + 1 : 1;
 
         return $prefix . str_pad((string) $seq, 4, '0', STR_PAD_LEFT);
