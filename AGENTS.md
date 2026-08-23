@@ -107,7 +107,7 @@ Halaman dashboard yang punya beberapa tab **WAJIB** dipisah ke folder `pages/<na
 - **Media Library**: model butuh `$fillable=['id']`; `LandingContent::setValue` pertahankan `group`; reset landing images meninggalkan media orphan (TODO).
 - **Test**: skrip di `/home/opc` (`spa_test.py`, `final_test.py`, `access_test.py`); `/etc/hosts` berisi `127.0.0.1 imagery.my.id`; `/tmp/opencode` TIDAK writable.
 
-## 13. Sesi Terbaru — Dropdown Foto Profil: Kembali ke Posisi Klik
-- **Revert (`bc04609`):** percobaan anchor dropdown ke sudut kanan-bawah elemen + fokus otomatis diurungkan atas permintaan user. Perilaku final: dropdown desktop muncul **di posisi klik** (clamp viewport), tanpa manajemen fokus khusus; bottom sheet mobile & menu Lihat/Ubah/Hapus tetap seperti sebelumnya.
+## 13. Sesi Terbaru — Fix Overlay Upload Banner Menutupi Foto Profil
+- **Stacking fix (`32f2dea`):** overlay loading "Mengunggah banner…" memakai `z-10` sehingga (dalam root stacking context) melukis di atas foto profil yang tumpang-tindih ke area banner via `-mt-12` — setengah atas avatar ikut tertutup overlay gelap saat upload banner. Fix: baris konten profil diberi `relative z-10` agar berada di atas semua overlay banner (hover & uploading). Menu dropdown/bottom sheet (z-40/z-50) tetap di atasnya.
 
 *Untuk rincian arsitektural teknis (lifecycle Media, mekanisme RBAC, dan khususnya sistem **progressive loading dashboard**), silakan baca file-file spesifik di direktori `/docs/`.*
