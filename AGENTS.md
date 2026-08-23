@@ -107,9 +107,8 @@ Halaman dashboard yang punya beberapa tab **WAJIB** dipisah ke folder `pages/<na
 - **Media Library**: model butuh `$fillable=['id']`; `LandingContent::setValue` pertahankan `group`; reset landing images meninggalkan media orphan (TODO).
 - **Test**: skrip di `/home/opc` (`spa_test.py`, `final_test.py`, `access_test.py`); `/etc/hosts` berisi `127.0.0.1 imagery.my.id`; `/tmp/opencode` TIDAK writable.
 
-## 13. Sesi Terbaru — Fix 500 Konversi Booking ke Proyek (Nomor Duplikat)
-- **Akar masalah (`ca66b47`):** `POST /bookings/{id}/accept` 500 — `Duplicate entry 'SLI-260823-0002' for key 'projects_order_no_unique'`. Penyebab: proyek uji lama (TEST-INV-NOTIF) hanya *soft-deleted* sehingga masih memegang nomor itu di unique index, sementara `Project::nextOrderNumber()` menghitung urutan dari query default yang menyembunyikan baris trash → nomor "dipakai ulang" → tabrakan.
-- **Fix:** `nextOrderNumber()` kini memakai `static::withTrashed()` saat mencari nomor terakhir. Model Invoice & Booking tidak soft-deletable jadi generatornya aman. Proyek uji penyebab sudah di-*force delete* (0 relasi) — nomor `SLI-260823-0002` bebas kembali; booking terkonfirmasi tinggal dikonversi ulang.
-- **Gotcha diperkuat:** semua penomoran berbasis prefix WAJIB menghitung baris soft-deleted bila kolomnya punya unique index.
+## 13. Sesi Terbaru — Pemilihan Metode Bayar dengan Konfirmasi Eksplisit
+- **PayInvoiceMethodPicker didesain ulang (`d03491a`):** klik metode tidak lagi langsung lompat ke step berikutnya — kartu metode kini bersifat pilihan (indikator radio + ring brand saat terpilih). Semua grup yang aktif (Payment Gateway, Transfer Manual/QRIS/Dompet) tampil sebagai **satu daftar terpadu** dalam satu card ber-separator — tanpa tab. Di bawah daftar ada tombol **"Konfirmasi"** (disabled sampai metode dipilih) + teks bantuan metode terpilih; baru setelah konfirmasi user diarahkan ke step Instruksi.
+- Tiap opsi menampilkan ikon radio, ikon metode, nama, subtitle (nomor rekening + a.n., atau "Verifikasi otomatis oleh sistem"), dan badge "Otomatis" untuk kanal gateway. Empty state baru bila tak ada metode aktif.
 
 *Untuk rincian arsitektural teknis (lifecycle Media, mekanisme RBAC, dan khususnya sistem **progressive loading dashboard**), silakan baca file-file spesifik di direktori `/docs/`.*
