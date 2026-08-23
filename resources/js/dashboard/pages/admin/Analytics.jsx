@@ -12,9 +12,9 @@ function TrendChart({ data = [] }) {
     if (!points.length) return <EmptyState icon="trending-up" title="Belum ada data kunjungan" message="Data akan muncul setelah pengunjung mengizinkan cookie analitik." />;
 
     const max = Math.max(1, ...points.map((p) => Math.max(p.views, p.visitors)));
-    const W = 640;
-    const H = 200;
-    const PAD = { top: 16, right: 12, bottom: 24, left: 44 };
+    const W = 700;
+    const H = 220;
+    const PAD = { top: 16, right: 16, bottom: 32, left: 48 };
     const innerW = W - PAD.left - PAD.right;
     const innerH = H - PAD.top - PAD.bottom;
     const stepX = points.length > 1 ? innerW / (points.length - 1) : 0;
@@ -35,6 +35,8 @@ function TrendChart({ data = [] }) {
         return { y: toY(v), label: v >= 1000 ? `${(v / 1000).toFixed(v >= 10000 ? 0 : 1)}k` : Math.round(v) };
     });
 
+    const midIdx = Math.floor(points.length / 2);
+
     return (
         <div className="card">
             <div className="flex flex-wrap items-center justify-between gap-2 border-b border-line px-5 py-3.5">
@@ -46,8 +48,8 @@ function TrendChart({ data = [] }) {
                     <span className="flex items-center gap-1.5"><span className="h-px w-4 border-t-2 border-dashed border-emerald-500" /> Unique Visitor</span>
                 </div>
             </div>
-            <div className="px-1 pt-2 pb-1 sm:px-2">
-                <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ height: 'clamp(160px, 24vw, 220px)' }} preserveAspectRatio="xMidYMid meet" role="img" aria-label="Tren kunjungan 30 hari">
+            <div className="px-2 pt-3 pb-1 sm:px-3">
+                <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ height: 'clamp(170px, 22vw, 230px)' }} preserveAspectRatio="xMidYMid meet" role="img" aria-label="Tren kunjungan 30 hari">
                     <defs>
                         <linearGradient id="viewsFill" x1="0" y1="0" x2="0" y2="1">
                             <stop offset="0%" stopColor="var(--color-brand-500, #8b5cf6)" stopOpacity="0.2" />
@@ -58,7 +60,7 @@ function TrendChart({ data = [] }) {
                     {gridYs.map((g, i) => (
                         <g key={i}>
                             <line x1={PAD.left} y1={g.y} x2={W - PAD.right} y2={g.y} className="stroke-line" strokeWidth="1" strokeDasharray={i === 0 ? '' : '3 3'} />
-                            <text x={PAD.left - 6} y={g.y + 3} textAnchor="end" className="fill-ink-muted" fontSize="9" fontFamily="inherit">{g.label}</text>
+                            <text x={PAD.left - 8} y={g.y + 3} textAnchor="end" className="fill-ink-muted" fontSize="10" fontFamily="inherit">{g.label}</text>
                         </g>
                     ))}
 
@@ -71,12 +73,11 @@ function TrendChart({ data = [] }) {
                             <title>{`${c.date}: ${fmt(c.views)} views / ${fmt(c.visitors)} visitor`}</title>
                         </circle>
                     ))}
+
+                    <text x={viewsCoords[0].x} y={H - 6} textAnchor="middle" className="fill-ink-muted" fontSize="10" fontFamily="inherit">{points[0]?.label}</text>
+                    <text x={viewsCoords[midIdx].x} y={H - 6} textAnchor="middle" className="fill-ink-muted" fontSize="10" fontFamily="inherit">{points[midIdx]?.label}</text>
+                    <text x={viewsCoords[viewsCoords.length - 1].x} y={H - 6} textAnchor="middle" className="fill-ink-muted" fontSize="10" fontFamily="inherit">{points[points.length - 1]?.label}</text>
                 </svg>
-            </div>
-            <div className="flex justify-between px-5 pb-3 text-[10px] text-ink-muted">
-                <span>{points[0]?.label}</span>
-                <span className="hidden sm:inline">{points[Math.floor(points.length / 2)]?.label}</span>
-                <span>{points[points.length - 1]?.label}</span>
             </div>
         </div>
     );
