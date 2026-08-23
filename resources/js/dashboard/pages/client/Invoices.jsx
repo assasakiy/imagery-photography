@@ -4,7 +4,7 @@ import api from '../../api';
 import Icon from '../../components/Icon';
 import InvoiceDetailModal from '../../components/InvoiceDetailModal';
 import { PageHeader, EmptyState, formatRupiah, formatDate } from '../../components/ui';
-import Skeleton from '../../components/Skeleton';
+import { StatCardsSkeleton, CardGridSkeleton } from '../../components/Skeleton';
 import { toast } from '../../lib/toast';
 
 const STATUS_META = {
@@ -53,7 +53,12 @@ export default function ClientInvoices() {
             <PageHeader title="Tagihan" subtitle="Status tagihan untuk pesanan Anda." />
 
             {loading ? (
-                <Skeleton variant="table" />
+                <>
+                    <StatCardsSkeleton count={3} colsClass="sm:grid-cols-3" />
+                    <div className="mt-4">
+                        <CardGridSkeleton count={4} cols="md:grid-cols-2" ratio="none" badge metaLines={3} />
+                    </div>
+                </>
             ) : (
             <>
             {items.length > 0 && (

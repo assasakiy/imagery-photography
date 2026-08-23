@@ -4,7 +4,7 @@ import api from '../api';
 import { toast } from '../lib/toast';
 import Icon from '../components/Icon';
 import { PageHeader, EmptyState, formatRupiah, formatDate, dateBoxParts } from '../components/ui';
-import Skeleton from '../components/Skeleton';
+import { StatCardsSkeleton, ChartSkeleton } from '../components/Skeleton';
 import { useAuth } from '../context/AuthContext';
 import { prefetchAllRoutesInBackground } from '../routes/prefetchAll';
 
@@ -34,7 +34,11 @@ export default function Dashboard() {
         return (
             <>
                 <PageHeader title={isAdmin ? 'Dashboard' : 'Portal Klien'} subtitle={isAdmin ? `Selamat datang kembali, ${user?.name}` : `Halo, ${user?.name}`} />
-                <Skeleton variant="card" />
+                <StatCardsSkeleton count={isAdmin ? 4 : 3} colsClass={isAdmin ? 'sm:grid-cols-2 lg:grid-cols-4' : 'sm:grid-cols-3'} />
+                <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2">
+                    <ChartSkeleton tall />
+                    <ChartSkeleton tall />
+                </div>
             </>
         );
     }

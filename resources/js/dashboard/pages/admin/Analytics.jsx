@@ -179,7 +179,11 @@ export default function Analytics() {
         return (
             <>
                 <PageHeader title="Analitik" subtitle="Analisis akun, perilaku pengguna, dan kunjungan." />
-                <Spinner />
+                <StatCardsSkeleton count={4} colsClass="sm:grid-cols-2 lg:grid-cols-4" />
+                <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2">
+                    <ChartSkeleton tall />
+                    <ChartSkeleton tall />
+                </div>
             </>
         );
     }

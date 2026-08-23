@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import api from '../../api';
 import Icon from '../../components/Icon';
-import Skeleton from '../../components/Skeleton';
+import { ListSkeleton } from '../../components/Skeleton';
 import { toast } from '../../lib/toast';
 import { BANK_ICON, WALLET_ICON, channelIcon, inferType } from '../../lib/paymentHelpers';
 
@@ -63,7 +63,7 @@ export default function PayInvoiceMethodPicker({ invoice, onSelectMethod }) {
     }, []);
 
     if (loading) {
-        return <div className="space-y-4"><Skeleton variant="table" /></div>;
+        return <div className="space-y-4"><ListSkeleton rows={4} leading="icon" /></div>;
     }
 
     const gwEnabled = methods.gateway?.enabled && methods.gateway.channels?.length > 0;

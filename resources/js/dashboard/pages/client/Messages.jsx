@@ -3,7 +3,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import api from '../../api';
 import Icon from '../../components/Icon';
 import { PageHeader, formatDate, Confirm } from '../../components/ui';
-import Skeleton from '../../components/Skeleton';
+import { ChatSkeleton } from '../../components/Skeleton';
 import { toast } from '../../lib/toast';
 
 function OfficialTeamBadge() {
@@ -89,7 +89,7 @@ export default function ClientMessages() {
 
     const removeTag = () => navigate('/dashboard/client-messages', { replace: true });
 
-    if (loading) return <Skeleton variant="form" />;
+    if (loading) return <ChatSkeleton />;
 
     return (
         <div className="flex h-[calc(100vh-64px)] flex-col -mx-4 sm:-mx-6 lg:-mx-8 -my-6">

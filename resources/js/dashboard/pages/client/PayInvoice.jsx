@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useSearchParams, useNavigate, Link } from 'react-router-dom';
 import api from '../../api';
 import Icon from '../../components/Icon';
-import Skeleton from '../../components/Skeleton';
+import { FormSkeleton } from '../../components/Skeleton';
 import { getApiErrorMessage } from '../../lib/errors';
 import { toast } from '../../lib/toast';
 
@@ -73,7 +73,7 @@ export default function PayInvoice() {
         }
     };
 
-    if (loading) return <Skeleton variant="form" />;
+    if (loading) return <FormSkeleton />;
     
     if (error) {
         return (

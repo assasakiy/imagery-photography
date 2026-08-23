@@ -153,7 +153,7 @@ export default function Messages() {
                     </div>
 
                     {loading ? (
-                        <Spinner />
+                        <div className="p-4"><ChatSkeleton /></div>
                     ) : items.length ? (
                         <>
                             <ul className="divide-y divide-line flex-1 overflow-y-auto">

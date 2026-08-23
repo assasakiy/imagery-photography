@@ -5,7 +5,7 @@ import api from '../../api';
 import Icon from '../../components/Icon';
 import { useAuth } from '../../context/AuthContext';
 import { EmptyState, Modal, Confirm, Field, ButtonSpinner, formatDate, formatRupiah } from '../../components/ui';
-import Skeleton from '../../components/Skeleton';
+import { DetailSkeleton } from '../../components/Skeleton';
 import { toast } from '../../lib/toast';
 import { getApiErrorMessage } from '../../lib/errors';
 
@@ -45,7 +45,7 @@ export default function PreviewDetail() {
 
     useEffect(load, [id]);
 
-    if (loading) return <Skeleton variant="form" />;
+    if (loading) return <DetailSkeleton stepper={false} />;
     if (!project) return <EmptyState title="Galeri tidak ditemukan" />;
 
     const files = (project.files || []).filter((f) => f.url);

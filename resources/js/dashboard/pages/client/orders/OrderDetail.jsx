@@ -5,7 +5,7 @@ import api from '../../../api';
 import Icon from '../../../components/Icon';
 import { useAuth } from '../../../context/AuthContext';
 import { Field, formatRupiah, formatDate, Modal, EmptyState, Confirm } from '../../../components/ui';
-import Skeleton from '../../../components/Skeleton';
+import { DetailSkeleton } from '../../../components/Skeleton';
 import { toast } from '../../../lib/toast';
 import { getApiErrorMessage } from '../../../lib/errors';
 import { StatusBadge } from './Orders';
@@ -80,7 +80,7 @@ export default function ProjectDetail() {
 
     useEffect(load, [id]);
 
-    if (loading) return <Skeleton variant="form" />;
+    if (loading) return <DetailSkeleton />;
     if (!project) return <EmptyState title="Pesanan tidak ditemukan" />;
 
     const totalPaid = (project.payments || []).filter((p) => p.status === 'confirmed').reduce((s, p) => s + Number(p.amount), 0);
