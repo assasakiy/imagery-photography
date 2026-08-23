@@ -1,39 +1,21 @@
 import Icon from '../../../components/Icon';
-import Avatar from '../../../components/Avatar';
 import { Modal, Field, PasswordInput } from '../../../components/ui';
 
-export function AvatarViewModal({ open, onClose, avatarUrl, profile, onEdit, onRemove }) {
+export function AvatarViewModal({ open, onClose, avatarUrl }) {
     return (
         <Modal
             open={open}
             onClose={onClose}
-            title="Lihat Foto Profil"
-            footer={
-                <div className="flex justify-end gap-2">
-                    <button type="button" className="btn-outline" onClick={onEdit}>
-                        <Icon name="edit" size={16} /> Ubah
-                    </button>
-                    {avatarUrl && (
-                        <button type="button" className="btn bg-red-600 text-white hover:bg-red-700" onClick={onRemove}>
-                            <Icon name="trash" size={16} /> Hapus
-                        </button>
-                    )}
-                </div>
-            }
+            title="Foto Profil"
+            fullscreen
+            bodyClassName="bg-zinc-950 flex items-center justify-center"
         >
-            <div className="flex flex-col items-center gap-4 py-2">
-                <Avatar
-                    src={avatarUrl}
-                    name={profile.full_name}
-                    size="2xl"
-                    shape="full"
-                    className="!h-40 !w-40 ring-4 ring-line"
-                />
-                <div className="text-center">
-                    <p className="text-lg font-semibold text-ink">{profile.full_name || '…'}</p>
-                    <p className="text-sm text-ink-muted">{profile.email || ''}</p>
-                    {profile.bio && <p className="mt-3 max-w-xs text-sm text-ink-muted">{profile.bio}</p>}
-                </div>
+            <div className="flex min-h-[60vh] items-center justify-center">
+                {avatarUrl ? (
+                    <img src={avatarUrl} alt="Foto profil" className="max-h-[85vh] max-w-full rounded-xl object-contain" />
+                ) : (
+                    <p className="text-sm text-zinc-400">Belum ada foto profil.</p>
+                )}
             </div>
         </Modal>
     );
@@ -59,36 +41,21 @@ export function AvatarRemoveModal({ open, onClose, saving, onConfirm }) {
     );
 }
 
-export function CoverViewModal({ open, onClose, coverUrl, onEdit, onRemove }) {
+export function CoverViewModal({ open, onClose, coverUrl }) {
     return (
         <Modal
             open={open}
             onClose={onClose}
-            title="Lihat Banner Profil"
-            footer={
-                <div className="flex justify-end gap-2">
-                    <button type="button" className="btn-outline" onClick={onEdit}>
-                        <Icon name="edit" size={16} /> Ubah
-                    </button>
-                    {coverUrl && (
-                        <button type="button" className="btn bg-red-600 text-white hover:bg-red-700" onClick={onRemove}>
-                            <Icon name="trash" size={16} /> Hapus
-                        </button>
-                    )}
-                </div>
-            }
+            title="Banner Profil"
+            fullscreen
+            bodyClassName="bg-zinc-950 flex items-center justify-center"
         >
-            <div className="flex flex-col items-center gap-4 py-2">
-                <div className="h-40 w-full overflow-hidden rounded-2xl bg-surface-muted ring-1 ring-line sm:h-48">
-                    {coverUrl ? (
-                        <img src={coverUrl} alt="Banner profil" className="h-full w-full object-cover" />
-                    ) : (
-                        <div className="flex h-full w-full items-center justify-center bg-gradient-to-r from-brand-700 via-brand-500 to-brand-400" />
-                    )}
-                </div>
-                <p className="text-sm text-ink-muted">
-                    Banner ini ditampilkan di bagian atas profil Anda.
-                </p>
+            <div className="flex min-h-[60vh] w-full items-center justify-center p-4">
+                {coverUrl ? (
+                    <img src={coverUrl} alt="Banner profil" className="max-h-[85vh] w-full max-w-5xl rounded-xl object-contain" />
+                ) : (
+                    <p className="text-sm text-zinc-400">Belum ada banner.</p>
+                )}
             </div>
         </Modal>
     );

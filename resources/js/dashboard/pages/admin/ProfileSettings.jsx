@@ -504,9 +504,9 @@ export default function ProfileSettings() {
                 onDelete={() => setRemoveOpen(true)}
             />
 
-            <AvatarViewModal open={viewOpen} onClose={() => setViewOpen(false)} avatarUrl={avatarUrl} profile={profile} onEdit={() => avatarInputRef.current?.click()} onRemove={() => setRemoveOpen(true)} />
+            <AvatarViewModal open={viewOpen} onClose={() => setViewOpen(false)} avatarUrl={avatarUrl} />
             <AvatarRemoveModal open={removeOpen} onClose={() => setRemoveOpen(false)} saving={saving} onConfirm={removeAvatar} />
-            <CoverViewModal open={coverViewOpen} onClose={() => setCoverViewOpen(false)} coverUrl={coverUrl} onEdit={() => coverInputRef.current?.click()} onRemove={() => setCoverRemoveOpen(true)} />
+            <CoverViewModal open={coverViewOpen} onClose={() => setCoverViewOpen(false)} coverUrl={coverUrl} />
             <CoverRemoveModal open={coverRemoveOpen} onClose={() => setCoverRemoveOpen(false)} saving={saving} onConfirm={removeCover} />
             <DeleteAccountModal open={deleteOpen} onClose={() => setDeleteOpen(false)} deleting={deleting} errors={errors} deletePass={deletePass} setDeletePass={setDeletePass} onSubmit={deleteAccount} />
 
