@@ -182,8 +182,8 @@ class BookingApiController extends Controller
 
     public function reject(Request $request, Booking $booking)
     {
-        if (!in_array($booking->status, ['pending', 'confirmed'])) {
-            abort(422, 'Booking tidak valid untuk ditolak.');
+        if ($booking->status !== 'pending') {
+            abort(422, 'Hanya booking yang menunggu yang bisa ditolak. Gunakan pembatalan untuk booking terkonfirmasi.');
         }
 
         $request->validate(['reason' => 'nullable|string|max:500']);
@@ -191,6 +191,31 @@ class BookingApiController extends Controller
         $booking->update(['status' => 'rejected']);
 
         app(AuditLogger::class)->log('booking.rejected', 'Booking ' . $booking->booking_no . ' ditolak' . ($request->reason ? ": {$request->reason}" : ''), $booking);
+
+        return response()->json($booking->fresh());
+    }
+
+    public function cancel(Request $request, Booking $booking)
+    {
+        if (!in_array($booking->status, ['pending', 'confirmed'])) {
+            abort(422, 'Booking tidak valid untuk dibatalkan.');
+        }
+
+        $request->validate(['reason' => 'nullable|string|max:500']);
+
+        $wasConfirmed = $booking->status === 'confirmed';
+        $booking->update(['status' => 'cancelled']);
+
+        app(AuditLogger::class)->log('booking.cancelled_by_admin', 'Booking ' . $booking->booking_no . ' dibatalkan oleh admin' . ($request->reason ? ": {$request->reason}" : ''), $booking);
+
+        if ($wasConfirmed && $booking->user) {
+            app(NotificationService::class)->inApp(
+                $booking->user,
+                'Booking Dibatalkan',
+                'Booking ' . $booking->booking_no . ' telah dibatalkan oleh tim kami.',
+                '/dashboard/client-bookings'
+            );
+        }
 
         return response()->json($booking->fresh());
     }

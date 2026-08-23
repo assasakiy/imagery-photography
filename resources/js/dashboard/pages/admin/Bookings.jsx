@@ -99,13 +99,14 @@ export default function Bookings() {
         e.preventDefault();
         setSaving(true);
         try {
-            await api.post(`/bookings/${detail.id}/reject`, { reason: rejectReason });
-            toast.success('Booking ditolak.');
+            const isCancel = detail.status === 'confirmed';
+            await api.post(`/bookings/${detail.id}/${isCancel ? 'cancel' : 'reject'}`, { reason: rejectReason });
+            toast.success(isCancel ? 'Booking dibatalkan.' : 'Booking ditolak.');
             setRejectOpen(false);
             setDetail(null);
             load(meta.current_page);
         } catch {
-            toast.error('Gagal menolak booking.');
+            toast.error('Gagal memproses booking.');
         } finally {
             setSaving(false);
         }
@@ -270,7 +271,7 @@ export default function Bookings() {
                     </div>
                 ) : detail?.status === 'confirmed' ? (
                     <div className="flex w-full justify-between gap-2">
-                        <button className="btn-outline text-red-600 hover:bg-red-50 hover:text-red-700 hover:border-red-200" onClick={() => setRejectOpen(true)}>Tolak</button>
+                        <button className="btn-outline text-red-600 hover:bg-red-50 hover:text-red-700 hover:border-red-200" onClick={() => setRejectOpen(true)}>Batalkan</button>
                         <button className="btn-primary" onClick={startAccept}>Buat Proyek</button>
                     </div>
                 ) : null
@@ -327,7 +328,7 @@ export default function Bookings() {
 
                             {(detail.status === 'rejected' || detail.status === 'cancelled') && (
                                 <div className="rounded-xl border border-red-500/20 bg-red-500/5 p-3 text-sm text-red-600 dark:text-red-400">
-                                    Booking ini {detail.status === 'rejected' ? 'ditolak oleh admin' : 'dibatalkan oleh klien'}.
+                                    Booking ini {detail.status === 'rejected' ? 'ditolak.' : 'dibatalkan.'}
                                 </div>
                             )}
                         </div>
@@ -335,13 +336,13 @@ export default function Bookings() {
                 )}
             </Modal>
 
-            <Modal open={rejectOpen} onClose={() => setRejectOpen(false)} title="Tolak Booking" footer={
+            <Modal open={rejectOpen} onClose={() => setRejectOpen(false)} title={detail?.status === 'confirmed' ? 'Batalkan Booking' : 'Tolak Booking'} footer={
                 <div className="flex justify-end gap-2">
                     <button className="btn-outline" onClick={() => setRejectOpen(false)}>Batal</button>
-                    <button className="btn-primary !bg-red-600 hover:!bg-red-700" onClick={handleReject} disabled={saving}>{saving ? '...' : 'Tolak'}</button>
+                    <button className="btn-primary !bg-red-600 hover:!bg-red-700" onClick={handleReject} disabled={saving}>{saving ? '...' : detail?.status === 'confirmed' ? 'Batalkan' : 'Tolak'}</button>
                 </div>
             }>
-                <Field label="Alasan Penolakan (opsional)">
+                <Field label={detail?.status === 'confirmed' ? 'Alasan Pembatalan (opsional)' : 'Alasan Penolakan (opsional)'}>
                     <textarea className="input" rows="3" value={rejectReason} onChange={(e) => setRejectReason(e.target.value)} placeholder="Misal: Tanggal sudah penuh" />
                 </Field>
             </Modal>

@@ -173,6 +173,7 @@ Route::middleware(['web', 'auth:sanctum', 'maintenance'])->group(function () {
         Route::post('/bookings/{booking}/confirm', [BookingApiController::class, 'confirm']);
         Route::post('/bookings/{booking}/accept', [BookingApiController::class, 'accept']);
         Route::post('/bookings/{booking}/reject', [BookingApiController::class, 'reject']);
+        Route::post('/bookings/{booking}/cancel', [BookingApiController::class, 'cancel']);
 
         Route::get('/payments', [PaymentController::class, 'index']);
         Route::patch('/payments/{payment}/confirm', [PaymentController::class, 'confirm']);
