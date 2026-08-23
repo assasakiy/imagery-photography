@@ -5,6 +5,7 @@ import { toast } from '../../lib/toast';
 import { getApiErrorMessage } from '../../lib/errors';
 import Icon from '../../components/Icon';
 import { Spinner, EmptyState, Confirm, formatDate } from '../../components/ui';
+import { ChatSkeleton } from '../../components/Skeleton';
 
 export default function Messages() {
     const { id: paramId } = useParams();
