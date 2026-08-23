@@ -39,6 +39,7 @@ export default function PayInvoice() {
     // For proof_rejected: reconstruct selectedMethod from structured channel data
     // so user lands directly on confirm step.
     useEffect(() => {
+        if (loading) return; // wait for invoice fetch to complete
         if (step !== 'method' && !selectedMethod) {
             const lp = invoice?.latest_payment;
             if (invoice?.payment_state === 'proof_rejected' && lp?.channel_type) {
@@ -59,7 +60,7 @@ export default function PayInvoice() {
                 setSearchParams({ step: 'method' });
             }
         }
-    }, [step, selectedMethod, invoice, setSearchParams]);
+    }, [step, selectedMethod, invoice, loading, setSearchParams]);
 
     const setStep = (newStep) => setSearchParams({ step: newStep });
 
