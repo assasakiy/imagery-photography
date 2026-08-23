@@ -32,6 +32,7 @@ class NotificationService
         'auth.magic_link' => 'Tautan masuk / aktivasi',
         'order.gallery_ready' => 'Galeri siap diunduh',
         'billing.invoice' => 'Invoice diterbitkan',
+        'redelivery.requested' => 'Permintaan unduh ulang',
     ];
 
     /**
@@ -49,6 +50,7 @@ class NotificationService
             'project.created', 'project.updated', 'project.status_changed',
             'payment.submitted', 'payment.confirmed',
             'payment.rejected', 'team.invited', 'auth.login',
+            'redelivery.requested',
         ],
         'email' => [
             'booking.new', 'message.new', 'review.new',
@@ -56,18 +58,21 @@ class NotificationService
             'payment.submitted', 'payment.confirmed',
             'payment.rejected', 'team.invited', 'auth.otp', 'auth.login',
             'auth.invite', 'auth.set_password', 'auth.magic_link', 'order.gallery_ready', 'billing.invoice',
+            'redelivery.requested',
         ],
         'whatsapp' => [
             'booking.new', 'message.new', 'review.new',
             'project.status_changed', 'payment.submitted', 'payment.confirmed',
             'auth.otp', 'auth.login',
             'auth.invite', 'auth.set_password', 'auth.magic_link', 'order.gallery_ready', 'billing.invoice',
+            'redelivery.requested',
         ],
         'webhook' => [
             'booking.new', 'message.new', 'review.new',
             'project.created', 'project.updated', 'project.status_changed',
             'payment.submitted', 'payment.confirmed',
             'payment.rejected', 'team.invited',
+            'redelivery.requested',
         ],
     ];
 
