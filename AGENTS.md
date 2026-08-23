@@ -107,7 +107,10 @@ Halaman dashboard yang punya beberapa tab **WAJIB** dipisah ke folder `pages/<na
 - **Media Library**: model butuh `$fillable=['id']`; `LandingContent::setValue` pertahankan `group`; reset landing images meninggalkan media orphan (TODO).
 - **Test**: skrip di `/home/opc` (`spa_test.py`, `final_test.py`, `access_test.py`); `/etc/hosts` berisi `127.0.0.1 imagery.my.id`; `/tmp/opencode` TIDAK writable.
 
-## 13. Sesi Terbaru — Proof Mime dari Sumber Kebenaran
-- **`proof_mime` accessor (`ffe9836`):** deteksi PDF bukti bayar tak lagi menebak dari ekstensi URL (regex rapuh utk S3/signed-URL) — `Payment::getProofMimeAttribute()` membaca kolom `mime_type` Spatie media (`payment_proof`), dengan fallback legacy `proof_file` via cek ekstensi `.pdf`. Ditambah ke `$appends`. Frontend (`InvoiceDetailModal.jsx`, admin `Payments.jsx`) kini cukup `proof_mime === 'application/pdf'`. Verifikasi live: API mengembalikan `proof_mime: "image/png"`.
+## 13. Sesi Terbaru — Refactor Skeleton Presisi
+- **Komponen Layout Spesifik (`5423371`):** folder `components/skeletons/` diperluas dari 3 menjadi 7 varian presisi (StatCards, CardGrid, DataTable, List, Chat, Detail, Chart) — dispatcher `Skeleton.jsx` memetakan varian lama.
+- **Tabel Header Asli (`7d40df5`):** 13 halaman tabel (Clients, AuditLog multi-view, Bookings, dsb) kini memakai `DataTableSkeleton` tanpa header abu-abu palsu. `<thead>` merender teks kolom statis asli, skeleton hanya di baris isi dengan variasi sel presisi (avatar, badge, text, actions).
+- **Migrasi Grid & List (`448a6fd`):** Gallery, Media, Portfolio (sistem `ui/skeleton` lokal dihapus total), Team, Reviews, dll. memakai `CardGridSkeleton` & `ListSkeleton` sesuai rasio aslinya.
+- **Halaman Unik (`7b05372`):** Dashboard (Stat+Chart), Invoices (Stat+CardGrid), Messages (ChatSkeleton 2-panel), OrderDetail (DetailSkeleton) tidak lagi memakai fallback form/table generik. Mencegah layout-shift drastis saat transisi loading → loaded.
 
 *Untuk rincian arsitektural teknis (lifecycle Media, mekanisme RBAC, dan khususnya sistem **progressive loading dashboard**), silakan baca file-file spesifik di direktori `/docs/`.*
