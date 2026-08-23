@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import api from '../../api';
 import Icon from '../../components/Icon';
 import { PageHeader, EmptyState, Confirm, formatDate } from '../../components/ui';
-import Skeleton from '../../components/Skeleton';
+import { DataTableSkeleton } from '../../components/Skeleton';
 import { toast } from '../../lib/toast';
 
 const TYPE_LABEL = { client: 'Klien', blog: 'Blog', portfolio: 'Portofolio', subscriber: 'Subscriber' };
@@ -78,7 +78,18 @@ export default function RecycleBin() {
             </div>
 
             {loading ? (
-                <Skeleton variant="table" />
+                <DataTableSkeleton
+                        columns={[
+                            { label: 'Media', width: '8%', shape: 'thumb' },
+                            { label: 'Nama', width: '20%' },
+                            { label: 'Kategori', width: '12%', shape: 'badge' },
+                            { label: 'Tipe', width: '10%', shape: 'badge' },
+                            { label: 'Dihapus', width: '12%' },
+                            { label: 'Dihapus Oleh', width: '14%', shape: 'avatar' },
+                            { label: 'Alasan', width: '24%' },
+                        ]}
+                        pagination={false}
+                    />
             ) : items.length ? (
                 <div className="card overflow-x-auto">
                     <table className="table">

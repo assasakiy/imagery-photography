@@ -4,7 +4,7 @@ import { toast } from '../../lib/toast';
 import { getApiErrorMessage } from '../../lib/errors';
 import Icon from '../../components/Icon';
 import { PageHeader, EmptyState, Modal, formatRupiah, formatDate } from '../../components/ui';
-import Skeleton from '../../components/Skeleton';
+import { DataTableSkeleton } from '../../components/Skeleton';
 import { refreshBadges } from '../../context/BadgeContext';
 
 const STATUS_TABS = [
@@ -111,7 +111,17 @@ export default function Payments() {
             </div>
 
             {loading ? (
-                <Skeleton variant="table" />
+                <DataTableSkeleton
+                        columns={[
+                            { label: 'Tanggal', width: '14%' },
+                            { label: 'Klien', width: '20%', shape: 'avatar' },
+                            { label: 'Pesanan', width: '18%', shape: 'badge' },
+                            { label: 'Jumlah', width: '14%' },
+                            { label: 'Metode', width: '14%', shape: 'badge' },
+                            { label: 'Status', width: '10%', shape: 'badge' },
+                            { label: 'Aksi', width: '10%', shape: 'actions' },
+                        ]}
+                    />
             ) : filtered.length ? (
                 <div className="card overflow-x-auto">
                     <table className="table">

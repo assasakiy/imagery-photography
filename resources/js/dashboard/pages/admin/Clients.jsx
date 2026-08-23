@@ -9,7 +9,7 @@ import UserDetailModal from '../../components/UserDetailModal';
 import PresenceBadge from '../../components/PresenceBadge';
 import FilterDropdown from '../../components/FilterDropdown';
 import { PageHeader, EmptyState, Modal, Confirm, Field, formatDate } from '../../components/ui';
-import Skeleton from '../../components/Skeleton';
+import { DataTableSkeleton } from '../../components/Skeleton';
 
 const emptyForm = { name: '', username: '', email: '', phone: '', company: '', occupation: '', bio: '', status: 'pending', avatar: undefined };
 
@@ -218,7 +218,15 @@ export default function Clients() {
             </div>
 
             {loading ? (
-                <Skeleton variant="table" />
+                <DataTableSkeleton
+                        columns={[
+                            { label: 'Nama', width: '35%', shape: 'avatar' },
+                            { label: 'Status', width: '20%', shape: 'badge' },
+                            { label: 'Project', width: '15%', shape: 'badge' },
+                            { label: 'Bergabung', width: '15%' },
+                            { label: 'Aksi', width: '15%', shape: 'actions' },
+                        ]}
+                    />
             ) : items.length ? (
                 <div className="card overflow-x-auto">
                     <table className="table">

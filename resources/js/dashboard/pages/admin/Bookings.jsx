@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import api from '../../api';
 import Icon from '../../components/Icon';
 import { PageHeader, EmptyState, Modal, Field, formatDate, formatRupiah, formatTime, formatTimeInput } from '../../components/ui';
-import Skeleton from '../../components/Skeleton';
+import { DataTableSkeleton } from '../../components/Skeleton';
 import { toast } from '../../lib/toast';
 
 const STATUS_META = {
@@ -209,7 +209,16 @@ export default function Bookings() {
             </div>
 
             {loading ? (
-                <Skeleton variant="table" />
+                <DataTableSkeleton
+                        columns={[
+                            { label: 'No. Booking', width: '20%' },
+                            { label: 'Client', width: '22%', shape: 'avatar' },
+                            { label: 'Paket', width: '16%', shape: 'badge' },
+                            { label: 'Jadwal', width: '14%' },
+                            { label: 'Dibuat', width: '13%' },
+                            { label: 'Aksi', width: '15%', shape: 'actions' },
+                        ]}
+                    />
             ) : items.length ? (
                 <div className="card overflow-x-auto">
                     <table className="table">

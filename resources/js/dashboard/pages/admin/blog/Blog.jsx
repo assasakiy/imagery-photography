@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import api from '../../../api';
 import Icon from '../../../components/Icon';
 import { PageHeader, EmptyState, Confirm, formatDate } from '../../../components/ui';
-import Skeleton from '../../../components/Skeleton';
+import { DataTableSkeleton } from '../../../components/Skeleton';
 import { toast } from '../../../lib/toast';
 
 export default function Blog() {
@@ -85,7 +85,15 @@ export default function Blog() {
             </div>
 
             {loading ? (
-                <Skeleton variant="table" />
+                <DataTableSkeleton
+                        columns={[
+                            { label: 'Artikel', width: '40%', shape: 'thumb' },
+                            { label: 'Kategori', width: '16%', shape: 'badge' },
+                            { label: 'Status', width: '14%', shape: 'badge' },
+                            { label: 'Tanggal', width: '15%' },
+                            { label: 'Aksi', width: '15%', shape: 'actions' },
+                        ]}
+                    />
             ) : items.length > 0 ? (
                 <div className="card overflow-x-auto">
                     <table className="table">

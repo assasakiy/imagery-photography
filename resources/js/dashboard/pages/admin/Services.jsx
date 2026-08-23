@@ -5,7 +5,7 @@ import { getApiErrorMessage } from '../../lib/errors';
 import Icon from '../../components/Icon';
 import { PageHeader, EmptyState, Modal, Confirm, Field, formatRupiah } from '../../components/ui';
 import FilterDropdown from '../../components/FilterDropdown';
-import Skeleton from '../../components/Skeleton';
+import { DataTableSkeleton } from '../../components/Skeleton';
 
 const VIEWS = [
     { key: 'master', label: 'Master Layanan', icon: 'briefcase' },
@@ -297,7 +297,17 @@ export default function Services() {
             )}
 
             {loading ? (
-                <Skeleton variant="table" />
+                <DataTableSkeleton
+                        columns={[
+                            { label: 'Event / Nama', width: '24%' },
+                            { label: 'Media', width: '14%', shape: 'badge' },
+                            { label: 'Ketentuan', width: '18%' },
+                            { label: 'Durasi', width: '10%' },
+                            { label: 'Harga', width: '12%' },
+                            { label: 'Status', width: '10%', shape: 'badge' },
+                            { label: 'Aksi', width: '12%', shape: 'actions' },
+                        ]}
+                    />
             ) : (
                 <>
             {view === 'master' && (

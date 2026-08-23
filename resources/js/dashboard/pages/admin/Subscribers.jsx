@@ -7,7 +7,7 @@ import Avatar from '../../components/Avatar';
 import PresenceBadge from '../../components/PresenceBadge';
 import FilterDropdown from '../../components/FilterDropdown';
 import { PageHeader, EmptyState, Confirm, formatDate } from '../../components/ui';
-import Skeleton from '../../components/Skeleton';
+import Skeleton, { DataTableSkeleton } from '../../components/Skeleton';
 
 export default function Subscribers() {
     const [items, setItems] = useState([]);
@@ -179,7 +179,17 @@ export default function Subscribers() {
             </div>
 
             {loading ? (
-                <Skeleton variant="table" />
+                <DataTableSkeleton
+                    columns={[
+                        { label: 'Nama', width: '22%', shape: 'avatar' },
+                        { label: 'Status', width: '13%', shape: 'badge' },
+                        { label: 'Bookmark', width: '10%' },
+                        { label: 'Suka', width: '10%' },
+                        { label: 'Komentar', width: '12%' },
+                        { label: 'Bergabung', width: '15%' },
+                        { label: 'Aksi', width: '18%', shape: 'actions' },
+                    ]}
+                />
             ) : items.length ? (
                 <div className="overflow-x-auto rounded-xl border border-line">
                     <table className="w-full text-left text-sm">

@@ -6,7 +6,7 @@ import Icon from '../../components/Icon';
 import PresenceBadge from '../../components/PresenceBadge';
 import FilterDropdown from '../../components/FilterDropdown';
 import { PageHeader, EmptyState } from '../../components/ui';
-import Skeleton from '../../components/Skeleton';
+import { DataTableSkeleton } from '../../components/Skeleton';
 
 const VIEWS = [
     { key: 'presence', label: 'Kehadiran', icon: 'activity' },
@@ -240,7 +240,42 @@ export default function AuditLog() {
             </div>
 
             {loading ? (
-                <Skeleton variant="table" />
+                <DataTableSkeleton
+                    columns={{
+                        login: [
+                            { label: 'User', width: '16%', shape: 'avatar' },
+                            { label: 'Status', width: '10%', shape: 'badge' },
+                            { label: 'Metode', width: '10%', shape: 'badge' },
+                            { label: 'IP', width: '12%' },
+                            { label: 'Perangkat', width: '22%' },
+                            { label: 'Masuk', width: '14%' },
+                            { label: 'Durasi', width: '8%' },
+                            { label: 'Keamanan', width: '8%', shape: 'badge' },
+                        ],
+                        presence: [
+                            { label: 'User', width: '20%', shape: 'avatar' },
+                            { label: 'Role', width: '12%', shape: 'badge' },
+                            { label: 'Status', width: '14%', shape: 'badge' },
+                            { label: 'Terakhir Aktif', width: '18%' },
+                            { label: 'Sesi Aktif', width: '18%' },
+                            { label: 'Perangkat', width: '18%' },
+                        ],
+                        links: [
+                            { label: 'Dibuat', width: '13%' },
+                            { label: 'User', width: '17%', shape: 'avatar' },
+                            { label: 'Jenis', width: '12%', shape: 'badge' },
+                            { label: 'Status', width: '12%', shape: 'badge' },
+                            { label: 'Tautan', width: '26%' },
+                            { label: 'Kedaluwarsa', width: '20%' },
+                        ],
+                    }[view] || [
+                        { label: 'Waktu', width: '13%' },
+                        { label: 'User', width: '15%', shape: 'avatar' },
+                        { label: 'Aksi', width: '14%', shape: 'badge' },
+                        { label: 'Deskripsi', width: '40%' },
+                        { label: 'IP', width: '18%' },
+                    ]}
+                />
             ) : items.length === 0 ? (
                 <EmptyState icon="clock" title={view === 'login' ? 'Belum ada riwayat login' : view === 'links' ? 'Belum ada riwayat tautan' : view === 'presence' ? 'Belum ada pengguna' : 'Belum ada log aktivitas'} />
             ) : view === 'presence' ? (
