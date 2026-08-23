@@ -5,7 +5,7 @@ import { toast } from '../../lib/toast';
 import { getApiErrorMessage } from '../../lib/errors';
 import Icon from '../../components/Icon';
 import { PageHeader, EmptyState, Modal, Confirm, Field, formatDate } from '../../components/ui';
-import Skeleton from '../../components/Skeleton';
+import { CardListSkeleton } from '../../components/Skeleton';
 
 function Stars({ value, size = 18 }) {
     return (
@@ -127,7 +127,7 @@ export default function Reviews() {
             </div>
 
             {loading ? (
-                <Skeleton variant="card" />
+                <CardListSkeleton count={5} />
             ) : items.length ? (
                 <div className="space-y-3">
                     {items.map((item) => (

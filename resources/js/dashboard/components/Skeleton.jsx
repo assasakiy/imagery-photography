@@ -8,11 +8,13 @@ import ListSkeleton from './skeletons/ListSkeleton';
 import ChatSkeleton from './skeletons/ChatSkeleton';
 import DetailSkeleton from './skeletons/DetailSkeleton';
 import ChartSkeleton from './skeletons/ChartSkeleton';
+import CardListSkeleton from './skeletons/CardListSkeleton';
 
 const SKELETON_MAP = {
     card: CardGridSkeleton,
     'card-grid': CardGridSkeleton,
     'card-legacy': CardSkeleton,
+    'card-list': CardListSkeleton,
     table: DataTableSkeleton,
     form: FormSkeleton,
     'stat-cards': StatCardsSkeleton,
@@ -38,4 +40,5 @@ export {
     ChatSkeleton,
     DetailSkeleton,
     ChartSkeleton,
+    CardListSkeleton,
 };

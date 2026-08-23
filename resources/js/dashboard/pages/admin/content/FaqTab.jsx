@@ -4,7 +4,7 @@ import Icon from '../../../components/Icon';
 import SearchableMultiSelect from '../../../components/SearchableMultiSelect';
 import RichEditor from '../../../components/RichEditor';
 import { EmptyState, Modal, Confirm, Field } from '../../../components/ui';
-import { ListSkeleton } from '../../../components/Skeleton';
+import { CardListSkeleton } from '../../../components/Skeleton';
 import { toast } from '../../../lib/toast';
 import { getApiErrorMessage } from '../../../lib/errors';
 
@@ -91,7 +91,7 @@ export default function FaqTab({ ref }) {
     return (
         <>
             {loading ? (
-                <ListSkeleton rows={5} leading="icon" trailingBadge />
+                <CardListSkeleton count={5} />
             ) : items.length ? (
                 <div className="space-y-3">
                     {items.map((item) => (
