@@ -17,11 +17,14 @@ import { AvatarViewModal, AvatarRemoveModal, CoverViewModal, CoverRemoveModal, D
 const ROLE_LABEL = { owner: 'Pemilik', admin: 'Dashboard Admin', client: 'Portal Klien' };
 
 function PhotoActionMenu({ open, uploading, canDelete, onClose, onView, onChange, onDelete }) {
+    const menuRef = useRef(null);
+
     useEffect(() => {
         if (!open) return;
         const onKey = (e) => { if (e.key === 'Escape') onClose(); };
         window.addEventListener('keydown', onKey);
-        return () => window.removeEventListener('keydown', onKey);
+        const t = setTimeout(() => menuRef.current?.focus(), 0);
+        return () => { window.removeEventListener('keydown', onKey); clearTimeout(t); };
     }, [open, onClose]);
 
     if (!open || uploading) return null;
@@ -33,15 +36,17 @@ function PhotoActionMenu({ open, uploading, canDelete, onClose, onView, onChange
     ];
 
     const run = (fn) => { onClose(); fn(); };
-    const left = Math.min(open.x, window.innerWidth - 210);
+    const left = Math.max(8, Math.min(open.x, window.innerWidth - 210));
     const top = Math.min(open.y, window.innerHeight - 190);
 
     return (
         <>
-            {/* Desktop: dropdown di posisi klik */}
+            {/* Desktop: dropdown menempel di sudut kanan-bawah elemen pemicu */}
             <div className="fixed inset-0 z-40 hidden lg:block" onClick={onClose} onContextMenu={(e) => { e.preventDefault(); onClose(); }} />
             <div
-                className="fixed z-50 hidden min-w-[190px] overflow-hidden rounded-xl border border-line bg-surface py-1.5 shadow-2xl lg:block"
+                ref={menuRef}
+                tabIndex={-1}
+                className="fixed z-50 hidden min-w-[190px] overflow-hidden rounded-xl border border-line bg-surface py-1.5 shadow-2xl outline-none lg:block"
                 style={{ left, top }}
                 role="menu"
             >
@@ -375,7 +380,11 @@ export default function ProfileSettings() {
             <div className="card overflow-hidden">
                 <button
                     type="button"
-                    onClick={(e) => { if (!uploadingCover) setCoverMenu({ x: e.clientX, y: e.clientY }); }}
+                    onClick={(e) => {
+                        if (uploadingCover) return;
+                        const r = e.currentTarget.getBoundingClientRect();
+                        setCoverMenu({ x: r.right - 210, y: r.bottom + 8 });
+                    }}
                     className="group relative block h-32 w-full overflow-hidden sm:h-40"
                     aria-label="Menu banner profil"
                 >
@@ -401,7 +410,16 @@ export default function ProfileSettings() {
                 <div className="px-5 pb-6 sm:px-8">
                     <div className="-mt-12 flex items-end justify-between sm:-mt-14">
                         <div className="relative">
-                            <button type="button" onClick={(e) => { if (!uploadingAvatar) setAvatarMenu({ x: e.clientX, y: e.clientY }); }} className="group relative" aria-label="Menu foto profil">
+                            <button
+                                type="button"
+                                onClick={(e) => {
+                                    if (uploadingAvatar) return;
+                                    const r = e.currentTarget.getBoundingClientRect();
+                                    setAvatarMenu({ x: r.right - 210, y: r.bottom + 8 });
+                                }}
+                                className="group relative"
+                                aria-label="Menu foto profil"
+                            >
                                 <Avatar src={avatarUrl} name={profile.full_name} size="2xl" shape="full" className={`ring-4 ring-surface transition-all ${uploadingAvatar ? 'blur-[2px]' : ''}`} />
                                 {uploadingAvatar ? (
                                     <span className="absolute inset-0 flex items-center justify-center rounded-full bg-black/60 text-white backdrop-blur-[1px]" title="Mengunggah foto…">
