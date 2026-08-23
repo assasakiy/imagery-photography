@@ -48,6 +48,7 @@ export default function Payments() {
     const [loading, setLoading] = useState(true);
     const [acting, setActing] = useState(null);
     const [detail, setDetail] = useState(null);
+    const [proofView, setProofView] = useState(null);
 
     const load = (page = 1) => {
         setLoading(true);
@@ -238,20 +239,20 @@ export default function Payments() {
                                 <p className="mb-2 text-xs text-ink-muted">Bukti Pembayaran</p>
                                 {detail.proof_url ? (
                                     /\.pdf(\?|$)/i.test(detail.proof_url) ? (
-                                        <a href={detail.proof_url} target="_blank" rel="noreferrer" className="flex w-fit items-center gap-3 rounded-xl border border-line bg-surface-muted/30 p-4 transition-opacity hover:opacity-85">
+                                        <button type="button" onClick={() => setProofView({ url: detail.proof_url, pdf: true })} className="flex w-fit items-center gap-3 rounded-xl border border-line bg-surface-muted/30 p-4 transition-opacity hover:opacity-85">
                                             <span className="flex h-12 w-12 items-center justify-center rounded-lg bg-red-500/10 text-red-600 dark:text-red-400">
                                                 <Icon name="file-text" size={22} />
                                             </span>
                                             <span className="text-sm font-semibold text-brand-600 underline dark:text-brand-400">Lihat Bukti (PDF)</span>
-                                        </a>
+                                        </button>
                                     ) : (
-                                        <a href={detail.proof_url} target="_blank" rel="noreferrer" title="Buka gambar penuh" className="block w-fit">
+                                        <button type="button" onClick={() => setProofView({ url: detail.proof_url, pdf: false })} title="Lihat gambar penuh" className="block w-fit">
                                             <img
                                                 src={detail.proof_url}
                                                 alt="Bukti pembayaran"
                                                 className="max-h-72 rounded-xl border border-line object-contain transition-opacity hover:opacity-85"
                                             />
-                                        </a>
+                                        </button>
                                     )
                                 ) : (
                                     <div className="flex flex-col items-center gap-1 rounded-xl border border-dashed border-line bg-surface-muted/30 p-6 text-center">
@@ -263,6 +264,20 @@ export default function Payments() {
                         </div>
                     );
                 })()}
+            </Modal>
+
+            <Modal
+                open={!!proofView}
+                onClose={() => setProofView(null)}
+                title="Bukti Pembayaran"
+                wide
+                bodyClassName="bg-zinc-950 flex items-center justify-center"
+            >
+                {proofView && (proofView.pdf ? (
+                    <iframe src={proofView.url} title="Bukti pembayaran" className="h-[80vh] w-full rounded-xl bg-white" />
+                ) : (
+                    <img src={proofView.url} alt="Bukti pembayaran" className="max-h-[85vh] max-w-full rounded-xl object-contain" />
+                ))}
             </Modal>
         </>
     );

@@ -51,6 +51,7 @@ function Stat({ label, value, accent }) {
 export default function InvoiceDetailModal({ open, onClose, invoice }) {
     const [payments, setPayments] = useState(null);
     const [loading, setLoading] = useState(false);
+    const [proof, setProof] = useState(null);
 
     useEffect(() => {
         if (!open || !invoice) return;
@@ -91,6 +92,7 @@ export default function InvoiceDetailModal({ open, onClose, invoice }) {
     }
 
     return (
+        <>
         <Modal open={open} onClose={onClose} title="Detail Tagihan" wide bodyClassName="p-0" footer={footer}>
             {/* Dokumen header */}
             <div className="bg-gradient-to-r from-brand-600 to-brand-500 px-6 py-5 dark:from-brand-700 dark:to-brand-600">
@@ -193,7 +195,7 @@ export default function InvoiceDetailModal({ open, onClose, invoice }) {
                                         {p.proof_url && (() => {
                                             const isPdf = /\.pdf(\?|$)/i.test(p.proof_url);
                                             return (
-                                                <a href={p.proof_url} target="_blank" rel="noreferrer" className="group mt-3 inline-flex items-center gap-2.5" title="Buka bukti pembayaran">
+                                                <button type="button" onClick={() => setProof({ url: p.proof_url, pdf: isPdf })} className="group mt-3 inline-flex items-center gap-2.5 text-left" title="Lihat bukti pembayaran">
                                                     {isPdf ? (
                                                         <span className="flex h-14 w-14 items-center justify-center rounded-lg border border-line bg-red-500/10 text-red-600 dark:text-red-400">
                                                             <Icon name="file-text" size={22} />
@@ -206,9 +208,9 @@ export default function InvoiceDetailModal({ open, onClose, invoice }) {
                                                         />
                                                     )}
                                                     <span className="inline-flex items-center gap-1 text-xs font-medium text-brand-600 group-hover:underline dark:text-brand-400">
-                                                        <Icon name="external-link" size={12} /> Lihat Bukti{isPdf ? ' (PDF)' : ''}
+                                                        <Icon name="eye" size={12} /> Lihat Bukti{isPdf ? ' (PDF)' : ''}
                                                     </span>
-                                                </a>
+                                                </button>
                                             );
                                         })()}
                                         {p.status === 'failed' && p.notes && (
@@ -224,5 +226,20 @@ export default function InvoiceDetailModal({ open, onClose, invoice }) {
                 )}
             </div>
         </Modal>
+
+        <Modal
+            open={!!proof}
+            onClose={() => setProof(null)}
+            title="Bukti Pembayaran"
+            fullscreen
+            bodyClassName="bg-zinc-950 flex items-center justify-center"
+        >
+            {proof && (proof.pdf ? (
+                <iframe src={proof.url} title="Bukti pembayaran" className="h-[85vh] w-full max-w-4xl rounded-xl bg-white" />
+            ) : (
+                <img src={proof.url} alt="Bukti pembayaran" className="max-h-[85vh] max-w-full rounded-xl object-contain" />
+            ))}
+        </Modal>
+        </>
     );
 }
