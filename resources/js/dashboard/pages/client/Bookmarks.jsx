@@ -7,7 +7,7 @@ import { toast } from '../../lib/toast';
 import { getApiErrorMessage } from '../../lib/errors';
 
 const typeConfig = {
-    blog: { label: 'Artikel', icon: 'file-text', color: 'bg-blue-500/15 text-blue-600 dark:text-blue-400' },
+    blog: { label: 'Artikel', icon: 'file-text', color: 'bg-brand-500 text-white' },
     portfolio: { label: 'Galeri', icon: 'image', color: 'bg-purple-500/15 text-purple-600 dark:text-purple-400' },
     package: { label: 'Paket', icon: 'package', color: 'bg-amber-500/15 text-amber-600 dark:text-amber-400' },
 };
