@@ -3,6 +3,7 @@ import api from '../../api';
 import { toast } from '../../lib/toast';
 import Icon from '../../components/Icon';
 import { PageHeader, EmptyState, Spinner } from '../../components/ui';
+import { StatCardsSkeleton, ChartSkeleton } from '../../components/Skeleton';
 
 const fmt = (n) => (n ?? 0).toLocaleString('id-ID');
 
