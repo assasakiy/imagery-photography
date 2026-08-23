@@ -46,6 +46,8 @@ export default function ProfileSettings() {
     const [coverUrl, setCoverUrl] = useState(null);
     const [coverViewOpen, setCoverViewOpen] = useState(false);
     const [coverRemoveOpen, setCoverRemoveOpen] = useState(false);
+    const [uploadingCover, setUploadingCover] = useState(false);
+    const [uploadingAvatar, setUploadingAvatar] = useState(false);
     const [viewOpen, setViewOpen] = useState(false);
     const [removeOpen, setRemoveOpen] = useState(false);
     const [deleteOpen, setDeleteOpen] = useState(false);
@@ -202,7 +204,7 @@ export default function ProfileSettings() {
     const uploadCover = async (e) => {
         const file = e.target.files[0];
         if (!file) return;
-        setSaving(true);
+        setUploadingCover(true);
         try {
             const formData = new FormData();
             formData.append('file', file);
@@ -213,7 +215,7 @@ export default function ProfileSettings() {
         } catch (err) {
             toast.error(getApiErrorMessage(err, 'Gagal mengunggah banner.'));
         } finally {
-            setSaving(false);
+            setUploadingCover(false);
         }
         e.target.value = '';
     };
@@ -236,7 +238,7 @@ export default function ProfileSettings() {
     const uploadAvatar = async (e) => {
         const file = e.target.files[0];
         if (!file) return;
-        setSaving(true);
+        setUploadingAvatar(true);
         try {
             const formData = new FormData();
             formData.append('file', file);
@@ -247,7 +249,7 @@ export default function ProfileSettings() {
         } catch (err) {
             toast.error(getApiErrorMessage(err, 'Gagal mengunggah foto profil.'));
         } finally {
-            setSaving(false);
+            setUploadingAvatar(false);
         }
         e.target.value = '';
     };
@@ -304,16 +306,21 @@ export default function ProfileSettings() {
             <div className="card overflow-hidden">
                 <button
                     type="button"
-                    onClick={() => setCoverViewOpen(true)}
+                    onClick={() => !uploadingCover && setCoverViewOpen(true)}
                     className="group relative block h-32 w-full overflow-hidden sm:h-40"
                     aria-label="Lihat banner profil"
                 >
                     {coverUrl ? (
-                        <img src={coverUrl} alt="" className="h-full w-full object-cover" />
+                        <img src={coverUrl} alt="" className={`h-full w-full object-cover transition-all ${uploadingCover ? 'scale-105 blur-sm' : ''}`} />
                     ) : (
-                        <div className="h-full w-full bg-gradient-to-r from-brand-700 via-brand-500 to-brand-400" />
+                        <div className={`h-full w-full bg-gradient-to-r from-brand-700 via-brand-500 to-brand-400 transition-all ${uploadingCover ? 'blur-sm' : ''}`} />
                     )}
-                    <span className="absolute inset-0 hidden bg-black/40 transition-opacity lg:flex lg:items-center lg:justify-center lg:opacity-0 lg:group-hover:opacity-100">
+                    {uploadingCover && (
+                        <span className="absolute inset-0 z-10 flex items-center justify-center gap-2 bg-black/60 text-sm font-semibold text-white backdrop-blur-[2px]">
+                            <Icon name="loader" size={18} className="animate-spin" /> Mengunggah banner…
+                        </span>
+                    )}
+                    <span className={`absolute inset-0 hidden bg-black/40 transition-opacity lg:flex lg:items-center lg:justify-center lg:opacity-0 lg:group-hover:opacity-100 ${uploadingCover ? '!hidden' : ''}`}>
                         <span className="flex items-center gap-2 rounded-full bg-black/50 px-4 py-2 text-sm font-semibold text-white">
                             <Icon name="camera" size={16} /> Ubah Banner
                         </span>
@@ -325,11 +332,17 @@ export default function ProfileSettings() {
                 <div className="px-5 pb-6 sm:px-8">
                     <div className="-mt-12 flex items-end justify-between sm:-mt-14">
                         <div className="relative">
-                            <button type="button" onClick={() => setViewOpen(true)} className="group relative" aria-label="Lihat foto profil">
-                                <Avatar src={avatarUrl} name={profile.full_name} size="2xl" shape="full" className="ring-4 ring-surface" />
-                                <span className="absolute inset-0 flex items-center justify-center bg-black/50 text-white opacity-0 transition-opacity group-hover:opacity-100 rounded-full">
-                                    <Icon name="camera" size={22} />
-                                </span>
+                            <button type="button" onClick={() => !uploadingAvatar && setViewOpen(true)} className="group relative" aria-label="Lihat foto profil">
+                                <Avatar src={avatarUrl} name={profile.full_name} size="2xl" shape="full" className={`ring-4 ring-surface transition-all ${uploadingAvatar ? 'blur-[2px]' : ''}`} />
+                                {uploadingAvatar ? (
+                                    <span className="absolute inset-0 flex items-center justify-center rounded-full bg-black/60 text-white backdrop-blur-[1px]" title="Mengunggah foto…">
+                                        <Icon name="loader" size={22} className="animate-spin" />
+                                    </span>
+                                ) : (
+                                    <span className="absolute inset-0 flex items-center justify-center bg-black/50 text-white opacity-0 transition-opacity group-hover:opacity-100 rounded-full">
+                                        <Icon name="camera" size={22} />
+                                    </span>
+                                )}
                             </button>
                         </div>
                     </div>
