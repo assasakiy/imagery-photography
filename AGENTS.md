@@ -107,8 +107,8 @@ Halaman dashboard yang punya beberapa tab **WAJIB** dipisah ke folder `pages/<na
 - **Media Library**: model butuh `$fillable=['id']`; `LandingContent::setValue` pertahankan `group`; reset landing images meninggalkan media orphan (TODO).
 - **Test**: skrip di `/home/opc` (`spa_test.py`, `final_test.py`, `access_test.py`); `/etc/hosts` berisi `127.0.0.1 imagery.my.id`; `/tmp/opencode` TIDAK writable.
 
-## 13. Sesi Terbaru — Menu Kontekstual Foto Profil & Banner
-- **Klik foto = menu aksi (`888f9ec`):** klik banner atau lingkaran foto profil di halaman Profil tidak lagi langsung membuka modal view — kini memunculkan menu **Lihat / Ubah / Hapus**. **Desktop (lg+):** dropdown muncul tepat di posisi klik (clamp ke viewport, tutup via klik-luar/Escape/konteks-menu). **Mobile/tablet:** bottom sheet meluncur dari bawah (`animate-sheet-up` + backdrop `animate-fade-in`, handle bar, tombol Batal). Item "Hapus" hanya tampil bila gambar ada; menu otomatis tak muncul saat upload berlangsung.
-- Komponen baru `PhotoActionMenu` lokal di ProfileSettings.jsx; modal view/remove lama tetap dipakai sebagai target aksi menu.
+## 13. Sesi Terbaru — Penyempurnaan Menu & Viewer Foto Profil
+- **Viewer layar penuh (`9bc4ef3`):** aksi "Lihat" pada menu banner/foto profil kini membuka lightbox fullscreen gelap (pola sama dgn viewer preview pesanan) yang hanya menampilkan gambar — tanpa tombol Ubah/Hapus/info. `AvatarViewModal` & `CoverViewModal` di `ProfileModals.jsx` disederhanakan (props onEdit/onRemove/profile dihapus dari callsite; import Avatar tak terpakai dibuang).
+- **Tombol Batal bottom sheet dihapus (`23096dd`)** — tutup via tap backdrop.
 
 *Untuk rincian arsitektural teknis (lifecycle Media, mekanisme RBAC, dan khususnya sistem **progressive loading dashboard**), silakan baca file-file spesifik di direktori `/docs/`.*
