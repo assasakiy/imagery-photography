@@ -92,13 +92,36 @@ export default function InvoiceDetailModal({ open, onClose, invoice }) {
                         {payments.map((p) => {
                             const meta = PAY_STATUS[p.status] || { label: p.status, cls: 'bg-surface-muted text-ink-muted' };
                             return (
-                                <li key={p.id} className="flex items-center justify-between gap-3 rounded-xl border border-line px-4 py-3">
-                                    <div className="min-w-0">
+                                <li key={p.id} className="flex items-center gap-3 rounded-xl border border-line px-4 py-3">
+                                    {p.proof_url ? (
+                                        <a href={p.proof_url} target="_blank" rel="noreferrer" title="Lihat bukti pembayaran" className="shrink-0">
+                                            <img
+                                                src={p.proof_url}
+                                                alt="Bukti pembayaran"
+                                                className="h-12 w-12 rounded-lg border border-line object-cover transition-opacity hover:opacity-80"
+                                            />
+                                        </a>
+                                    ) : (
+                                        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-surface-muted text-ink-muted">
+                                            <Icon name="credit-card" size={18} />
+                                        </span>
+                                    )}
+                                    <div className="min-w-0 flex-1">
                                         <p className="text-sm font-semibold text-ink">{formatRupiah(p.amount)}</p>
                                         <p className="mt-0.5 truncate text-xs text-ink-muted">
                                             {formatDate(p.paid_at || p.created_at)} · {p.method || '-'}
                                         </p>
                                     </div>
+                                    {p.proof_url && (
+                                        <a
+                                            href={p.proof_url}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            className="inline-flex shrink-0 items-center gap-1 text-xs font-medium text-brand-600 hover:underline dark:text-brand-400"
+                                        >
+                                            Bukti
+                                        </a>
+                                    )}
                                     <span className={`badge shrink-0 ${meta.cls}`}>{meta.label}</span>
                                 </li>
                             );
