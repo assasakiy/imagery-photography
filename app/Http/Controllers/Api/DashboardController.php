@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\ContactMessage;
+use App\Models\Invoice;
 use App\Models\Payment;
 use App\Models\Portfolio;
 use App\Models\Project;
@@ -152,6 +153,10 @@ class DashboardController extends Controller
         } else {
             $res['messages_unread'] = null;
             $res['bookings_pending'] = null;
+            // Badge menu Tagihan klien: jumlah invoice yang belum lunas.
+            $res['invoices_unpaid'] = Invoice::whereIn('project_id', $user->projects()->pluck('id'))
+                ->where('status', '!=', 'paid')
+                ->count();
         }
 
         return response()->json($res);

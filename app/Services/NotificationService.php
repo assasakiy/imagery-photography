@@ -339,7 +339,7 @@ class NotificationService
             $this->whatsapp($project->user->phone, $msg, null, $project->user, 'billing.invoice');
         }
         $this->email(new \App\Mail\AlertMail($project->user->name, 'Invoice Baru', $html), $project->user->email, 'billing.invoice');
-        $this->inApp($project->user, 'Invoice Baru', $msg, $this->orderUrl($project), 'billing.invoice');
+        $this->inApp($project->user, 'Invoice Baru', $msg, '/dashboard/client-invoices', 'billing.invoice');
     }
 
     /**

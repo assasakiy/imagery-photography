@@ -10,6 +10,7 @@ export function BadgeProvider({ children }) {
     const [unread, setUnread] = useState(0);
     const [unreadMessages, setUnreadMessages] = useState(0);
     const [unreadBookings, setUnreadBookings] = useState(0);
+    const [unpaidInvoices, setUnpaidInvoices] = useState(0);
     const lastFetchRef = useRef(0);
     const inflightRef = useRef(false);
     const queuedRef = useRef(false);
@@ -30,6 +31,7 @@ export function BadgeProvider({ children }) {
                 setUnread(data.notifications_unread ?? 0);
                 setUnreadMessages(data.messages_unread ?? 0);
                 setUnreadBookings(data.bookings_pending ?? 0);
+                setUnpaidInvoices(data.invoices_unpaid ?? 0);
             })
             .catch(() => {})
             .finally(() => {
@@ -63,7 +65,7 @@ export function BadgeProvider({ children }) {
     }, [refresh]);
 
     return (
-        <BadgeContext.Provider value={{ unread, unreadMessages, unreadBookings, refresh }}>
+        <BadgeContext.Provider value={{ unread, unreadMessages, unreadBookings, unpaidInvoices, refresh }}>
             {children}
         </BadgeContext.Provider>
     );
