@@ -70,6 +70,13 @@ export default function IntegrasiTab({
         set('payment_manual_accounts', newGroups);
     };
 
+    const hasIncompleteAccounts = groups.some((gr) =>
+        (gr.accounts || []).some((acc) => {
+            if (acc.type === 'qris') return !acc.merchant?.trim() || !acc.qris?.trim();
+            return !acc.code || !acc.number?.trim() || !acc.holder?.trim();
+        })
+    );
+
     const tripayCfg = form.payment_tripay_config || { mode: 'sandbox', api_key: '', private_key: '', merchant_code: '' };
     const tripayConfigured = meta.payment_gateway_configured;
     const googleConfigured = !!(form.google_client_id || '').trim();
@@ -129,7 +136,7 @@ export default function IntegrasiTab({
                             <Button
                                 icon="check"
                                 loading={saving || scanning}
-                                disabled={!dirty(['payment_manual_accounts']) || scanning}
+                                disabled={!dirty(['payment_manual_accounts']) || scanning || hasIncompleteAccounts}
                                 onClick={() => save(['payment_manual_accounts'])}
                             >
                                 Simpan Transfer Manual
