@@ -187,7 +187,14 @@ export default function ProfileSettings() {
             .finally(() => setLoading(false));
     }, []);
 
-    if (loading) return <ProfileSkeleton />;
+    if (loading) {
+        return (
+            <>
+                <PageHeader title="Profil Saya" subtitle="Kelola profil, media sosial, kata sandi, preferensi notifikasi, dan keamanan akun Anda." />
+                <ProfileSkeleton />
+            </>
+        );
+    }
 
     const save = async (payload, successMsg) => {
         setSaving(true);
