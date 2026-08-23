@@ -28,8 +28,9 @@ function ManualRulesCard({ form, toggleManualPayment, open, setOpen, set, save }
     };
 
     const toggleQris = async (key) => {
-        set('payment_active_qris', key);
-        await save(['payment_active_qris'], { payment_active_qris: key });
+        const next = form.payment_active_qris === key ? null : key;
+        set('payment_active_qris', next);
+        await save(['payment_active_qris'], { payment_active_qris: next });
     };
 
     const badgeClass = !configured
@@ -98,7 +99,7 @@ function ManualRulesCard({ form, toggleManualPayment, open, setOpen, set, save }
                                 const meta = QRIS_PROVIDERS.find(p => p.code === acc.providerCode) || { name: acc.provider, short: 'QR', brandColor: '#52525B' };
                                 const isActive = form.payment_active_qris === acc.key;
                                 return (
-                                    <label key={acc.key} className={`flex cursor-pointer items-center justify-between rounded-xl border p-3 transition-colors ${isActive ? 'border-brand-600 bg-brand-600/5' : 'border-line hover:bg-surface-muted'}`}>
+                                    <div key={acc.key} className="flex items-center justify-between gap-4 py-2">
                                         <div className="flex items-center gap-3">
                                             <BrandTile {...meta} size="h-6 w-6 text-[8px]" />
                                             <div>
@@ -106,14 +107,8 @@ function ManualRulesCard({ form, toggleManualPayment, open, setOpen, set, save }
                                                 <p className="text-xs text-ink-muted">{acc.provider}</p>
                                             </div>
                                         </div>
-                                        <input
-                                            type="radio"
-                                            name="qris_active"
-                                            checked={isActive}
-                                            onChange={() => toggleQris(acc.key)}
-                                            className="h-4 w-4 border-line text-brand-600 focus:ring-brand-600"
-                                        />
-                                    </label>
+                                        <Toggle size="sm" checked={isActive} onChange={() => toggleQris(acc.key)} />
+                                    </div>
                                 );
                             })}
                         </div>
