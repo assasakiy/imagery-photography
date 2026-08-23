@@ -256,6 +256,8 @@ class PaymentController extends Controller
             'project_id' => $project->id,
             'amount' => $data['amount'],
         ]);
+        
+        app(NotificationService::class)->notifyPaymentSubmitted($payment);
 
         app(AuditLogger::class)->log('payment.submitted', 'Pembayaran dikirim: Rp ' . number_format((float) $data['amount'], 0, ',', '.') . ' untuk project "' . $project->name . '"', $payment);
 

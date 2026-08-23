@@ -266,6 +266,21 @@ class NotificationService
     /**
      * Notifikasi pembayaran dikonfirmasi/diterima.
      */
+    public function notifyPaymentSubmitted(\App\Models\Payment $payment): void
+    {
+        $project = $payment->project;
+        if (!$project) return;
+
+        $clientName = $project->user ? $project->user->name : 'Klien';
+        $title = 'Pembayaran Baru';
+        $msg = "{$clientName} telah melakukan pembayaran sebesar Rp " . number_format($payment->amount, 0, ',', '.') . " untuk pesanan {$project->name}. Menunggu konfirmasi Anda.";
+        
+        $admins = \App\Models\User::whereIn('role', ['admin', 'owner'])->get();
+        foreach ($admins as $admin) {
+            $this->inApp($admin, $title, $msg, '/dashboard/payments', 'payment.submitted');
+        }
+    }
+
     public function notifyPaymentConfirmed(\App\Models\Payment $payment): void
     {
         $project = $payment->project;
