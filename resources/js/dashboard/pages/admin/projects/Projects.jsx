@@ -5,7 +5,7 @@ import api from '../../../api';
 import Icon from '../../../components/Icon';
 import { useAuth } from '../../../context/AuthContext';
 import { PageHeader, EmptyState, Modal, Field, formatRupiah, formatDate, formatTimeInput } from '../../../components/ui';
-import Skeleton from '../../../components/Skeleton';
+import Skeleton, { CardGridSkeleton } from '../../../components/Skeleton';
 import { toast } from '../../../lib/toast';
 
 export const statusOptions = [
@@ -196,7 +196,7 @@ export default function Projects() {
             )}
 
             {loading ? (
-                <Skeleton variant="card" />
+                <CardGridSkeleton count={6} cols="md:grid-cols-2 xl:grid-cols-3" ratio="photo" metaLines={2} />
             ) : items.length ? (
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
                     {items.map((item) => {

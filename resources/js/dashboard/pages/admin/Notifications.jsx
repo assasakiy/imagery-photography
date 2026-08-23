@@ -5,7 +5,7 @@ import { toast } from '../../lib/toast';
 import { getApiErrorMessage } from '../../lib/errors';
 import Icon from '../../components/Icon';
 import { PageHeader, EmptyState, Confirm, formatDate } from '../../components/ui';
-import Skeleton from '../../components/Skeleton';
+import { ListSkeleton } from '../../components/Skeleton';
 
 const CATEGORY_META = {
     pesan: { label: 'Pesan', cls: 'bg-blue-500/10 text-blue-600 dark:text-blue-400' },
@@ -131,7 +131,7 @@ export default function Notifications() {
             </div>
 
             {loading ? (
-                <Skeleton variant="table" />
+                <ListSkeleton rows={6} leading="icon" />
             ) : items.length ? (
                 <div className="card">
                     <ul className="divide-y divide-line">

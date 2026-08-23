@@ -8,7 +8,7 @@ import MediaPicker from '../../components/MediaPicker';
 import UserDetailModal from '../../components/UserDetailModal';
 import PresenceBadge from '../../components/PresenceBadge';
 import { PageHeader, EmptyState, Modal, Confirm, Field } from '../../components/ui';
-import Skeleton from '../../components/Skeleton';
+import Skeleton, { CardGridSkeleton } from '../../components/Skeleton';
 
 const EMPTY_ADMIN = { name: '', username: '', email: '', phone: '', company: '', occupation: '', bio: '', status: 'pending', avatar: undefined };
 
@@ -148,7 +148,7 @@ function AdminTab() {
             />
 
             {loading ? (
-                <Skeleton variant="card" />
+                <CardGridSkeleton count={6} cols="sm:grid-cols-2 lg:grid-cols-3" ratio="square" metaLines={2} />
             ) : items.length ? (
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
                     {items.map((item) => (

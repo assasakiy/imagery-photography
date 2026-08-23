@@ -5,7 +5,7 @@ import { getApiErrorMessage } from '../../lib/errors';
 import Icon from '../../components/Icon';
 import MediaPicker from '../../components/MediaPicker';
 import { PageHeader, EmptyState, Modal, Confirm, Field, formatDate } from '../../components/ui';
-import { SkeletonCard, SkeletonGrid } from '../../components/ui/skeleton';
+import { CardGridSkeleton } from '../../components/Skeleton';
 import SearchableMultiSelect from '../../components/SearchableMultiSelect';
 import CustomSelect from '../../components/CustomSelect';
 import FilterDropdown from '../../components/FilterDropdown';
@@ -226,9 +226,7 @@ export default function Portfolio() {
             </div>
 
             {loading ? (
-                <SkeletonGrid count={8} columns="sm:grid-cols-2 lg:grid-cols-4">
-                    <SkeletonCard image />
-                </SkeletonGrid>
+                <CardGridSkeleton count={8} cols="sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" ratio="photo" metaLines={2} />
             ) : items.length ? (
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                     {items.map((item) => (

@@ -4,7 +4,7 @@ import api from '../../api';
 import { toast } from '../../lib/toast';
 import Icon from '../../components/Icon';
 import { PageHeader, EmptyState, formatLongDate } from '../../components/ui';
-import Skeleton from '../../components/Skeleton';
+import Skeleton, { CardGridSkeleton } from '../../components/Skeleton';
 
 const statusOptions = [
     { value: 'scheduled', label: 'Dijadwalkan', color: 'bg-amber-500/15 text-amber-600 dark:text-amber-400' },
@@ -36,7 +36,7 @@ export default function Preview() {
             <PageHeader title="Preview & Galeri" subtitle="Lihat hasil pesanan Anda." />
 
             {loading ? (
-                <Skeleton variant="card" />
+                <CardGridSkeleton count={6} cols="sm:grid-cols-2 lg:grid-cols-3" ratio="photo" metaLines={2} />
             ) : items.length ? (
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                     {items.map((p) => {

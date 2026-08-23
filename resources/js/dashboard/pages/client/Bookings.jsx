@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import api from '../../api';
 import Icon from '../../components/Icon';
 import { PageHeader, EmptyState, formatDate, formatRupiah, Modal, Field, Confirm } from '../../components/ui';
-import Skeleton from '../../components/Skeleton';
+import Skeleton, { CardGridSkeleton } from '../../components/Skeleton';
 import { toast } from '../../lib/toast';
 import { useAuth } from '../../context/AuthContext';
 
@@ -87,7 +87,7 @@ export default function ClientBookings() {
                 action={<button className="btn-primary" onClick={() => setCreateOpen(true)}>Buat Booking Baru</button>}
             />
             {loading ? (
-                <Skeleton variant="card" />
+                <CardGridSkeleton count={4} cols="md:grid-cols-2" ratio="none" badge metaLines={3} />
             ) : items.length ? (
                 <div className="space-y-4">
                     {items.map((b) => (

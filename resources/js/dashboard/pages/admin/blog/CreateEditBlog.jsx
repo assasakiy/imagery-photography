@@ -5,7 +5,7 @@ import Icon from '../../../components/Icon';
 import RichEditor from '../../../components/RichEditor';
 import MediaPicker from '../../../components/MediaPicker';
 import { ButtonSpinner } from '../../../components/ui';
-import { SkeletonForm } from '../../../components/ui/skeleton';
+import { FormSkeleton } from '../../../components/Skeleton';
 import SearchableMultiSelect from '../../../components/SearchableMultiSelect';
 import CustomSelect from '../../../components/CustomSelect';
 import { toast } from '../../../lib/toast';
@@ -135,7 +135,7 @@ const [form, setForm] = useState({
         setMediaOpen(false);
     };
 
-    if (loading) return <SkeletonForm />;
+    if (loading) return <FormSkeleton />;
 
     return (
         <div className="flex-1 overflow-y-auto bg-surface/50 scroll-smooth relative h-[calc(100vh-64px)] -mx-4 sm:-mx-6 lg:-mx-8 -my-6">

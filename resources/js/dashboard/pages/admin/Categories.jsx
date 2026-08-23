@@ -4,7 +4,7 @@ import { toast } from '../../lib/toast';
 import { getApiErrorMessage } from '../../lib/errors';
 import Icon from '../../components/Icon';
 import { PageHeader, EmptyState, Modal, Confirm, Field } from '../../components/ui';
-import Skeleton from '../../components/Skeleton';
+import Skeleton, { CardGridSkeleton } from '../../components/Skeleton';
 
 const emptyForm = { name: '', description: '' };
 
@@ -87,7 +87,7 @@ export default function Categories() {
             />
 
             {loading ? (
-                <Skeleton variant="card" />
+                <CardGridSkeleton count={6} cols="sm:grid-cols-2 lg:grid-cols-3" ratio="photo" metaLines={2} />
             ) : items.length ? (
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
                     {items.map((item) => (

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import api from '../../../api';
 import Icon from '../../../components/Icon';
 import { PageHeader, EmptyState, Modal, Confirm, Field } from '../../../components/ui';
-import Skeleton from '../../../components/Skeleton';
+import Skeleton, { CardGridSkeleton } from '../../../components/Skeleton';
 import { toast } from '../../../lib/toast';
 import { getApiErrorMessage } from '../../../lib/errors';
 
@@ -87,7 +87,7 @@ export default function BlogTags() {
             />
 
             {loading ? (
-                <Skeleton variant="card" />
+                <CardGridSkeleton count={12} cols="sm:grid-cols-2 lg:grid-cols-4" ratio="none" metaLines={2} />
             ) : items.length ? (
                 <div className="flex flex-wrap gap-2">
                     {items.map((item) => (

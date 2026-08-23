@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import api from '../../api';
 import Icon from '../../components/Icon';
 import { PageHeader, EmptyState, formatDate } from '../../components/ui';
-import Skeleton from '../../components/Skeleton';
+import Skeleton, { CardGridSkeleton } from '../../components/Skeleton';
 import { toast } from '../../lib/toast';
 import { getApiErrorMessage } from '../../lib/errors';
 
@@ -31,7 +31,7 @@ export default function Bookmarks() {
         <>
             <PageHeader title="Bookmark" subtitle="Konten yang Anda simpan untuk dibaca kemudian." />
             {loading ? (
-                <Skeleton variant="card" />
+                <CardGridSkeleton count={6} cols="sm:grid-cols-2 lg:grid-cols-3" ratio="photo" metaLines={2} />
             ) : items.length ? (
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     {items.map((b) => (

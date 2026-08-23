@@ -3,7 +3,7 @@ import api from '../../api';
 import { toast } from '../../lib/toast';
 import Icon from '../../components/Icon';
 import { PageHeader, EmptyState, formatDate } from '../../components/ui';
-import Skeleton from '../../components/Skeleton';
+import { ListSkeleton } from '../../components/Skeleton';
 
 function formatDateTime(value) {
     if (!value) return '-';
@@ -29,7 +29,7 @@ export default function History() {
         <>
             <PageHeader title="Riwayat" subtitle="Aktivitas terakhir Anda di situs." />
             {loading ? (
-                <Skeleton variant="table" />
+                <ListSkeleton rows={6} leading="icon" />
             ) : items.length ? (
                 <div className="card divide-y divide-line">
                     {items.map((h) => (

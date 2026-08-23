@@ -4,7 +4,7 @@ import api from '../../../api';
 import { toast } from '../../../lib/toast';
 import Icon from '../../../components/Icon';
 import { PageHeader, EmptyState } from '../../../components/ui';
-import { SkeletonCard, SkeletonGrid } from '../../../components/ui/skeleton';
+import { CardGridSkeleton } from '../../../components/Skeleton';
 
 export default function Index() {
     const [items, setItems] = useState([]);
@@ -28,9 +28,7 @@ export default function Index() {
             />
 
             {loading ? (
-                <SkeletonGrid count={6} columns="md:grid-cols-2 xl:grid-cols-3">
-                    <SkeletonCard />
-                </SkeletonGrid>
+                <CardGridSkeleton count={6} cols="md:grid-cols-2 xl:grid-cols-3" ratio="none" badge metaLines={3} />
             ) : items.length ? (
                 <div className="space-y-3">
                     {items.map((item) => (

@@ -119,7 +119,7 @@ export default function StatsTab({ ref }) {
     return (
         <>
             {loading ? (
-                <Skeleton variant="table" />
+                <Skeleton variant="form" />
             ) : items.length ? (
                 <div className="space-y-3">
                     {items.map((item) => (

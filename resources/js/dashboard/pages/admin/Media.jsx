@@ -5,7 +5,7 @@ import { toast } from '../../lib/toast';
 import { getApiErrorMessage } from '../../lib/errors';
 import Icon from '../../components/Icon';
 import { PageHeader, EmptyState, Confirm, Modal, ButtonSpinner } from '../../components/ui';
-import Skeleton from '../../components/Skeleton';
+import { CardGridSkeleton } from '../../components/Skeleton';
 import MediaViewModal from '../../components/MediaViewModal';
 import MediaEditModal from '../../components/MediaEditModal';
 
@@ -221,7 +221,7 @@ export default function Media() {
             </Modal>
 
             {loading ? (
-                <Skeleton variant="card" />
+                <CardGridSkeleton count={8} cols="grid-cols-2 md:grid-cols-3 lg:grid-cols-4" ratio="square" metaLines={1} />
             ) : items.length ? (
                 <>
                     <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">

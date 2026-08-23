@@ -4,7 +4,7 @@ import api from '../../api';
 import { toast } from '../../lib/toast';
 import Icon from '../../components/Icon';
 import { PageHeader, EmptyState, formatLongDate } from '../../components/ui';
-import Skeleton from '../../components/Skeleton';
+import Skeleton, { CardGridSkeleton } from '../../components/Skeleton';
 
 export default function Preview() {
     const [items, setItems] = useState([]);
@@ -22,7 +22,7 @@ export default function Preview() {
             <PageHeader title="Preview & Galeri" subtitle="Lihat hasil pesanan Anda." />
 
             {loading ? (
-                <Skeleton variant="card" />
+                <CardGridSkeleton count={6} cols="sm:grid-cols-2 lg:grid-cols-3" ratio="photo" metaLines={2} />
             ) : items.length ? (
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                     {items.map((p) => {
