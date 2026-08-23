@@ -59,8 +59,8 @@ export default function Bookmarks() {
                             <div key={b.id} className="card group flex flex-col overflow-hidden">
                                 {b.url ? (
                                     <Link to={b.url} className="relative block aspect-[16/10] overflow-hidden rounded-t-xl bg-surface-muted p-3 pb-0">
-                                        {b.cover_url ? (
-                                            <img src={b.cover_url} alt={b.title} className="h-full w-full rounded-lg object-cover transition-transform duration-300 group-hover:scale-105" />
+                                        {b.thumbnail_url ? (
+                                            <img src={b.thumbnail_url} alt={b.title} className="h-full w-full rounded-lg object-cover transition-transform duration-300 group-hover:scale-105" />
                                         ) : (
                                             <div className="flex h-full items-center justify-center">
                                                 <Icon name={cfg.icon} size={36} className="text-ink-muted/40" />

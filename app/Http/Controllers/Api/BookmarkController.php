@@ -28,20 +28,21 @@ class BookmarkController extends Controller
         return response()->json($bookmarks->map(function ($b) use ($user) {
             $target = $b->bookmarkable;
             if (!$target) {
-                return [
-                    'id' => $b->id,
-                    'type' => class_basename($b->bookmarkable_type),
-                    'target_id' => $b->bookmarkable_id,
-                    'title' => 'Konten dihapus',
-                    'excerpt' => null,
-                    'cover_url' => null,
-                    'author' => null,
-                    'url' => null,
-                    'likes_count' => 0,
-                    'comments_count' => 0,
-                    'user_liked' => false,
-                    'created_at' => $b->created_at,
-                ];
+            return [
+                'id' => $b->id,
+                'type' => class_basename($b->bookmarkable_type),
+                'target_id' => $b->bookmarkable_id,
+                'title' => 'Konten dihapus',
+                'excerpt' => null,
+                'cover_url' => null,
+                'thumbnail_url' => null,
+                'author' => null,
+                'url' => null,
+                'likes_count' => 0,
+                'comments_count' => 0,
+                'user_liked' => false,
+                'created_at' => $b->created_at,
+            ];
             }
 
             $typeKey = match (class_basename($b->bookmarkable_type)) {
@@ -58,10 +59,17 @@ class BookmarkController extends Controller
                 ->exists();
 
             $coverUrl = null;
+            $thumbnailUrl = null;
             if (method_exists($target, 'resolveCoverUrl')) {
                 $coverUrl = $target->resolveCoverUrl();
             } elseif (!empty($target->image_url)) {
                 $coverUrl = $target->image_url;
+            }
+            if (property_exists($target, 'thumbnail_url') || method_exists($target, 'getThumbnailUrlAttribute')) {
+                $thumbnailUrl = $target->thumbnail_url;
+            }
+            if (!$thumbnailUrl) {
+                $thumbnailUrl = $coverUrl;
             }
 
             $authorName = null;
@@ -76,6 +84,7 @@ class BookmarkController extends Controller
                 'title' => $target->title ?? $target->name ?? 'Konten',
                 'excerpt' => $target->excerpt ?? $target->description ?? null,
                 'cover_url' => $coverUrl,
+                'thumbnail_url' => $thumbnailUrl,
                 'author' => $authorName,
                 'url' => $this->targetUrl($b->bookmarkable_type, $target),
                 'likes_count' => $likesCount,
