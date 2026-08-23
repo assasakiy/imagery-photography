@@ -96,23 +96,61 @@ export default function ClientInvoices() {
                                     <p className="font-semibold text-ink">{formatRupiah(it.price)}</p>
                                 </div>
                             </div>
+                            
+                            {it.payment_state === 'proof_rejected' && (
+                                <div className="mt-4 rounded-md bg-red-500/10 p-3 text-sm text-red-600 dark:text-red-400">
+                                    <strong>Bukti Pembayaran Ditolak</strong>
+                                    <p className="mt-1">{it.latest_payment?.notes || 'Bukti pembayaran tidak dapat diverifikasi.'}</p>
+                                </div>
+                            )}
+
                             <div className="mt-4 flex flex-wrap items-end gap-2 sm:flex-nowrap">
-                                {it.remaining > 0 && (
-                                    <button
-                                        className="btn-primary flex-1 justify-center py-2"
-                                        onClick={() => setSelected(it)}
-                                    >
-                                        <Icon name="credit-card" size={14} />
-                                        Bayar Tagihan
+                                {it.payment_state === 'paid' && (
+                                    <button className="btn-primary flex-1 justify-center py-2" onClick={() => setDetail(it)}>
+                                        <Icon name="check-circle" size={14} />
+                                        Detail Pembayaran
                                     </button>
                                 )}
-                                <button
-                                    className={`${it.remaining > 0 ? 'btn-outline' : 'btn-primary'} flex-1 justify-center py-2`}
-                                    onClick={() => setDetail(it)}
-                                >
-                                    <Icon name="eye" size={14} />
-                                    {it.remaining > 0 ? 'Detail' : 'Lihat Tagihan'}
-                                </button>
+
+                                {it.payment_state === 'pending_verification' && (
+                                    <>
+                                        <button className="btn-primary flex-1 justify-center py-2 opacity-70 cursor-not-allowed" disabled>
+                                            <Icon name="clock" size={14} />
+                                            Menunggu Verifikasi
+                                        </button>
+                                        <button className="btn-outline flex-1 justify-center py-2" onClick={() => setDetail(it)}>
+                                            <Icon name="eye" size={14} />
+                                            Lihat Bukti
+                                        </button>
+                                    </>
+                                )}
+
+                                {it.payment_state === 'proof_rejected' && (
+                                    <>
+                                        <button className="btn-primary flex-1 justify-center py-2" onClick={() => setSelected(it)}>
+                                            <Icon name="upload" size={14} />
+                                            Upload Ulang Bukti
+                                        </button>
+                                        <button className="btn-outline flex-1 justify-center py-2" onClick={() => setDetail(it)}>
+                                            <Icon name="eye" size={14} />
+                                            Lihat Ditolak
+                                        </button>
+                                    </>
+                                )}
+
+                                {it.payment_state === 'unpaid' && (
+                                    <>
+                                        <button className="btn-primary flex-1 justify-center py-2" onClick={() => setSelected(it)}>
+                                            <Icon name="credit-card" size={14} />
+                                            Bayar Sekarang
+                                        </button>
+                                        <button className="btn-outline flex-1 justify-center py-2" onClick={() => setDetail(it)}>
+                                            <Icon name="eye" size={14} />
+                                            Detail Tagihan
+                                        </button>
+                                    </>
+                                )}
+                                
                                 {it.project_id && (
                                     <Link to={`/dashboard/pesanan/${it.project_id}`} className="btn-outline shrink-0 px-3 py-2" title="Detail Pesanan">
                                         <Icon name="folder-open" size={14} />

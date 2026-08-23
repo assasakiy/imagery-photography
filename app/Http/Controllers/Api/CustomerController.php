@@ -155,23 +155,49 @@ class CustomerController extends Controller
     {
         $projectIds = $request->user()->projects()->pluck('id');
 
-        $invoices = Invoice::with(['project'])
+        $invoices = Invoice::with(['project.payments' => function ($q) {
+            $q->latest();
+        }])
             ->whereIn('project_id', $projectIds)
             ->orderByDesc('id')
             ->get()
-            ->map(fn ($inv) => [
-                'id' => $inv->id,
-                'number' => $inv->number,
-                'project_id' => $inv->project_id,
-                'project' => $inv->project?->name,
-                'price' => $inv->base_amount,
-                'dp_amount' => $inv->dp_amount,
-                'paid' => $inv->paid_amount,
-                'remaining' => $inv->remaining(),
-                'status' => $inv->status,
-                'issued_at' => $inv->issued_at,
-                'due_at' => $inv->due_at,
-            ]);
+            ->map(function ($inv) {
+                $remaining = $inv->remaining();
+                $latestPayment = $inv->project?->payments->first();
+
+                $paymentState = 'unpaid';
+                if ($remaining <= 0) {
+                    $paymentState = 'paid';
+                } elseif ($latestPayment) {
+                    if ($latestPayment->status === 'pending') {
+                        $paymentState = 'pending_verification';
+                    } elseif ($latestPayment->status === 'failed') {
+                        $paymentState = 'proof_rejected';
+                    } elseif ($latestPayment->status === 'confirmed' && $remaining > 0) {
+                        $paymentState = 'unpaid';
+                    }
+                }
+
+                return [
+                    'id' => $inv->id,
+                    'number' => $inv->number,
+                    'project_id' => $inv->project_id,
+                    'project' => $inv->project?->name,
+                    'price' => $inv->base_amount,
+                    'dp_amount' => $inv->dp_amount,
+                    'paid' => $inv->paid_amount,
+                    'remaining' => $remaining,
+                    'status' => $inv->status,
+                    'issued_at' => $inv->issued_at,
+                    'due_at' => $inv->due_at,
+                    'payment_state' => $paymentState,
+                    'latest_payment' => $latestPayment ? [
+                        'id' => $latestPayment->id,
+                        'status' => $latestPayment->status,
+                        'notes' => $latestPayment->notes,
+                    ] : null,
+                ];
+            });
 
         return response()->json($invoices);
     }
