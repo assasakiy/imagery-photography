@@ -400,9 +400,11 @@ export default function PreviewDetail() {
                                                     <Icon name="download" size={16} />
                                                 </button>
                                             )}
-                                            <button onClick={() => setRemoving(f)} className="rounded-lg bg-white p-2 text-red-600" title="Hapus">
-                                                <Icon name="trash" size={16} />
-                                            </button>
+                                            {isAdmin && (
+                                                <button onClick={() => setRemoving(f)} className="rounded-lg bg-white p-2 text-red-600" title="Hapus">
+                                                    <Icon name="trash" size={16} />
+                                                </button>
+                                            )}
                                         </div>
                                     )}
                                 </div>
