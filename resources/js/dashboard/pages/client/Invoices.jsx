@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../../api';
 import Icon from '../../components/Icon';
-import PaymentModal from '../../components/PaymentModal';
 import InvoiceDetailModal from '../../components/InvoiceDetailModal';
 import { PageHeader, EmptyState, formatRupiah, formatDate } from '../../components/ui';
 import Skeleton from '../../components/Skeleton';
@@ -76,6 +75,12 @@ export default function ClientInvoices() {
                                     <Icon name="calendar" size={14} />
                                     {it.issued_at ? formatDate(it.issued_at) : '-'}
                                 </span>
+                                {it.due_at && it.remaining > 0 && (
+                                    <span className={`flex items-center gap-1.5 ${new Date(it.due_at) < new Date() ? 'font-medium text-red-600' : ''}`}>
+                                        <Icon name="clock" size={14} />
+                                        Jatuh tempo {formatDate(it.due_at)}
+                                    </span>
+                                )}
                             </div>
                             <div className="mt-4 flex items-center justify-between gap-3">
                                 <div>
@@ -89,7 +94,22 @@ export default function ClientInvoices() {
                                     <p className="font-semibold text-ink">{formatRupiah(it.price)}</p>
                                 </div>
                             </div>
-                            
+
+                            {it.price > 0 && (
+                                <div className="mt-3">
+                                    <div className="h-1.5 overflow-hidden rounded-full bg-line">
+                                        <div
+                                            className={`h-full rounded-full ${it.remaining > 0 ? 'bg-brand-500' : 'bg-emerald-500'}`}
+                                            style={{ width: `${Math.min(100, Math.round((Number(it.paid || 0) / Number(it.price)) * 100))}%` }}
+                                        />
+                                    </div>
+                                    <p className="mt-1 text-[11px] text-ink-muted">
+                                        Terbayar {Math.min(100, Math.round((Number(it.paid || 0) / Number(it.price)) * 100))}%
+                                        &middot; {formatRupiah(it.paid || 0)}
+                                    </p>
+                                </div>
+                            )}
+
                             {it.payment_state === 'proof_rejected' && (
                                 <div className="mt-4 rounded-md bg-red-500/10 p-3 text-sm text-red-600 dark:text-red-400">
                                     <strong>Bukti Pembayaran Ditolak</strong>
@@ -97,23 +117,31 @@ export default function ClientInvoices() {
                                 </div>
                             )}
 
-                            <div className="mt-4 flex flex-wrap items-end gap-2 sm:flex-nowrap">
+                            <div className="mt-auto flex items-center gap-2 pt-4">
                                 {it.payment_state === 'paid' && (
-                                    <button className="btn-primary flex-1 justify-center py-2" onClick={() => setDetail(it)}>
-                                        <Icon name="check" size={14} />
-                                        Detail Pembayaran
-                                    </button>
+                                    <>
+                                        <button className="btn-primary flex-1 justify-center py-2" onClick={() => setDetail(it)}>
+                                            <Icon name="check" size={14} />
+                                            Detail Pembayaran
+                                        </button>
+                                        {it.project_id && (
+                                            <Link to={`/dashboard/pesanan/${it.project_id}`} className="btn-outline flex-1 justify-center py-2">
+                                                <Icon name="folder-open" size={14} />
+                                                Lihat Pesanan
+                                            </Link>
+                                        )}
+                                    </>
                                 )}
 
                                 {it.payment_state === 'pending_verification' && (
                                     <>
-                                        <button className="btn-primary flex-1 justify-center py-2 opacity-70 cursor-not-allowed" disabled>
+                                        <button className="btn-outline flex-1 justify-center py-2 opacity-70 cursor-not-allowed" disabled>
                                             <Icon name="clock" size={14} />
                                             Menunggu Verifikasi
                                         </button>
                                         <button className="btn-outline flex-1 justify-center py-2" onClick={() => setDetail(it)}>
                                             <Icon name="eye" size={14} />
-                                            Lihat Bukti
+                                            Detail Tagihan
                                         </button>
                                     </>
                                 )}
@@ -126,7 +154,7 @@ export default function ClientInvoices() {
                                         </Link>
                                         <button className="btn-outline flex-1 justify-center py-2" onClick={() => setDetail(it)}>
                                             <Icon name="eye" size={14} />
-                                            Lihat Ditolak
+                                            Detail Tagihan
                                         </button>
                                     </>
                                 )}
@@ -143,12 +171,6 @@ export default function ClientInvoices() {
                                         </button>
                                     </>
                                 )}
-                                
-                                {it.project_id && (
-                                    <Link to={`/dashboard/pesanan/${it.project_id}`} className="btn-outline shrink-0 px-3 py-2" title="Detail Pesanan">
-                                        <Icon name="folder-open" size={14} />
-                                    </Link>
-                                )}
                             </div>
                         </div>
                     ))}
@@ -158,11 +180,6 @@ export default function ClientInvoices() {
             )}
             </>
             )}
-
-            <PaymentModal
-                open={false} // Disabled, left for fallback/rollback if needed
-                onClose={() => {}}
-            />
 
             <InvoiceDetailModal open={!!detail} onClose={() => setDetail(null)} invoice={detail} />
         </>

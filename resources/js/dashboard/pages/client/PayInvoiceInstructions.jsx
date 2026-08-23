@@ -5,7 +5,7 @@ import { useQrCode, BANK_ICON, WALLET_ICON } from '../../lib/paymentHelpers';
 import { dynamicQris } from '../../utils/qris';
 import { formatRupiah, ButtonSpinner } from '../../components/ui';
 
-export default function PayInvoiceInstructions({ invoice, method, onProceed }) {
+export default function PayInvoiceInstructions({ invoice, method, loading = false, onProceed }) {
     const isManual = method.type === 'manual';
     const isGateway = method.type === 'gateway';
     
@@ -92,8 +92,12 @@ export default function PayInvoiceInstructions({ invoice, method, onProceed }) {
                 </div>
 
                 <div className="border-t border-line bg-surface p-6 flex flex-col gap-3">
-                    <button className="btn-primary w-full justify-center py-3 text-sm" onClick={onProceed}>
-                        {isGateway ? 'Lanjut ke Halaman Pembayaran' : 'Saya Sudah Transfer'}
+                    <button
+                        className="btn-primary w-full justify-center py-3 text-sm disabled:cursor-not-allowed disabled:opacity-60"
+                        onClick={onProceed}
+                        disabled={loading}
+                    >
+                        {loading ? <ButtonSpinner /> : isGateway ? 'Lanjut ke Halaman Pembayaran' : 'Saya Sudah Transfer'}
                     </button>
                     {!isGateway && (
                         <p className="text-center text-xs text-ink-muted">

@@ -22,6 +22,7 @@ export default function PayInvoice() {
     const [error, setError] = useState(null);
 
     const [selectedMethod, setSelectedMethod] = useState(null);
+    const [proceeding, setProceeding] = useState(false);
 
     useEffect(() => {
         api.get('/customer/invoices')
@@ -51,6 +52,7 @@ export default function PayInvoice() {
 
     const handleInstructionsProceed = async () => {
         if (selectedMethod.type === 'gateway') {
+            setProceeding(true);
             try {
                 const res = await api.post(`/projects/${invoice.project_id}/payments/gateway`, {
                     amount: invoice.remaining,
@@ -63,6 +65,8 @@ export default function PayInvoice() {
                 }
             } catch (err) {
                 toast.error(getApiErrorMessage(err, 'Gagal membuat tagihan otomatis.'));
+            } finally {
+                setProceeding(false);
             }
         } else {
             setStep('confirm');
@@ -92,6 +96,23 @@ export default function PayInvoice() {
         );
     }
 
+    if (invoice.payment_state === 'pending_verification') {
+        return (
+            <div className="mx-auto mt-8 max-w-md">
+                <div className="card flex flex-col items-center p-8 text-center">
+                    <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400">
+                        <Icon name="clock" size={30} />
+                    </div>
+                    <h2 className="text-lg font-bold text-ink">Bukti Sedang Diverifikasi</h2>
+                    <p className="mt-2 text-sm text-ink-muted">
+                        Pembayaran untuk tagihan ini sudah Anda kirim dan sedang kami periksa. Mohon tunggu konfirmasi dari tim kami sebelum melakukan pembayaran lain.
+                    </p>
+                    <Link to="/dashboard/client-invoices" className="mt-6 btn-primary">Kembali ke Daftar Tagihan</Link>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="mx-auto max-w-4xl">
             <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -105,7 +126,9 @@ export default function PayInvoice() {
                     </button>
                     <div>
                         <h1 className="text-xl font-bold text-ink">Pembayaran Tagihan</h1>
-                        <p className="text-sm font-mono text-ink-muted">INV-{invoice.number} &middot; {invoice.project}</p>
+                        <p className="text-sm font-mono text-ink-muted">
+                            {invoice.number.startsWith('INV-') ? invoice.number : `INV-${invoice.number}`} &middot; {invoice.project}
+                        </p>
                     </div>
                 </div>
             </div>
@@ -143,10 +166,11 @@ export default function PayInvoice() {
             )}
 
             {step === 'instructions' && selectedMethod && (
-                <PayInvoiceInstructions 
-                    invoice={invoice} 
-                    method={selectedMethod} 
-                    onProceed={handleInstructionsProceed} 
+                <PayInvoiceInstructions
+                    invoice={invoice}
+                    method={selectedMethod}
+                    loading={proceeding}
+                    onProceed={handleInstructionsProceed}
                 />
             )}
 
