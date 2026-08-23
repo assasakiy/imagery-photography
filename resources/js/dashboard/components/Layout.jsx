@@ -316,13 +316,7 @@ export default function Layout() {
                                 </span>
                             )}
                         </Link>
-                        <button
-                            onClick={toggle}
-                            className="rounded-lg p-2 text-ink-muted hover:bg-surface-muted hover:text-ink"
-                            aria-label="Ganti tema"
-                        >
-                            <Icon name={theme === 'dark' ? 'sun' : 'moon'} size={20} />
-                        </button>
+                        
 
                         {/* Profile dropdown */}
                         <div className="relative" ref={profileRef}>
@@ -354,6 +348,21 @@ export default function Layout() {
                                         >
                                             <Icon name="user" size={16} /> Profil Saya
                                         </Link>
+                                        <button
+                                            onClick={(e) => {
+                                                e.preventDefault();
+                                                e.stopPropagation();
+                                                toggle();
+                                            }}
+                                            className="flex w-full items-center justify-between gap-2.5 rounded-xl px-3 py-2 text-sm font-medium text-ink-muted hover:bg-surface-muted hover:text-ink"
+                                        >
+                                            <span className="flex items-center gap-2.5">
+                                                <Icon name={theme === 'dark' ? 'sun' : 'moon'} size={16} /> Tema
+                                            </span>
+                                            <span className="text-[10px] uppercase font-bold text-ink-muted bg-line/50 px-1.5 py-0.5 rounded">
+                                                {theme === 'dark' ? 'Gelap' : 'Terang'}
+                                            </span>
+                                        </button>
                                         <button
                                             onClick={handleLogout}
                                             className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-medium text-red-500 hover:bg-red-500/10"
