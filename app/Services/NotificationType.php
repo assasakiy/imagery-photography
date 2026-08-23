@@ -5,6 +5,7 @@ namespace App\Services;
 enum NotificationType: string
 {
     case ACCOUNT_INVITE = 'account.invite';
+    case SET_PASSWORD = 'set.password';
     case PASSWORD_RESET = 'password.reset';
     case MAGIC_LINK = 'auth.magic_link';
     case BOOKING_CREATED = 'booking.created';
@@ -51,7 +52,8 @@ enum NotificationType: string
         $link = $data['url'] ?? '';
 
         return match ($this) {
-            self::ACCOUNT_INVITE => "Halo $name, akun Anda di Sopian Lalu Imagery telah dibuat.\nKlik link untuk mengaktifkan & membuat kata sandi:\n$link",
+            self::ACCOUNT_INVITE => "Halo $name, akun Anda di Sopian Lalu Imagery telah dibuat.\nKlik link berikut untuk membuat kata sandi:\n$link",
+            self::SET_PASSWORD => "Halo $name, buat kata sandi untuk akun Anda agar bisa login dengan email & kata sandi:\n$link",
             self::PASSWORD_RESET => "Halo $name, gunakan link berikut untuk mereset kata sandi Anda (berlaku 30 menit):\n$link",
             self::MAGIC_LINK => "Halo $name, tautan masuk Anda:\n$link",
             self::BOOKING_CREATED => "Halo $name, booking Anda kami terima. Kami akan segera menghubungi Anda via WhatsApp.",
@@ -69,6 +71,7 @@ enum NotificationType: string
     {
         return match ($this) {
             self::ACCOUNT_INVITE => 'Aktivasi Akun',
+            self::SET_PASSWORD => 'Buat Kata Sandi',
             self::PASSWORD_RESET => 'Reset Kata Sandi',
             self::MAGIC_LINK => 'Tautan Masuk',
             self::BOOKING_CREATED => 'Booking Diterima',

@@ -29,6 +29,7 @@ class NotificationService
         'auth.otp' => 'OTP login',
         'auth.login' => 'Login mencurigakan',
         'auth.invite' => 'Aktivasi akun klien',
+        'auth.set_password' => 'Buat kata sandi',
         'auth.magic_link' => 'Tautan masuk / aktivasi',
         'order.gallery_ready' => 'Galeri siap diunduh',
         'billing.invoice' => 'Invoice diterbitkan',
@@ -38,7 +39,7 @@ class NotificationService
      * Event yang WAJIB dikirim ke pemilik akun (keamanan akun).
      * Tidak bisa dimatikan oleh admin maupun user.
      */
-    public const MANDATORY_EVENTS = ['auth.otp', 'auth.login', 'auth.magic_link', 'auth.invite'];
+    public const MANDATORY_EVENTS = ['auth.otp', 'auth.login', 'auth.magic_link', 'auth.invite', 'auth.set_password'];
 
     /**
      * Event yang berlaku untuk tiap kanal.
@@ -55,13 +56,13 @@ class NotificationService
             'project.created', 'project.updated', 'project.status_changed',
             'project.credentials_regenerated', 'payment.submitted', 'payment.confirmed',
             'payment.rejected', 'team.invited', 'auth.otp', 'auth.login',
-            'auth.invite', 'auth.magic_link', 'order.gallery_ready', 'billing.invoice',
+            'auth.invite', 'auth.set_password', 'auth.magic_link', 'order.gallery_ready', 'billing.invoice',
         ],
         'whatsapp' => [
             'booking.new', 'message.new', 'review.new',
             'project.status_changed', 'payment.submitted', 'payment.confirmed',
             'auth.otp', 'auth.login',
-            'auth.invite', 'auth.magic_link', 'order.gallery_ready', 'billing.invoice',
+            'auth.invite', 'auth.set_password', 'auth.magic_link', 'order.gallery_ready', 'billing.invoice',
         ],
         'webhook' => [
             'booking.new', 'message.new', 'review.new',
@@ -594,6 +595,7 @@ class NotificationService
     {
         return match ($type) {
             NotificationType::ACCOUNT_INVITE => 'auth.invite',
+            NotificationType::SET_PASSWORD => 'auth.set_password',
             NotificationType::PASSWORD_RESET, NotificationType::MAGIC_LINK => 'auth.magic_link',
             NotificationType::BOOKING_CREATED, NotificationType::BOOKING_APPROVED => 'booking.new',
             NotificationType::PROJECT_PROGRESS => 'project.updated',

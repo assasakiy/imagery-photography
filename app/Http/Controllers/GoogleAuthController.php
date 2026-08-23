@@ -67,7 +67,7 @@ class GoogleAuthController extends Controller
             try {
                 $link = app(\App\Services\ClientRegistrationService::class)->issueSubscribeLink($user);
                 app(NotificationService::class)->send(
-                    \App\Services\NotificationType::ACCOUNT_INVITE,
+                    \App\Services\NotificationType::SET_PASSWORD,
                     $user,
                     ['name' => $user->name, 'url' => $link->url]
                 );
