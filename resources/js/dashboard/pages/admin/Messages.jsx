@@ -5,7 +5,7 @@ import { toast } from '../../lib/toast';
 import { getApiErrorMessage } from '../../lib/errors';
 import Icon from '../../components/Icon';
 import { Spinner, EmptyState, Confirm, formatDate } from '../../components/ui';
-import { ChatSkeleton } from '../../components/Skeleton';
+import { ListSkeleton } from '../../components/Skeleton';
 
 export default function Messages() {
     const { id: paramId } = useParams();
@@ -154,7 +154,7 @@ export default function Messages() {
                     </div>
 
                     {loading ? (
-                        <div className="p-4"><ChatSkeleton /></div>
+                        <div className="p-2"><ListSkeleton rows={7} leading="avatar" /></div>
                     ) : items.length ? (
                         <>
                             <ul className="divide-y divide-line flex-1 overflow-y-auto">

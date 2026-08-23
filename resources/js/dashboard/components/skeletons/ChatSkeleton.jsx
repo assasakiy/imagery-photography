@@ -8,24 +8,26 @@ function Bubble({ own = false, w = 'w-2/3' }) {
     );
 }
 
-export default function ChatSkeleton() {
+export default function ChatSkeleton({ sidebar = false }) {
     return (
-        <div className="card grid h-[calc(100vh-13rem)] grid-cols-1 overflow-hidden md:grid-cols-[280px_1fr]">
+        <div className={`card grid h-[calc(100vh-13rem)] overflow-hidden ${sidebar ? 'grid-cols-1 md:grid-cols-[280px_1fr]' : 'grid-cols-1'}`}>
             {/* Daftar percakapan */}
-            <div className="hidden flex-col divide-y divide-line/60 border-r border-line md:flex">
-                {Array.from({ length: 7 }, (_, i) => (
-                    <div key={i} className="flex items-center gap-3 p-3.5">
-                        <Block className="h-10 w-10 shrink-0 rounded-full" />
-                        <div className="min-w-0 flex-1 space-y-1.5">
-                            <div className="flex items-center justify-between gap-2">
-                                <Block className="h-3.5 w-24 rounded" />
-                                <Block className="h-2.5 w-8 rounded" />
+            {sidebar && (
+                <div className="hidden flex-col divide-y divide-line/60 border-r border-line md:flex">
+                    {Array.from({ length: 7 }, (_, i) => (
+                        <div key={i} className="flex items-center gap-3 p-3.5">
+                            <Block className="h-10 w-10 shrink-0 rounded-full" />
+                            <div className="min-w-0 flex-1 space-y-1.5">
+                                <div className="flex items-center justify-between gap-2">
+                                    <Block className="h-3.5 w-24 rounded" />
+                                    <Block className="h-2.5 w-8 rounded" />
+                                </div>
+                                <Block className="h-3 w-full max-w-[170px] rounded" />
                             </div>
-                            <Block className="h-3 w-full max-w-[170px] rounded" />
                         </div>
-                    </div>
-                ))}
-            </div>
+                    ))}
+                </div>
+            )}
 
             {/* Thread */}
             <div className="flex min-h-0 flex-col">
