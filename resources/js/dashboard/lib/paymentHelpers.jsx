@@ -41,6 +41,14 @@ export function maskNumber(num) {
     return `${s.slice(0, 4)}••••${s.slice(-4)}`;
 }
 
+export function inferType(g) {
+    if (g.type) return g.type;
+    const lbl = (g.label || '').toLowerCase();
+    if (lbl.includes('qris')) return 'qris';
+    if (lbl.includes('wallet') || lbl.includes('e-wallet') || lbl.includes('dompet')) return 'wallet';
+    return 'bank';
+}
+
 export function channelIcon(channel) {
     if (channel?.icon_url) {
         return <img src={channel.icon_url} alt={channel.name} className="h-5 w-5 object-contain" />;

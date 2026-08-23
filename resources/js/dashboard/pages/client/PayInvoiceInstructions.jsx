@@ -10,8 +10,8 @@ export default function PayInvoiceInstructions({ invoice, method, onProceed }) {
     const isGateway = method.type === 'gateway';
     
     // QRIS state (jika manual QRIS)
-    const isQris = isManual && !!method.data.item.qris_data;
-    const qrisData = isQris ? dynamicQris(method.data.item.qris_data, Number(invoice.remaining)) : null;
+    const isQris = isManual && method.data.gtype === 'qris';
+    const qrisData = isQris && method.data.item.qris ? dynamicQris(method.data.item.qris, Number(invoice.remaining)) : null;
     const qrSrc = useQrCode(qrisData, isQris);
     const [copied, setCopied] = useState(false);
     
@@ -47,22 +47,22 @@ export default function PayInvoiceInstructions({ invoice, method, onProceed }) {
                             <h3 className="text-lg font-bold text-ink mb-6 text-center">Transfer ke Rekening Berikut</h3>
                             <div className="rounded-xl border border-line p-5">
                                 <div className="flex items-center gap-3 border-b border-line pb-4 mb-4">
-                                    <span className="text-brand-500 w-6 h-6">
-                                        {method.data.group.type === 'bank' ? BANK_ICON : WALLET_ICON}
+                                    <span className="text-brand-500 w-6 h-6 flex items-center justify-center">
+                                        {method.data.gtype === 'wallet' ? WALLET_ICON : BANK_ICON}
                                     </span>
                                     <div>
-                                        <p className="font-bold text-ink">{method.data.item.bank || method.data.item.name}</p>
-                                        <p className="text-xs text-ink-muted">a.n. {method.data.item.account_name || 'Owner'}</p>
+                                        <p className="font-bold text-ink">{method.data.item.name}</p>
+                                        <p className="text-xs text-ink-muted">a.n. {method.data.account_name || 'Owner'}</p>
                                     </div>
                                 </div>
                                 <div className="flex items-center justify-between gap-4 bg-surface-muted p-4 rounded-lg">
-                                    <div>
+                                    <div className="min-w-0">
                                         <p className="text-xs text-ink-muted">Nomor Rekening</p>
-                                        <p className="font-mono text-lg font-bold text-ink tracking-widest">{method.data.item.account_number}</p>
+                                        <p className="font-mono text-lg font-bold text-ink tracking-widest break-all">{method.data.item.number}</p>
                                     </div>
                                     <button 
-                                        onClick={() => handleCopy(method.data.item.account_number)}
-                                        className="flex items-center gap-1 rounded bg-white px-3 py-1.5 text-xs font-semibold text-brand-600 shadow-sm border border-line hover:bg-brand-50 dark:bg-zinc-800 dark:text-brand-400"
+                                        onClick={() => handleCopy(method.data.item.number)}
+                                        className="shrink-0 flex items-center gap-1 rounded bg-white px-3 py-1.5 text-xs font-semibold text-brand-600 shadow-sm border border-line hover:bg-brand-50 dark:bg-zinc-800 dark:text-brand-400"
                                     >
                                         <Icon name={copied ? 'check' : 'copy'} size={14} />
                                         {copied ? 'Tersalin!' : 'Salin'}

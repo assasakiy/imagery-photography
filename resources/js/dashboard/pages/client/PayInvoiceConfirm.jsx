@@ -42,10 +42,10 @@ export default function PayInvoiceConfirm({ invoice, method, onSuccess }) {
         data.append('method', 'manual_transfer');
         
         let notesText = '';
-        if (method.data.item.qris_data) {
-            notesText = `Bayar via QRIS ${method.data.item.merchant || ''}`;
+        if (method.data.gtype === 'qris') {
+            notesText = `Bayar via QRIS ${method.data.item.merchant || ''}`.trim();
         } else {
-            notesText = `Transfer ke ${method.data.item.bank || method.data.item.name} (${method.data.item.account_number})`;
+            notesText = `Transfer ke ${method.data.item.name} ${method.data.item.number}`;
         }
         if (form.notes) notesText += ` - ${form.notes}`;
         data.append('notes', notesText);
