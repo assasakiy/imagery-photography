@@ -88,49 +88,95 @@ export default function BlogTags() {
             />
 
             {loading ? (
-                <div className="card overflow-hidden">
-                    <div className="grid grid-cols-[1fr_120px_80px] border-b border-line bg-surface-muted px-4 py-3 text-xs font-semibold uppercase tracking-wider text-ink-muted">
-                        <span>Tag</span>
-                        <span>Jumlah Artikel</span>
-                        <span className="text-right">Aksi</span>
-                    </div>
-                    <div className="md:columns-2 md:gap-0">
-                        {Array.from({ length: 8 }, (_, i) => (
-                            <div key={i} className="grid grid-cols-[1fr_120px_80px] items-center border-b border-line px-4 py-3 text-sm [break-inside:avoid]">
-                                <Block className="h-4 w-3/4 rounded" />
-                                <Block className="h-4 w-10 rounded" />
-                                <div className="flex justify-end gap-2">
-                                    <Block className="h-7 w-7 rounded-lg" />
-                                    <Block className="h-7 w-7 rounded-lg" />
+                (() => {
+                    const skelHeader = (
+                        <div className="grid grid-cols-[1fr_120px_80px] border-b border-line bg-surface-muted px-4 py-3 text-xs font-semibold uppercase tracking-wider text-ink-muted">
+                            <span>Tag</span>
+                            <span>Jumlah Artikel</span>
+                            <span className="text-right">Aksi</span>
+                        </div>
+                    );
+                    const skelRow = (i) => (
+                        <div key={i} className="grid grid-cols-[1fr_120px_80px] items-center border-b border-line px-4 py-3 text-sm">
+                            <Block className="h-4 w-3/4 rounded" />
+                            <Block className="h-4 w-10 rounded" />
+                            <div className="flex justify-end gap-2">
+                                <Block className="h-7 w-7 rounded-lg" />
+                                <Block className="h-7 w-7 rounded-lg" />
+                            </div>
+                        </div>
+                    );
+                    return (
+                        <div className="card overflow-hidden">
+                            {/* Mobile */}
+                            <div className="md:hidden">
+                                {skelHeader}
+                                <div>{Array.from({ length: 4 }, (_, i) => skelRow(i))}</div>
+                            </div>
+                            {/* Desktop */}
+                            <div className="hidden md:grid grid-cols-2 divide-x divide-line">
+                                <div>
+                                    {skelHeader}
+                                    <div>{Array.from({ length: 4 }, (_, i) => skelRow(i))}</div>
+                                </div>
+                                <div>
+                                    {skelHeader}
+                                    <div>{Array.from({ length: 4 }, (_, i) => skelRow(i + 4))}</div>
                                 </div>
                             </div>
-                        ))}
-                    </div>
-                </div>
+                        </div>
+                    );
+                })()
             ) : items.length ? (
-                <div className="card overflow-hidden">
-                    <div className="grid grid-cols-[1fr_120px_80px] border-b border-line bg-surface-muted px-4 py-3 text-xs font-semibold uppercase tracking-wider text-ink-muted">
-                        <span>Tag</span>
-                        <span>Jumlah Artikel</span>
-                        <span className="text-right">Aksi</span>
-                    </div>
-                    <div className="md:columns-2 md:gap-0">
-                        {items.map((item) => (
-                            <div key={item.id} className="grid grid-cols-[1fr_120px_80px] items-center border-b border-line px-4 py-2.5 text-sm [break-inside:avoid] hover:bg-surface-muted/50 transition-colors">
-                                <span className="font-medium text-ink">#{item.name}</span>
-                                <span className="text-sm text-ink-muted">{item.posts_count || 0}</span>
-                                <div className="flex justify-end gap-1">
-                                    <button onClick={() => openEdit(item)} className="rounded-lg p-1.5 text-ink-muted hover:bg-surface hover:text-brand-600" aria-label="Edit" title="Edit">
-                                        <Icon name="edit" size={16} />
-                                    </button>
-                                    <button onClick={() => setDeleting(item)} className="rounded-lg p-1.5 text-ink-muted hover:bg-surface hover:text-red-500" aria-label="Hapus" title="Hapus">
-                                        <Icon name="trash" size={16} />
-                                    </button>
+                (() => {
+                    const half = Math.ceil(items.length / 2);
+                    const leftItems = items.slice(0, half);
+                    const rightItems = items.slice(half);
+
+                    const ListHeader = () => (
+                        <div className="grid grid-cols-[1fr_120px_80px] border-b border-line bg-surface-muted px-4 py-3 text-xs font-semibold uppercase tracking-wider text-ink-muted">
+                            <span>Tag</span>
+                            <span>Jumlah Artikel</span>
+                            <span className="text-right">Aksi</span>
+                        </div>
+                    );
+
+                    const renderRow = (item) => (
+                        <div key={item.id} className="grid grid-cols-[1fr_120px_80px] items-center border-b border-line px-4 py-2.5 text-sm hover:bg-surface-muted/50 transition-colors">
+                            <span className="font-medium text-ink">#{item.name}</span>
+                            <span className="text-sm text-ink-muted">{item.posts_count || 0}</span>
+                            <div className="flex justify-end gap-1">
+                                <button onClick={() => openEdit(item)} className="rounded-lg p-1.5 text-ink-muted hover:bg-surface hover:text-brand-600" aria-label="Edit" title="Edit">
+                                    <Icon name="edit" size={16} />
+                                </button>
+                                <button onClick={() => setDeleting(item)} className="rounded-lg p-1.5 text-ink-muted hover:bg-surface hover:text-red-500" aria-label="Hapus" title="Hapus">
+                                    <Icon name="trash" size={16} />
+                                </button>
+                            </div>
+                        </div>
+                    );
+
+                    return (
+                        <div className="card overflow-hidden">
+                            {/* Mobile */}
+                            <div className="md:hidden">
+                                <ListHeader />
+                                <div>{items.map(renderRow)}</div>
+                            </div>
+                            {/* Desktop */}
+                            <div className="hidden md:grid grid-cols-2 divide-x divide-line">
+                                <div>
+                                    <ListHeader />
+                                    <div>{leftItems.map(renderRow)}</div>
+                                </div>
+                                <div>
+                                    <ListHeader />
+                                    <div>{rightItems.map(renderRow)}</div>
                                 </div>
                             </div>
-                        ))}
-                    </div>
-                </div>
+                        </div>
+                    );
+                })()
             ) : (
                 <EmptyState title="Belum ada tag" />
             )}
