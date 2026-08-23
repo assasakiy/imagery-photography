@@ -18,7 +18,7 @@ const STATUS_META = {
     confirmed: { label: 'Terkonfirmasi', cls: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' },
     pending: { label: 'Menunggu', cls: 'bg-amber-500/15 text-amber-600 dark:text-amber-400' },
     expired: { label: 'Kadaluarsa', cls: 'bg-zinc-500/15 text-ink-muted' },
-    failed: { label: 'Gagal/Ditolak', cls: 'bg-red-500/15 text-red-600 dark:text-red-400' },
+    failed: { label: 'Ditolak', cls: 'bg-red-500/15 text-red-600 dark:text-red-400' },
 };
 
 function methodMeta(p) {
