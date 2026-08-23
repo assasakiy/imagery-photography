@@ -77,13 +77,6 @@ function PhotoActionMenu({ open, uploading, canDelete, onClose, onView, onChange
                             <Icon name={it.icon} size={18} /> {it.label}
                         </button>
                     ))}
-                    <button
-                        type="button"
-                        onClick={onClose}
-                        className="btn-outline mt-2 w-full justify-center py-3 text-sm"
-                    >
-                        Batal
-                    </button>
                 </div>
             </div>
         </>
