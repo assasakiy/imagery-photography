@@ -25,6 +25,25 @@ function Row({ label, value, valueClass = 'font-mono font-semibold text-ink', bo
     );
 }
 
+function methodMeta(p) {
+    if (p.method === 'gateway') {
+        const gw = (p.gateway || '').toLowerCase();
+        const gwName = gw === 'tripay' ? 'TriPay' : gw ? gw.charAt(0).toUpperCase() + gw.slice(1) : null;
+        return { label: 'Payment Gateway', channel: [p.gateway_method, gwName].filter(Boolean).join(' · ') };
+    }
+    const notes = (p.notes || '').trim();
+    let channel = null;
+    if (/^bayar via qris/i.test(notes)) {
+        const merchant = notes.replace(/^bayar via qris/i, '').trim();
+        channel = merchant ? `QRIS · ${merchant}` : 'QRIS';
+    } else if (/^transfer ke /i.test(notes)) {
+        channel = notes.replace(/^transfer ke /i, '');
+    } else if (notes) {
+        channel = notes;
+    }
+    return { label: 'Transfer Manual', channel };
+}
+
 export default function InvoiceDetailModal({ open, onClose, invoice }) {
     const [payments, setPayments] = useState(null);
     const [loading, setLoading] = useState(false);
@@ -91,6 +110,7 @@ export default function InvoiceDetailModal({ open, onClose, invoice }) {
                     <ul className="space-y-2">
                         {payments.map((p) => {
                             const meta = PAY_STATUS[p.status] || { label: p.status, cls: 'bg-surface-muted text-ink-muted' };
+                            const { label: methodLabel, channel } = methodMeta(p);
                             return (
                                 <li key={p.id} className="flex items-center gap-3 rounded-xl border border-line px-4 py-3">
                                     {p.proof_url ? (
@@ -107,10 +127,15 @@ export default function InvoiceDetailModal({ open, onClose, invoice }) {
                                         </span>
                                     )}
                                     <div className="min-w-0 flex-1">
-                                        <p className="text-sm font-semibold text-ink">{formatRupiah(p.amount)}</p>
-                                        <p className="mt-0.5 truncate text-xs text-ink-muted">
-                                            {formatDate(p.paid_at || p.created_at)} · {p.method || '-'}
+                                        <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
+                                            <p className="text-sm font-semibold text-ink">{formatRupiah(p.amount)}</p>
+                                            <span className={`badge ${meta.cls}`}>{meta.label}</span>
+                                        </div>
+                                        <p className="mt-0.5 flex items-center gap-1 text-xs font-medium text-ink">
+                                            <Icon name="credit-card" size={12} /> {methodLabel}
+                                            {channel && <span className="truncate font-normal text-ink-muted">· {channel}</span>}
                                         </p>
+                                        <p className="mt-0.5 text-xs text-ink-muted">{formatDate(p.paid_at || p.created_at)}</p>
                                     </div>
                                     {p.proof_url && (
                                         <a
