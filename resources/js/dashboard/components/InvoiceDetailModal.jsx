@@ -129,7 +129,6 @@ export default function InvoiceDetailModal({ open, onClose, invoice }) {
                                     <div className="min-w-0 flex-1">
                                         <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
                                             <p className="text-sm font-semibold text-ink">{formatRupiah(p.amount)}</p>
-                                            <span className={`badge ${meta.cls}`}>{meta.label}</span>
                                         </div>
                                         <p className="mt-0.5 flex items-center gap-1 text-xs font-medium text-ink">
                                             <Icon name="credit-card" size={12} /> {methodLabel}
