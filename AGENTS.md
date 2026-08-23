@@ -107,7 +107,8 @@ Halaman dashboard yang punya beberapa tab **WAJIB** dipisah ke folder `pages/<na
 - **Media Library**: model butuh `$fillable=['id']`; `LandingContent::setValue` pertahankan `group`; reset landing images meninggalkan media orphan (TODO).
 - **Test**: skrip di `/home/opc` (`spa_test.py`, `final_test.py`, `access_test.py`); `/etc/hosts` berisi `127.0.0.1 imagery.my.id`; `/tmp/opencode` TIDAK writable.
 
-## 13. Sesi Terbaru — Perbaikan Hak Akses Hapus File di Preview Klien
-- **Tombol hapus tersembunyi dari klien (`d1474c3`):** Di halaman preview klien (`Detail.jsx`, route `/dashboard/preview/:id`), tombol trash per-file pada overlay hover tidak di-guard `isAdmin` — klien melihat tombol hapus (bulk delete di toolbar sudah benar di-guard). Kini tombol hanya tampil untuk admin/owner. Backend sudah aman: route `DELETE /files/{file}` & `/files/bulk` berada di grup middleware `role:owner|admin` (terverifikasi via curl: klien dapat 403 "User does not have the right roles").
+## 13. Sesi Terbaru — Penyederhanaan Aksi Detail Booking Admin
+- **Detail booking terkonfirmasi (`c9b4942`):** footer kini hanya 2 tombol rata kiri-kanan — **Tolak** (kiri, sebelumnya berlabel "Batal / Tolak") dan **Buat Proyek** (kanan). Tombol **Ubah** dihapus karena data tetap bisa disesuaikan saat mengisi form konversi proyek.
+- **Form "Terima Booking -> Buat Proyek":** tombol submit kedua diubah dari "Buat Proyek" menjadi **"Konfirmasi"** (loading: "Memproses...") agar tidak dobel dengan tombol pembuka form di detail.
 
 *Untuk rincian arsitektural teknis (lifecycle Media, mekanisme RBAC, dan khususnya sistem **progressive loading dashboard**), silakan baca file-file spesifik di direktori `/docs/`.*
