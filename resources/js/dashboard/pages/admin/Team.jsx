@@ -8,7 +8,7 @@ import MediaPicker from '../../components/MediaPicker';
 import UserDetailModal from '../../components/UserDetailModal';
 import PresenceBadge from '../../components/PresenceBadge';
 import { PageHeader, EmptyState, Modal, Confirm, Field } from '../../components/ui';
-import Skeleton, { CardGridSkeleton } from '../../components/Skeleton';
+import Skeleton, { AvatarCardGridSkeleton } from '../../components/Skeleton';
 
 const EMPTY_ADMIN = { name: '', username: '', email: '', phone: '', company: '', occupation: '', bio: '', status: 'pending', avatar: undefined };
 
