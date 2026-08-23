@@ -2,7 +2,7 @@ import { useEffect, useImperativeHandle, useState } from 'react';
 import api from '../../../api';
 import Icon from '../../../components/Icon';
 import { EmptyState, Modal, Confirm, Field } from '../../../components/ui';
-import Skeleton from '../../../components/Skeleton';
+import { CardListSkeleton } from '../../../components/Skeleton';
 import { toast } from '../../../lib/toast';
 import { getApiErrorMessage } from '../../../lib/errors';
 
@@ -119,7 +119,7 @@ export default function StatsTab({ ref }) {
     return (
         <>
             {loading ? (
-                <Skeleton variant="form" />
+                <CardListSkeleton count={4} />
             ) : items.length ? (
                 <div className="space-y-3">
                     {items.map((item) => (

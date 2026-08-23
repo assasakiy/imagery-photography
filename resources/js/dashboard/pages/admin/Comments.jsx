@@ -5,7 +5,7 @@ import { getApiErrorMessage } from '../../lib/errors';
 import Icon from '../../components/Icon';
 import Avatar from '../../components/Avatar';
 import { PageHeader, EmptyState, Confirm, formatDate } from '../../components/ui';
-import Skeleton, { ListSkeleton } from '../../components/Skeleton';
+import { CardListSkeleton } from '../../components/Skeleton';
 
 export default function Comments() {
     const [items, setItems] = useState([]);
@@ -81,7 +81,7 @@ export default function Comments() {
             </div>
 
             {loading ? (
-                <ListSkeleton rows={5} leading="avatar" trailingBadge />
+                <CardListSkeleton count={5} />
             ) : items.length ? (
                 <div className="space-y-3">
                     {items.map((item) => (
