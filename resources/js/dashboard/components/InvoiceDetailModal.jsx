@@ -193,7 +193,7 @@ export default function InvoiceDetailModal({ open, onClose, invoice }) {
                                             </span>
                                         </div>
                                         {p.proof_url && (() => {
-                                            const isPdf = /\.pdf(\?|$)/i.test(p.proof_url);
+                                            const isPdf = p.proof_mime === 'application/pdf';
                                             return (
                                                 <button type="button" onClick={() => setProof({ url: p.proof_url, pdf: isPdf })} className="group mt-3 inline-flex items-center gap-2.5 text-left" title="Lihat bukti pembayaran">
                                                     {isPdf ? (

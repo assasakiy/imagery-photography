@@ -238,7 +238,7 @@ export default function Payments() {
                             <div>
                                 <p className="mb-2 text-xs text-ink-muted">Bukti Pembayaran</p>
                                 {detail.proof_url ? (
-                                    /\.pdf(\?|$)/i.test(detail.proof_url) ? (
+                                    detail.proof_mime === 'application/pdf' ? (
                                         <button type="button" onClick={() => setProofView({ url: detail.proof_url, pdf: true })} className="flex w-fit items-center gap-3 rounded-xl border border-line bg-surface-muted/30 p-4 transition-opacity hover:opacity-85">
                                             <span className="flex h-12 w-12 items-center justify-center rounded-lg bg-red-500/10 text-red-600 dark:text-red-400">
                                                 <Icon name="file-text" size={22} />
