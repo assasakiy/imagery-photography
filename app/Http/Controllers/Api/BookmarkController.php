@@ -23,18 +23,64 @@ class BookmarkController extends Controller
     public function index(Request $request)
     {
         $user = $request->user();
-        $bookmarks = $user->bookmarks()->latest()->get();
+        $bookmarks = $user->bookmarks()->with('bookmarkable')->latest()->get();
 
-        return response()->json($bookmarks->map(function ($b) {
+        return response()->json($bookmarks->map(function ($b) use ($user) {
             $target = $b->bookmarkable;
-            $title = $target?->title ?? $target?->name ?? 'Item dihapus';
+            if (!$target) {
+                return [
+                    'id' => $b->id,
+                    'type' => class_basename($b->bookmarkable_type),
+                    'target_id' => $b->bookmarkable_id,
+                    'title' => 'Konten dihapus',
+                    'excerpt' => null,
+                    'cover_url' => null,
+                    'author' => null,
+                    'url' => null,
+                    'likes_count' => 0,
+                    'comments_count' => 0,
+                    'user_liked' => false,
+                    'created_at' => $b->created_at,
+                ];
+            }
+
+            $typeKey = match (class_basename($b->bookmarkable_type)) {
+                'Blog' => 'blog',
+                'Portfolio' => 'portfolio',
+                default => 'package',
+            };
+
+            $likesCount = $target->likes()->count();
+            $commentsCount = $target->comments()->count();
+            $userLiked = $user->likes()
+                ->where('likeable_type', $b->bookmarkable_type)
+                ->where('likeable_id', $target->id)
+                ->exists();
+
+            $coverUrl = null;
+            if (method_exists($target, 'resolveCoverUrl')) {
+                $coverUrl = $target->resolveCoverUrl();
+            } elseif (!empty($target->image_url)) {
+                $coverUrl = $target->image_url;
+            }
+
+            $authorName = null;
+            if ($typeKey === 'blog' && $target->relationLoaded('author') && $target->author) {
+                $authorName = $target->author->name;
+            }
 
             return [
                 'id' => $b->id,
-                'type' => class_basename($b->bookmarkable_type) === 'Blog' ? 'blog' : (class_basename($b->bookmarkable_type) === 'Portfolio' ? 'portfolio' : 'package'),
-                'target_id' => $b->bookmarkable_id,
-                'title' => $title,
-                'url' => $target ? $this->targetUrl($b->bookmarkable_type, $target) : null,
+                'type' => $typeKey,
+                'target_id' => $target->id,
+                'title' => $target->title ?? $target->name ?? 'Konten',
+                'excerpt' => $target->excerpt ?? $target->description ?? null,
+                'cover_url' => $coverUrl,
+                'author' => $authorName,
+                'url' => $this->targetUrl($b->bookmarkable_type, $target),
+                'likes_count' => $likesCount,
+                'comments_count' => $commentsCount,
+                'user_liked' => $userLiked,
                 'created_at' => $b->created_at,
             ];
         }));
