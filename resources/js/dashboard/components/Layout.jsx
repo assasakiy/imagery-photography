@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { NavLink, Outlet, useNavigate, Link, useLocation } from 'react-router-dom';
 import Icon from './Icon';
 import Avatar from './Avatar';
+import Toggle from './Toggle';
 import ScrollToTop from './ScrollToTop';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
@@ -348,21 +349,14 @@ export default function Layout() {
                                         >
                                             <Icon name="user" size={16} /> Profil Saya
                                         </Link>
-                                        <button
-                                            onClick={(e) => {
-                                                e.preventDefault();
-                                                e.stopPropagation();
-                                                toggle();
-                                            }}
-                                            className="flex w-full items-center justify-between gap-2.5 rounded-xl px-3 py-2 text-sm font-medium text-ink-muted hover:bg-surface-muted hover:text-ink"
-                                        >
+                                        <div className="flex w-full items-center justify-between gap-2.5 rounded-xl px-3 py-2 text-sm font-medium text-ink-muted hover:bg-surface-muted transition-colors">
                                             <span className="flex items-center gap-2.5">
-                                                <Icon name={theme === 'dark' ? 'sun' : 'moon'} size={16} /> Tema
+                                                <Icon name={theme === 'dark' ? 'moon' : 'sun'} size={16} /> Mode Gelap
                                             </span>
-                                            <span className="text-[10px] uppercase font-bold text-ink-muted bg-line/50 px-1.5 py-0.5 rounded">
-                                                {theme === 'dark' ? 'Gelap' : 'Terang'}
-                                            </span>
-                                        </button>
+                                            <div onClick={(e) => e.stopPropagation()}>
+                                                <Toggle size="sm" checked={theme === 'dark'} onChange={() => toggle()} />
+                                            </div>
+                                        </div>
                                         <button
                                             onClick={handleLogout}
                                             className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-medium text-red-500 hover:bg-red-500/10"
