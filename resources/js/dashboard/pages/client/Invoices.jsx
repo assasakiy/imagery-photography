@@ -96,16 +96,25 @@ export default function ClientInvoices() {
                                     <p className="font-semibold text-ink">{formatRupiah(it.price)}</p>
                                 </div>
                             </div>
-                            <div className="mt-4 flex flex-1 items-end gap-2">
+                            <div className="mt-4 flex flex-wrap items-end gap-2 sm:flex-nowrap">
+                                {it.remaining > 0 && (
+                                    <button
+                                        className="btn-primary flex-1 justify-center py-2"
+                                        onClick={() => setSelected(it)}
+                                    >
+                                        <Icon name="credit-card" size={14} />
+                                        Bayar Tagihan
+                                    </button>
+                                )}
                                 <button
-                                    className="btn-primary flex-1 justify-center py-2"
-                                    onClick={() => (it.remaining > 0 ? setSelected(it) : setDetail(it))}
+                                    className={`${it.remaining > 0 ? 'btn-outline' : 'btn-primary'} flex-1 justify-center py-2`}
+                                    onClick={() => setDetail(it)}
                                 >
-                                    <Icon name={it.remaining > 0 ? 'credit-card' : 'eye'} size={14} />
-                                    {it.remaining > 0 ? 'Bayar Tagihan' : 'Lihat Tagihan'}
+                                    <Icon name="eye" size={14} />
+                                    {it.remaining > 0 ? 'Detail' : 'Lihat Tagihan'}
                                 </button>
                                 {it.project_id && (
-                                    <Link to={`/dashboard/pesanan/${it.project_id}`} className="btn-outline justify-center py-2" title="Detail Pesanan">
+                                    <Link to={`/dashboard/pesanan/${it.project_id}`} className="btn-outline shrink-0 px-3 py-2" title="Detail Pesanan">
                                         <Icon name="folder-open" size={14} />
                                     </Link>
                                 )}

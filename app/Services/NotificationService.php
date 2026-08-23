@@ -294,13 +294,13 @@ class NotificationService
         $msg = "Mohon maaf, pembayaran Anda sebesar *Rp " . number_format($payment->amount, 0, ',', '.') . "* untuk pesanan *{$project->name}* ditolak.";
         $html = "Halo <strong>{$project->user->name}</strong>,<br><br>" .
                 "Mohon maaf, pembayaran sebesar <strong>Rp " . number_format($payment->amount, 0, ',', '.') . "</strong> untuk pesanan <strong>{$project->name}</strong> telah ditolak oleh admin.<br><br>" .
-                "Silakan periksa kembali detail pembayaran atau hubungi admin.";
+                "Silakan periksa kembali tagihan Anda dan unggah ulang bukti pembayaran yang benar.";
 
         if (!empty($project->user->phone)) {
             $this->whatsapp($project->user->phone, $msg, null, $project->user, 'payment.rejected');
         }
         $this->email(new \App\Mail\AlertMail($project->user->name, 'Pembayaran Ditolak', $html), $project->user->email, 'payment.rejected');
-        $this->inApp($project->user, 'Pembayaran Ditolak', $msg, $this->orderUrl($project), 'payment.rejected');
+        $this->inApp($project->user, 'Pembayaran Ditolak', $msg, '/dashboard/client-invoices', 'payment.rejected');
     }
 
     /**

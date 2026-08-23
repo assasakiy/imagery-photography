@@ -335,6 +335,7 @@ class PaymentController extends Controller
         app(AuditLogger::class)->log('payment.rejected', 'Pembayaran ditolak: Rp ' . number_format((float) $payment->amount, 0, ',', '.') . ' (project ' . $payment->project->name . ')', $payment);
 
         app(NotificationService::class)->webhook('payment.rejected', ['payment_id' => $payment->id]);
+        app(NotificationService::class)->notifyPaymentRejected($payment);
 
         return response()->json($payment);
     }
