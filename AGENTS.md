@@ -107,7 +107,8 @@ Halaman dashboard yang punya beberapa tab **WAJIB** dipisah ke folder `pages/<na
 - **Media Library**: model butuh `$fillable=['id']`; `LandingContent::setValue` pertahankan `group`; reset landing images meninggalkan media orphan (TODO).
 - **Test**: skrip di `/home/opc` (`spa_test.py`, `final_test.py`, `access_test.py`); `/etc/hosts` berisi `127.0.0.1 imagery.my.id`; `/tmp/opencode` TIDAK writable.
 
-## 13. Sesi Terbaru — Fix Overlay Upload Banner Menutupi Foto Profil
-- **Stacking fix (`32f2dea`):** overlay loading "Mengunggah banner…" memakai `z-10` sehingga (dalam root stacking context) melukis di atas foto profil yang tumpang-tindih ke area banner via `-mt-12` — setengah atas avatar ikut tertutup overlay gelap saat upload banner. Fix: baris konten profil diberi `relative z-10` agar berada di atas semua overlay banner (hover & uploading). Menu dropdown/bottom sheet (z-40/z-50) tetap di atasnya.
+## 13. Sesi Terbaru — Catatan Riwayat di Detail Pesanan Klien
+- **Timeline klien (`6cdd131`):** OrderDetail.jsx kini menampilkan kartu **"Catatan Riwayat"** identik dgn halaman admin (ProjectDetail): garis vertikal + titik berwarna (brand utk `kind=system`, abu utk catatan tim), pesan, pelaku (`Update` / nama user / `Tim`) dan tanggal — diurutkan menaik. Data sudah tersedia di payload client (`clientProjectDetail` memetakan `updates[].user` sbg **string nama**, bukan objek → JSX pakai `u.user || 'Tim'`). Diverifikasi live: GET /api/projects/1 (client) mengembalikan 15 update.
+- Fix stacking (`32f2dea`): overlay "Mengunggah banner…" (z-10) menutupi setengah atas avatar yg overlap ke banner via `-mt-12`; baris konten profil kini `relative z-10` agar selalu di atas overlay banner.
 
 *Untuk rincian arsitektural teknis (lifecycle Media, mekanisme RBAC, dan khususnya sistem **progressive loading dashboard**), silakan baca file-file spesifik di direktori `/docs/`.*
