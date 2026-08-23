@@ -356,6 +356,14 @@ const paths = {
             <path d="m8.5 12.5 2.5 2.5 4.5-5" />
         </>
     ),
+    info: (
+        <>
+            <circle cx="12" cy="12" r="9" />
+            <path d="M12 8h.01" />
+            <path d="M11 12h1v4h1" />
+            <path d="M11.5 12h.5" />
+        </>
+    ),
     refresh: (
         <>
             <path d="M21 12a9 9 0 1 1-2.64-6.36L21 8" />

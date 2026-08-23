@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import api from '../../api';
 import Icon from '../../components/Icon';
 import InvoiceDetailModal from '../../components/InvoiceDetailModal';
@@ -18,13 +18,24 @@ export default function ClientInvoices() {
     const [items, setItems] = useState([]);
     const [loading, setLoading] = useState(true);
     const [detail, setDetail] = useState(null);
+    const [searchParams, setSearchParams] = useSearchParams();
 
     useEffect(() => {
         api.get('/customer/invoices')
-            .then(({ data }) => setItems(data))
+            .then(({ data }) => {
+                setItems(data);
+                const d = Number(searchParams.get('detail'));
+                const found = d ? data.find((it) => it.id === d) : null;
+                if (found) setDetail(found);
+            })
             .catch(() => toast.error('Gagal memuat data.'))
             .finally(() => setLoading(false));
     }, []);
+
+    const closeDetail = () => {
+        setDetail(null);
+        if (searchParams.get('detail')) setSearchParams({}, { replace: true });
+    };
 
     const totalOutstanding = items.reduce((sum, it) => sum + Number(it.remaining || 0), 0);
 
@@ -181,7 +192,7 @@ export default function ClientInvoices() {
             </>
             )}
 
-            <InvoiceDetailModal open={!!detail} onClose={() => setDetail(null)} invoice={detail} />
+            <InvoiceDetailModal open={!!detail} onClose={closeDetail} invoice={detail} />
         </>
     );
 }

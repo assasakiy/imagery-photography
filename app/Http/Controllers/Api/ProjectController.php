@@ -115,6 +115,7 @@ class ProjectController extends Controller
                 'created_at' => $p->reviews->first()->created_at,
             ] : null,
             'invoice' => $p->invoice ? [
+                'id' => $p->invoice->id,
                 'number' => $p->invoice->number,
                 'base_amount' => $p->invoice->base_amount,
                 'dp_amount' => $p->invoice->dp_amount,
