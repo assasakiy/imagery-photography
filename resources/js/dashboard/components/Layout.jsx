@@ -8,7 +8,7 @@ import { useTheme } from '../context/ThemeContext';
 import { useBadges } from '../context/BadgeContext';
 import { preloadRoute } from '../routes/preloadRoute';
 
-function NavGroup({ item, setSidebarOpen, unreadMessages, unreadBookings }) {
+function NavGroup({ item, setSidebarOpen, unreadMessages, unreadBookings, pendingPayments }) {
     const [open, setOpen] = useState(true);
     const location = useLocation();
 
@@ -54,6 +54,11 @@ function NavGroup({ item, setSidebarOpen, unreadMessages, unreadBookings }) {
                                 {subItem.to === '/dashboard/bookings' && unreadBookings > 0 && (
                                     <span className="ml-auto flex h-5 w-5 items-center justify-center rounded-full bg-amber-500 text-[10px] font-bold text-white shadow-sm">
                                         {unreadBookings > 9 ? '9+' : unreadBookings}
+                                    </span>
+                                )}
+                                {subItem.to === '/dashboard/payments' && pendingPayments > 0 && (
+                                    <span className="ml-auto flex h-5 w-5 items-center justify-center rounded-full bg-amber-500 text-[10px] font-bold text-white shadow-sm">
+                                        {pendingPayments > 9 ? '9+' : pendingPayments}
                                     </span>
                                 )}
                             </NavLink>
@@ -153,7 +158,7 @@ export default function Layout() {
     const { theme, toggle } = useTheme();
     const navigate = useNavigate();
     const location = useLocation();
-    const { unread, unreadMessages, unreadBookings, unpaidInvoices, refresh } = useBadges();
+    const { unread, unreadMessages, unreadBookings, unpaidInvoices, pendingPayments, refresh } = useBadges();
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [profileOpen, setProfileOpen] = useState(false);
     const profileRef = useRef(null);
@@ -225,7 +230,7 @@ export default function Layout() {
                 <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
                         {nav.map((item) => {
                             if (item.sub) {
-                                return <NavGroup key={item.label} item={item} setSidebarOpen={setSidebarOpen} unreadMessages={unreadMessages} unreadBookings={unreadBookings} />;
+                                return <NavGroup key={item.label} item={item} setSidebarOpen={setSidebarOpen} unreadMessages={unreadMessages} unreadBookings={unreadBookings} pendingPayments={pendingPayments} />;
                             }
 
                             return (
@@ -256,6 +261,11 @@ export default function Layout() {
                                     {item.to === '/dashboard/bookings' && unreadBookings > 0 && (
                                         <span className="ml-auto flex h-5 w-5 items-center justify-center rounded-full bg-amber-500 text-[10px] font-bold text-white shadow-sm">
                                             {unreadBookings > 9 ? '9+' : unreadBookings}
+                                        </span>
+                                    )}
+                                    {item.to === '/dashboard/payments' && pendingPayments > 0 && (
+                                        <span className="ml-auto flex h-5 w-5 items-center justify-center rounded-full bg-amber-500 text-[10px] font-bold text-white shadow-sm">
+                                            {pendingPayments > 9 ? '9+' : pendingPayments}
                                         </span>
                                     )}
                                     {item.to === '/dashboard/client-invoices' && unpaidInvoices > 0 && (

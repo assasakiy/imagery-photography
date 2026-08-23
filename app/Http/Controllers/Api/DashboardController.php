@@ -150,6 +150,8 @@ class DashboardController extends Controller
         if ($user->isStaff()) {
             $res['messages_unread'] = ContactMessage::whereNull('read_at')->where(fn ($q) => $q->whereNull('project_id')->orWhereHas('project'))->count();
             $res['bookings_pending'] = \App\Models\Booking::where('status', 'pending')->where(fn ($w) => $w->whereNull('user_id')->orWhereHas('user', fn ($u) => $u->whereNull('deleted_at')))->count();
+            // Badge menu Pembayaran: jumlah payment yang menunggu konfirmasi.
+            $res['payments_pending'] = \App\Models\Payment::where('status', 'pending')->whereHas('project')->count();
         } else {
             $res['messages_unread'] = null;
             $res['bookings_pending'] = null;
