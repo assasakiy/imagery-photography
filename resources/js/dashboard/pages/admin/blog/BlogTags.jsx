@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import api from '../../../api';
 import Icon from '../../../components/Icon';
 import { PageHeader, EmptyState, Modal, Confirm, Field } from '../../../components/ui';
-import Skeleton, { DataTableSkeleton } from '../../../components/Skeleton';
+import Skeleton from '../../../components/Skeleton';
+import Block from '../../../components/skeletons/Block';
 import { toast } from '../../../lib/toast';
 import { getApiErrorMessage } from '../../../lib/errors';
 
@@ -87,42 +88,48 @@ export default function BlogTags() {
             />
 
             {loading ? (
-                <DataTableSkeleton
-                    columns={[
-                        { label: 'Tag', width: '50%' },
-                        { label: 'Jumlah Artikel', width: '30%' },
-                        { label: 'Aksi', width: '20%', shape: 'actions' },
-                    ]}
-                />
+                <div className="card overflow-hidden">
+                    <div className="grid grid-cols-[1fr_120px_80px] border-b border-line bg-surface-muted px-4 py-3 text-xs font-semibold uppercase tracking-wider text-ink-muted">
+                        <span>Tag</span>
+                        <span>Jumlah Artikel</span>
+                        <span className="text-right">Aksi</span>
+                    </div>
+                    <div className="md:columns-2 md:gap-0">
+                        {Array.from({ length: 8 }, (_, i) => (
+                            <div key={i} className="grid grid-cols-[1fr_120px_80px] items-center border-b border-line px-4 py-3 text-sm [break-inside:avoid]">
+                                <Block className="h-4 w-3/4 rounded" />
+                                <Block className="h-4 w-10 rounded" />
+                                <div className="flex justify-end gap-2">
+                                    <Block className="h-7 w-7 rounded-lg" />
+                                    <Block className="h-7 w-7 rounded-lg" />
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
             ) : items.length ? (
-                <div className="card overflow-x-auto">
-                    <table className="table">
-                        <thead>
-                            <tr>
-                                <th>Tag</th>
-                                <th>Jumlah Artikel</th>
-                                <th className="text-right">Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {items.map((item) => (
-                                <tr key={item.id}>
-                                    <td className="font-medium text-ink">#{item.name}</td>
-                                    <td className="text-sm">{item.posts_count || 0}</td>
-                                    <td>
-                                        <div className="flex justify-end gap-1">
-                                            <button onClick={() => openEdit(item)} className="rounded-lg p-1.5 text-ink-muted hover:bg-surface-muted hover:text-brand-600" aria-label="Edit" title="Edit">
-                                                <Icon name="edit" size={16} />
-                                            </button>
-                                            <button onClick={() => setDeleting(item)} className="rounded-lg p-1.5 text-ink-muted hover:bg-surface-muted hover:text-red-500" aria-label="Hapus" title="Hapus">
-                                                <Icon name="trash" size={16} />
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                <div className="card overflow-hidden">
+                    <div className="grid grid-cols-[1fr_120px_80px] border-b border-line bg-surface-muted px-4 py-3 text-xs font-semibold uppercase tracking-wider text-ink-muted">
+                        <span>Tag</span>
+                        <span>Jumlah Artikel</span>
+                        <span className="text-right">Aksi</span>
+                    </div>
+                    <div className="md:columns-2 md:gap-0">
+                        {items.map((item) => (
+                            <div key={item.id} className="grid grid-cols-[1fr_120px_80px] items-center border-b border-line px-4 py-2.5 text-sm [break-inside:avoid] hover:bg-surface-muted/50 transition-colors">
+                                <span className="font-medium text-ink">#{item.name}</span>
+                                <span className="text-sm text-ink-muted">{item.posts_count || 0}</span>
+                                <div className="flex justify-end gap-1">
+                                    <button onClick={() => openEdit(item)} className="rounded-lg p-1.5 text-ink-muted hover:bg-surface hover:text-brand-600" aria-label="Edit" title="Edit">
+                                        <Icon name="edit" size={16} />
+                                    </button>
+                                    <button onClick={() => setDeleting(item)} className="rounded-lg p-1.5 text-ink-muted hover:bg-surface hover:text-red-500" aria-label="Hapus" title="Hapus">
+                                        <Icon name="trash" size={16} />
+                                    </button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
                 </div>
             ) : (
                 <EmptyState title="Belum ada tag" />
