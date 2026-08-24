@@ -16,7 +16,7 @@ class NotificationService
      */
     public const EVENTS = [
         'booking.new' => 'Booking baru',
-        'message.new' => 'Pesan kontak / booking baru',
+        'message.new' => 'Pesan form kontak publik',
         'review.new' => 'Review baru masuk',
         'project.created' => 'Proyek baru dibuat',
         'project.updated' => 'Proyek diperbarui',
