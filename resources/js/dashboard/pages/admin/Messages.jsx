@@ -123,6 +123,32 @@ export default function Messages() {
         }
     };
 
+    const renderListItem = (m) => {
+        const isUnread = !m.read_at && m.sender_type !== 'admin';
+        return (
+            <li key={m.id}>
+                <button
+                    onClick={() => openConversation(m)}
+                    className={`flex w-full items-start gap-3 p-4 text-left transition-colors hover:bg-surface-muted ${selectedConv?.id === m.id ? 'bg-surface-muted' : ''}`}
+                >
+                    <span className={`mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full ${!isUnread ? 'bg-surface-muted ring-1 ring-line' : 'bg-brand-500'}`} />
+                    <div className="min-w-0 flex-1">
+                        <div className="flex items-center justify-between gap-2">
+                            <p className="truncate text-sm font-semibold text-ink">{m.user?.name || m.name}</p>
+                            <span className="shrink-0 text-[10px] text-ink-muted">{formatDate(m.created_at)}</span>
+                        </div>
+                        {m.project && (
+                            <p className="mt-0.5 text-[10px] font-mono text-brand-600 dark:text-brand-400">PSN-{m.project.order_no}</p>
+                        )}
+                        <p className="mt-1 line-clamp-2 text-xs text-ink-muted">
+                            {m.sender_type === 'admin' ? 'Anda: ' : ''}{m.message || (m.attachment_url ? 'Mengirim file' : '')}
+                        </p>
+                    </div>
+                </button>
+            </li>
+        );
+    };
+
     return (
         <div className="flex h-[calc(100vh-64px)] flex-col -mx-4 sm:-mx-6 lg:-mx-8 -my-6">
             <div className="flex-1 overflow-hidden grid grid-cols-1 lg:grid-cols-3">
@@ -158,31 +184,26 @@ export default function Messages() {
                     ) : items.length ? (
                         <>
                             <ul className="divide-y divide-line flex-1 overflow-y-auto">
-                                {items.map((m) => {
-                                    const isUnread = !m.read_at && m.sender_type !== 'admin';
+                                {(() => {
+                                    const clientItems = items.filter(m => m.user_id);
+                                    const contactItems = items.filter(m => !m.user_id);
                                     return (
-                                        <li key={m.id}>
-                                            <button
-                                                onClick={() => openConversation(m)}
-                                                className={`flex w-full items-start gap-3 p-4 text-left transition-colors hover:bg-surface-muted ${selectedConv?.id === m.id ? 'bg-surface-muted' : ''}`}
-                                            >
-                                                <span className={`mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full ${!isUnread ? 'bg-surface-muted ring-1 ring-line' : 'bg-brand-500'}`} />
-                                                <div className="min-w-0 flex-1">
-                                                    <div className="flex items-center justify-between gap-2">
-                                                        <p className="truncate text-sm font-semibold text-ink">{m.user?.name || m.name}</p>
-                                                        <span className="shrink-0 text-[10px] text-ink-muted">{formatDate(m.created_at)}</span>
-                                                    </div>
-                                                    {m.project && (
-                                                        <p className="mt-0.5 text-[10px] font-mono text-brand-600 dark:text-brand-400">PSN-{m.project.order_no}</p>
-                                                    )}
-                                                    <p className="mt-1 line-clamp-2 text-xs text-ink-muted">
-                                                        {m.sender_type === 'admin' ? 'Anda: ' : ''}{m.message || (m.attachment_url ? 'Mengirim file' : '')}
-                                                    </p>
-                                                </div>
-                                            </button>
-                                        </li>
+                                        <>
+                                            {clientItems.length > 0 && (
+                                                <>
+                                                    <li className="sticky top-0 z-10 bg-surface/95 backdrop-blur-sm px-4 py-2 text-[10px] font-semibold uppercase tracking-wider text-ink-muted border-b border-line">Klien</li>
+                                                    {clientItems.map(renderListItem)}
+                                                </>
+                                            )}
+                                            {contactItems.length > 0 && (
+                                                <>
+                                                    <li className="sticky top-0 z-10 bg-surface/95 backdrop-blur-sm px-4 py-2 text-[10px] font-semibold uppercase tracking-wider text-ink-muted border-b border-line">Kontak Publik</li>
+                                                    {contactItems.map(renderListItem)}
+                                                </>
+                                            )}
+                                        </>
                                     );
-                                })}
+                                })()}
                             </ul>
                             {meta.last_page > 1 && (
                                 <div className="flex items-center justify-between border-t border-line px-4 py-3">
@@ -211,10 +232,13 @@ export default function Messages() {
                                     <button className="lg:hidden p-1.5 -ml-1.5 text-ink-muted hover:text-ink" onClick={() => setSelectedConv(null)}>
                                         <Icon name="arrow-left" size={20} />
                                     </button>
-                                    <div>
+                                    <div className="flex items-center gap-2">
                                         <h2 className="text-sm font-bold text-ink">{selectedConv.user?.name || selectedConv.name}</h2>
-                                        <p className="text-xs text-ink-muted">{selectedConv.user?.email || selectedConv.email || selectedConv.phone || '-'}</p>
+                                        {!selectedConv.user_id && (
+                                            <span className="inline-flex items-center rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-semibold text-amber-700 dark:text-amber-400">Kontak</span>
+                                        )}
                                     </div>
+                                    <p className="text-xs text-ink-muted">{selectedConv.user?.email || selectedConv.email || selectedConv.phone || '-'}</p>
                                 </div>
                                 <div className="flex gap-2">
                                     {selectedConv.phone && (
@@ -243,15 +267,17 @@ export default function Messages() {
                                                         
                                                         <div className="group relative flex items-center gap-2">
                                                             {isAdmin && (
-                                                                <div className="opacity-0 group-hover:opacity-100 flex items-center gap-1 shrink-0 transition-opacity">
-                                                                    <button onClick={() => setDeleting(m)} className="p-1 text-red-500 hover:bg-red-500/10 rounded-full" title="Hapus">
-                                                                        <Icon name="trash" size={14} />
-                                                                    </button>
-                                                                    <button onClick={() => setReplyTo(m)} className="p-1 text-ink-muted hover:text-ink hover:bg-surface-muted rounded-full" title="Balas">
-                                                                        <Icon name="corner-up-left" size={14} />
-                                                                    </button>
-                                                                </div>
-                                                            )}
+                                                                 <div className="opacity-0 group-hover:opacity-100 flex items-center gap-1 shrink-0 transition-opacity">
+                                                                     <button onClick={() => setDeleting(m)} className="p-1 text-red-500 hover:bg-red-500/10 rounded-full" title="Hapus">
+                                                                         <Icon name="trash" size={14} />
+                                                                     </button>
+                                                                     {selectedConv.user_id && (
+                                                                         <button onClick={() => setReplyTo(m)} className="p-1 text-ink-muted hover:text-ink hover:bg-surface-muted rounded-full" title="Balas">
+                                                                             <Icon name="corner-up-left" size={14} />
+                                                                         </button>
+                                                                     )}
+                                                                 </div>
+                                                             )}
                                                             <div className={`relative rounded-2xl px-4 py-3 text-sm ${isAdmin ? 'rounded-tr-sm bg-brand-600 text-white' : 'rounded-tl-sm bg-surface-muted text-ink'}`}>
                                                                 {m.reply_to_id && m.reply_to && (
                                                                     <div className={`mb-2 rounded-lg p-2 text-xs border-l-2 ${isAdmin ? 'bg-black/10 border-white/30 text-white/80' : 'bg-white/50 border-ink-muted/30 text-ink-muted'}`}>
@@ -274,11 +300,11 @@ export default function Messages() {
                                                                     </a>
                                                                 )}
                                                             </div>
-                                                            {!isAdmin && (
-                                                                <button onClick={() => setReplyTo(m)} className="opacity-0 group-hover:opacity-100 p-1 text-ink-muted hover:text-ink transition-opacity rounded-full hover:bg-surface-muted shrink-0" title="Balas">
-                                                                    <Icon name="corner-up-left" size={14} />
-                                                                </button>
-                                                            )}
+                                                            {!isAdmin && selectedConv.user_id && (
+                                                                 <button onClick={() => setReplyTo(m)} className="opacity-0 group-hover:opacity-100 p-1 text-ink-muted hover:text-ink transition-opacity rounded-full hover:bg-surface-muted shrink-0" title="Balas">
+                                                                     <Icon name="corner-up-left" size={14} />
+                                                                 </button>
+                                                             )}
                                                         </div>
                                                     </div>
                                                 </div>
@@ -289,60 +315,81 @@ export default function Messages() {
                             </div>
 
                             <div className="border-t border-line bg-surface p-3 sm:p-4">
-                                <form onSubmit={sendReply} className="mx-auto max-w-4xl relative">
-                                    {showEmoji && (
-                                        <div className="absolute bottom-full mb-2 left-0 z-10 rounded-xl border border-line bg-surface p-2 shadow-lg grid grid-cols-6 gap-1">
-                                            {EMOJIS.map(e => (
-                                                <button key={e} type="button" onClick={() => { setReplyMsg(replyMsg + e); setShowEmoji(false); }} className="p-2 text-xl hover:bg-surface-muted rounded-lg transition-colors">{e}</button>
-                                            ))}
+                                {selectedConv.user_id ? (
+                                    <form onSubmit={sendReply} className="mx-auto max-w-4xl relative">
+                                        {showEmoji && (
+                                            <div className="absolute bottom-full mb-2 left-0 z-10 rounded-xl border border-line bg-surface p-2 shadow-lg grid grid-cols-6 gap-1">
+                                                {EMOJIS.map(e => (
+                                                    <button key={e} type="button" onClick={() => { setReplyMsg(replyMsg + e); setShowEmoji(false); }} className="p-2 text-xl hover:bg-surface-muted rounded-lg transition-colors">{e}</button>
+                                                ))}
+                                            </div>
+                                        )}
+                                        {(file || replyTo) && (
+                                            <div className="absolute -top-12 left-0 flex flex-wrap items-center gap-2 rounded-t-lg bg-surface/90 backdrop-blur px-3 py-1.5 text-xs">
+                                                {file && (
+                                                    <span className="flex items-center gap-1.5 rounded-full bg-blue-500/15 px-2 py-1 font-semibold text-blue-700 dark:text-blue-400">
+                                                        <Icon name="paperclip" size={12} /> {file.name}
+                                                        <button type="button" onClick={() => setFile(null)} className="ml-1 hover:text-blue-900"><Icon name="x" size={12} /></button>
+                                                    </span>
+                                                )}
+                                                {replyTo && (
+                                                    <span className="flex items-center gap-1.5 rounded-full bg-zinc-500/15 px-2 py-1 font-semibold text-zinc-700 dark:text-zinc-300">
+                                                        <Icon name="corner-up-left" size={12} /> Balas: {replyTo.sender_type === 'admin' ? 'Anda' : (replyTo.user?.name || replyTo.name)}
+                                                        <button type="button" onClick={() => setReplyTo(null)} className="ml-1 hover:text-zinc-900"><Icon name="x" size={12} /></button>
+                                                    </span>
+                                                )}
+                                            </div>
+                                        )}
+                                        <div className="flex items-end gap-1.5">
+                                            <button type="button" onClick={() => setShowEmoji(!showEmoji)} className="shrink-0 p-3 text-ink-muted hover:text-brand-600 transition-colors rounded-full hover:bg-brand-500/10">
+                                                <Icon name="smile" size={20} />
+                                            </button>
+                                            <label className="shrink-0 p-3 text-ink-muted hover:text-brand-600 transition-colors rounded-full hover:bg-brand-500/10 cursor-pointer">
+                                                <Icon name="paperclip" size={20} />
+                                                <input type="file" className="hidden" ref={fileInputRef} onChange={(e) => setFile(e.target.files[0])} />
+                                            </label>
+                                            <textarea
+                                                className="input min-h-[44px] flex-1 resize-none py-3"
+                                                rows="1"
+                                                value={replyMsg}
+                                                onChange={(e) => {
+                                                    setReplyMsg(e.target.value);
+                                                    e.target.style.height = 'auto';
+                                                    e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px';
+                                                }}
+                                                onKeyDown={(e) => {
+                                                    if (e.key === 'Enter' && !e.shiftKey) {
+                                                        e.preventDefault();
+                                                        sendReply(e);
+                                                    }
+                                                }}
+                                                placeholder="Ketik balasan..."
+                                            />
+                                            <button type="submit" className="btn-primary shrink-0 !px-4 !py-3" disabled={sending || (!replyMsg.trim() && !file)}>
+                                                <Icon name="send" size={18} />
+                                            </button>
                                         </div>
-                                    )}
-                                    {(file || replyTo) && (
-                                        <div className="absolute -top-12 left-0 flex flex-wrap items-center gap-2 rounded-t-lg bg-surface/90 backdrop-blur px-3 py-1.5 text-xs">
-                                            {file && (
-                                                <span className="flex items-center gap-1.5 rounded-full bg-blue-500/15 px-2 py-1 font-semibold text-blue-700 dark:text-blue-400">
-                                                    <Icon name="paperclip" size={12} /> {file.name}
-                                                    <button type="button" onClick={() => setFile(null)} className="ml-1 hover:text-blue-900"><Icon name="x" size={12} /></button>
-                                                </span>
-                                            )}
-                                            {replyTo && (
-                                                <span className="flex items-center gap-1.5 rounded-full bg-zinc-500/15 px-2 py-1 font-semibold text-zinc-700 dark:text-zinc-300">
-                                                    <Icon name="corner-up-left" size={12} /> Balas: {replyTo.sender_type === 'admin' ? 'Anda' : (replyTo.user?.name || replyTo.name)}
-                                                    <button type="button" onClick={() => setReplyTo(null)} className="ml-1 hover:text-zinc-900"><Icon name="x" size={12} /></button>
-                                                </span>
-                                            )}
+                                    </form>
+                                ) : (
+                                    <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-4 text-center">
+                                        <div className="flex flex-col items-center gap-2">
+                                            <p className="text-sm font-medium text-amber-700 dark:text-amber-400">Pesan dari kontak publik</p>
+                                            <p className="text-xs text-ink-muted">Balasan tidak bisa dikirim lewat aplikasi ini. Hubungi melalui email atau WhatsApp.</p>
+                                            <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
+                                                {selectedConv.email && (
+                                                    <a href={`mailto:${selectedConv.email}`} className="btn-outline !px-4 !py-2 text-sm">
+                                                        <Icon name="mail" size={16} /> Balas via Email
+                                                    </a>
+                                                )}
+                                                {selectedConv.phone && (
+                                                    <a href={`https://wa.me/${selectedConv.phone.replace(/\D/g, '')}`} target="_blank" rel="noreferrer" className="btn-primary !px-4 !py-2 text-sm">
+                                                        <Icon name="message-circle" size={16} /> Balas via WhatsApp
+                                                    </a>
+                                                )}
+                                            </div>
                                         </div>
-                                    )}
-                                    <div className="flex items-end gap-1.5">
-                                        <button type="button" onClick={() => setShowEmoji(!showEmoji)} className="shrink-0 p-3 text-ink-muted hover:text-brand-600 transition-colors rounded-full hover:bg-brand-500/10">
-                                            <Icon name="smile" size={20} />
-                                        </button>
-                                        <label className="shrink-0 p-3 text-ink-muted hover:text-brand-600 transition-colors rounded-full hover:bg-brand-500/10 cursor-pointer">
-                                            <Icon name="paperclip" size={20} />
-                                            <input type="file" className="hidden" ref={fileInputRef} onChange={(e) => setFile(e.target.files[0])} />
-                                        </label>
-                                        <textarea
-                                            className="input min-h-[44px] flex-1 resize-none py-3"
-                                            rows="1"
-                                            value={replyMsg}
-                                            onChange={(e) => {
-                                                setReplyMsg(e.target.value);
-                                                e.target.style.height = 'auto';
-                                                e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px';
-                                            }}
-                                            onKeyDown={(e) => {
-                                                if (e.key === 'Enter' && !e.shiftKey) {
-                                                    e.preventDefault();
-                                                    sendReply(e);
-                                                }
-                                            }}
-                                            placeholder="Ketik balasan..."
-                                        />
-                                        <button type="submit" className="btn-primary shrink-0 !px-4 !py-3" disabled={sending || (!replyMsg.trim() && !file)}>
-                                            <Icon name="send" size={18} />
-                                        </button>
                                     </div>
-                                </form>
+                                )}
                             </div>
                         </>
                     ) : (
