@@ -3,7 +3,6 @@
 <section class="sticky top-16 z-30 border-b border-line bg-zinc-50/90 backdrop-blur-md dark:bg-zinc-950/90">
     <div class="container-site relative py-3">
         <div class="relative flex min-w-0 items-center">
-            <div data-cat-fade-left class="pointer-events-none absolute left-0 top-1/2 z-[5] h-9 w-20 -translate-y-1/2 bg-gradient-to-r from-zinc-50 to-transparent opacity-0 transition-opacity dark:from-zinc-950"></div>
             <button
                 type="button"
                 data-cat-prev
@@ -20,7 +19,6 @@
                 @endforeach
             </div>
 
-            <div data-cat-fade-right class="pointer-events-none absolute right-0 top-1/2 z-[5] h-9 w-20 -translate-y-1/2 bg-gradient-to-l from-zinc-50 to-transparent opacity-0 transition-opacity dark:from-zinc-950"></div>
             <button
                 type="button"
                 data-cat-next
@@ -40,9 +38,7 @@
 
         const prev = document.querySelector('[data-cat-prev]');
         const next = document.querySelector('[data-cat-next]');
-        const fadeLeft = document.querySelector('[data-cat-fade-left]');
-        const fadeRight = document.querySelector('[data-cat-fade-right]');
-
+                
         const update = () => {
             const scrollable = scroller.scrollWidth > scroller.clientWidth + 2;
             const atStart = scroller.scrollLeft <= 0;
@@ -54,8 +50,17 @@
             prev.classList.toggle('opacity-0', hideL);
             next.classList.toggle('disabled', hideR);
             next.classList.toggle('opacity-0', hideR);
-            fadeLeft.classList.toggle('opacity-0', hideL);
-            fadeRight.classList.toggle('opacity-0', hideR);
+
+            let mask = 'none';
+            if (!hideL && !hideR) {
+                mask = 'linear-gradient(to right, transparent 0, transparent 24px, black 64px, black calc(100% - 64px), transparent calc(100% - 24px), transparent 100%)';
+            } else if (!hideL) {
+                mask = 'linear-gradient(to right, transparent 0, transparent 24px, black 64px)';
+            } else if (!hideR) {
+                mask = 'linear-gradient(to left, transparent 0, transparent 24px, black 64px)';
+            }
+            scroller.style.webkitMaskImage = mask;
+            scroller.style.maskImage = mask;
         };
 
         prev.addEventListener('click', () => scroller.scrollBy({ left: -240, behavior: 'smooth' }));
