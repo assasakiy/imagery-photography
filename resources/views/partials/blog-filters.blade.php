@@ -11,9 +11,10 @@
 
 <section class="sticky top-16 z-30 border-b border-line bg-zinc-50/90 backdrop-blur-md dark:bg-zinc-950/90">
     <div class="container-site relative py-3">
+        <div data-cat-fade-left class="pointer-events-none absolute left-0 top-0 bottom-0 z-[5] w-28 bg-gradient-to-r from-zinc-50 to-transparent opacity-0 transition-opacity dark:from-zinc-950"></div>
+        <div data-cat-fade-right class="pointer-events-none absolute right-0 top-0 bottom-0 z-[5] w-28 bg-gradient-to-l from-zinc-50 to-transparent opacity-0 transition-opacity dark:from-zinc-950"></div>
         <div class="flex items-center gap-3">
             <div class="relative flex min-w-0 flex-1 items-center">
-                <div data-cat-fade-left class="pointer-events-none absolute left-0 top-0 bottom-0 z-[5] w-28 bg-gradient-to-r from-zinc-50 to-transparent opacity-0 transition-opacity dark:from-zinc-950"></div>
                 <button
                     type="button"
                     data-cat-prev
@@ -32,7 +33,6 @@
                     @endforeach
                 </div>
 
-                <div data-cat-fade-right class="pointer-events-none absolute right-0 top-0 bottom-0 z-[5] w-28 bg-gradient-to-l from-zinc-50 to-transparent opacity-0 transition-opacity dark:from-zinc-950"></div>
                 <button
                     type="button"
                     data-cat-next
