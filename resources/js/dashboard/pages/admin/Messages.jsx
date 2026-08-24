@@ -29,12 +29,15 @@ export default function Messages() {
     
     const scrollRef = useRef(null);
     const fileInputRef = useRef(null);
+    const pollIntervalRef = useRef(null);
+    const currentPageRef = useRef(1);
 
     const EMOJIS = ['😀','😂','🥰','😎','🤔','👍','🙏','🔥','🎉','📷','✨','💡'];
 
     const [searchQuery, setSearchQuery] = useState('');
 
     const load = (page = 1) => {
+        currentPageRef.current = page;
         setLoading(true);
         api.get('/messages', { params: { page, per_page: 25, unread_only: unreadOnly || undefined, project_id: pesanan || undefined, q: searchQuery || undefined } })
             .then(({ data }) => {
@@ -53,6 +56,27 @@ export default function Messages() {
     useEffect(() => {
         load();
     }, [unreadOnly, pesanan, searchQuery]);
+
+    // Polling for new messages
+    useEffect(() => {
+        if (selectedConv) {
+            if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
+            pollIntervalRef.current = setInterval(() => {
+                load(currentPageRef.current);
+            }, 5000);
+        } else {
+            if (pollIntervalRef.current) {
+                clearInterval(pollIntervalRef.current);
+                pollIntervalRef.current = null;
+            }
+        }
+        return () => {
+            if (pollIntervalRef.current) {
+                clearInterval(pollIntervalRef.current);
+                pollIntervalRef.current = null;
+            }
+        };
+    }, [selectedConv]);
 
     const openConversation = async (conv) => {
         setSelectedConv(conv);
@@ -232,13 +256,15 @@ export default function Messages() {
                                     <button className="lg:hidden p-1.5 -ml-1.5 text-ink-muted hover:text-ink" onClick={() => setSelectedConv(null)}>
                                         <Icon name="arrow-left" size={20} />
                                     </button>
-                                    <div className="flex items-center gap-2">
-                                        <h2 className="text-sm font-bold text-ink">{selectedConv.user?.name || selectedConv.name}</h2>
-                                        {!selectedConv.user_id && (
-                                            <span className="inline-flex items-center rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-semibold text-amber-700 dark:text-amber-400">Kontak</span>
-                                        )}
+                                    <div>
+                                        <div className="flex items-center gap-2">
+                                            <h2 className="text-sm font-bold text-ink">{selectedConv.user?.name || selectedConv.name}</h2>
+                                            {!selectedConv.user_id && (
+                                                <span className="inline-flex items-center rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-semibold text-amber-700 dark:text-amber-400">Kontak</span>
+                                            )}
+                                        </div>
+                                        <p className="text-xs text-ink-muted">{selectedConv.user?.email || selectedConv.email || selectedConv.phone || '-'}</p>
                                     </div>
-                                    <p className="text-xs text-ink-muted">{selectedConv.user?.email || selectedConv.email || selectedConv.phone || '-'}</p>
                                 </div>
                                 <div className="flex gap-2">
                                     {selectedConv.phone && (
@@ -340,32 +366,34 @@ export default function Messages() {
                                                 )}
                                             </div>
                                         )}
-                                        <div className="flex items-end gap-1.5">
-                                            <button type="button" onClick={() => setShowEmoji(!showEmoji)} className="shrink-0 p-3 text-ink-muted hover:text-brand-600 transition-colors rounded-full hover:bg-brand-500/10">
-                                                <Icon name="smile" size={20} />
-                                            </button>
-                                            <label className="shrink-0 p-3 text-ink-muted hover:text-brand-600 transition-colors rounded-full hover:bg-brand-500/10 cursor-pointer">
+                                        <div className="flex items-center gap-2">
+                                            <label className="shrink-0 flex h-10 w-10 items-center justify-center rounded-full text-ink-muted hover:text-brand-600 hover:bg-brand-500/10 transition-colors cursor-pointer">
                                                 <Icon name="paperclip" size={20} />
                                                 <input type="file" className="hidden" ref={fileInputRef} onChange={(e) => setFile(e.target.files[0])} />
                                             </label>
-                                            <textarea
-                                                className="input min-h-[44px] flex-1 resize-none py-3"
-                                                rows="1"
-                                                value={replyMsg}
-                                                onChange={(e) => {
-                                                    setReplyMsg(e.target.value);
-                                                    e.target.style.height = 'auto';
-                                                    e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px';
-                                                }}
-                                                onKeyDown={(e) => {
-                                                    if (e.key === 'Enter' && !e.shiftKey) {
-                                                        e.preventDefault();
-                                                        sendReply(e);
-                                                    }
-                                                }}
-                                                placeholder="Ketik balasan..."
-                                            />
-                                            <button type="submit" className="btn-primary shrink-0 !px-4 !py-3" disabled={sending || (!replyMsg.trim() && !file)}>
+                                            <div className="flex-1 flex items-center gap-1 rounded-[26px] border border-line bg-surface-muted/50 px-2 py-1 focus-within:border-brand-500 focus-within:ring-2 focus-within:ring-brand-500/20">
+                                                <button type="button" onClick={() => setShowEmoji(!showEmoji)} className="shrink-0 p-1.5 text-ink-muted hover:text-brand-600 transition-colors rounded-full hover:bg-brand-500/10">
+                                                    <Icon name="smile" size={20} />
+                                                </button>
+                                                <textarea
+                                                    className="flex-1 min-h-[40px] resize-none bg-transparent py-2 text-sm text-ink placeholder:text-ink-muted outline-none"
+                                                    rows="1"
+                                                    value={replyMsg}
+                                                    onChange={(e) => {
+                                                        setReplyMsg(e.target.value);
+                                                        e.target.style.height = 'auto';
+                                                        e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px';
+                                                    }}
+                                                    onKeyDown={(e) => {
+                                                        if (e.key === 'Enter' && !e.shiftKey) {
+                                                            e.preventDefault();
+                                                            sendReply(e);
+                                                        }
+                                                    }}
+                                                    placeholder="Ketik balasan..."
+                                                />
+                                            </div>
+                                            <button type="submit" className="shrink-0 flex h-10 w-10 items-center justify-center rounded-full bg-brand-600 text-white hover:bg-brand-700 transition-colors disabled:opacity-40" disabled={sending || (!replyMsg.trim() && !file)}>
                                                 <Icon name="send" size={18} />
                                             </button>
                                         </div>
