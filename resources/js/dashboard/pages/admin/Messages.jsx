@@ -404,6 +404,7 @@ export default function Messages() {
                                                     </div>
                                                 </div>
                                             );
+                                        return acc;
                                         }, [])}
                                     </div>
                                 )}
