@@ -93,6 +93,8 @@ export default function Messages() {
             // Perbarui daftar di kiri agar tanda "unread" hilang
             setItems(items.map(item => item.id === conv.id ? { ...item, read_at: item.read_at || new Date().toISOString() } : item));
             refresh();
+            // Force refresh after DB commit
+            setTimeout(refresh, 500);
         } catch (err) {
             toast.error(getApiErrorMessage(err, 'Gagal memuat percakapan.'));
         } finally {
