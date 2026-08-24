@@ -383,10 +383,12 @@ export default function Messages() {
                                                                             }
                                                                         }}
                                                                     >
-                                                                         <p className="inline-flex items-center gap-1 font-semibold">
+                                                                         <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1 mb-1">
                                                                              <Avatar src={m.reply_to.user?.avatar} name={m.reply_to.user?.name || m.reply_to.name || 'U'} size="xs" shape="full" className="h-4 w-4 shrink-0" />
-                                                                             {m.reply_to.sender_type === 'admin' ? 'Anda' : (m.reply_to.user?.name || m.reply_to.name)}
-                                                                         </p>
+                                                                             <p className="font-semibold truncate">
+                                                                                 {m.reply_to.sender_type === 'admin' ? 'Anda' : (m.reply_to.user?.name || m.reply_to.name)}
+                                                                             </p>
+                                                                         </div>
                                                                         <p className="line-clamp-1 truncate">{m.reply_to.message || 'Mengirim file'}</p>
                                                                     </div>
                                                                 )}
