@@ -36,9 +36,12 @@ class ContactController extends Controller
         $message = ContactMessage::create($data);
 
         $notifications = app(NotificationService::class);
+        $hint = $message->phone
+            ? "Balas lewat WhatsApp ({$message->phone}) atau email ({$message->email})."
+            : "Balas lewat email ({$message->email}).";
         $notifications->toAdmins(
             'Pesan kontak baru',
-            "{$message->name} ({$message->email}) mengirim pesan.",
+            \Str::limit($message->message, 80) . " — {$hint}",
             '/dashboard/messages/' . $message->id,
             'message.new'
         );

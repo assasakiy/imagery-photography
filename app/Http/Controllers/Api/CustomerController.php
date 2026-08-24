@@ -286,11 +286,7 @@ class CustomerController extends Controller
     {
         $user = $request->user();
         $query = \App\Models\ContactMessage::with(['project', 'replyTo.user'])
-            ->where(function($q) use ($user) {
-                $q->where('user_id', $user->id)
-                  ->orWhere('email', $user->email)
-                  ->orWhere('phone', $user->phone);
-            });
+            ->where('user_id', $user->id);
 
         return response()->json($query->orderBy('created_at', 'asc')->get()->each(function ($message) {
             $message->setAttribute('official_team', $message->sender_type === 'admin');
@@ -341,6 +337,23 @@ class CustomerController extends Controller
             'attachment_url' => $url,
             'project_id' => $projectId,
             'reply_to_id' => $data['reply_to_id'] ?? null,
+        ]);
+
+        $notif = app(\App\Services\NotificationService::class);
+        $notif->toAdmins(
+            'Pesan baru dari klien',
+            "{$user->name} mengirim pesan" . ($projectId ? " terkait proyek #{$projectId}" : ''),
+            '/dashboard/messages/' . $messageRecord->id,
+            'client.message.new'
+        );
+        $notif->webhook('client.message.new', [
+            'id' => $messageRecord->id,
+            'user_id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'phone' => $user->phone,
+            'message' => $data['message'] ?: '',
+            'project_id' => $projectId,
         ]);
 
         return response()->json($messageRecord->load(['project', 'replyTo.user']));

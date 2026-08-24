@@ -36,6 +36,9 @@ class NotificationService
         'booking.accepted' => 'Booking disetujui & dijadwalkan',
         'project.advanced' => 'Pesanan melaju ke tahap baru',
         'redelivery.reviewed' => 'Unduh ulang disetujui/ditolak',
+        'client.message.new' => 'Pesan baru dari klien',
+        'client.message.replied' => 'Admin membalas pesan klien',
+        'message.admin_replied' => 'Admin lain membalas pesan',
     ];
 
     /**
@@ -56,6 +59,9 @@ class NotificationService
             'redelivery.requested',
             'booking.accepted', 'project.advanced',
             'redelivery.reviewed',
+            'client.message.new',
+            'client.message.replied',
+            'message.admin_replied',
         ],
         'email' => [
             'booking.new', 'message.new', 'review.new',
@@ -66,6 +72,8 @@ class NotificationService
             'redelivery.requested',
             'booking.accepted', 'project.advanced',
             'redelivery.reviewed',
+            'client.message.new',
+            'client.message.replied',
         ],
         'whatsapp' => [
             'booking.new', 'message.new', 'review.new',
@@ -75,6 +83,8 @@ class NotificationService
             'redelivery.requested',
             'booking.accepted', 'project.advanced',
             'redelivery.reviewed',
+            'client.message.new',
+            'client.message.replied',
         ],
         'webhook' => [
             'booking.new', 'message.new', 'review.new',
@@ -84,6 +94,7 @@ class NotificationService
             'redelivery.requested',
             'booking.accepted', 'project.advanced',
             'redelivery.reviewed',
+            'client.message.new',
         ],
     ];
 

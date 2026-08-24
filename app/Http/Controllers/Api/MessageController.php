@@ -108,7 +108,34 @@ class MessageController extends Controller
             'sender_type' => 'admin',
             'type' => 'text',
         ]);
-        
+
+        $admin = $request->user();
+        $notif = app(\App\Services\NotificationService::class);
+
+        // Notifikasi ke klien (jika pesan asli punya user_id)
+        if ($message->user_id) {
+            $client = \App\Models\User::find($message->user_id);
+            if ($client) {
+                $excerpt = \Str::limit($request->message ?: 'Admin mengirim lampiran.', 100);
+                $urlClient = '/dashboard/client-messages';
+                $notif->inApp($client, 'Admin membalas pesan Anda', $excerpt, $urlClient, 'client.message.replied');
+                if ($client->email) {
+                    $notif->email(new \App\Mail\AlertMail($client->name, 'Admin membalas pesan Anda', $excerpt), $client->email, 'client.message.replied');
+                }
+                if ($client->phone) {
+                    $notif->whatsapp($client->phone, "Admin membalas pesan Anda: {$excerpt}", null, $client, 'client.message.replied');
+                }
+            }
+        }
+
+        // Notifikasi ke admin lain (exclude yang baru reply)
+        $otherAdmins = \App\Models\User::role(['admin', 'owner'])->where('id', '!=', $admin->id)->get();
+        if ($otherAdmins->isNotEmpty()) {
+            $title = 'Admin lain membalas pesan';
+            $msg = "{$admin->name} membalas pesan dari " . ($message->name ?: 'klien');
+            $notif->inApp($otherAdmins, $title, $msg, '/dashboard/messages/' . $message->id, 'message.admin_replied');
+        }
+
         return response()->json($reply->load(['project', 'replyTo.user']));
     }
 
