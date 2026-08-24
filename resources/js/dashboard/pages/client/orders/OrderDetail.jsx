@@ -63,6 +63,7 @@ export default function ProjectDetail() {
     const [deleteConfirm, setDeleteConfirm] = useState(null);
     const [rerequestOpen, setRerequestOpen] = useState(false);
     const [rerequestNote, setRerequestNote] = useState('');
+    const [feeMap, setFeeMap] = useState({});
     const [reviewOpen, setReviewOpen] = useState(false);
     const [reviewForm, setReviewForm] = useState({ rating: 5, title: '', content: '', recommend_score: 10 });
     const fileRef = useRef(null);
