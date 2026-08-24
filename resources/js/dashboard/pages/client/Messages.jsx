@@ -117,8 +117,18 @@ export default function ClientMessages() {
     return (
         <div className="flex h-[calc(100vh-64px)] flex-col -mx-4 sm:-mx-6 lg:-mx-8 -my-6">
             <div className="flex flex-col overflow-hidden bg-surface flex-1">
-                <div className="border-b border-line p-4 flex items-center bg-surface">
-                    <h1 className="text-xl font-bold text-ink">Obrolan</h1>
+                <div className="border-b border-line p-4 flex items-center gap-3 bg-surface">
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-surface-muted">
+                        {window.APP_CONFIG?.logo ? (
+                            <img src={window.APP_CONFIG.logo} alt={window.APP_CONFIG.siteName || 'Sopian Lalu Imagery'} className="h-full w-full object-cover" />
+                        ) : (
+                            <Icon name="message-circle" size={16} className="text-ink-muted" />
+                        )}
+                    </div>
+                    <div>
+                        <p className="text-sm font-bold text-ink">{window.APP_CONFIG?.siteName || 'Sopian Lalu Imagery'}</p>
+                        <p className="text-[10px] text-ink-muted">Tim Resmi</p>
+                    </div>
                 </div>
 
                 <div className="flex-1 overflow-y-auto p-4 sm:p-6" ref={scrollRef}>
@@ -166,7 +176,16 @@ export default function ClientMessages() {
                                                 <div className={`relative rounded-2xl px-4 py-3 text-sm ${isAdmin ? 'rounded-tl-sm bg-surface-muted text-ink' : 'rounded-tr-sm bg-brand-600 text-white'}`}>
                                                     {m.reply_to_id && m.reply_to && (
                                                         <div className={`mb-2 rounded-lg p-2 text-xs border-l-2 ${isAdmin ? 'bg-white/50 border-ink-muted/30 text-ink-muted' : 'bg-black/10 border-white/30 text-white/80'}`}>
-                                                            <p className="inline-flex items-center gap-1 font-semibold">{m.reply_to.sender_type === 'admin' ? 'Admin' : (m.reply_to.user?.name || m.reply_to.name)} {m.reply_to.official_team && <OfficialTeamBadge />}</p>
+                                                                <p className="inline-flex items-center gap-1 font-semibold">
+                                                                    {m.reply_to.sender_type === 'admin' ? (m.reply_to.user?.name || 'Admin') : (m.reply_to.user?.name || m.reply_to.name)}
+                                                                    {m.reply_to.official_team && <OfficialTeamBadge />}
+                                                                    {m.reply_to.sender_type === 'admin' && m.reply_to.user?.roles?.[0]?.name === 'owner' && (
+                                                                        <span className="rounded-full bg-amber-500/15 px-1.5 py-0.5 text-[9px] font-medium text-amber-700 dark:text-amber-400 ring-1 ring-inset ring-amber-500/30">Pemilik</span>
+                                                                    )}
+                                                                    {m.reply_to.sender_type === 'admin' && m.reply_to.user?.roles?.[0]?.name !== 'owner' && (
+                                                                        <span className="rounded-full bg-surface-muted/60 px-1.5 py-0.5 text-[9px] font-medium text-ink-muted/70 ring-1 ring-inset ring-line">Admin</span>
+                                                                    )}
+                                                                </p>
                                                             <p className="line-clamp-1 truncate">{m.reply_to.message || 'Mengirim file'}</p>
                                                         </div>
                                                     )}
