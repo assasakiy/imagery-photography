@@ -2,6 +2,7 @@ import { useEffect, useState, useRef, useCallback } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import api from '../../api';
 import Icon from '../../components/Icon';
+import Avatar from '../../components/Avatar';
 import { PageHeader, formatDate, Confirm } from '../../components/ui';
 import { ChatSkeleton } from '../../components/Skeleton';
 import { toast } from '../../lib/toast';
@@ -145,6 +146,7 @@ export default function ClientMessages() {
                                     <div key={m.id} className={`flex ${isAdmin ? 'justify-start' : 'justify-end'}`}>
                                         <div className={`max-w-[85%] sm:max-w-[75%] ${isAdmin ? '' : 'flex flex-col items-end'}`}>
                                             <div className="mb-1 flex items-center gap-2 px-1 text-[11px] text-ink-muted">
+                                                <Avatar src={m.user?.avatar} name={m.user?.name || m.name || 'U'} size="xs" shape="full" className="h-5 w-5" />
                                                 <span className="inline-flex items-center gap-1.5">
                                                     {isAdmin ? (m.user?.name || m.name || 'Tim') : 'Anda'}
                                                     {isAdmin && m.official_team && <OfficialTeamBadge />}

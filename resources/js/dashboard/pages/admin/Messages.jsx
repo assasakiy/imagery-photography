@@ -4,6 +4,7 @@ import api from '../../api';
 import { toast } from '../../lib/toast';
 import { getApiErrorMessage } from '../../lib/errors';
 import Icon from '../../components/Icon';
+import Avatar from '../../components/Avatar';
 import { Spinner, EmptyState, Confirm, formatDate } from '../../components/ui';
 import { ListSkeleton } from '../../components/Skeleton';
 import { useBadges } from '../../context/BadgeContext';
@@ -291,7 +292,7 @@ export default function Messages() {
                                     </button>
                                     <div>
                                         <div className="flex items-center gap-2">
-                                            <h2 className="text-sm font-bold text-ink">{selectedConv.user?.name || selectedConv.name}</h2>
+                                            <h2 className="text-sm font-bold text-ink">{selectedConv.user?.name || selectedConv.name || 'Kontak'}</h2>
                                             {!selectedConv.user_id && (
                                                 <span className="inline-flex items-center rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-semibold text-amber-700 dark:text-amber-400">Kontak</span>
                                             )}
@@ -322,6 +323,7 @@ export default function Messages() {
                                                 <div key={m.id} className={`flex ${isAdmin ? 'justify-end' : 'justify-start'}`}>
                                                     <div className={`max-w-[85%] sm:max-w-[75%] ${isAdmin ? 'flex flex-col items-end' : ''}`}>
                                                         <div className="mb-1 flex items-center gap-2 px-1 text-[11px] text-ink-muted">
+                                                            <Avatar src={m.user?.avatar} name={m.user?.name || m.name || 'U'} size="xs" shape="full" className="h-5 w-5" />
                                                             <span className="inline-flex items-center gap-1.5">
                                                                 {displayName}
                                                                 {roleBadge && (
