@@ -358,9 +358,9 @@ export default function Messages() {
                                                             <span>{formatTime(m.created_at)}</span>
                                                         </div>
                                                         
-                                                        <div className="group relative flex items-center gap-2">
+                                                        <div className="group relative flex items-start gap-2 max-w-full">
                                                             {isAdmin && (
-                                                                 <div className="opacity-0 group-hover:opacity-100 flex items-center gap-1 shrink-0 transition-opacity">
+                                                                 <div className="opacity-0 group-hover:opacity-100 flex items-center gap-1 shrink-0 transition-opacity mt-2">
                                                                      <button onClick={() => setDeleting(m)} className="p-1 text-red-500 hover:bg-red-500/10 rounded-full" title="Hapus">
                                                                          <Icon name="trash" size={14} />
                                                                      </button>
@@ -371,7 +371,7 @@ export default function Messages() {
                                                                      )}
                                                                  </div>
                                                              )}
-                                                            <div className={`relative rounded-2xl px-4 py-3 text-sm ${isAdmin ? 'rounded-tr-sm bg-brand-600 text-white' : 'rounded-tl-sm bg-surface-muted text-ink'}`}>
+                                                            <div className={`relative rounded-2xl px-4 py-3 text-sm min-w-0 break-words ${isAdmin ? 'rounded-tr-sm bg-brand-600 text-white' : 'rounded-tl-sm bg-surface-muted text-ink'}`}>
                                                                 {m.reply_to_id && m.reply_to && (
                                                                     <div className={`mb-2 rounded-lg p-2 text-xs border-l-2 cursor-pointer transition-colors ${isAdmin ? 'bg-black/10 border-white/30 text-white/80 hover:bg-black/20' : 'bg-white/50 border-ink-muted/30 text-ink-muted hover:bg-white/70'}`}
                                                                         onClick={() => {
@@ -421,7 +421,7 @@ export default function Messages() {
                                                                 )}
                                                             </div>
                                                             {!isAdmin && selectedConv.user_id && (
-                                                                 <button onClick={() => setReplyTo(m)} className="opacity-0 group-hover:opacity-100 p-1 text-ink-muted hover:text-ink transition-opacity rounded-full hover:bg-surface-muted shrink-0" title="Balas">
+                                                                 <button onClick={() => setReplyTo(m)} className="opacity-0 group-hover:opacity-100 p-1 text-ink-muted hover:text-ink transition-opacity rounded-full hover:bg-surface-muted shrink-0 mt-2" title="Balas">
                                                                      <Icon name="corner-up-left" size={14} />
                                                                  </button>
                                                              )}
