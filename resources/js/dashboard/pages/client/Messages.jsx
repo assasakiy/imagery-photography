@@ -4,6 +4,7 @@ import api from '../../api';
 import Icon from '../../components/Icon';
 import Avatar from '../../components/Avatar';
 import { PageHeader, formatDate, Confirm } from '../../components/ui';
+import { formatTime, getMessageDateLabel } from '../../utils/date';
 import { ChatSkeleton } from '../../components/Skeleton';
 import { toast } from '../../lib/toast';
 
@@ -178,16 +179,17 @@ export default function ClientMessages() {
                                                 <div className={`relative rounded-2xl px-4 py-3 text-sm ${isAdmin ? 'rounded-tl-sm bg-surface-muted text-ink' : 'rounded-tr-sm bg-brand-600 text-white'}`}>
                                                     {m.reply_to_id && m.reply_to && (
                                                         <div className={`mb-2 rounded-lg p-2 text-xs border-l-2 ${isAdmin ? 'bg-white/50 border-ink-muted/30 text-ink-muted' : 'bg-black/10 border-white/30 text-white/80'}`}>
-                                                                <p className="inline-flex items-center gap-1 font-semibold">
-                                                                    {m.reply_to.sender_type === 'admin' ? (m.reply_to.user?.name || m.reply_to.name || 'Admin') : (m.reply_to.user?.name || m.reply_to.name)}
-                                                                    {m.reply_to.official_team && <OfficialTeamBadge />}
-                                                                    {m.reply_to.sender_type === 'admin' && m.reply_to.user?.roles?.[0]?.name === 'owner' && (
-                                                                        <span className="rounded-full bg-amber-500/15 px-1.5 py-0.5 text-[9px] font-medium text-amber-700 dark:text-amber-400 ring-1 ring-inset ring-amber-500/30">Pemilik</span>
-                                                                    )}
-                                                                    {m.reply_to.sender_type === 'admin' && m.reply_to.user?.roles?.[0]?.name !== 'owner' && m.reply_to.user?.roles?.[0]?.name !== undefined && (
-                                                                        <span className="rounded-full bg-surface-muted/60 px-1.5 py-0.5 text-[9px] font-medium text-ink-muted/70 ring-1 ring-inset ring-line">Admin</span>
-                                                                    )}
-                                                                </p>
+                                                                     <p className="inline-flex items-center gap-1 font-semibold">
+                                                                         <Avatar src={m.reply_to.user?.avatar} name={m.reply_to.user?.name || m.reply_to.name || 'U'} size="xs" shape="full" className="h-4 w-4" />
+                                                                         {m.reply_to.sender_type === 'admin' ? (m.reply_to.user?.name || m.reply_to.name || 'Admin') : (m.reply_to.user?.name || m.reply_to.name)}
+                                                                         {m.reply_to.official_team && <OfficialTeamBadge />}
+                                                                         {m.reply_to.sender_type === 'admin' && m.reply_to.user?.roles?.[0]?.name === 'owner' && (
+                                                                             <span className="rounded-full bg-amber-500/15 px-1.5 py-0.5 text-[9px] font-medium text-amber-700 dark:text-amber-400 ring-1 ring-inset ring-amber-500/30">Pemilik</span>
+                                                                         )}
+                                                                         {m.reply_to.sender_type === 'admin' && m.reply_to.user?.roles?.[0]?.name !== 'owner' && m.reply_to.user?.roles?.[0]?.name !== undefined && (
+                                                                             <span className="rounded-full bg-surface-muted/60 px-1.5 py-0.5 text-[9px] font-medium text-ink-muted/70 ring-1 ring-inset ring-line">Admin</span>
+                                                                         )}
+                                                                     </p>
                                                             <p className="line-clamp-1 truncate">{m.reply_to.message || 'Mengirim file'}</p>
                                                         </div>
                                                     )}

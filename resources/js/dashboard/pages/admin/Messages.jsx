@@ -352,7 +352,10 @@ export default function Messages() {
                                                             <div className={`relative rounded-2xl px-4 py-3 text-sm ${isAdmin ? 'rounded-tr-sm bg-brand-600 text-white' : 'rounded-tl-sm bg-surface-muted text-ink'}`}>
                                                                 {m.reply_to_id && m.reply_to && (
                                                                     <div className={`mb-2 rounded-lg p-2 text-xs border-l-2 ${isAdmin ? 'bg-black/10 border-white/30 text-white/80' : 'bg-white/50 border-ink-muted/30 text-ink-muted'}`}>
-                                                                        <p className="font-semibold">{m.reply_to.sender_type === 'admin' ? 'Anda' : (m.reply_to.user?.name || m.reply_to.name)}</p>
+                                                                         <p className="inline-flex items-center gap-1 font-semibold">
+                                                                             <Avatar src={m.reply_to.user?.avatar} name={m.reply_to.user?.name || m.reply_to.name || 'U'} size="xs" shape="full" className="h-4 w-4" />
+                                                                             {m.reply_to.sender_type === 'admin' ? 'Anda' : (m.reply_to.user?.name || m.reply_to.name)}
+                                                                         </p>
                                                                         <p className="line-clamp-1 truncate">{m.reply_to.message || 'Mengirim file'}</p>
                                                                     </div>
                                                                 )}
