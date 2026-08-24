@@ -363,8 +363,9 @@ class Project extends Model implements HasMedia
             ->each(fn (self $p) => $p->advanceStep('completed'));
     }
 
-    public function resolveRouteBinding($value, $field = null)
+    public function resolveRouteBindingQuery($query, $value, $field = null)
     {
-        return $this->where('id', $value)->orWhere('order_no', $value)->firstOrFail();
+        return $query->where($field ?? $this->getRouteKeyName(), $value)
+            ->orWhere('order_no', $value);
     }
 }
