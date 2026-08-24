@@ -375,19 +375,32 @@ export default function Messages() {
                                                                 {m.reply_to_id && m.reply_to && (
                                                                     <div className={`mb-2 rounded-lg p-2 text-xs border-l-2 ${isAdmin ? 'bg-black/10 border-white/30 text-white/80' : 'bg-white/50 border-ink-muted/30 text-ink-muted'}`}>
                                                                          <p className="inline-flex items-center gap-1 font-semibold">
-                                                                             <Avatar src={m.reply_to.user?.avatar} name={m.reply_to.user?.name || m.reply_to.name || 'U'} size="xs" shape="full" className="h-4 w-4" />
+                                                                             <Avatar src={m.reply_to.user?.avatar} name={m.reply_to.user?.name || m.reply_to.name || 'U'} size="xs" shape="full" className="h-4 w-4 shrink-0" />
                                                                              {m.reply_to.sender_type === 'admin' ? 'Anda' : (m.reply_to.user?.name || m.reply_to.name)}
                                                                          </p>
                                                                         <p className="line-clamp-1 truncate">{m.reply_to.message || 'Mengirim file'}</p>
                                                                     </div>
                                                                 )}
                                                                 {m.project && (
-                                                                    <a
-                                                                        href={`/dashboard/projects/${m.project.order_no || m.project.id}`}
-                                                                        className={`mb-2 inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs font-semibold no-underline transition-colors ${isAdmin ? 'bg-black/20 text-white hover:bg-black/30' : 'bg-white/60 text-brand-700 hover:bg-white'}`}
-                                                                    >
-                                                                        <Icon name="tag" size={12} /> PSN-{m.project.order_no || m.project.id}
-                                                                    </a>
+                                                                    <div className={`mb-2 flex items-center gap-2 rounded-lg p-2 text-xs ${isAdmin ? 'bg-black/10 text-white/90' : 'bg-white/50 text-brand-800'}`}>
+                                                                        {m.project.thumb_url ? (
+                                                                            <img src={m.project.thumb_url} alt="" className="h-8 w-8 shrink-0 rounded-md object-cover" />
+                                                                        ) : (
+                                                                            <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-md ${isAdmin ? 'bg-white/20 text-white' : 'bg-brand-500/20 text-brand-700'}`}>
+                                                                                <Icon name="image" size={14} />
+                                                                            </div>
+                                                                        )}
+                                                                        <div className="min-w-0 flex-1">
+                                                                            <p className="font-semibold line-clamp-1">Proyek: {m.project.name}</p>
+                                                                            <p className="text-[10px] opacity-80">PSN-{m.project.order_no || m.project.id}</p>
+                                                                        </div>
+                                                                        <a
+                                                                            href={`/dashboard/projects/${m.project.order_no || m.project.id}`}
+                                                                            className={`shrink-0 rounded-md px-2 py-1 text-[10px] font-semibold transition-colors ${isAdmin ? 'bg-white text-brand-600 hover:bg-white/90' : 'bg-brand-600 text-white hover:bg-brand-700'}`}
+                                                                        >
+                                                                            Detail
+                                                                        </a>
+                                                                    </div>
                                                                 )}
                                                                 {m.message && <p className="whitespace-pre-wrap leading-relaxed">{m.message}</p>}
                                                                 {m.attachment_url && (
