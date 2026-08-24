@@ -524,6 +524,12 @@ const paths = {
             <path d="M12 7a4 4 0 0 0-1 7.5" />
         </>
     ),
+    'corner-up-left': (
+        <>
+            <polyline points="9 14 4 9 9 4" />
+            <path d="M20 20v-7a4 4 0 0 0-4-4H4" />
+        </>
+    ),
 };
 
 export const ICON_NAMES = Object.keys(paths);
