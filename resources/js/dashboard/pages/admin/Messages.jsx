@@ -39,6 +39,7 @@ export default function Messages() {
     const EMOJIS = ['😀','😂','🥰','😎','🤔','👍','🙏','🔥','🎉','📷','✨','💡'];
 
     const [searchQuery, setSearchQuery] = useState('');
+    const [openMenuId, setOpenMenuId] = useState(null);
 
     const load = (page = 1, silent = false) => {
         currentPageRef.current = page;
@@ -360,16 +361,26 @@ export default function Messages() {
                                                         
                                                         <div className="group relative flex items-start gap-2 max-w-full">
                                                             {isAdmin && (
-                                                                 <div className="opacity-0 group-hover:opacity-100 flex items-center gap-1 shrink-0 transition-opacity mt-2">
-                                                                     <button onClick={() => setDeleting(m)} className="p-1 text-red-500 hover:bg-red-500/10 rounded-full" title="Hapus">
-                                                                         <Icon name="trash" size={14} />
-                                                                     </button>
-                                                                     {selectedConv.user_id && (
-                                                                         <button onClick={() => setReplyTo(m)} className="p-1 text-ink-muted hover:text-ink hover:bg-surface-muted rounded-full" title="Balas">
-                                                                             <Icon name="corner-up-left" size={14} />
-                                                                         </button>
-                                                                     )}
-                                                                 </div>
+                                                                <div className="relative shrink-0 mt-2">
+                                                                    <button onClick={() => setOpenMenuId(openMenuId === m.id ? null : m.id)} className="p-1 text-ink-muted hover:text-ink transition-colors rounded-full hover:bg-surface-muted" title="Menu">
+                                                                        <Icon name="more-horizontal" size={16} />
+                                                                    </button>
+                                                                    {openMenuId === m.id && (
+                                                                        <>
+                                                                            <div className="fixed inset-0 z-10" onClick={() => setOpenMenuId(null)} />
+                                                                            <div className="absolute right-0 top-full z-20 mt-1 w-32 rounded-xl border border-line bg-surface p-1.5 shadow-xl">
+                                                                                {selectedConv.user_id && (
+                                                                                    <button onClick={() => { setReplyTo(m); setOpenMenuId(null); }} className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-sm text-ink hover:bg-surface-muted">
+                                                                                        <Icon name="corner-up-left" size={14} className="shrink-0 text-ink-muted" /> Balas
+                                                                                    </button>
+                                                                                )}
+                                                                                <button onClick={() => { setDeleting(m); setOpenMenuId(null); }} className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-sm text-red-500 hover:bg-red-500/10">
+                                                                                    <Icon name="trash" size={14} className="shrink-0" /> Hapus
+                                                                                </button>
+                                                                            </div>
+                                                                        </>
+                                                                    )}
+                                                                </div>
                                                              )}
                                                             <div className={`relative rounded-2xl px-4 py-3 text-sm min-w-0 break-words ${isAdmin ? 'rounded-tr-sm bg-brand-600 text-white' : 'rounded-tl-sm bg-surface-muted text-ink'}`}>
                                                                 {m.reply_to_id && m.reply_to && (
@@ -421,9 +432,21 @@ export default function Messages() {
                                                                 )}
                                                             </div>
                                                             {!isAdmin && selectedConv.user_id && (
-                                                                 <button onClick={() => setReplyTo(m)} className="opacity-0 group-hover:opacity-100 p-1 text-ink-muted hover:text-ink transition-opacity rounded-full hover:bg-surface-muted shrink-0 mt-2" title="Balas">
-                                                                     <Icon name="corner-up-left" size={14} />
-                                                                 </button>
+                                                                <div className="relative shrink-0 mt-2">
+                                                                    <button onClick={() => setOpenMenuId(openMenuId === m.id ? null : m.id)} className="p-1 text-ink-muted hover:text-ink transition-colors rounded-full hover:bg-surface-muted" title="Menu">
+                                                                        <Icon name="more-horizontal" size={16} />
+                                                                    </button>
+                                                                    {openMenuId === m.id && (
+                                                                        <>
+                                                                            <div className="fixed inset-0 z-10" onClick={() => setOpenMenuId(null)} />
+                                                                            <div className="absolute left-0 top-full z-20 mt-1 w-32 rounded-xl border border-line bg-surface p-1.5 shadow-xl">
+                                                                                <button onClick={() => { setReplyTo(m); setOpenMenuId(null); }} className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-sm text-ink hover:bg-surface-muted">
+                                                                                    <Icon name="corner-up-left" size={14} className="shrink-0 text-ink-muted" /> Balas
+                                                                                </button>
+                                                                            </div>
+                                                                        </>
+                                                                    )}
+                                                                </div>
                                                              )}
                                                         </div>
                                                     </div>
