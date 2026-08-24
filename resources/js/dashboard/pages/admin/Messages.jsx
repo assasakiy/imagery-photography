@@ -191,7 +191,7 @@ export default function Messages() {
                     <span className={`mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full ${!isUnread ? 'bg-surface-muted ring-1 ring-line' : 'bg-brand-500'}`} />
                     <div className="min-w-0 flex-1">
                         <div className="flex items-center justify-between gap-2">
-                            <p className="truncate text-sm font-semibold text-ink">{m.user?.name || m.name}</p>
+                            <p className="truncate text-sm font-semibold text-ink">{m.user?.name || m.name || 'Admin'}</p>
                             <span className="shrink-0 text-[10px] text-ink-muted">{formatDate(m.created_at)}</span>
                         </div>
                         {m.project && (
