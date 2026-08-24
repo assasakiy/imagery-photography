@@ -6,6 +6,7 @@ import { getApiErrorMessage } from '../../lib/errors';
 import Icon from '../../components/Icon';
 import { Spinner, EmptyState, Confirm, formatDate } from '../../components/ui';
 import { ListSkeleton } from '../../components/Skeleton';
+import { refreshBadges } from '../../context/BadgeContext';
 
 export default function Messages() {
     const { id: paramId } = useParams();
@@ -90,6 +91,7 @@ export default function Messages() {
             
             // Perbarui daftar di kiri agar tanda "unread" hilang
             setItems(items.map(item => item.id === conv.id ? { ...item, read_at: item.read_at || new Date().toISOString() } : item));
+            refreshBadges();
         } catch (err) {
             toast.error(getApiErrorMessage(err, 'Gagal memuat percakapan.'));
         } finally {
