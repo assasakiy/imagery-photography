@@ -229,6 +229,7 @@ export default function ClientMessages() {
                                         </div>
                                     </div>
                                 );
+                            return acc;
                             }, [])}
                         </div>
                     )}

@@ -299,6 +299,7 @@ export default function Messages() {
                                     <button className="lg:hidden p-1.5 -ml-1.5 text-ink-muted hover:text-ink" onClick={() => setSelectedConv(null)}>
                                         <Icon name="arrow-left" size={20} />
                                     </button>
+                                    <Avatar src={selectedConv.user?.avatar} name={selectedConv.user?.name || selectedConv.name || 'Kontak'} size="sm" shape="full" className="h-8 w-8 shrink-0" />
                                     <div>
                                         <div className="flex items-center gap-2">
                                             <h2 className="text-sm font-bold text-ink">{selectedConv.user?.name || selectedConv.name || 'Kontak'}</h2>
