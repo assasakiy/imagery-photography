@@ -9,7 +9,6 @@ import { Spinner, EmptyState, Confirm, formatDate } from '../../components/ui';
 import { formatTime, getMessageDateLabel } from '../../utils/date';
 import { ListSkeleton } from '../../components/Skeleton';
 import { useBadges } from '../../context/BadgeContext';
-import { getMessageDateLabel } from '../../utils/date';
 
 export default function Messages() {
     const { id: paramId } = useParams();
