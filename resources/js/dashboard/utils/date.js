@@ -101,3 +101,16 @@ export function dateBoxParts(value) {
     const day = d.getUTCDate();
     return { month, day };
 }
+
+export function getMessageDateLabel(date) {
+    if (!date) return '';
+    const now = new Date();
+    const d = new Date(date);
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    const compareDate = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    if (compareDate.getTime() === today.getTime()) return 'Hari ini';
+    if (compareDate.getTime() === yesterday.getTime()) return 'Kemarin';
+    return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+}

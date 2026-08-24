@@ -141,9 +141,22 @@ export default function ClientMessages() {
                         </div>
                     ) : (
                         <div className="space-y-4">
-                            {items.map((m) => {
+                            {items.reduce((acc, m, idx, arr) => {
+                                const prev = arr[idx - 1];
+                                const currentDate = new Date(m.created_at);
+                                const prevDate = prev ? new Date(prev.created_at) : null;
+                                const showSeparator = !prev || currentDate.toDateString() !== prevDate.toDateString();
+                                if (showSeparator) {
+                                    acc.push(
+                                        <div key={`sep-${m.id}`} className="flex items-center justify-center gap-4 py-2">
+                                            <hr className="flex-1 border-line" />
+                                            <span className="text-xs font-medium text-ink-muted/70">{getMessageDateLabel(m.created_at)}</span>
+                                            <hr className="flex-1 border-line" />
+                                        </div>
+                                    );
+                                }
                                 const isAdmin = m.sender_type === 'admin';
-                                return (
+                                acc.push(
                                     <div key={m.id} className={`flex ${isAdmin ? 'justify-start' : 'justify-end'}`}>
                                         <div className={`max-w-[85%] sm:max-w-[75%] ${isAdmin ? '' : 'flex flex-col items-end'}`}>
                                             <div className="mb-1 flex items-center gap-2 px-1 text-[11px] text-ink-muted">
@@ -162,8 +175,7 @@ export default function ClientMessages() {
                                                         </span>
                                                     )}
                                                 </span>
-                                                <span>•</span>
-                                                <span>{formatDate(m.created_at)}</span>
+                                                <span>{formatTime(m.created_at)}</span>
                                             </div>
                                             <div className="group relative flex items-center gap-2">
                                                 {!isAdmin && (

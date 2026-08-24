@@ -6,6 +6,7 @@ import { getApiErrorMessage } from '../../lib/errors';
 import Icon from '../../components/Icon';
 import Avatar from '../../components/Avatar';
 import { Spinner, EmptyState, Confirm, formatDate } from '../../components/ui';
+import { formatTime, getMessageDateLabel } from '../../utils/date';
 import { ListSkeleton } from '../../components/Skeleton';
 import { useBadges } from '../../context/BadgeContext';
 
@@ -314,12 +315,25 @@ export default function Messages() {
                                     <Spinner />
                                 ) : (
                                     <div className="space-y-4">
-                                        {thread.map((m) => {
+                                        {thread.reduce((acc, m, idx, arr) => {
+                                            const prev = arr[idx - 1];
+                                            const currentDate = new Date(m.created_at);
+                                            const prevDate = prev ? new Date(prev.created_at) : null;
+                                            const showSeparator = !prev || currentDate.toDateString() !== prevDate.toDateString();
+                                            if (showSeparator) {
+                                                acc.push(
+                                                    <div key={`sep-${m.id}`} className="flex items-center justify-center gap-4 py-2">
+                                                        <hr className="flex-1 border-line" />
+                                                        <span className="text-xs font-medium text-ink-muted/70">{getMessageDateLabel(m.created_at)}</span>
+                                                        <hr className="flex-1 border-line" />
+                                                    </div>
+                                                );
+                                            }
                                             const isAdmin = m.sender_type === 'admin';
                                             const isCurrentUser = isAdmin && m.user_id === selectedConv.user_id;
                                             const displayName = isCurrentUser ? 'Anda' : (m.user?.name || m.name);
                                             const roleBadge = isAdmin && !isCurrentUser ? (m.user?.roles?.[0]?.name === 'owner' ? 'Pemilik' : 'Admin') : null;
-                                            return (
+                                            acc.push(
                                                 <div key={m.id} className={`flex ${isAdmin ? 'justify-end' : 'justify-start'}`}>
                                                     <div className={`max-w-[85%] sm:max-w-[75%] ${isAdmin ? 'flex flex-col items-end' : ''}`}>
                                                         <div className="mb-1 flex items-center gap-2 px-1 text-[11px] text-ink-muted">
@@ -332,8 +346,7 @@ export default function Messages() {
                                                                     </span>
                                                                 )}
                                                             </span>
-                                                            <span>•</span>
-                                                            <span>{formatDate(m.created_at)}</span>
+                                                            <span>{formatTime(m.created_at)}</span>
                                                         </div>
                                                         
                                                         <div className="group relative flex items-center gap-2">
