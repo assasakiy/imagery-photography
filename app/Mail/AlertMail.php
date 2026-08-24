@@ -2,6 +2,7 @@
 
 namespace App\Mail;
 
+use App\Services\RuntimeSettings;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
@@ -26,8 +27,16 @@ class AlertMail extends Mailable
 
     public function content(): Content
     {
+        $settings = app(RuntimeSettings::class);
+
         return new Content(
             html: 'mail.alert',
+            with: [
+                'siteName'   => $settings->siteName(),
+                'siteLogo'   => $settings->siteLogo(),
+                'siteTagline' => $settings->siteTagline(),
+                'brandColor'  => $settings->brandColor(),
+            ],
         );
     }
 }

@@ -399,7 +399,7 @@ class SettingsController extends Controller
             app(NotificationService::class)->email(
                 new AlertMail(
                     $user->name,
-                    'Email Uji — Sopian Lalu Imagery',
+                    'Email Uji — ' . app(RuntimeSettings::class)->siteName(),
                     "Ini adalah email uji koneksi SMTP dari dashboard. Terkirim pada " . now()->format('d/m/Y H:i:s') . '.'
                 ),
                 $user->email,
@@ -434,7 +434,7 @@ class SettingsController extends Controller
         try {
             $result = app(WhatsAppManager::class)->send(
                 $phone,
-                "Ini adalah pesan uji koneksi WhatsApp dari dashboard Sopian Lalu Imagery. Terkirim pada " . now()->format('d/m/Y H:i:s') . '.'
+                "Ini adalah pesan uji koneksi WhatsApp dari dashboard " . app(RuntimeSettings::class)->siteName() . ". Terkirim pada " . now()->format('d/m/Y H:i:s') . '.'
             );
 
             if (!$result->success) {

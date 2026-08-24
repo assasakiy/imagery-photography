@@ -519,7 +519,8 @@ class NotificationService
             default     => "masuk ke akun Anda",
         };
 
-        $message = "Kode OTP Sopian Lalu Imagery Anda: *{$code}*. Gunakan kode ini untuk {$actionTxt}. Berlaku 5 menit. Jangan bagikan kode ini.";
+        $siteName = $this->settings->siteName();
+        $message = "Kode OTP {$siteName} Anda: *{$code}*. Gunakan kode ini untuk {$actionTxt}. Berlaku 5 menit. Jangan bagikan kode ini.";
         $html = "Halo <strong>{$user->name}</strong>,<br><br>" .
                 "Kode OTP Anda adalah: <strong>{$code}</strong>.<br><br>" .
                 "Gunakan kode ini untuk {$actionTxt}. Kode berlaku selama 5 menit. Jangan bagikan kode ini kepada siapa pun.";
@@ -564,7 +565,7 @@ class NotificationService
                 "Jika ini bukan Anda, segera ganti kata sandi dan hubungi admin.";
 
         if ($this->settings->emailConfigured() && $user->email) {
-            $this->email(new \App\Mail\AlertMail($user->name, 'Login Mencurigakan — Sopian Lalu Imagery', $html), $user->email, 'auth.login');
+            $this->email(new \App\Mail\AlertMail($user->name, 'Login Mencurigakan — ' . $this->settings->siteName(), $html), $user->email, 'auth.login');
         }
 
         if ($this->settings->whatsappConfigured() && $user->phone) {

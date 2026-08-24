@@ -51,8 +51,10 @@ enum NotificationType: string
         $name = $data['name'] ?? '';
         $link = $data['url'] ?? '';
 
+        $siteName = app(RuntimeSettings::class)->siteName();
+
         return match ($this) {
-            self::ACCOUNT_INVITE => "Halo $name, akun Anda di Sopian Lalu Imagery telah dibuat.\nKlik link berikut untuk membuat kata sandi:\n$link",
+            self::ACCOUNT_INVITE => "Halo $name, akun Anda di {$siteName} telah dibuat.\nKlik link berikut untuk membuat kata sandi:\n$link",
             self::SET_PASSWORD => "Halo $name, buat kata sandi untuk akun Anda agar bisa login dengan email & kata sandi:\n$link",
             self::PASSWORD_RESET => "Halo $name, gunakan link berikut untuk mereset kata sandi Anda (berlaku 30 menit):\n$link",
             self::MAGIC_LINK => "Halo $name, tautan masuk Anda:\n$link",
@@ -63,7 +65,7 @@ enum NotificationType: string
             self::INVOICE_CREATED => "Halo $name, invoice Anda telah diterbitkan. Lihat detailnya di dashboard.",
             self::PAYMENT_RECEIVED => "Halo $name, pembayaran Anda telah kami terima. Terima kasih!",
             self::DOWNLOAD_LINK => "Halo $name, berikut link unduhan Anda: $link",
-            default => "Halo $name, kabar dari Sopian Lalu Imagery.",
+            default => "Halo $name, kabar dari {$siteName}.",
         };
     }
 
