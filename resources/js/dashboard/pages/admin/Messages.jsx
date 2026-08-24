@@ -38,12 +38,16 @@ export default function Messages() {
 
     const [searchQuery, setSearchQuery] = useState('');
 
-    const load = (page = 1) => {
+    const load = (page = 1, silent = false) => {
         currentPageRef.current = page;
-        setLoading(true);
-        api.get('/messages', { params: { page, per_page: 25, unread_only: unreadOnly || undefined, project_id: pesanan || undefined, q: searchQuery || undefined } })
+        if (!silent) setLoading(true);
+            api.get('/messages', { params: { page, per_page: 25, unread_only: unreadOnly || undefined, project_id: pesanan || undefined, q: searchQuery || undefined } })
             .then(({ data }) => {
-                setItems(data.data);
+                const newItems = data.data;
+                setItems(prev => {
+                    if (JSON.stringify(prev) === JSON.stringify(newItems)) return prev;
+                    return newItems;
+                });
                 setMeta(data);
                 
                 // Jika dari query string pesanan, otomatis pilih percakapan pertama (jika ada)
@@ -52,7 +56,7 @@ export default function Messages() {
                 }
             })
             .catch(() => toast.error('Gagal memuat pesan.'))
-            .finally(() => setLoading(false));
+            .finally(() => { if (!silent) setLoading(false); });
     };
 
     useEffect(() => {
@@ -64,7 +68,7 @@ export default function Messages() {
         if (selectedConv) {
             if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
             pollIntervalRef.current = setInterval(() => {
-                load(currentPageRef.current);
+                load(currentPageRef.current, true);
             }, 5000);
         } else {
             if (pollIntervalRef.current) {
