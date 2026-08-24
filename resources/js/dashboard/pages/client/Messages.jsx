@@ -134,11 +134,24 @@ export default function ClientMessages() {
                                 return (
                                     <div key={m.id} className={`flex ${isAdmin ? 'justify-start' : 'justify-end'}`}>
                                         <div className={`max-w-[85%] sm:max-w-[75%] ${isAdmin ? '' : 'flex flex-col items-end'}`}>
-                                            <div className="mb-1 flex items-center gap-2 px-1 text-[11px] text-ink-muted">
-                                                <span className="inline-flex items-center gap-1">{isAdmin ? 'Admin' : 'Anda'} {m.official_team && <OfficialTeamBadge />}</span>
-                                                <span>•</span>
-                                                <span>{formatDate(m.created_at)}</span>
-                                            </div>
+                                        <div className="mb-1 flex items-center gap-2 px-1 text-[11px] text-ink-muted">
+                                            <span className="inline-flex items-center gap-1.5">
+                                                {isAdmin ? (m.user?.name || 'Admin') : 'Anda'}
+                                                {isAdmin && m.official_team && <OfficialTeamBadge />}
+                                                {isAdmin && m.user?.roles?.[0]?.name === 'owner' && (
+                                                    <span className="rounded-full bg-amber-500/15 px-1.5 py-0.5 text-[9px] font-medium text-amber-700 dark:text-amber-400 ring-1 ring-inset ring-amber-500/30">
+                                                        Pemilik
+                                                    </span>
+                                                )}
+                                                {isAdmin && m.user?.roles?.[0]?.name !== 'owner' && (
+                                                    <span className="rounded-full bg-surface-muted/60 px-1.5 py-0.5 text-[9px] font-medium text-ink-muted/70 ring-1 ring-inset ring-line">
+                                                        Admin
+                                                    </span>
+                                                )}
+                                            </span>
+                                            <span>•</span>
+                                            <span>{formatDate(m.created_at)}</span>
+                                        </div>
                                             <div className="group relative flex items-center gap-2">
                                                 {!isAdmin && (
                                                     <div className="opacity-0 group-hover:opacity-100 flex items-center gap-1 shrink-0 transition-opacity">

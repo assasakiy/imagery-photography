@@ -315,11 +315,21 @@ export default function Messages() {
                                     <div className="space-y-4">
                                         {thread.map((m) => {
                                             const isAdmin = m.sender_type === 'admin';
+                                            const isCurrentUser = isAdmin && m.user_id === selectedConv.user_id;
+                                            const displayName = isCurrentUser ? 'Anda' : (m.user?.name || m.name);
+                                            const roleBadge = isAdmin && !isCurrentUser ? (m.user?.roles?.[0]?.name === 'owner' ? 'Pemilik' : 'Admin') : null;
                                             return (
                                                 <div key={m.id} className={`flex ${isAdmin ? 'justify-end' : 'justify-start'}`}>
                                                     <div className={`max-w-[85%] sm:max-w-[75%] ${isAdmin ? 'flex flex-col items-end' : ''}`}>
                                                         <div className="mb-1 flex items-center gap-2 px-1 text-[11px] text-ink-muted">
-                                                            <span>{isAdmin ? 'Anda' : (m.user?.name || m.name)}</span>
+                                                            <span className="inline-flex items-center gap-1.5">
+                                                                {displayName}
+                                                                {roleBadge && (
+                                                                    <span className="rounded-full bg-surface-muted/60 px-1.5 py-0.5 text-[9px] font-medium text-ink-muted/70 ring-1 ring-inset ring-line">
+                                                                        {roleBadge}
+                                                                    </span>
+                                                                )}
+                                                            </span>
                                                             <span>•</span>
                                                             <span>{formatDate(m.created_at)}</span>
                                                         </div>
