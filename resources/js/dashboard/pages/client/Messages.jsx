@@ -32,22 +32,43 @@ export default function ClientMessages() {
     const [confirmDeleteId, setConfirmDeleteId] = useState(null);
     const scrollRef = useRef(null);
     const fileInputRef = useRef(null);
+    const pollIntervalRef = useRef(null);
 
     const EMOJIS = ['😀','😂','🥰','😎','🤔','👍','🙏','🔥','🎉','📷','✨','💡'];
 
-    const load = () => {
+    const load = (silent = false) => {
+        if (!silent) setLoading(true);
         api.get('/customer/messages')
             .then(({ data }) => {
-                setItems(data);
+                setItems(prev => {
+                    if (JSON.stringify(prev) === JSON.stringify(data)) return prev;
+                    return data;
+                });
                 setTimeout(() => {
                     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
                 }, 100);
             })
             .catch(() => toast.error('Gagal memuat pesan.'))
-            .finally(() => setLoading(false));
+            .finally(() => { if (!silent) setLoading(false); });
     };
     
     useEffect(() => { load(); }, []);
+
+    const refreshThread = useCallback(() => {
+        load(true);
+    }, []);
+
+    useEffect(() => {
+        pollIntervalRef.current = setInterval(() => {
+            load(true);
+        }, 5000);
+        return () => {
+            if (pollIntervalRef.current) {
+                clearInterval(pollIntervalRef.current);
+                pollIntervalRef.current = null;
+            }
+        };
+    }, []);
 
     const send = async (e) => {
         e.preventDefault();
@@ -83,6 +104,7 @@ export default function ClientMessages() {
             await api.delete(`/customer/messages/${id}`);
             setItems(items.filter(i => i.id !== id));
             toast.success('Pesan dihapus.');
+            refreshThread();
         } catch {
             toast.error('Gagal menghapus pesan.');
         }
@@ -195,32 +217,34 @@ export default function ClientMessages() {
                                 )}
                             </div>
                         )}
-                        <div className="flex items-end gap-1.5">
-                            <button type="button" onClick={() => setShowEmoji(!showEmoji)} className="shrink-0 p-3 text-ink-muted hover:text-brand-600 transition-colors rounded-full hover:bg-brand-500/10">
-                                <Icon name="smile" size={20} />
-                            </button>
-                            <label className="shrink-0 p-3 text-ink-muted hover:text-brand-600 transition-colors rounded-full hover:bg-brand-500/10 cursor-pointer">
+                        <div className="flex items-center gap-2">
+                            <label className="shrink-0 flex h-10 w-10 items-center justify-center rounded-full text-ink-muted hover:text-brand-600 hover:bg-brand-500/10 transition-colors cursor-pointer">
                                 <Icon name="paperclip" size={20} />
                                 <input type="file" className="hidden" ref={fileInputRef} onChange={(e) => setFile(e.target.files[0])} />
                             </label>
-                            <textarea
-                                className="input min-h-[44px] flex-1 resize-none py-3"
-                                rows="1"
-                                value={msg}
-                                onChange={(e) => {
-                                    setMsg(e.target.value);
-                                    e.target.style.height = 'auto';
-                                    e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px';
-                                }}
-                                onKeyDown={(e) => {
-                                    if (e.key === 'Enter' && !e.shiftKey) {
-                                        e.preventDefault();
-                                        send(e);
-                                    }
-                                }}
-                                placeholder="Ketik pesan..."
-                            />
-                            <button type="submit" className="btn-primary shrink-0 !px-4 !py-3" disabled={sending || !msg.trim()}>
+                            <div className="flex-1 flex items-center gap-1 rounded-[26px] border border-line bg-surface-muted/50 px-2 py-1 focus-within:border-brand-500 focus-within:ring-2 focus-within:ring-brand-500/20">
+                                <button type="button" onClick={() => setShowEmoji(!showEmoji)} className="shrink-0 p-1.5 text-ink-muted hover:text-brand-600 transition-colors rounded-full hover:bg-brand-500/10">
+                                    <Icon name="smile" size={20} />
+                                </button>
+                                <textarea
+                                    className="flex-1 min-h-[40px] resize-none bg-transparent py-2 text-sm text-ink placeholder:text-ink-muted outline-none"
+                                    rows="1"
+                                    value={msg}
+                                    onChange={(e) => {
+                                        setMsg(e.target.value);
+                                        e.target.style.height = 'auto';
+                                        e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px';
+                                    }}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter' && !e.shiftKey) {
+                                            e.preventDefault();
+                                            send(e);
+                                        }
+                                    }}
+                                    placeholder="Ketik pesan..."
+                                />
+                            </div>
+                            <button type="submit" className="shrink-0 flex h-10 w-10 items-center justify-center rounded-full bg-brand-600 text-white hover:bg-brand-700 transition-colors disabled:opacity-40" disabled={sending || !msg.trim()}>
                                 <Icon name="send" size={18} />
                             </button>
                         </div>
