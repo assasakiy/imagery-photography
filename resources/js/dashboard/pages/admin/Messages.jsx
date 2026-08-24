@@ -92,9 +92,10 @@ export default function Messages() {
             
             // Perbarui daftar di kiri agar tanda "unread" hilang
             setItems(items.map(item => item.id === conv.id ? { ...item, read_at: item.read_at || new Date().toISOString() } : item));
+            // Force refresh after DB commit with longer delay
             refresh();
-            // Force refresh after DB commit
-            setTimeout(refresh, 500);
+            setTimeout(refresh, 1000);
+            setTimeout(refresh, 2000);
         } catch (err) {
             toast.error(getApiErrorMessage(err, 'Gagal memuat percakapan.'));
         } finally {
@@ -128,6 +129,7 @@ export default function Messages() {
                 if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
             }, 100);
             load(meta.current_page); // segarkan list kiri
+            refresh();
         } catch (err) {
             toast.error(getApiErrorMessage(err, 'Gagal mengirim balasan.'));
         } finally {
