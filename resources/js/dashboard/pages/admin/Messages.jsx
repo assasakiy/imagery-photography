@@ -368,7 +368,7 @@ export default function Messages() {
                                                                     {openMenuId === m.id && (
                                                                         <>
                                                                             <div className="fixed inset-0 z-10" onClick={() => setOpenMenuId(null)} />
-                                                                            <div className="absolute right-0 top-full z-20 mt-1 w-32 rounded-xl border border-line bg-surface p-1.5 shadow-xl">
+                                                                            <div className="absolute left-0 sm:right-0 top-full z-20 mt-1 w-32 rounded-xl border border-line bg-surface p-1.5 shadow-xl">
                                                                                 {selectedConv.user_id && (
                                                                                     <button onClick={() => { setReplyTo(m); setOpenMenuId(null); }} className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-sm text-ink hover:bg-surface-muted">
                                                                                         <Icon name="corner-up-left" size={14} className="shrink-0 text-ink-muted" /> Balas
@@ -439,7 +439,7 @@ export default function Messages() {
                                                                     {openMenuId === m.id && (
                                                                         <>
                                                                             <div className="fixed inset-0 z-10" onClick={() => setOpenMenuId(null)} />
-                                                                            <div className="absolute left-0 top-full z-20 mt-1 w-32 rounded-xl border border-line bg-surface p-1.5 shadow-xl">
+                                                                            <div className="absolute right-0 top-full z-20 mt-1 w-32 rounded-xl border border-line bg-surface p-1.5 shadow-xl">
                                                                                 <button onClick={() => { setReplyTo(m); setOpenMenuId(null); }} className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-sm text-ink hover:bg-surface-muted">
                                                                                     <Icon name="corner-up-left" size={14} className="shrink-0 text-ink-muted" /> Balas
                                                                                 </button>
