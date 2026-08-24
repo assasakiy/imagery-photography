@@ -63,12 +63,32 @@ export default function Messages() {
         load();
     }, [unreadOnly, pesanan, searchQuery]);
 
+    const refreshThread = useCallback(async () => {
+        if (!selectedConv) return;
+        try {
+            const { data } = await api.get(`/messages/${selectedConv.id}/thread`);
+            setThread(prev => {
+                if (JSON.stringify(prev) === JSON.stringify(data)) return prev;
+                return data;
+            });
+        } catch (e) {
+            // silent
+        }
+    }, [selectedConv]);
+
+    useEffect(() => {
+        if (scrollRef.current) {
+            scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+        }
+    }, [thread]);
+
     // Polling for new messages
     useEffect(() => {
         if (selectedConv) {
             if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
             pollIntervalRef.current = setInterval(() => {
                 load(currentPageRef.current, true);
+                refreshThread();
             }, 5000);
         } else {
             if (pollIntervalRef.current) {
@@ -82,7 +102,7 @@ export default function Messages() {
                 pollIntervalRef.current = null;
             }
         };
-    }, [selectedConv]);
+    }, [selectedConv, refreshThread]);
 
     const openConversation = async (conv) => {
         setSelectedConv(conv);
@@ -135,6 +155,7 @@ export default function Messages() {
             }, 100);
             load(meta.current_page); // segarkan list kiri
             refresh();
+            refreshThread();
         } catch (err) {
             toast.error(getApiErrorMessage(err, 'Gagal mengirim balasan.'));
         } finally {
