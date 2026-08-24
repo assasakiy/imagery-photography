@@ -6,13 +6,14 @@ import { getApiErrorMessage } from '../../lib/errors';
 import Icon from '../../components/Icon';
 import { Spinner, EmptyState, Confirm, formatDate } from '../../components/ui';
 import { ListSkeleton } from '../../components/Skeleton';
-import { refreshBadges } from '../../context/BadgeContext';
+import { useBadges } from '../../context/BadgeContext';
 
 export default function Messages() {
     const { id: paramId } = useParams();
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
     const pesanan = searchParams.get('pesanan') || '';
+    const { refresh } = useBadges();
 
     const [items, setItems] = useState([]);
     const [meta, setMeta] = useState({});
@@ -91,7 +92,7 @@ export default function Messages() {
             
             // Perbarui daftar di kiri agar tanda "unread" hilang
             setItems(items.map(item => item.id === conv.id ? { ...item, read_at: item.read_at || new Date().toISOString() } : item));
-            refreshBadges();
+            refresh();
         } catch (err) {
             toast.error(getApiErrorMessage(err, 'Gagal memuat percakapan.'));
         } finally {
