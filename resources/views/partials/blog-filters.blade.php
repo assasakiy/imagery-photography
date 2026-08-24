@@ -13,7 +13,7 @@
     <div class="container-site relative py-3">
         <div class="flex items-center gap-3">
             <div class="relative flex min-w-0 flex-1 items-center">
-                <div data-cat-fade-left class="pointer-events-none absolute left-0 top-1/2 z-[5] h-9 w-20 -translate-y-1/2 bg-gradient-to-l from-zinc-50 to-transparent opacity-0 transition-opacity dark:from-zinc-950"></div>
+                <div data-cat-fade-left class="pointer-events-none absolute left-0 top-1/2 z-[5] h-9 w-28 -translate-y-1/2 bg-gradient-to-r from-zinc-50 to-transparent opacity-0 transition-opacity dark:from-zinc-950"></div>
                 <button
                     type="button"
                     data-cat-prev
@@ -32,7 +32,7 @@
                     @endforeach
                 </div>
 
-                <div data-cat-fade-right class="pointer-events-none absolute right-0 top-1/2 z-[5] h-9 w-20 -translate-y-1/2 bg-gradient-to-r from-zinc-50 to-transparent opacity-0 transition-opacity dark:from-zinc-950"></div>
+                <div data-cat-fade-right class="pointer-events-none absolute right-0 top-1/2 z-[5] h-9 w-28 -translate-y-1/2 bg-gradient-to-l from-zinc-50 to-transparent opacity-0 transition-opacity dark:from-zinc-950"></div>
                 <button
                     type="button"
                     data-cat-next
