@@ -157,7 +157,7 @@ export default function ClientMessages() {
                                 }
                                 const isAdmin = m.sender_type === 'admin';
                                 acc.push(
-                                    <div key={m.id} className={`flex ${isAdmin ? 'justify-start' : 'justify-end'}`}>
+                                    <div id={`msg-${m.id}`} key={m.id} className={`flex transition-all duration-500 rounded-lg ${isAdmin ? 'justify-start' : 'justify-end'}`}>
                                         <div className={`max-w-[85%] sm:max-w-[75%] ${isAdmin ? '' : 'flex flex-col items-end'}`}>
                                             <div className="mb-1 flex items-center gap-2 px-1 text-[11px] text-ink-muted">
                                                 <Avatar src={m.user?.avatar} name={m.user?.name || m.name || 'U'} size="xs" shape="full" className="h-5 w-5" />

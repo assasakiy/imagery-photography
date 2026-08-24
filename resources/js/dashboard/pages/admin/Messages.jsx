@@ -343,7 +343,7 @@ export default function Messages() {
                                             const displayName = isCurrentUser ? 'Anda' : (m.user?.name || m.name);
                                             const roleBadge = isAdmin && !isCurrentUser ? (m.user?.roles?.[0]?.name === 'owner' ? 'Pemilik' : 'Admin') : null;
                                             acc.push(
-                                                <div key={m.id} className={`flex ${isAdmin ? 'justify-end' : 'justify-start'}`}>
+                                                <div id={`msg-${m.id}`} key={m.id} className={`flex transition-all duration-500 rounded-lg ${isAdmin ? 'justify-end' : 'justify-start'}`}>
                                                     <div className={`max-w-[85%] sm:max-w-[75%] ${isAdmin ? 'flex flex-col items-end' : ''}`}>
                                                         <div className="mb-1 flex items-center gap-2 px-1 text-[11px] text-ink-muted">
                                                             <Avatar src={m.user?.avatar} name={m.user?.name || m.name || 'U'} size="xs" shape="full" className="h-5 w-5" />
@@ -373,7 +373,16 @@ export default function Messages() {
                                                              )}
                                                             <div className={`relative rounded-2xl px-4 py-3 text-sm ${isAdmin ? 'rounded-tr-sm bg-brand-600 text-white' : 'rounded-tl-sm bg-surface-muted text-ink'}`}>
                                                                 {m.reply_to_id && m.reply_to && (
-                                                                    <div className={`mb-2 rounded-lg p-2 text-xs border-l-2 ${isAdmin ? 'bg-black/10 border-white/30 text-white/80' : 'bg-white/50 border-ink-muted/30 text-ink-muted'}`}>
+                                                                    <div className={`mb-2 rounded-lg p-2 text-xs border-l-2 cursor-pointer transition-colors ${isAdmin ? 'bg-black/10 border-white/30 text-white/80 hover:bg-black/20' : 'bg-white/50 border-ink-muted/30 text-ink-muted hover:bg-white/70'}`}
+                                                                        onClick={() => {
+                                                                            const el = document.getElementById(`msg-${m.reply_to_id}`);
+                                                                            if (el) {
+                                                                                el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                                                                el.classList.add('ring-2', 'ring-brand-500', 'ring-offset-2');
+                                                                                setTimeout(() => el.classList.remove('ring-2', 'ring-brand-500', 'ring-offset-2'), 2000);
+                                                                            }
+                                                                        }}
+                                                                    >
                                                                          <p className="inline-flex items-center gap-1 font-semibold">
                                                                              <Avatar src={m.reply_to.user?.avatar} name={m.reply_to.user?.name || m.reply_to.name || 'U'} size="xs" shape="full" className="h-4 w-4 shrink-0" />
                                                                              {m.reply_to.sender_type === 'admin' ? 'Anda' : (m.reply_to.user?.name || m.reply_to.name)}
