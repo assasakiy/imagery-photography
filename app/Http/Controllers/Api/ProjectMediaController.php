@@ -9,10 +9,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
-use ZipArchive;
-use Illuminate\Support\Facades\DB;
-use App\Services\NotificationService;
-use App\Models\Redelivery;
 
 class ProjectMediaController extends Controller
 {
@@ -225,74 +221,55 @@ class ProjectMediaController extends Controller
 
     public function downloadStatus(Request $request, Project $project)
     {
-        $jobId = 'zip_' . $project->id;
-        $progress = cache()->get($jobId, null);
-        
-        if ($progress === 'done') {
-            $path = "zips/Project_{$project->id}_Assets.zip";
-            if (Storage::disk('local')->exists($path)) {
-                return response()->json(['status' => 'ready', 'url' => url('/api/projects/' . $project->id . '/download-zip?ready=1')]);
-            }
-            cache()->forget($jobId);
+        if ($project->status === 'archived' && !$project->hasActiveRedelivery()) {
             return response()->json(['status' => 'none']);
         }
-        
-        if ($progress) {
-            return response()->json(['status' => 'processing', 'progress' => $progress]);
+
+        $zipPath = $project->deliveryZipAbsPath();
+
+        if ($project->delivery_zip && $zipPath && file_exists($zipPath)) {
+            return response()->json([
+                'status' => 'ready',
+                'url' => url('/api/projects/' . $project->id . '/download-zip?ready=1'),
+            ]);
         }
-        
+
         return response()->json(['status' => 'none']);
     }
 
     public function downloadZip(Request $request, Project $project)
     {
-        if ($project->status === 'archived' && !$project->hasActiveRedelivery()) abort(403, 'Akses dibekukan.');
-        
-        $fileName = "Project_{$project->id}_Assets.zip";
-        $zipPath = storage_path("app/zips/{$fileName}");
-        
-        if ($request->has('ready') && file_exists($zipPath)) {
-            return response()->download($zipPath)->deleteFileAfterSend(true);
+        if ($project->status === 'archived' && !$project->hasActiveRedelivery()) {
+            abort(403, 'Akses dibekukan.');
         }
-        
-        if (!file_exists(storage_path('app/zips'))) {
-            mkdir(storage_path('app/zips'), 0755, true);
-        }
-        
-        $jobId = 'zip_' . $project->id;
-        cache()->put($jobId, 5, 300); // init progress
-        
-        $files = $project->files()
-            ->whereNotNull('media_id')
-            ->where('category', '!=', 'proof')
-            ->where(function($q) {
-                $q->where('variant', 'original')->orWhereNull('variant');
-            })
-            ->get();
-            
-        if ($files->isEmpty()) abort(404, 'Tidak ada file untuk diunduh.');
-        
-        $zip = new ZipArchive;
-        if ($zip->open($zipPath, ZipArchive::CREATE | ZipArchive::OVERWRITE) === true) {
-            $total = count($files);
-            $i = 0;
-            
-            foreach ($files as $file) {
-                $media = Media::find($file->media_id);
-                if ($media && file_exists($media->getPath())) {
-                    $zip->addFile($media->getPath(), $file->original_name);
-                }
-                $i++;
-                if ($i % 10 === 0) cache()->put($jobId, round(($i / $total) * 90), 300);
+
+        // Fast path: serve existing verified zip (redirected from downloadStatus)
+        if ($request->has('ready')) {
+            $zipPath = $project->deliveryZipAbsPath();
+
+            if ($zipPath && file_exists($zipPath)) {
+                return response()->download($zipPath, basename($zipPath));
             }
-            $zip->close();
-        } else {
-            cache()->forget($jobId);
-            abort(500, 'Gagal membuat file ZIP.');
+
+            abort(404, 'ZIP tidak ditemukan.');
         }
-        
-        cache()->put($jobId, 'done', 300);
-        return response()->json(['status' => 'ready', 'url' => url('/api/projects/' . $project->id . '/download-zip?ready=1')]);
+
+        // Build / retrieve zip via DeliveryService (single source of truth)
+        $result = app(\App\Services\DeliveryService::class)->ensureReady($project);
+
+        if (in_array($result, ['stored', 'generated'])) {
+            return response()->json([
+                'status' => 'ready',
+                'url' => url('/api/projects/' . $project->id . '/download-zip?ready=1'),
+            ]);
+        }
+
+        if ($result === 'empty') {
+            abort(404, 'Tidak ada file untuk diunduh.');
+        }
+
+        // 'live' = originals exist but zip verification failed
+        abort(503, 'File sedang diproses. Silakan coba lagi dalam beberapa menit.');
     }
 
     public function setThumbnail(Request $request, Project $project)

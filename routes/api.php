@@ -85,11 +85,11 @@ Route::middleware(['web', 'auth:sanctum', 'maintenance'])->group(function () {
 
     Route::middleware('permission:view-projects')->group(function () {
         Route::get('/projects', [ProjectController::class, 'index']);
-        Route::get('/projects/{project}', [ProjectController::class, 'show']);
+        Route::get('/projects/{project}', [ProjectController::class, 'show'])->withTrashed();
         Route::post('/projects/{project}/updates', [ProjectController::class, 'addUpdate']);
         Route::get('/files/{file}/download', [ProjectMediaController::class, 'downloadFile'])->name('api.file.download');
-        Route::get('/projects/{project}/download-zip', [ProjectMediaController::class, 'downloadZip'])->name('api.project.download-zip');
-        Route::get('/projects/{project}/download-status', [ProjectMediaController::class, 'downloadStatus']);
+        Route::get('/projects/{project}/download-zip', [ProjectMediaController::class, 'downloadZip'])->name('api.project.download-zip')->withTrashed();
+        Route::get('/projects/{project}/download-status', [ProjectMediaController::class, 'downloadStatus'])->withTrashed();
         Route::post('/projects/{project}/payments', [PaymentController::class, 'store']);
         Route::post('/projects/{project}/payments/gateway', [PaymentController::class, 'createGateway']);
         Route::get('/payments/{payment}/gateway-status', [PaymentController::class, 'gatewayStatus']);

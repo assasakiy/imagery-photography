@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\ContactMessage;
-use App\Services\NotificationService;
 use Illuminate\Http\Request;
 
 class MessageController extends Controller
@@ -123,16 +122,5 @@ class MessageController extends Controller
         $message->delete();
 
         return response()->json(['ok' => true]);
-    }
-
-    public static function notifyNewMessage(ContactMessage $message): void
-    {
-        $notifications = app(NotificationService::class);
-        $notifications->webhook('message.new', [
-            'id' => $message->id,
-            'name' => $message->name,
-            'email' => $message->email,
-            'message' => $message->message,
-        ]);
     }
 }
