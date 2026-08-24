@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import api from '../../api';
 import Icon from '../../components/Icon';
@@ -69,6 +69,7 @@ export default function ClientMessages() {
             setShowEmoji(false);
             if (fileInputRef.current) fileInputRef.current.value = '';
             load();
+            refreshThread();
         } catch {
             toast.error('Gagal mengirim pesan.');
         } finally {
