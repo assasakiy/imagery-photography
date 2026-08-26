@@ -48,6 +48,52 @@ Route::get('/login', function () {
 Route::get('/register', function () {
     return view('app');
 })->middleware('guest')->name('register');
+
+// PWA
+Route::get('/manifest.webmanifest', function () {
+    $settings = app(\App\Services\RuntimeSettings::class);
+    $name = $settings->siteName();
+    $shortName = str_word_count($name) > 2
+        ? collect(explode(' ', $name))->map(fn ($w) => mb_substr($w, 0, 1))->join('')
+        : $name;
+
+    return response()
+        ->json([
+            'name' => $name,
+            'short_name' => $shortName,
+            'description' => "Dashboard {$name}",
+            'id' => '/dashboard',
+            'start_url' => '/dashboard',
+            'scope' => '/',
+            'display' => 'standalone',
+            'orientation' => 'portrait-primary',
+            'background_color' => '#09090b',
+            'theme_color' => $settings->brandColor(),
+            'lang' => 'id',
+            'dir' => 'ltr',
+            'categories' => ['photography', 'business', 'productivity'],
+            'icons' => [
+                ['src' => '/icons/pwa-192.png', 'sizes' => '192x192', 'type' => 'image/png'],
+                ['src' => '/icons/pwa-512.png', 'sizes' => '512x512', 'type' => 'image/png'],
+                ['src' => '/icons/pwa-maskable-512.png', 'sizes' => '512x512', 'type' => 'image/png', 'purpose' => 'maskable'],
+            ],
+            'shortcuts' => [
+                [
+                    'name' => 'Pesanan Saya',
+                    'url' => '/dashboard/pesanan',
+                    'icons' => [['src' => '/icons/pwa-192.png', 'sizes' => '192x192']],
+                ],
+                [
+                    'name' => 'Pesan',
+                    'url' => '/dashboard/client-messages',
+                    'icons' => [['src' => '/icons/pwa-192.png', 'sizes' => '192x192']],
+                ],
+            ],
+        ])
+        ->header('Content-Type', 'application/manifest+json');
+})->name('pwa.manifest');
+
+Route::view('/offline', 'errors.offline')->name('pwa.offline');
 Route::get('/access/{token}', [AuthController::class, 'accessViaToken'])->name('access.token');
 Route::get('/auth/google/redirect', [GoogleAuthController::class, 'redirect'])->name('auth.google.redirect');
 Route::get('/auth/google/callback', [GoogleAuthController::class, 'callback'])->name('auth.google.callback');

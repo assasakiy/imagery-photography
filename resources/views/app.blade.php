@@ -9,6 +9,10 @@
     <link rel="icon" type="image/x-icon" href="{{ $siteFavicon }}">
     <link rel="apple-touch-icon" href="{{ asset('apple-touch-icon.png') }}">
     <meta name="description" content="Dashboard {{ $siteName }} - Photography & Videography">
+    {{-- PWA --}}
+    @php $pwaSettings = app(\App\Services\RuntimeSettings::class); @endphp
+    <link rel="manifest" href="{{ route('pwa.manifest') }}">
+    <meta name="theme-color" content="{{ $pwaSettings->brandColor() }}">
     <script>
         (function () {
             var theme = localStorage.getItem('theme');
@@ -44,5 +48,12 @@
     </script>
     <div id="app"></div>
     @vite('resources/js/dashboard.jsx')
+    <script>
+        if ('serviceWorker' in navigator && (location.protocol === 'https:' || ['localhost', '127.0.0.1'].includes(location.hostname))) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js').catch(() => {});
+            });
+        }
+    </script>
 </body>
 </html>

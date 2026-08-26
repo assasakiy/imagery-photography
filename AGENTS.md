@@ -107,17 +107,12 @@ Halaman dashboard yang punya beberapa tab **WAJIB** dipisah ke folder `pages/<na
 - **Media Library**: model butuh `$fillable=['id']`; `LandingContent::setValue` pertahankan `group`; reset landing images meninggalkan media orphan (TODO).
 - **Test**: skrip di `/home/opc` (`spa_test.py`, `final_test.py`, `access_test.py`); `/etc/hosts` berisi `127.0.0.1 imagery.my.id`; `/tmp/opencode` TIDAK writable.
 
-## 13. Sesi Terbaru — Anti-AI-Slop UI Overhaul & Keamanan
+## 13. Sesi Terbaru — PWA Dashboard (Installable App)
 
-### Keamanan (`f8268b7`, `19a5879`)
-- **Security Headers (`f8268b7`):** Middleware global `SecurityHeaders.php` → HSTS 1 tahun, CSP `self+https`, X-Frame-Options SAMEORIGIN, X-Content-Type-Options nosniff, Referrer-Policy strict-origin-when-cross-origin, `header_remove('X-Powered-By')`.
-- **IDOR Patch (`19a5879`):** `ProjectMediaController::downloadFile/downloadStatus/downloadZip` sekarang menolak akses 403 jika client mengakses proyek user lain. Rute upload/delete tetap aman di `role:owner|admin`.
+- **Scope PWA:** Hanya dashboard + auth (`/dashboard`, `/login`, `/register`) — semuanya me-render view `app.blade.php`, jadi manifest + SW registration cukup di-inject di satu view itu. Situs publik Blade SSR tidak tersentuh (tidak dapat install prompt).
+- **Manifest dinamis:** Route `/manifest.webmanifest` → name/short_name/theme_color dari `RuntimeSettings` (ikut branding DB). start_url `/dashboard`, scope `/`, display standalone, shortcuts Pesanan & Pesan. Icons: `public/icons/pwa-{192,512,maskable-512}.png` digenerate dari logo asli media:56 via `scripts/generate-pwa-icons.php`.
+- **Service Worker:** `public/sw.js` versi `v1` — navigasi network-first→cache→`/offline`; aset `/build/*` & gambar/font stale-while-revalidate; **tidak pernah** cache `/api/*` dan non-GET. Offline page: route `/offline` + view `errors/offline.blade.php`.
+- **Guard dev:** SW hanya register di https/localhost — cegah error console saat dev via IP HTTP.
 
-### Desain Visual Anti-Slop (`9032baa`, `203469e`, `a593772`, `1645e24`)
-- **Palet Bronze:** brand-50..900 berubah dari violet default → champagne/bronze editorial (#b08d57 base). DB `brand_color` di-update. Email buttons pakai `#97794b` (bronze-700).
-- **Font Self-Hosted:** `@fontsource-variable/instrument-sans` & `@fontsource-variable/fraunces` — `--font-display` serif hanya di landing (`<body class="editorial">`).
-- **Tombol Monokrom:** `.btn-primary` = ink/ivory (bukan brand gradient) → editorial luxury. `::selection` pakai ink solid.
-- **Zero Gradient:** semua gradient dekoratif dihapus (CTA, tombol cookie/subscribe, icon chip). CSS mask-image saja dipertahankan.
-- **Detail Craft:** `tabular-nums` pada harga/stat, `transition-[...]` eksplisit (bukan `transition-all`), `.reveal` amplitude 14px + `prefers-reduced-motion` guard + stagger, `text-wrap: balance` pada h1/h2.
-- **Dekorasi AI dihapus:** blob `scale-150` di kartu paket, badge pill `backdrop-blur`, indicator Scroll → minimal chevron, cookie banner `shadow-2xl` di-downgrade ke `shadow-lg rounded-2xl`.
+*Rincian teknis PWA ada di `docs/pwa.md`. Riwayat sesi sebelumnya (anti-AI-slop UI overhaul, security headers) ada di Git history.*
 
