@@ -49,7 +49,7 @@ export default function Settings() {
     const pickBase = (f) => {
         const b = {};
         for (const t of Object.values(TAB_FIELDS)) for (const k of t) b[k] = f[k];
-        b.brand_color = f.brand_color || '#7c3aed';
+        b.brand_color = f.brand_color || '#b08d57';
         b.email_events = f.email_events || [];
         b.whatsapp_events = f.whatsapp_events || [];
         b.inapp_events = f.inapp_events || [];

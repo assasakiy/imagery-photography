@@ -267,7 +267,7 @@ class RuntimeSettings
     {
         $db = $this->get('brand_color');
 
-        return !empty($db) ? $db : '#7c3aed';
+        return !empty($db) ? $db : '#b08d57';
     }
 
     public function googleAuthEnabled(): bool

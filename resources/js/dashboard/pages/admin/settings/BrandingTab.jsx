@@ -88,7 +88,7 @@ export default function BrandingTab({ form, meta, errors, saving, set, save, dir
                             <input
                                 type="color"
                                 className="h-0 w-0 opacity-0"
-                                value={/^#[0-9a-f]{6}$/i.test(form.brand_color) ? form.brand_color : '#7c3aed'}
+                                value={/^#[0-9a-f]{6}$/i.test(form.brand_color) ? form.brand_color : '#b08d57'}
                                 onChange={(e) => set('brand_color', e.target.value)}
                             />
                             <span className="font-mono">{form.brand_color}</span>

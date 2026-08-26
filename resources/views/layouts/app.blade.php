@@ -21,7 +21,7 @@
     @include('partials.brand-colors')
     @vite('resources/css/app.css')
 </head>
-<body class="bg-zinc-50 text-zinc-900 antialiased transition-colors duration-300 dark:bg-zinc-950 dark:text-zinc-50">
+<body class="editorial bg-zinc-50 text-zinc-900 antialiased transition-colors duration-300 dark:bg-zinc-950 dark:text-zinc-50">
     @php
         $navLinks = [
             ['label' => 'Beranda', 'href' => route('home'), 'active' => Route::is('home')],

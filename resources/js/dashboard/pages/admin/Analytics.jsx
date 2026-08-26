@@ -52,8 +52,8 @@ function TrendChart({ data = [] }) {
                 <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ height: 'clamp(220px, 28vw, 300px)' }} preserveAspectRatio="none" role="img" aria-label="Tren kunjungan 30 hari">
                     <defs>
                         <linearGradient id="viewsFill" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="var(--color-brand-500, #8b5cf6)" stopOpacity="0.2" />
-                            <stop offset="100%" stopColor="var(--color-brand-500, #8b5cf6)" stopOpacity="0" />
+                            <stop offset="0%" stopColor="var(--color-brand-500)" stopOpacity="0.2" />
+                            <stop offset="100%" stopColor="var(--color-brand-500)" stopOpacity="0" />
                         </linearGradient>
                     </defs>
 

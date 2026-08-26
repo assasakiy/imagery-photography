@@ -1,6 +1,6 @@
 export const MASK = '••••••••';
 
-export const BRAND_PRESETS = ['#7c3aed', '#059669', '#0284c7', '#e11d48', '#d97706', '#18181b'];
+export const BRAND_PRESETS = ['#b08d57', '#18181b', '#e11d48', '#059669', '#0284c7', '#d97706'];
 
 export const BUSINESS_TIMEZONES = [
     { value: 'Asia/Makassar', label: 'Asia/Makassar (WITA, UTC+8)' },
@@ -95,7 +95,7 @@ export const emptyForm = {
     site_description: '',
     site_logo: '',
     site_favicon: '',
-    brand_color: '#7c3aed',
+    brand_color: '#b08d57',
     timezone: 'Asia/Makassar',
     mail_host: '',
     mail_port: '',
@@ -174,7 +174,7 @@ export function normalize(data) {
         site_description: data.site_description || '',
         site_logo: data.site_logo || '',
         site_favicon: data.site_favicon || '',
-        brand_color: data.brand_color || '#7c3aed',
+        brand_color: data.brand_color || '#b08d57',
         timezone: data.timezone || 'Asia/Makassar',
         mail_host: data.mail_host || '',
         mail_port: data.mail_port || '',

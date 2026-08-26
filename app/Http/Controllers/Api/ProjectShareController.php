@@ -81,7 +81,7 @@ class ProjectShareController extends Controller
                 $emailHtml = "Halo <strong>{$name}</strong>,<br><br>" .
                              "Permintaan unduh ulang untuk <strong>{$project->name}</strong> {$statusStr}.<br><br>" .
                              "Akses download dibuka selama <strong>{$days} hari</strong>.<br><br>" .
-                             "<a href='{$url}' style='background: #7c3aed; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;'>Unduh File</a>";
+                             "<a href='{$url}' style='background: #97794b; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;'>Unduh File</a>";
             } else {
                 $waMsg = "Halo {$name}, permintaan unduh ulang untuk *{$project->name}* {$statusStr}.";
 

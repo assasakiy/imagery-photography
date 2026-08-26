@@ -368,7 +368,7 @@ class NotificationService
         $msg = "Hasil pekerjaan untuk pesanan *{$project->name}* sudah siap! Silakan cek pratinjau di dashboard.";
         $html = "Halo <strong>{$project->user->name}</strong>,<br><br>" .
                 "Hasil pekerjaan untuk pesanan <strong>{$project->name}</strong> sudah siap!.<br><br>" .
-                "<a href='" . url($this->orderUrl($project)) . "' style='background: #7c3aed; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;'>Lihat Pratinjau</a>";
+                "<a href='" . url($this->orderUrl($project)) . "' style='background: #97794b; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;'>Lihat Pratinjau</a>";
 
         if (!empty($project->user->phone)) {
             $this->whatsapp($project->user->phone, $msg, null, $project->user, 'order.gallery_ready');
@@ -411,7 +411,7 @@ class NotificationService
         $emailHtml = "Halo <strong>{$project->user->name}</strong>,<br><br>" .
                      "Status pesanan <strong>{$project->name}</strong> Anda diperbarui: <strong>{$statusLabel}</strong>.<br><br>" .
                      "<i>{$message}</i><br><br>" .
-                     "<a href='" . url($this->orderUrl($project)) . "' style='background: #7c3aed; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;'>Lihat Detail</a>";
+                     "<a href='" . url($this->orderUrl($project)) . "' style='background: #97794b; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;'>Lihat Detail</a>";
 
         if (!empty($project->user->phone)) {
             $this->whatsapp($project->user->phone, $waMsg, null, $project->user, 'project.status_changed');
