@@ -33,6 +33,12 @@ RUN apk add --no-cache \
     && docker-php-ext-install -j$(nproc) pdo_mysql mbstring zip exif pcntl gd gmp \
     && docker-php-ext-enable opcache
 
+# Configure PHP-FPM to not clear environment variables
+RUN echo "clear_env = no" >> /usr/local/etc/php-fpm.d/www.conf
+
+# Copy custom PHP ini for upload limits
+COPY docker/php-uploads.ini /usr/local/etc/php/conf.d/uploads.ini
+
 # Copy Nginx config
 COPY docker/nginx.conf /etc/nginx/nginx.conf
 
