@@ -153,11 +153,11 @@
 
     {{-- Section 8: CTA --}}
     <section class="container-site py-20">
-        <div class="rounded-3xl bg-zinc-900 p-8 text-center sm:p-12 dark:bg-zinc-800">
+        <div class="rounded-3xl bg-brand-600 p-8 text-center sm:p-12 dark:bg-brand-700">
             <h2 class="text-2xl font-bold text-white sm:text-3xl">{{ $ctaTitle }}</h2>
-            <p class="mx-auto mt-3 max-w-xl text-sm text-brand-100 sm:text-base">{!! content_html($ctaDescription) !!}</p>
+            <p class="mx-auto mt-3 max-w-xl text-sm text-white/80 sm:text-base">{!! content_html($ctaDescription) !!}</p>
             @if ($ctaButtonText)
-                <a href="{{ $ctaButtonLink }}" target="_blank" rel="noreferrer" class="btn mt-6 bg-white text-brand-700 shadow-lg hover:bg-brand-50">
+                <a href="{{ $ctaButtonLink }}" target="_blank" rel="noreferrer" class="btn mt-6 bg-white text-brand-700 shadow-lg hover:bg-brand-50 dark:bg-zinc-900 dark:text-white dark:hover:bg-zinc-800">
                     {{ $ctaButtonText }}
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14m-7-7 7 7-7 7"/></svg>
                 </a>
