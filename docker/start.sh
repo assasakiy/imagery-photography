@@ -7,7 +7,7 @@ mkdir -p storage/framework/cache/data \
          storage/app/public \
          storage/logs
 
-# Set permissions
+# Set initial permissions
 chown -R www-data:www-data storage bootstrap/cache
 chmod -R 775 storage bootstrap/cache
 
@@ -26,6 +26,10 @@ if [ "$APP_ENV" = "production" ]; then
     php artisan route:cache
     php artisan view:cache
 fi
+
+# Set permissions AGAIN after running artisan commands to ensure generated files (like logs and cache) are writable by www-data
+chown -R www-data:www-data storage bootstrap/cache
+chmod -R 775 storage bootstrap/cache
 
 # Start supervisord to run PHP-FPM, Nginx, and Queue Worker
 exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
