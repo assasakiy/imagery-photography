@@ -107,10 +107,17 @@ Halaman dashboard yang punya beberapa tab **WAJIB** dipisah ke folder `pages/<na
 - **Media Library**: model butuh `$fillable=['id']`; `LandingContent::setValue` pertahankan `group`; reset landing images meninggalkan media orphan (TODO).
 - **Test**: skrip di `/home/opc` (`spa_test.py`, `final_test.py`, `access_test.py`); `/etc/hosts` berisi `127.0.0.1 imagery.my.id`; `/tmp/opencode` TIDAK writable.
 
-## 13. Sesi Terbaru — Refactor Skeleton Presisi
-- **Komponen Layout Spesifik (`5423371`):** folder `components/skeletons/` diperluas dari 3 menjadi 7 varian presisi (StatCards, CardGrid, DataTable, List, Chat, Detail, Chart) — dispatcher `Skeleton.jsx` memetakan varian lama.
-- **Tabel Header Asli (`7d40df5`):** 13 halaman tabel (Clients, AuditLog multi-view, Bookings, dsb) kini memakai `DataTableSkeleton` tanpa header abu-abu palsu. `<thead>` merender teks kolom statis asli, skeleton hanya di baris isi dengan variasi sel presisi (avatar, badge, text, actions).
-- **Migrasi Grid & List (`448a6fd`):** Gallery, Media, Portfolio (sistem `ui/skeleton` lokal dihapus total), Team, Reviews, dll. memakai `CardGridSkeleton` & `ListSkeleton` sesuai rasio aslinya.
-- **Halaman Unik (`7b05372`):** Dashboard (Stat+Chart), Invoices (Stat+CardGrid), Messages (ChatSkeleton 2-panel), OrderDetail (DetailSkeleton) tidak lagi memakai fallback form/table generik. Mencegah layout-shift drastis saat transisi loading → loaded.
+## 13. Sesi Terbaru — Anti-AI-Slop UI Overhaul & Keamanan
 
-*Untuk rincian arsitektural teknis (lifecycle Media, mekanisme RBAC, dan khususnya sistem **progressive loading dashboard**), silakan baca file-file spesifik di direktori `/docs/`.*
+### Keamanan (`f8268b7`, `19a5879`)
+- **Security Headers (`f8268b7`):** Middleware global `SecurityHeaders.php` → HSTS 1 tahun, CSP `self+https`, X-Frame-Options SAMEORIGIN, X-Content-Type-Options nosniff, Referrer-Policy strict-origin-when-cross-origin, `header_remove('X-Powered-By')`.
+- **IDOR Patch (`19a5879`):** `ProjectMediaController::downloadFile/downloadStatus/downloadZip` sekarang menolak akses 403 jika client mengakses proyek user lain. Rute upload/delete tetap aman di `role:owner|admin`.
+
+### Desain Visual Anti-Slop (`9032baa`, `203469e`, `a593772`, `1645e24`)
+- **Palet Bronze:** brand-50..900 berubah dari violet default → champagne/bronze editorial (#b08d57 base). DB `brand_color` di-update. Email buttons pakai `#97794b` (bronze-700).
+- **Font Self-Hosted:** `@fontsource-variable/instrument-sans` & `@fontsource-variable/fraunces` — `--font-display` serif hanya di landing (`<body class="editorial">`).
+- **Tombol Monokrom:** `.btn-primary` = ink/ivory (bukan brand gradient) → editorial luxury. `::selection` pakai ink solid.
+- **Zero Gradient:** semua gradient dekoratif dihapus (CTA, tombol cookie/subscribe, icon chip). CSS mask-image saja dipertahankan.
+- **Detail Craft:** `tabular-nums` pada harga/stat, `transition-[...]` eksplisit (bukan `transition-all`), `.reveal` amplitude 14px + `prefers-reduced-motion` guard + stagger, `text-wrap: balance` pada h1/h2.
+- **Dekorasi AI dihapus:** blob `scale-150` di kartu paket, badge pill `backdrop-blur`, indicator Scroll → minimal chevron, cookie banner `shadow-2xl` di-downgrade ke `shadow-lg rounded-2xl`.
+
