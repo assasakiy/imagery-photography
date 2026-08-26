@@ -19,7 +19,11 @@ class PackageController extends Controller
                 if ($status === 'active') return $q->where('is_active', true);
                 if ($status === 'inactive') return $q->where('is_active', false);
             })
-            ->when($request->input('type'), fn ($q, $type) => $q->where('type', $type))
+            ->when($request->input('type'), function ($q, $type) {
+                if ($type === 'unggulan') return $q->where('is_featured', true);
+                if ($type === 'populer') return $q->having('booking_count', '>', 0);
+                return $q->where('type', $type);
+            })
             ->orderBy('display_order');
 
         return response()->json($query->get()->map(fn ($p) => $this->serialize($p)));
