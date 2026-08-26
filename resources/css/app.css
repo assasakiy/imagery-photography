@@ -207,6 +207,16 @@
         background-color: var(--action-bg-hover);
     }
 
+    .secondary-surface {
+        background-color: var(--secondary-bg);
+        color: var(--secondary-fg);
+    }
+
+    .accent-surface {
+        background-color: var(--accent-bg);
+        color: var(--accent-bg-fg);
+    }
+
     .chip-active {
         background-color: var(--action-bg);
         border-color: var(--action-bg);

@@ -199,6 +199,10 @@ export function applyBrandPalette(primary, secondary, accent) {
     root.setProperty('--action-fg', '#ffffff');
     root.setProperty('--brand-surface', palettes.secondary[800]);
     root.setProperty('--brand-surface-fg', contrastText(palettes.secondary[800]));
+    root.setProperty('--secondary-bg', accessibleBackground(palettes.secondary[600]));
+    root.setProperty('--secondary-fg', '#ffffff');
+    root.setProperty('--accent-bg', accessibleBackground(palettes.accent[600]));
+    root.setProperty('--accent-bg-fg', '#ffffff');
     root.setProperty('--accent-fg', palettes.accent[700]);
     root.setProperty('--accent-soft', palettes.accent[100]);
 }

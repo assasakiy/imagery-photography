@@ -67,8 +67,14 @@ class BrandColors
         $rules .= '--action-bg:' . $actionBg . ';';
         $rules .= '--action-bg-hover:' . $actionHover . ';';
         $rules .= '--action-fg:#ffffff;';
+        $secondaryBg = self::accessibleBackground($secondaryScale['600']);
+        $accentBg = self::accessibleBackground($accentScale['600']);
         $rules .= '--brand-surface:' . $secondaryScale['800'] . ';';
         $rules .= '--brand-surface-fg:' . self::foreground($secondaryScale['800']) . ';';
+        $rules .= '--secondary-bg:' . $secondaryBg . ';';
+        $rules .= '--secondary-fg:#ffffff;';
+        $rules .= '--accent-bg:' . $accentBg . ';';
+        $rules .= '--accent-bg-fg:#ffffff;';
         $rules .= '--accent-fg:' . $accentScale['700'] . ';';
         $rules .= '--accent-soft:' . $accentScale['100'] . ';';
 
