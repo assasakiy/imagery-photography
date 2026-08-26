@@ -31,8 +31,6 @@
                     <tr>
                         <td style="background:#18181b;border-radius:16px;border:1px solid #27272a;overflow:hidden;">
                             {{-- Accent bar --}}
-                            <div style="height:3px;background:linear-gradient(90deg,{{ $brandColor }},{{ $brandColor }}88,transparent);"></div>
-
                             <div style="padding:32px;">
                                 {{-- Greeting --}}
                                 <p style="margin:0 0 6px;font-size:13px;color:#a1a1aa;letter-spacing:0.02em;">Halo,</p>

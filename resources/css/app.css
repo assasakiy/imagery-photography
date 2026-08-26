@@ -454,10 +454,6 @@
         @apply font-semibold text-brand-300 underline underline-offset-2;
     }
 
-    .text-gradient {
-        @apply bg-gradient-to-r from-brand-400 via-brand-500 to-brand-600 bg-clip-text text-transparent;
-    }
-
     .no-scrollbar {
         -ms-overflow-style: none;
         scrollbar-width: none;

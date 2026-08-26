@@ -5,11 +5,9 @@
 @if ($cookieBannerEnabled)
 <div id="cookie-consent" class="fixed inset-x-4 bottom-4 z-[60] mx-auto max-w-xl sm:inset-x-6 sm:bottom-6" data-cookie-consent hidden>
     <div class="animate-cookie-in relative overflow-hidden rounded-3xl border border-line/80 bg-white/85 shadow-2xl shadow-zinc-950/20 ring-1 ring-black/5 backdrop-blur-xl dark:bg-zinc-900/85 dark:shadow-black/50 dark:ring-white/10">
-        <div class="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-brand-500/60 to-transparent"></div>
-
         <div class="p-6 sm:p-7">
             <div class="flex items-start gap-4">
-                <div class="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-500 to-brand-700 text-white shadow-lg shadow-brand-600/30">
+                <div class="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-brand-600 text-white shadow-sm">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 1 0 10 10 4 4 0 0 1-5-5 4 4 0 0 1-5-5" /><path d="M8.5 8.5v.01M16 15.5v.01M12 12v.01M11 17v.01M7 14v.01" /></svg>
                 </div>
                 <div class="min-w-0 flex-1">
@@ -50,7 +48,7 @@
             </div>
 
             <div class="mt-6 flex flex-col gap-2.5 sm:flex-row" data-cookie-actions>
-                <button type="button" data-cookie-accept class="flex-1 rounded-xl bg-gradient-to-r from-brand-600 to-brand-700 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-brand-600/25 transition-all duration-200 hover:brightness-110 active:scale-[0.98]">
+                <button type="button" data-cookie-accept class="flex-1 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-[background-color,box-shadow] duration-200 hover:bg-brand-700 active:scale-[0.98]">
                     <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="mr-1.5 inline-block -translate-y-px"><path d="M20 6 9 17l-5-5" /></svg>
                     Terima Semua
                 </button>
@@ -65,7 +63,7 @@
             </div>
 
             <div class="mt-2 hidden grid grid-cols-2 gap-2.5" data-cookie-custom-actions>
-                <button type="button" data-cookie-save class="rounded-xl bg-gradient-to-r from-brand-600 to-brand-700 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-brand-600/25 transition-all duration-200 hover:brightness-110 active:scale-[0.98]">
+                <button type="button" data-cookie-save class="rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-[background-color,box-shadow] duration-200 hover:bg-brand-700 active:scale-[0.98]">
                     Simpan Preferensi
                 </button>
                 <button type="button" data-cookie-back class="rounded-xl border border-line bg-surface/60 px-4 py-2.5 text-sm font-semibold text-ink transition-colors duration-200 hover:bg-surface-muted active:scale-[0.98]">

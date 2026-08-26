@@ -153,7 +153,7 @@
 
     {{-- Section 8: CTA --}}
     <section class="container-site py-20">
-        <div class="rounded-3xl bg-gradient-to-r from-brand-700 via-brand-600 to-brand-500 p-8 text-center sm:p-12">
+        <div class="rounded-3xl bg-zinc-900 p-8 text-center sm:p-12 dark:bg-zinc-800">
             <h2 class="text-2xl font-bold text-white sm:text-3xl">{{ $ctaTitle }}</h2>
             <p class="mx-auto mt-3 max-w-xl text-sm text-brand-100 sm:text-base">{!! content_html($ctaDescription) !!}</p>
             @if ($ctaButtonText)

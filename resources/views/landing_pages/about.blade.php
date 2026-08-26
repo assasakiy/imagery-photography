@@ -34,7 +34,7 @@
                         <p class="text-5xl font-semibold tracking-tight text-ink tabular-nums">
                             <span class="stat-count" data-final="{{ $stat->resolved_value }}">0</span><span class="text-2xl text-brand-600 dark:text-brand-400">{{ $stat->suffix }}</span>
                         </p>
-                        <div class="mx-auto mt-4 mb-3 h-px w-12 bg-gradient-to-r from-brand-600 to-brand-400"></div>
+                        <div class="mx-auto mt-4 mb-3 h-px w-12 bg-brand-600"></div>
                         <p class="text-xs uppercase tracking-widest text-ink-muted">{{ $stat->label }}</p>
                     </div>
                 @endforeach

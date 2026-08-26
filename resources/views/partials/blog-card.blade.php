@@ -19,7 +19,7 @@
         @if ($cover)
             <img src="{{ $cover }}" alt="{{ $post->title }}" width="400" height="225" loading="lazy" decoding="async" sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw" class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]">
         @else
-            <div class="flex h-full w-full items-center justify-center bg-gradient-to-br from-brand-600/5 via-brand-600/10 to-surface-muted">
+            <div class="flex h-full w-full items-center justify-center bg-surface-muted">
                 <div class="grid grid-cols-2 gap-2 opacity-30">
                     <div class="h-6 w-6 rounded bg-brand-600/15"></div>
                     <div class="mt-2 h-6 w-6 rounded bg-brand-600/15"></div>
