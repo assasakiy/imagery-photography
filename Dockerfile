@@ -10,7 +10,7 @@ WORKDIR /app
 COPY composer.json composer.lock ./
 RUN composer install --no-scripts --no-autoloader --prefer-dist --no-dev --ignore-platform-reqs
 COPY . .
-RUN composer dump-autoload --optimize
+RUN composer dump-autoload --optimize --no-scripts
 
 FROM php:8.3-fpm-alpine
 WORKDIR /var/www/html

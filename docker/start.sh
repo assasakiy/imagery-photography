@@ -11,6 +11,9 @@ mkdir -p storage/framework/cache/data \
 chown -R www-data:www-data storage bootstrap/cache
 chmod -R 775 storage bootstrap/cache
 
+# Run package discovery
+php artisan package:discover --ansi
+
 # Run optimizations if in production
 if [ "$APP_ENV" = "production" ]; then
     php artisan config:cache
