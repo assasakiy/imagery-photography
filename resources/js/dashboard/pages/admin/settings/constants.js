@@ -1,6 +1,10 @@
 export const MASK = '••••••••';
 
-export const BRAND_PRESETS = ['#b08d57', '#18181b', '#e11d48', '#059669', '#0284c7', '#d97706'];
+export const BRAND_PALETTES = [
+    { key: 'editorial', label: 'Editorial', description: 'Bronze, hitam, champagne', primary: '#b08d57', secondary: '#18181b', accent: '#d1bd9e' },
+    { key: 'modern', label: 'Modern', description: 'Biru, navy, cyan', primary: '#2563eb', secondary: '#172554', accent: '#06b6d4' },
+    { key: 'natural', label: 'Natural', description: 'Hijau, arang, amber', primary: '#15803d', secondary: '#292524', accent: '#d97706' },
+];
 
 export const BUSINESS_TIMEZONES = [
     { value: 'Asia/Makassar', label: 'Asia/Makassar (WITA, UTC+8)' },
@@ -96,6 +100,10 @@ export const emptyForm = {
     site_logo: '',
     site_favicon: '',
     brand_color: '#b08d57',
+    brand_primary_color: '#b08d57',
+    brand_secondary_color: '#18181b',
+    brand_accent_color: '#d1bd9e',
+    brand_palette_template: 'editorial',
     timezone: 'Asia/Makassar',
     mail_host: '',
     mail_port: '',
@@ -141,19 +149,43 @@ export const emptyForm = {
     rate_limits: {},
 };
 
-export function applyBrandColor(hex) {
-    if (!/^#[0-9a-fA-F]{6}$/.test(hex)) return;
+function colorScale(hex) {
+    if (!/^#[0-9a-fA-F]{6}$/.test(hex)) return null;
     const rgb = [parseInt(hex.slice(1, 3), 16), parseInt(hex.slice(3, 5), 16), parseInt(hex.slice(5, 7), 16)];
     const mix = (ratio, target) => rgb.map((c, i) => Math.round(c + (target[i] - c) * ratio));
     const hexify = (a) => '#' + a.map((v) => v.toString(16).padStart(2, '0')).join('');
-    const W = [255, 255, 255];
-    const B = [0, 0, 0];
     const ratios = { 50: 0.96, 100: 0.9, 200: 0.8, 300: 0.65, 400: 0.42, 500: 0.18, 700: 0.14, 800: 0.3, 900: 0.48 };
-    const root = document.documentElement.style;
-    root.setProperty('--color-brand-600', hex);
+    const scale = { 600: hex };
     for (const [shade, ratio] of Object.entries(ratios)) {
-        root.setProperty('--color-brand-' + shade, hexify(mix(ratio, shade < 600 ? W : B)));
+        scale[shade] = hexify(mix(ratio, shade < 600 ? [255, 255, 255] : [0, 0, 0]));
     }
+    return scale;
+}
+
+export function contrastText(hex) {
+    const rgb = [parseInt(hex.slice(1, 3), 16), parseInt(hex.slice(3, 5), 16), parseInt(hex.slice(5, 7), 16)];
+    const luminance = rgb.reduce((sum, channel, i) => {
+        const value = channel / 255;
+        const linear = value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4;
+        return sum + linear * [0.2126, 0.7152, 0.0722][i];
+    }, 0);
+    return luminance > 0.179 ? '#18181b' : '#ffffff';
+}
+
+export function applyBrandPalette(primary, secondary, accent) {
+    const palettes = { brand: colorScale(primary), primary: colorScale(primary), secondary: colorScale(secondary), accent: colorScale(accent) };
+    if (Object.values(palettes).some((scale) => !scale)) return;
+    const root = document.documentElement.style;
+    for (const [name, scale] of Object.entries(palettes)) {
+        for (const [shade, value] of Object.entries(scale)) root.setProperty(`--color-${name}-${shade}`, value);
+    }
+    root.setProperty('--action-bg', palettes.primary[600]);
+    root.setProperty('--action-bg-hover', palettes.primary[700]);
+    root.setProperty('--action-fg', contrastText(palettes.primary[600]));
+    root.setProperty('--brand-surface', palettes.secondary[800]);
+    root.setProperty('--brand-surface-fg', contrastText(palettes.secondary[800]));
+    root.setProperty('--accent-fg', palettes.accent[700]);
+    root.setProperty('--accent-soft', palettes.accent[100]);
 }
 
 export function statusBadge(ok, onLabel, offLabel) {
@@ -174,7 +206,11 @@ export function normalize(data) {
         site_description: data.site_description || '',
         site_logo: data.site_logo || '',
         site_favicon: data.site_favicon || '',
-        brand_color: data.brand_color || '#b08d57',
+        brand_color: data.brand_primary_color || data.brand_color || '#b08d57',
+        brand_primary_color: data.brand_primary_color || data.brand_color || '#b08d57',
+        brand_secondary_color: data.brand_secondary_color || '#18181b',
+        brand_accent_color: data.brand_accent_color || '#d1bd9e',
+        brand_palette_template: data.brand_palette_template || 'editorial',
         timezone: data.timezone || 'Asia/Makassar',
         mail_host: data.mail_host || '',
         mail_port: data.mail_port || '',

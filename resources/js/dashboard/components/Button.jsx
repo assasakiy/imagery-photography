@@ -10,7 +10,7 @@ export function InlineSpinner({ size = 16, className = '' }) {
 }
 
 const VARIANTS = {
-    primary: 'bg-brand-600 text-white shadow-lg shadow-brand-600/25 hover:bg-brand-700',
+    primary: '[background-color:var(--action-bg)] [color:var(--action-fg)] shadow-lg shadow-brand-600/25 hover:[background-color:var(--action-bg-hover)]',
     dark: 'bg-zinc-900 text-white hover:bg-zinc-800 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200',
     outline: 'border border-line bg-transparent text-ink hover:bg-surface-muted',
     ghost: 'text-ink-muted hover:bg-surface-muted hover:text-ink',

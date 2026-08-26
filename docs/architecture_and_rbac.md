@@ -7,6 +7,12 @@ Proyek ini merupakan Monolith Laravel 13 yang menyajikan dua sisi:
 - **Sistem Layer**: `Routes` -> `Controllers` -> `Services` (`app/Services/`) -> `Models`. 
 - Logika eksternal (notifikasi, integrasi) ditaruh secara pluggable di `/app/Services/` (contoh: `WhatsAppDriverRegistry`).
 
+## Sistem Palet Brand
+- Pengaturan branding menyediakan tiga template (`editorial`, `modern`, `natural`) dan satu mode `custom`.
+- Setiap palet mempunyai `primary` untuk aksi utama, `secondary` untuk permukaan CTA, dan `accent` untuk highlight.
+- Nilai disimpan sebagai settings key-value: `brand_primary_color`, `brand_secondary_color`, `brand_accent_color`, dan `brand_palette_template`; `brand_color` lama tetap menjadi fallback primary.
+- `BrandColors` menghasilkan scale runtime dan token semantik `--action-*`, `--brand-surface-*`, serta `--accent-*`. Foreground terang/gelap dipilih otomatis berdasarkan luminance agar teks tidak bertabrakan dengan background.
+
 ## Otentikasi & RBAC
 - **Library Utama**: Menggunakan `spatie/laravel-permission`. Tidak memakai kolom hardcode `role` lama (sudah migrasi).
 - **Role yang Tersedia**:

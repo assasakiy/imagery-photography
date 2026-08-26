@@ -42,16 +42,47 @@ class BrandColors
         ];
     }
 
-    public static function css(string $hex): string
+    public static function css(string $primary, ?string $secondary = null, ?string $accent = null): string
     {
-        $scale = self::scale($hex);
+        $primaryScale = self::scale($primary);
+        $secondaryScale = self::scale($secondary ?: '#18181b');
+        $accentScale = self::scale($accent ?: '#d1bd9e');
         $rules = ':root{';
 
-        foreach ($scale as $shade => $value) {
+        foreach ($primaryScale as $shade => $value) {
             $rules .= '--color-brand-' . $shade . ':' . $value . ';';
+            $rules .= '--color-primary-' . $shade . ':' . $value . ';';
         }
 
+        foreach ($secondaryScale as $shade => $value) {
+            $rules .= '--color-secondary-' . $shade . ':' . $value . ';';
+        }
+
+        foreach ($accentScale as $shade => $value) {
+            $rules .= '--color-accent-' . $shade . ':' . $value . ';';
+        }
+
+        $rules .= '--action-bg:' . $primaryScale['600'] . ';';
+        $rules .= '--action-bg-hover:' . $primaryScale['700'] . ';';
+        $rules .= '--action-fg:' . self::foreground($primaryScale['600']) . ';';
+        $rules .= '--brand-surface:' . $secondaryScale['800'] . ';';
+        $rules .= '--brand-surface-fg:' . self::foreground($secondaryScale['800']) . ';';
+        $rules .= '--accent-fg:' . $accentScale['700'] . ';';
+        $rules .= '--accent-soft:' . $accentScale['100'] . ';';
+
         return $rules . '}';
+    }
+
+    public static function foreground(string $hex): string
+    {
+        $rgb = self::hexToRgb($hex) ?? [255, 255, 255];
+        $luminance = array_sum(array_map(function ($channel, $weight) {
+            $value = $channel / 255;
+            $linear = $value <= 0.04045 ? $value / 12.92 : (($value + 0.055) / 1.055) ** 2.4;
+            return $linear * $weight;
+        }, $rgb, [0.2126, 0.7152, 0.0722]));
+
+        return $luminance > 0.179 ? '#18181b' : '#ffffff';
     }
 
     private static function hexToRgb(string $hex): ?array

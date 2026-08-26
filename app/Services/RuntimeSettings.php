@@ -265,9 +265,27 @@ class RuntimeSettings
 
     public function brandColor(): string
     {
-        $db = $this->get('brand_color');
+        return $this->brandPrimaryColor();
+    }
 
-        return !empty($db) ? $db : '#b08d57';
+    public function brandPrimaryColor(): string
+    {
+        return $this->get('brand_primary_color') ?: $this->get('brand_color') ?: '#b08d57';
+    }
+
+    public function brandSecondaryColor(): string
+    {
+        return $this->get('brand_secondary_color') ?: '#18181b';
+    }
+
+    public function brandAccentColor(): string
+    {
+        return $this->get('brand_accent_color') ?: '#d1bd9e';
+    }
+
+    public function brandPaletteTemplate(): string
+    {
+        return $this->get('brand_palette_template') ?: ($this->get('brand_color') ? 'custom' : 'editorial');
     }
 
     public function googleAuthEnabled(): bool

@@ -107,23 +107,15 @@ Halaman dashboard yang punya beberapa tab **WAJIB** dipisah ke folder `pages/<na
 - **Media Library**: model butuh `$fillable=['id']`; `LandingContent::setValue` pertahankan `group`; reset landing images meninggalkan media orphan (TODO).
 - **Test**: skrip di `/home/opc` (`spa_test.py`, `final_test.py`, `access_test.py`); `/etc/hosts` berisi `127.0.0.1 imagery.my.id`; `/tmp/opencode` TIDAK writable.
 
-## 13. Sesi Terbaru — PWA + Web Push
+## 13. Sesi Terbaru — Palet Brand Tiga Warna
 
-- **Scope PWA:** Hanya dashboard + auth (`/dashboard`, `/login`, `/register`) — semuanya me-render view `app.blade.php`, jadi manifest + SW registration cukup di-inject di satu view itu. Situs publik Blade SSR tidak tersentuh (tidak dapat install prompt).
-- **Manifest dinamis:** Route `/manifest.webmanifest` → name/short_name/theme_color dari `RuntimeSettings` (ikut branding DB). start_url `/dashboard`, scope `/`, display standalone, shortcuts Pesanan & Pesan. Icons: `public/icons/pwa-{192,512,maskable-512}.png` digenerate dari logo asli media:56 via `scripts/generate-pwa-icons.php`.
-- **Service Worker:** `public/sw.js` versi `v2` — navigasi network-first→cache→`/offline`; aset `/build/*` & gambar/font stale-while-revalidate; **tidak pernah** cache `/api/*` dan non-GET. Offline page: route `/offline` + view `errors/offline.blade.php`.
-- **Guard dev:** SW hanya register di https/localhost — cegah error console saat dev via IP HTTP.
+- **Pilihan settings:** Branding menyediakan tiga template siap pakai (`Editorial`, `Modern`, `Natural`) dan satu pilihan `Custom`.
+- **Peran warna:** `primary` untuk tombol/aksi utama, `secondary` untuk background CTA, `accent` untuk label dan highlight.
+- **Penyimpanan:** settings key-value `brand_primary_color`, `brand_secondary_color`, `brand_accent_color`, dan `brand_palette_template`; `brand_color` lama tetap menjadi fallback agar konfigurasi lama aman.
+- **Runtime CSS:** `BrandColors` menghasilkan scale primary/secondary/accent serta token semantik `--action-*`, `--brand-surface-*`, dan `--accent-*` untuk Blade dan React.
+- **Kontras:** foreground tombol dan CTA otomatis memilih zinc gelap atau putih berdasarkan luminance warna background.
+- **Adopsi awal:** shared `.btn-primary`, React `Button` primary, dan CTA halaman layanan sudah memakai token semantik.
+- **Verifikasi:** PHP syntax, palette self-check, `git diff --check`, dan build Vite sukses. `composer test` masih punya dua kegagalan lama: `ApiThrottleTest::test_record_manual` serta `ExampleTest` karena SQLite test tidak memiliki tabel `pages`.
 
-### Web Push (fitur baru)
-- **VAPID keys:** `.env` `VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` / `VAPID_SUBJECT`. Generated via `minishlink/web-push` v8.
-- **Migration:** `push_subscriptions` — user_id, endpoint (500), public_key, auth_token, content_encoding, is_active. Unique (user_id, endpoint). Cascade delete on user.
-- **Model:** `App\Models\PushSubscription` — `scopeActive`, relationship `User::pushSubscriptions()`.
-- **API:** `GET /api/push/vapid-key` → `{publicKey}`, `POST /api/push/subscribe` → `{endpoint, publicKey, authToken, contentEncoding}`, `POST /api/push/unsubscribe` → `{endpoint}`.
-- **sw.js push handler:** `self.addEventListener('push')` tampilkan notif dengan icon bronze `/icons/pwa-192.png`, badge same, vibrate `[100,50,100]`. `notificationclick` → fokus tab existing atau `openWindow(url)`. Badge via `SET_BADGE` message dari BadgeContext.
-- **BadgeContext:** Listener `message` dari SW (`BADGE_REFRESH`). `setAppBadge(count)` via Badging API (navigator + SW). Updated setiap refresh.
-- **PushPrompt.jsx:** Dialog halus di Dashboard (admin + client) — tampil sekali, dismiss persistent via `localStorage('imagery_push_denied')`. iOS 16.4+ hanya muncul jika sudah install ke Home Screen (`display-mode: standalone`).
-- **usePushSubscription.js:** Hook — subscribe via `Notification.requestPermission()` → `pushManager.subscribe()` → POST `/api/push/subscribe`. Unsubscribe via delete + `pushManager.unsubscribe()`.
-- **NotificationService:** `CHANNEL_EVENTS['push']` = semua event user-facing. Method `webPush()` kirim ke semua `active()` subscriptions user via `Minishlink\WebPush\WebPush::sendOneNotification()`. Otomatis nonaktifkan subscription expired (`isSubscriptionExpired`). Dipanggil otomatis dari `inApp()` (setiap notif in-app juga push) dan `send()` (generic NotificationType).
-
-*Riwayat sesi sebelumnya (anti-AI-slop UI overhaul, security headers) ada di Git history.*
+*Rincian arsitektur palet ada di `docs/architecture_and_rbac.md`. Riwayat sesi sebelumnya ada di Git history.*
 

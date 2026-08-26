@@ -2,7 +2,7 @@ import Icon from '../../../components/Icon';
 import Button from '../../../components/Button';
 import RichEditor from '../../../components/RichEditor';
 import { Field } from '../../../components/ui';
-import { BRAND_PRESETS, BUSINESS_TIMEZONES, TAB_FIELDS } from './constants';
+import { BRAND_PALETTES, BUSINESS_TIMEZONES, TAB_FIELDS, contrastText } from './constants';
 
 export default function BrandingTab({ form, meta, errors, saving, set, save, dirty, mediaFor, setMediaFor, previewUrls, setPreviewUrls, dirtyColor }) {
     return (
@@ -66,50 +66,86 @@ export default function BrandingTab({ form, meta, errors, saving, set, save, dir
 
             <div className="card w-full p-6">
                 <div className="mb-5">
-                    <h2 className="font-semibold text-ink">Warna Brand</h2>
-                    <p className="text-xs text-ink-muted">Warna utama website & dashboard.</p>
+                    <h2 className="font-semibold text-ink">Palet Brand</h2>
+                    <p className="text-xs text-ink-muted">Pilih template siap pakai atau atur tiga warna sendiri.</p>
                 </div>
-                <Field label="Warna Brand" error={errors.brand_color?.[0]}>
-                    <div className="flex flex-wrap items-center gap-3">
-                        {BRAND_PRESETS.map((color) => (
-                            <button
-                                key={color}
-                                type="button"
-                                onClick={() => set('brand_color', color)}
-                                className={`h-9 w-9 rounded-full ring-2 transition-transform ${
-                                    form.brand_color === color ? 'ring-ink scale-110' : 'ring-transparent hover:scale-105'
-                                }`}
-                                style={{ backgroundColor: color }}
-                                aria-label={color}
-                            />
-                        ))}
-                        <label className="flex items-center gap-2 rounded-xl border border-line px-3 py-2 text-sm text-ink-muted hover:bg-surface-muted">
-                            <span className="h-5 w-5 rounded-md border border-line" style={{ backgroundColor: form.brand_color }} />
-                            <input
-                                type="color"
-                                className="h-0 w-0 opacity-0"
-                                value={/^#[0-9a-f]{6}$/i.test(form.brand_color) ? form.brand_color : '#b08d57'}
-                                onChange={(e) => set('brand_color', e.target.value)}
-                            />
-                            <span className="font-mono">{form.brand_color}</span>
-                        </label>
+                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                    {BRAND_PALETTES.map((palette) => (
+                        <PaletteOption key={palette.key} palette={palette} form={form} set={set} />
+                    ))}
+                    <button
+                        type="button"
+                        onClick={() => set('brand_palette_template', 'custom')}
+                        className={`rounded-xl border p-4 text-left transition-colors ${form.brand_palette_template === 'custom' ? 'border-brand-500 bg-brand-500/5' : 'border-line hover:bg-surface-muted'}`}
+                    >
+                        <div className="mb-3 flex h-7 items-center gap-1">
+                            <span className="h-7 w-7 rounded-full border border-line bg-[conic-gradient(#e11d48,#d97706,#059669,#0284c7,#e11d48)]" />
+                        </div>
+                        <p className="text-sm font-semibold text-ink">Custom</p>
+                        <p className="mt-1 text-xs text-ink-muted">Pilih warna sendiri</p>
+                    </button>
+                </div>
+
+                {form.brand_palette_template === 'custom' && (
+                    <div className="mt-5 grid gap-4 sm:grid-cols-3">
+                        <ColorPicker label="Primary" hint="Tombol & navigasi aktif" field="brand_primary_color" form={form} set={set} error={errors.brand_primary_color?.[0]} />
+                        <ColorPicker label="Secondary" hint="Background CTA & section" field="brand_secondary_color" form={form} set={set} error={errors.brand_secondary_color?.[0]} />
+                        <ColorPicker label="Accent" hint="Ikon, label & highlight" field="brand_accent_color" form={form} set={set} error={errors.brand_accent_color?.[0]} />
                     </div>
-                </Field>
-                <div className="mt-4 rounded-xl border border-line bg-surface-muted/50 p-4">
-                    <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-ink-muted">Pratinjau</p>
-                    <div className="flex flex-wrap items-center gap-3">
-                        <span className="rounded-lg px-3 py-1.5 text-sm font-semibold text-white" style={{ backgroundColor: form.brand_color }}>Tombol</span>
-                        <span className="rounded-lg px-3 py-1.5 text-sm font-semibold" style={{ backgroundColor: 'color-mix(in srgb, ' + form.brand_color + ' 15%, transparent)', color: form.brand_color }}>Chip</span>
-                        <span className="text-sm font-medium text-ink-muted">Teks <span style={{ color: form.brand_color }}>berwarna</span></span>
+                )}
+
+                <div className="mt-5 overflow-hidden rounded-xl border border-line">
+                    <div className="p-5" style={{ backgroundColor: form.brand_secondary_color, color: contrastText(form.brand_secondary_color) }}>
+                        <p className="text-lg font-bold">Pratinjau CTA</p>
+                        <p className="mt-1 text-sm opacity-75">Primary, secondary, dan accent bekerja sesuai perannya.</p>
+                        <div className="mt-4 flex flex-wrap items-center gap-3">
+                            <span className="rounded-lg px-3 py-1.5 text-sm font-semibold" style={{ backgroundColor: form.brand_primary_color, color: contrastText(form.brand_primary_color) }}>Tombol utama</span>
+                            <span className="rounded-full px-3 py-1 text-xs font-semibold" style={{ backgroundColor: form.brand_accent_color, color: contrastText(form.brand_accent_color) }}>Accent</span>
+                        </div>
                     </div>
                 </div>
                 <div className="mt-6 flex justify-end border-t border-line pt-5">
-                    <Button icon="check" loading={saving} disabled={!dirtyColor} onClick={() => save(['brand_color'])}>Simpan Warna</Button>
+                    <Button icon="check" loading={saving} disabled={!dirtyColor} onClick={() => save(['brand_palette_template', 'brand_primary_color', 'brand_secondary_color', 'brand_accent_color'])}>Simpan Palet</Button>
                 </div>
             </div>
 
             <RegionalSettings form={form} errors={errors} saving={saving} set={set} save={save} dirty={dirty} />
         </div>
+    );
+}
+
+function PaletteOption({ palette, form, set }) {
+    const active = form.brand_palette_template === palette.key;
+    const select = () => {
+        set('brand_palette_template', palette.key);
+        set('brand_primary_color', palette.primary);
+        set('brand_secondary_color', palette.secondary);
+        set('brand_accent_color', palette.accent);
+    };
+
+    return (
+        <button type="button" onClick={select} className={`rounded-xl border p-4 text-left transition-colors ${active ? 'border-brand-500 bg-brand-500/5' : 'border-line hover:bg-surface-muted'}`}>
+            <div className="mb-3 flex -space-x-1">
+                {[palette.primary, palette.secondary, palette.accent].map((color) => (
+                    <span key={color} className="h-7 w-7 rounded-full border-2 border-surface" style={{ backgroundColor: color }} />
+                ))}
+            </div>
+            <p className="text-sm font-semibold text-ink">{palette.label}</p>
+            <p className="mt-1 text-xs text-ink-muted">{palette.description}</p>
+        </button>
+    );
+}
+
+function ColorPicker({ label, hint, field, form, set, error }) {
+    return (
+        <Field label={label} hint={hint} error={error}>
+            <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-line bg-surface px-3 py-2.5 hover:bg-surface-muted">
+                <span className="h-8 w-8 shrink-0 rounded-lg border border-line" style={{ backgroundColor: form[field] }} />
+                <span className="min-w-0 flex-1 truncate font-mono text-sm text-ink">{form[field]}</span>
+                <input type="color" className="h-0 w-0 opacity-0" value={form[field]} onChange={(e) => set(field, e.target.value)} />
+                <Icon name="edit-3" size={15} className="text-ink-muted" />
+            </label>
+        </Field>
     );
 }
 

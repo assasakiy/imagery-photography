@@ -12,7 +12,7 @@ import NotificationsTab from './NotificationsTab';
 import PaymentTab from './PaymentTab';
 import SecurityTab from './SecurityTab';
 import MaintenanceTab from './MaintenanceTab';
-import { TABS, TAB_FIELDS, emptyForm, normalize, applyBrandColor, pickValue } from './constants';
+import { TABS, TAB_FIELDS, emptyForm, normalize, applyBrandPalette, pickValue } from './constants';
 
 export default function Settings() {
     const [tab, setTab] = useState('branding');
@@ -49,7 +49,10 @@ export default function Settings() {
     const pickBase = (f) => {
         const b = {};
         for (const t of Object.values(TAB_FIELDS)) for (const k of t) b[k] = f[k];
-        b.brand_color = f.brand_color || '#b08d57';
+        b.brand_primary_color = f.brand_primary_color || '#b08d57';
+        b.brand_secondary_color = f.brand_secondary_color || '#18181b';
+        b.brand_accent_color = f.brand_accent_color || '#d1bd9e';
+        b.brand_palette_template = f.brand_palette_template || 'editorial';
         b.email_events = f.email_events || [];
         b.whatsapp_events = f.whatsapp_events || [];
         b.inapp_events = f.inapp_events || [];
@@ -89,7 +92,8 @@ export default function Settings() {
     };
 
     const dirty = (keys) => keys.some((k) => JSON.stringify(form[k]) !== JSON.stringify(base[k]));
-    const dirtyColor = form.brand_color !== base.brand_color;
+    const dirtyColor = ['brand_primary_color', 'brand_secondary_color', 'brand_accent_color', 'brand_palette_template']
+        .some((key) => form[key] !== base[key]);
 
     const save = async (keys, overrides = {}) => {
         setSaving(true);
@@ -98,7 +102,9 @@ export default function Settings() {
         for (const k of keys) payload[k] = overrides?.[k] ?? form[k];
         try {
             await api.put('/settings', payload);
-            if (keys.includes('brand_color')) applyBrandColor(form.brand_color);
+            if (keys.includes('brand_primary_color')) {
+                applyBrandPalette(form.brand_primary_color, form.brand_secondary_color, form.brand_accent_color);
+            }
             const reload = await api.get('/settings');
             setMeta(reload.data);
             const next = normalize(reload.data);
