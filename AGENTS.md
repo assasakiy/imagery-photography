@@ -107,11 +107,12 @@ Halaman dashboard yang punya beberapa tab **WAJIB** dipisah ke folder `pages/<na
 - **Media Library**: model butuh `$fillable=['id']`; `LandingContent::setValue` pertahankan `group`; reset landing images meninggalkan media orphan (TODO).
 - **Test**: skrip di `/home/opc` (`spa_test.py`, `final_test.py`, `access_test.py`); `/etc/hosts` berisi `127.0.0.1 imagery.my.id`; `/tmp/opencode` TIDAK writable.
 
-## 13. Sesi Terbaru — Animasi Reveal Staggered Multi-arah
+## 13. Sesi Terbaru — Editorial Site Brand Name
 
-- Logika Intersection Observer pada `ui.js` ditingkatkan dengan fitur batching delay. Elemen yang masuk viewport secara bersamaan kini menerima delay proporsional (`--reveal-delay`), sehingga muncul bergantian secara *staggered* alih-alih meletup sekaligus.
-- CSS `.reveal` ditambahkan variasi modifier arah dan efek: `reveal-left`, `reveal-right`, dan `reveal-scale`. `is-visible` sekarang me-reset seluruh fungsi transform untuk kompatibilitas yang lebih fleksibel.
-- Berbagai halaman (Home, About, Services, Contact, Booking, Blog) telah diperbarui dengan penerapan modifier `reveal-*` ini, menyajikan animasi modern saling silang (seperti form yang masuk dari sisi berlawanan) dan skala.
+- Tipografi nama situs (contoh: "Sopian Lalu Imagery") diperbarui dari sans-serif tebal ke font editorial **Fraunces** (`var(--font-display)`).
+- Kata terakhir dalam nama situs diberi style lebih elegan dengan memadukan `italic`, warna brand, dan weight yang sedikit lebih ringan.
+- Menu navigasi dan elemen UI lainnya tetap konsisten memakai font sans utama (Instrument Sans).
+- Perubahan ini otomatis diaplikasikan di bagian navbar dan footer.
 
 *Rincian arsitektur ada di `docs/architecture_and_rbac.md`. Riwayat sesi sebelumnya ada di Git history.*
 
