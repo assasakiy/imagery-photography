@@ -48,7 +48,7 @@
                                                 <span class="block text-xs text-ink-muted/70">{{ $svc->duration }}</span>
                                             @endif
                                         </span>
-                                        <span class="font-bold text-brand-600 dark:text-brand-400">Rp {{ number_format($svc->price, 0, ',', '.') }}</span>
+                                        <span class="font-bold tabular-nums text-brand-600 dark:text-brand-400">Rp {{ number_format($svc->price, 0, ',', '.') }}</span>
                                     </li>
                                 @endforeach
                             </ul>
@@ -78,7 +78,7 @@
                                 <p class="text-xs text-ink-muted line-through">Rp {{ number_format($pkg->basePrice(), 0, ',', '.') }}</p>
                                 <p class="text-xs font-semibold text-emerald-600 dark:text-emerald-400">Hemat Rp {{ number_format($pkg->discountValue(), 0, ',', '.') }}</p>
                             @endif
-                            <span class="text-lg font-bold text-brand-600 dark:text-brand-400">Rp {{ number_format($pkg->computedPrice(), 0, ',', '.') }}</span>
+                            <span class="text-lg font-bold tabular-nums text-brand-600 dark:text-brand-400">Rp {{ number_format($pkg->computedPrice(), 0, ',', '.') }}</span>
                         </div>
                     </div>
                 @endforeach
@@ -106,7 +106,7 @@
                                     <p class="text-xs text-ink-muted line-through">Rp {{ number_format($pkg->basePrice(), 0, ',', '.') }}</p>
                                     <p class="text-xs font-semibold text-emerald-600 dark:text-emerald-400">Hemat Rp {{ number_format($pkg->discountValue(), 0, ',', '.') }}</p>
                                 @endif
-                                <span class="text-lg font-bold text-brand-600 dark:text-brand-400">Rp {{ number_format($pkg->computedPrice(), 0, ',', '.') }}</span>
+                                <span class="text-lg font-bold tabular-nums text-brand-600 dark:text-brand-400">Rp {{ number_format($pkg->computedPrice(), 0, ',', '.') }}</span>
                             </div>
                         </div>
                     @endforeach

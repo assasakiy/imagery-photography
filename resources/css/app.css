@@ -250,7 +250,7 @@
     }
 
     .rating-carousel-btn {
-        @apply absolute top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-line bg-surface/90 text-ink shadow-lg backdrop-blur transition-all duration-200 hover:border-brand-600 hover:bg-brand-600 hover:text-white disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-line disabled:hover:bg-surface/90 disabled:hover:text-ink;
+        @apply absolute top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-line bg-surface/90 text-ink shadow-lg backdrop-blur transition-[background-color,border-color,color] duration-200 hover:border-brand-600 hover:bg-brand-600 hover:text-white disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-line disabled:hover:bg-surface/90 disabled:hover:text-ink;
     }
 
     .rating-carousel-btn--prev {
@@ -320,7 +320,7 @@
     }
 
     .dropdown-panel {
-        @apply origin-top-right scale-95 opacity-0 -translate-y-1 transition-all duration-200 ease-out pointer-events-none;
+        @apply origin-top-right scale-95 opacity-0 -translate-y-1 transition-[opacity,transform] duration-200 ease-out pointer-events-none;
     }
 
     .dropdown-panel.is-open {

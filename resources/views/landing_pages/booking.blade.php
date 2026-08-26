@@ -135,7 +135,7 @@
                                         <input type="checkbox" name="service_ids[]" value="{{ $svc->id }}" data-price="{{ $svc->price }}" data-name="{{ $svc->event }} ({{ $svc->media }})" class="h-4 w-4 rounded border-line text-brand-600 focus:ring-brand-500" {{ in_array($svc->id, old('service_ids', [])) ? 'checked' : '' }}>
                                         <div class="flex flex-1 justify-between text-sm">
                                             <span class="font-medium text-ink">{{ $svc->event }} <span class="text-xs text-ink-muted capitalize">({!! $svc->media !!})</span></span>
-                                            <span class="font-semibold text-brand-600 dark:text-brand-400">Rp {{ number_format($svc->price, 0, ',', '.') }}</span>
+                                            <span class="font-semibold tabular-nums text-brand-600 dark:text-brand-400">Rp {{ number_format($svc->price, 0, ',', '.') }}</span>
                                         </div>
                                     </label>
                                 @endforeach
@@ -225,7 +225,7 @@
                                         <span class="mt-0.5 flex h-8 w-8 min-w-8 items-center justify-center rounded-full bg-brand-600/15 text-sm font-bold leading-none text-brand-600 dark:text-brand-400">{{ $i + 1 }}</span>
                                         <div class="min-w-0 flex-1">
                                             <p class="truncate font-semibold text-ink" data-name>{{ $pkg['name'] }}</p>
-                                            <p class="mt-0.5 text-sm font-bold text-brand-600 dark:text-brand-400" data-price>Rp {{ number_format($pkg['price'], 0, ',', '.') }}</p>
+                                            <p class="mt-0.5 text-sm font-bold tabular-nums text-brand-600 dark:text-brand-400" data-price>Rp {{ number_format($pkg['price'], 0, ',', '.') }}</p>
                                             @if ($pkg['discount'] > 0)
                                                 <p class="text-xs text-ink-muted line-through">Rp {{ number_format($pkg['base_price'], 0, ',', '.') }}</p>
                                             @endif

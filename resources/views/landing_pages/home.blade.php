@@ -150,7 +150,7 @@
                     @else
                         <p class="text-sm text-ink-muted">Mulai dari</p>
                     @endif
-                    <p class="text-2xl font-bold text-brand-600 dark:text-brand-400">Rp {{ number_format($pkg->computedPrice(), 0, ',', '.') }}</p>
+                    <p class="text-2xl font-bold tabular-nums text-brand-600 dark:text-brand-400">Rp {{ number_format($pkg->computedPrice(), 0, ',', '.') }}</p>
                 </div>
             </div>
         @endforeach
