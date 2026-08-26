@@ -105,26 +105,45 @@ public/build/             # Aset ter-build (gitignored)
 
 ## Deployment
 
-### Nginx (saat ini)
+### 🐳 Docker Compose (Rekomendasi Utama)
 
-Serve dari `public/`, forward PHP ke `php-fpm` (unix socket). Konfigurasi contoh: `/etc/nginx/conf.d/imagery.conf` (port 8081), diakses publik via Cloudflare Tunnel.
+Repo ini sudah dilengkapi dengan konfigurasi Docker siap-produksi (`Dockerfile`, `docker-compose.yml`, dan `docker/start.sh`) yang mencakup Nginx, PHP-FPM, dan Queue Worker dalam satu container efisien, serta layanan MySQL terpisah. Konfigurasi ini cocok untuk VPS standar maupun platform PaaS seperti **Coolify**.
 
+**Cara Menjalankan (VPS Biasa):**
 ```bash
-php artisan config:cache && php artisan route:cache && php artisan view:cache
-npm run build
+# 1. Sesuaikan .env jika perlu (secara default docker-compose.yml sudah mengaturnya)
+cp .env.example .env
+
+# 2. Build & jalankan (berjalan di port 8081)
+docker compose up -d --build
 ```
 
-### Docker / Coolify
+**Cara Menjalankan (Coolify):**
+1. Buat **Project** baru, pilih sumber Git repository ini.
+2. Pada pengaturan Build, pilih **Nixpacks** atau biarkan otomatis mendeteksi **Dockerfile** yang ada di repo.
+3. Set Environment Variables (`APP_KEY`, `DB_DATABASE`, `DB_USERNAME`, dll). Jika `APP_KEY` kosong, sistem otomatis men-generate key baru saat startup.
+4. Klik **Deploy**.
 
-Repo siap untuk **Nixpacks** (auto-detect Laravel) atau Dockerfile. Catatan penting:
+**Langkah WAJIB Setelah Instalasi Pertama Kali (Docker & Coolify):**
+Database akan otomatis di-migrate saat container menyala, namun datanya masih kosong (tidak ada akun Admin/Owner). Anda **wajib** menjalankan seeder *satu kali saja* dari dalam container untuk membuat akun default.
 
-- Aset Vite harus dibuild di dalam image (`npm ci && npm run build`).
-- `composer install --no-dev --optimize-autoloader`.
-- `php artisan storage:link` + migrasi saat deploy.
-- Gunakan volume untuk `storage/app/public` (upload media).
-- `.env` diisi via UI Coolify (jangan commit `.env`).
+Jika menggunakan VPS:
+```bash
+docker exec -it imagery_app php artisan db:seed --force
+```
+Jika menggunakan Coolify, jalankan perintah ini di tab **Command / Terminal** milik layanan aplikasi Anda:
+```bash
+php artisan db:seed --force
+```
 
-### Shared Hosting / cPanel (minimal, murah)
+Akun default yang terbuat:
+- Owner: `owner@imagery.my.id` / `owner123`
+- Admin: `admin@imagery.my.id` / `admin123`
+- Klien: `client@imagery.my.id` / `client123`
+
+*(Segera ganti password Anda setelah berhasil login di dashboard).*
+
+### Shared Hosting / cPanel (Minimalis)
 
 Deployment paling ringan tanpa Nginx, Docker, maupun VPS — cukup file yang sudah ada di repo:
 

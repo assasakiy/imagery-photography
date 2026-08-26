@@ -120,7 +120,9 @@ Aplikasi kini dapat dijalankan secara terisolasi menggunakan Docker dengan multi
 - **Dockerfile** membundel PHP 8.3 FPM, Nginx, Node.js (untuk compile Vite), dan Supervisor.
 - **docker-compose.yml** menyertakan layanan web (`imagery_app` pada port 8081) dan database (`imagery_db` MySQL 8.0).
 - File konfigurasi server diletakkan di dalam folder `/docker`.
-- Perintah deploy: `docker compose up -d --build`.
+- Script `docker/start.sh` memastikan *migrations* dan *package:discover* berjalan aman sebelum *config cache*. Jika `APP_KEY` kosong di environment, sistem otomatis akan *generate key* agar web tidak *crash 500*.
+- **Wajib (Saat Instalasi Pertama):** Jalankan `docker exec -it imagery_app php artisan db:seed --force` (atau eksekusi manual via terminal platform PaaS seperti Coolify) *satu kali saja* untuk membuat akun default owner/admin.
+- Perintah deploy VPS biasa: `docker compose up -d --build`.
 
 *Rincian arsitektur ada di `docs/architecture_and_rbac.md`. Riwayat sesi sebelumnya ada di Git history.*
 
