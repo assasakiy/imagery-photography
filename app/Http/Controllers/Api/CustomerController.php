@@ -356,6 +356,18 @@ class CustomerController extends Controller
             'project_id' => $projectId,
         ]);
 
+        $excerpt = \Str::limit($data['message'] ?: 'Mengirim lampiran.', 100);
+        $adminUrl = '/dashboard/messages/' . $messageRecord->id;
+        $admins = \App\Models\User::role(['admin', 'owner'])->get();
+        foreach ($admins as $admin) {
+            if ($admin->email) {
+                $notif->email(new \App\Mail\AlertMail($admin->name, 'Pesan baru dari klien', $excerpt), $admin->email, 'client.message.new');
+            }
+            if ($admin->phone) {
+                $notif->whatsapp($admin->phone, "Pesan baru dari {$user->name}" . ($projectId ? " (proyek #{$projectId})" : '') . ": " . $excerpt, null, $admin, 'client.message.new');
+            }
+        }
+
         return response()->json($messageRecord->load(['project', 'replyTo.user']));
     }
 
