@@ -31,8 +31,155 @@ class DummyDataSeeder extends Seeder
 
     public function run(): void
     {
+        $this->seedDummyUsers();
+        $this->seedTeamMembers();
+        $this->seedSampleReviews();
+        $this->seedSampleStats();
+        $this->seedSampleFaqs();
+
         $this->seedCategoriesAndPortfolios();
         $this->seedPackages();
+    }
+
+    private function seedDummyUsers(): void
+    {
+        $admin = \App\Models\User::firstOrCreate(
+            ['email' => 'admin@imagery.my.id'],
+            [
+                'username' => 'admin',
+                'status' => 'active',
+                'activated_at' => now(),
+                'password' => \Illuminate\Support\Facades\Hash::make('admin123'),
+            ]
+        );
+        $admin->profile()->firstOrCreate([], ['full_name' => 'Admin Sopian Lalu Imagery']);
+        $admin->syncRoles('admin');
+
+        $client = \App\Models\User::firstOrCreate(
+            ['email' => 'client@imagery.my.id'],
+            [
+                'username' => 'client',
+                'status' => 'active',
+                'activated_at' => now(),
+                'password' => \Illuminate\Support\Facades\Hash::make('client123'),
+            ]
+        );
+        $client->profile()->firstOrCreate([], ['full_name' => 'Ayu Maharani']);
+        $client->syncRoles('client');
+    }
+
+    private function seedTeamMembers(): void
+    {
+        $owner = \App\Models\User::role('owner')->first();
+        $admin = \App\Models\User::role('admin')->first();
+
+        if ($owner && $admin) {
+            $members = [
+                ['user_id' => $owner->id, 'name' => $owner->name, 'position' => 'Owner & Founder', 'is_owner' => true, 'order' => 1, 'bio' => 'Photographer & Videographer. Mendokumentasikan momen dan narasi lewat gambar maupun rekaman.'],
+                ['user_id' => $admin->id, 'name' => 'Admin Imagery', 'position' => 'Admin', 'is_owner' => false, 'order' => 2, 'bio' => 'Mendukung operasional dan layanan pelanggan.'],
+            ];
+
+            foreach ($members as $i => $member) {
+                \App\Models\TeamMember::firstOrCreate(
+                    ['user_id' => $member['user_id']],
+                    [
+                        'name' => $member['name'],
+                        'position' => $member['position'],
+                        'is_owner' => $member['is_owner'],
+                        'order' => $member['order'],
+                        'bio' => $member['bio'],
+                    ]
+                );
+            }
+        }
+    }
+
+    private function seedSampleReviews(): void
+    {
+        $reviews = [
+            ['name' => 'Ayu & Rian', 'service' => 'Wedding Package', 'rating' => 5, 'content' => 'Hasil foto dan video pernikahan kami luar biasa. Tim yang sabar dan profesional sepanjang acara.'],
+            ['name' => 'Sinta Maharani', 'service' => 'PreWedding', 'rating' => 5, 'content' => 'Prewedding kami jadi momen paling menyenangkan, hasilnya estetik dan sesuai ekspektasi.'],
+            ['name' => 'Budi Santoso', 'service' => 'Event', 'rating' => 4, 'content' => 'Dokumentasi acara kantor berjalan lancar, foto yang dihasilkan berkualitas.'],
+        ];
+
+        foreach ($reviews as $i => $review) {
+            \App\Models\Review::firstOrCreate(
+                ['name' => $review['name'], 'content' => $review['content']],
+                [
+                    'service' => $review['service'],
+                    'rating' => $review['rating'],
+                    'order' => $i + 1,
+                ]
+            );
+        }
+    }
+
+    private function seedSampleStats(): void
+    {
+        $stats = [
+            ['label' => 'Momen Terabadikan', 'value' => '500', 'suffix' => '+', 'order' => 1],
+            ['label' => 'Pengalaman', 'value' => '5', 'suffix' => 'tahun', 'order' => 2],
+            ['label' => 'Pernikahan Diapresiasi', 'value' => '350', 'suffix' => '+', 'order' => 3],
+            ['label' => 'Klien Puas', 'value' => '95', 'suffix' => '%', 'order' => 4],
+        ];
+
+        foreach ($stats as $stat) {
+            \App\Models\Stat::updateOrCreate(
+                ['label' => $stat['label']],
+                [
+                    'value' => $stat['value'],
+                    'suffix' => $stat['suffix'],
+                    'order' => $stat['order'],
+                    'source' => 'manual',
+                ]
+            );
+        }
+    }
+
+    private function seedSampleFaqs(): void
+    {
+        $categories = [
+            ['name' => 'Pemesanan', 'slug' => 'pemesanan'],
+            ['name' => 'Pembayaran', 'slug' => 'pembayaran'],
+            ['name' => 'Proses & Hasil', 'slug' => 'proses-hasil'],
+        ];
+
+        $catIds = [];
+        foreach ($categories as $cat) {
+            $category = \App\Models\Category::firstOrCreate(
+                ['slug' => $cat['slug']],
+                [
+                    'name' => $cat['name'],
+                    'slug' => $cat['slug'],
+                    'description' => "FAQ kategori {$cat['name']}.",
+                ]
+            );
+            $catIds[$cat['slug']] = $category->id;
+        }
+
+        $faqs = [
+            ['question' => 'Bagaimana cara memesan layanan fotografi atau videografi?', 'answer' => 'Kunjungi halaman Layanan untuk melihat paket yang tersedia, lalu klik tombol Pesan pada paket pilihan Anda. Lengkapi formulir booking dengan tanggal acara dan lokasi, tim kami akan menghubungi Anda untuk konfirmasi.', 'cat' => 'pemesanan'],
+            ['question' => 'Apakah email konfirmasi dikirim setelah booking?', 'answer' => 'Ya, kami mengirim email konfirmasi otomatis setelah Anda menyelesaikan formulir booking. Periksa folder spam bila email tidak ditemukan di inbox.', 'cat' => 'pemesanan'],
+            ['question' => 'Sampai kapan batas waktu mengubah tanggal acara?', 'answer' => 'Perubahan tanggal acara dapat dilakukan selambat-lambatnya 14 hari sebelum hari H, dengan konfirmasi ulang ketersediaan jadwal tim.', 'cat' => 'pemesanan'],
+            ['question' => 'Perlengkapan apa saja yang wajib disiapkan saat pemotretan?', 'answer' => 'Cukup datang sesuai rundown. Tim kami membawa peralatan lengkap. Untuk kebutuhan rias dan busana, mohon disiapkan sesuai rundown masing-masing.', 'cat' => 'proses-hasil'],
+            ['question' => 'Berapa lama proses editing foto dan video?', 'answer' => 'Editing foto memakan waktu sekitar 2-4 minggu, sedangkan video 3-6 minggu tergantung jumlah materi dan kompleksitas.', 'cat' => 'proses-hasil'],
+            ['question' => 'Apakah hasil foto bisa dipilih sendiri oleh klien?', 'answer' => 'Untuk paket tertentu, klien dapat memilih foto favorit yang masuk ke album utama. Detail ketentuannya tercantum di deskripsi paket.', 'cat' => 'proses-hasil'],
+            ['question' => 'Bagaimana format pengiriman hasil akhir?', 'answer' => 'Hasil akhir dikirim dalam bentuk file digital resolusi penuh melalui link unduh yang berlaku dalam jangka waktu tertentu, serta diberikan salinan fisik sesuai paket.', 'cat' => 'proses-hasil'],
+            ['question' => 'Metode pembayaran apa saja yang tersedia?', 'answer' => 'Pembayaran dapat dilakukan melalui transfer bank, e-wallet, dan metode pembayaran lain yang kami dukung. Rincian ditampilkan saat proses checkout.', 'cat' => 'pembayaran'],
+            ['question' => 'Apakah tersedia skema cicilan atau DP?', 'answer' => 'Ya, pembayaran dapat diatur dengan uang muka (DP) dan pelunasan sesuai kesepakatan yang tercantum pada invoice proyek.', 'cat' => 'pembayaran'],
+            ['question' => 'Kapan pelunasan harus diselesaikan?', 'answer' => 'Pelunasan diselesaikan paling lambat pada hari acara atau sesuai jadwal yang tercantum pada invoice. Jadwal pasti akan dikonfirmasi tim kami.', 'cat' => 'pembayaran'],
+        ];
+
+        \App\Models\Faq::query()->delete();
+        foreach ($faqs as $i => $faq) {
+            $model = \App\Models\Faq::create([
+                'question' => $faq['question'],
+                'answer' => $faq['answer'],
+                'order' => $i + 1,
+            ]);
+
+            $model->categories()->sync([$catIds[$faq['cat']]]);
+        }
     }
 
     private function seedCategoriesAndPortfolios(): void
