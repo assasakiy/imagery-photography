@@ -7,9 +7,19 @@ mkdir -p storage/framework/cache/data \
          storage/app/public \
          storage/logs
 
+# Ensure log file exists for tail
+touch storage/logs/laravel.log
+
 # Set initial permissions
 chown -R www-data:www-data storage bootstrap/cache
 chmod -R 775 storage bootstrap/cache
+
+# Generate APP_KEY if missing
+if [ -z "$APP_KEY" ]; then
+    echo "APP_KEY is missing. Generating one..."
+    export APP_KEY=$(php artisan key:generate --show)
+    echo "APP_KEY=$APP_KEY" >> .env
+fi
 
 # Run database migrations FIRST
 php artisan migrate --force
