@@ -42,6 +42,10 @@ COPY docker/php-uploads.ini /usr/local/etc/php/conf.d/uploads.ini
 # Copy Nginx config
 COPY docker/nginx.conf /etc/nginx/nginx.conf
 
+# Ensure Nginx temp directories exist
+RUN mkdir -p /tmp/nginx-client-body /var/lib/nginx /var/log/nginx && \
+    chown -R www-data:www-data /tmp/nginx-client-body /var/lib/nginx /var/log/nginx
+
 # Copy Supervisor config
 COPY docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
