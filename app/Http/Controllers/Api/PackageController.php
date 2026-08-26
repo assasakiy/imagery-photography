@@ -19,6 +19,7 @@ class PackageController extends Controller
                 if ($status === 'active') return $q->where('is_active', true);
                 if ($status === 'inactive') return $q->where('is_active', false);
             })
+            ->when($request->filled('type'), fn ($q, $type) => $q->where('type', $type))
             ->orderBy('display_order');
 
         return response()->json($query->get()->map(fn ($p) => $this->serialize($p)));
@@ -108,7 +109,7 @@ class PackageController extends Controller
     {
         $data = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
-            'type' => 'required|in:satuan,bundling,combo',
+            'type' => 'required|in:bundling,combo,populer,unggulan',
             'price_mode' => 'required|in:auto,manual',
             'promo_type' => 'nullable|in:none,nominal,percent',
             'promo_value' => 'nullable|numeric|min:0',

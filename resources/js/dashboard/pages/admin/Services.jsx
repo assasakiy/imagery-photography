@@ -13,7 +13,7 @@ const VIEWS = [
 ];
 
 const MEDIA_OPTIONS = ['photo', 'video', 'drone', 'photobooth', 'livestream'];
-const TYPE_OPTIONS = ['satuan', 'bundling', 'combo'];
+const TYPE_OPTIONS = ['bundling', 'combo', 'populer', 'unggulan'];
 const PROMO_OPTIONS = [
     { value: 'none', label: 'Tanpa Diskon' },
     { value: 'nominal', label: 'Nominal (Rp)' },
@@ -53,6 +53,7 @@ export default function Services() {
     const [pkgSearch, setPkgSearch] = useState('');
     const [pkgDebounced, setPkgDebounced] = useState('');
     const [pkgStatus, setPkgStatus] = useState('');
+    const [pkgType, setPkgType] = useState('');
 
     const loadSvc = () => {
         api.get('/services', { params: { q: svcDebounced || undefined, status: svcStatus || undefined } })
@@ -61,7 +62,7 @@ export default function Services() {
     };
 
     const loadPkg = () => {
-        api.get('/packages', { params: { q: pkgDebounced || undefined, status: pkgStatus || undefined } })
+        api.get('/packages', { params: { q: pkgDebounced || undefined, status: pkgStatus || undefined, type: pkgType || undefined } })
             .then(({ data }) => setPackages(data))
             .catch(() => toast.error('Gagal memuat paket.'));
     };
@@ -70,7 +71,7 @@ export default function Services() {
         setLoading(true);
         Promise.all([
             api.get('/services', { params: { q: svcDebounced || undefined, status: svcStatus || undefined } }),
-            api.get('/packages', { params: { q: pkgDebounced || undefined, status: pkgStatus || undefined } }),
+            api.get('/packages', { params: { q: pkgDebounced || undefined, status: pkgStatus || undefined, type: pkgType || undefined } }),
         ])
             .then(([s, p]) => {
                 setServices(s.data);
@@ -91,7 +92,7 @@ export default function Services() {
     }, [pkgSearch]);
 
     useEffect(loadSvc, [svcDebounced, svcStatus]);
-    useEffect(loadPkg, [pkgDebounced, pkgStatus]);
+    useEffect(loadPkg, [pkgDebounced, pkgStatus, pkgType]);
     
     // Initial load
     useEffect(() => {
@@ -286,6 +287,18 @@ export default function Services() {
                     </form>
                     <div className="ml-auto flex w-full flex-wrap items-center gap-1.5 md:w-auto">
                         <FilterDropdown 
+                            title="Filter Tipe" 
+                            icon="layers" 
+                            value={pkgType} 
+                            onChange={setPkgType} 
+                            options={[
+                                {key: 'bundling', label: 'Bundling', icon: 'package'},
+                                {key: 'combo', label: 'Combo', icon: 'layers'},
+                                {key: 'populer', label: 'Populer', icon: 'trending-up'},
+                                {key: 'unggulan', label: 'Unggulan', icon: 'star'},
+                            ]} 
+                        />
+                        <FilterDropdown 
                             title="Filter Status" 
                             icon="toggle-left" 
                             value={pkgStatus} 
@@ -367,7 +380,7 @@ export default function Services() {
                                     <div className="min-w-0">
                                         <div className="flex flex-wrap items-center gap-2">
                                             <h3 className="font-bold text-ink">{p.name}</h3>
-                                            <span className="badge bg-brand-500/15 text-brand-600 dark:text-brand-400">{p.type}</span>
+                                            <span className="badge bg-brand-500/15 text-brand-600 dark:text-brand-400">{p.type.charAt(0).toUpperCase() + p.type.slice(1)}</span>
                                             {p.is_featured && <span className="badge bg-amber-500/15 text-amber-600 dark:text-amber-400"><Icon name="star" size={12} /> Unggulan</span>}
                                             {p.booking_count > 0 && <span className="badge bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">Populer</span>}
                                             {!p.is_active && <span className="badge bg-zinc-500/15 text-zinc-500">Nonaktif</span>}
@@ -471,7 +484,7 @@ export default function Services() {
                         <Field label="Tipe" required error={pkgErrors.type?.[0]}>
                             <select className="input" value={pkgForm.type} onChange={(e) => setPkgForm({ ...pkgForm, type: e.target.value })}>
                                 {TYPE_OPTIONS.map((t) => (
-                                    <option key={t} value={t}>{t}</option>
+                                    <option key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</option>
                                 ))}
                             </select>
                         </Field>
