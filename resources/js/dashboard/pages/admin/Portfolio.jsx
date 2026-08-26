@@ -234,7 +234,7 @@ export default function Portfolio() {
                             <div className="relative aspect-[4/3] cursor-pointer overflow-hidden" onClick={() => setViewing(item)}>
                                 <img src={item.thumbnail_url || item.cover_url} alt={item.title} loading="lazy" className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
                                 {item.is_featured && (
-                                    <span className="badge absolute left-3 top-3 bg-amber-400 text-amber-950 shadow">
+                                    <span className="badge accent-surface absolute left-3 top-3 shadow">
                                         <Icon name="star" size={12} /> Unggulan
                                     </span>
                                 )}

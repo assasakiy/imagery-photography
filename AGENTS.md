@@ -107,14 +107,13 @@ Halaman dashboard yang punya beberapa tab **WAJIB** dipisah ke folder `pages/<na
 - **Media Library**: model butuh `$fillable=['id']`; `LandingContent::setValue` pertahankan `group`; reset landing images meninggalkan media orphan (TODO).
 - **Test**: skrip di `/home/opc` (`spa_test.py`, `final_test.py`, `access_test.py`); `/etc/hosts` berisi `127.0.0.1 imagery.my.id`; `/tmp/opencode` TIDAK writable.
 
-## 13. Sesi Terbaru — Pembagian Peran Palet
+## 13. Sesi Terbaru — Badge Accent dengan Ikon
 
-- **Primary:** `.action-surface` untuk CTA, active state, tombol utama, dan indikator pilihan.
-- **Secondary:** `.secondary-surface` untuk badge media layanan dan tipe paket pada dashboard.
-- **Accent:** `.accent-surface` untuk badge langka `Unggulan` dan `Populer` pada Beranda, halaman Layanan, dan dashboard Paket.
-- **Kontras:** secondary/accent solid background otomatis digelapkan bila perlu sampai teks putih memenuhi minimum 4.5:1.
-- **Status:** Aktif/sukses tetap emerald, warning tetap amber, error tetap merah, dan Nonaktif tetap neutral.
-- Preview settings sekarang memperlihatkan hasil Primary, Secondary, dan Accent sebenarnya.
+- Badge `Unggulan` galeri publik (index + kategori) dan dashboard Portofolio memakai `.accent-surface`, bukan primary/amber hardcode.
+- Semua badge `Unggulan` paket memakai ikon bintang.
+- Semua badge `Populer` paket memakai ikon tren naik.
+- Ikon diterapkan konsisten pada Beranda, halaman Layanan, dashboard Layanan/Paket, dan galeri untuk memperjelas makna badge.
+- Build Vite dan `git diff --check` sukses.
 
 *Rincian arsitektur palet ada di `docs/architecture_and_rbac.md`. Riwayat sesi sebelumnya ada di Git history.*
 

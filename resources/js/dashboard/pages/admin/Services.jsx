@@ -374,7 +374,7 @@ export default function Services() {
                                             <h3 className="font-bold text-ink">{p.name}</h3>
                                             <span className="badge secondary-surface">{p.type.charAt(0).toUpperCase() + p.type.slice(1)}</span>
                                             {p.is_featured && <span className="badge accent-surface"><Icon name="star" size={12} /> Unggulan</span>}
-                                            {p.booking_count > 0 && <span className="badge accent-surface">Populer</span>}
+                                            {p.booking_count > 0 && <span className="badge accent-surface"><Icon name="trending-up" size={12} /> Populer</span>}
                                             {!p.is_active && <span className="badge bg-surface-muted text-ink-muted">Nonaktif</span>}
                                         </div>
                                         {p.description && <p className="mt-1 text-sm text-ink-muted">{p.description}</p>}

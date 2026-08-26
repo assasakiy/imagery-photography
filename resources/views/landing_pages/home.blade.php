@@ -136,9 +136,9 @@
                         <div class="reveal card group relative overflow-hidden p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-brand-600/10">
 <div class="mb-4 flex items-center gap-3">
                     @if ($pkg->is_featured)
-                        <span class="accent-surface rounded-full px-2 py-0.5 text-xs font-semibold">Unggulan</span>
+                        <span class="accent-surface inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>Unggulan</span>
                     @elseif ($pkg->booking_count > 0)
-                        <span class="accent-surface rounded-full px-2 py-0.5 text-xs font-semibold">Populer</span>
+                        <span class="accent-surface inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"/><path d="m7 16 4-5 4 3 5-7"/></svg>Populer</span>
                     @endif
                 </div>
                 <h3 class="text-lg font-bold text-ink">{{ $pkg->name }}</h3>
