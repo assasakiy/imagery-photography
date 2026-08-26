@@ -107,14 +107,14 @@ Halaman dashboard yang punya beberapa tab **WAJIB** dipisah ke folder `pages/<na
 - **Media Library**: model butuh `$fillable=['id']`; `LandingContent::setValue` pertahankan `group`; reset landing images meninggalkan media orphan (TODO).
 - **Test**: skrip di `/home/opc` (`spa_test.py`, `final_test.py`, `access_test.py`); `/etc/hosts` berisi `127.0.0.1 imagery.my.id`; `/tmp/opencode` TIDAK writable.
 
-## 13. Sesi Terbaru — Adopsi Palet di Auth & Dashboard
+## 13. Sesi Terbaru — Kontras Tombol Primary
 
-- **Auth:** fallback logo Login, Register, Lupa Password, dan Reset Password memakai `.action-surface`, sehingga background dan foreground mengikuti primary serta kontras otomatis.
-- **Dashboard:** navigasi aktif, tab/filter terpilih, badge action, tombol kirim, pilihan media/metode pembayaran, serta indikator tahapan memakai token `--action-*`; shadow brand hardcode diganti netral.
-- **Chat:** bubble pesan bermerek memakai `.action-surface`; konten bersarang memakai `currentColor` agar tetap terbaca saat foreground otomatis berubah gelap/putih.
-- **Layanan:** badge hero, media, tipe paket, Populer, dan Unggulan memakai `--accent-soft` + `--accent-fg`; Nonaktif memakai surface/ink netral. Status Aktif tetap emerald karena warna status tidak mengikuti brand.
-- **Shared CSS:** `.chip-active` dan hover tombol carousel sekarang memakai semantic action tokens.
-- **Verifikasi:** `git diff --check` dan build Vite sukses. `composer test` tetap memiliki dua kegagalan lama: `ApiThrottleTest::test_record_manual` dan `ExampleTest` karena SQLite test tidak memiliki tabel `pages`.
+- **Masalah:** primary bronze `#b08d57` sebelumnya memilih foreground zinc gelap; rasio benar tetapi hasil visual tombol kurang seimbang.
+- **Solusi:** warna aksi sekarang diturunkan dari primary lalu otomatis digelapkan hanya bila perlu sampai teks putih memenuhi kontras minimum 4.5:1. Primary asli tetap dipakai untuk identitas dan aksen.
+- **Sinkronisasi:** algoritme sama diterapkan di PHP (`BrandColors`) dan preview/runtime settings React.
+- **Preview settings:** tombol pratinjau memakai background aksi hasil koreksi dan teks putih, sama seperti tombol `Simpan Palet` sebenarnya.
+- **Beranda:** tombol `Selengkapnya` dan `Lihat Semua Paket & Harga` tidak lagi memakai `btn-dark`; keduanya memakai `btn-primary` dan mengikuti palet.
+- **Verifikasi:** PHP syntax, self-check token (`#b08d57` menghasilkan action `#896e44` + teks putih), `git diff --check`, dan build Vite sukses.
 
 *Rincian arsitektur palet ada di `docs/architecture_and_rbac.md`. Riwayat sesi sebelumnya ada di Git history.*
 

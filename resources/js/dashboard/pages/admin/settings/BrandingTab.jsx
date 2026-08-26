@@ -2,7 +2,7 @@ import Icon from '../../../components/Icon';
 import Button from '../../../components/Button';
 import RichEditor from '../../../components/RichEditor';
 import { Field } from '../../../components/ui';
-import { BRAND_PALETTES, BUSINESS_TIMEZONES, TAB_FIELDS, contrastText } from './constants';
+import { BRAND_PALETTES, BUSINESS_TIMEZONES, TAB_FIELDS, accessibleBackground, contrastText } from './constants';
 
 export default function BrandingTab({ form, meta, errors, saving, set, save, dirty, mediaFor, setMediaFor, previewUrls, setPreviewUrls, dirtyColor }) {
     return (
@@ -99,7 +99,7 @@ export default function BrandingTab({ form, meta, errors, saving, set, save, dir
                         <p className="text-lg font-bold">Pratinjau CTA</p>
                         <p className="mt-1 text-sm opacity-75">Primary, secondary, dan accent bekerja sesuai perannya.</p>
                         <div className="mt-4 flex flex-wrap items-center gap-3">
-                            <span className="rounded-lg px-3 py-1.5 text-sm font-semibold" style={{ backgroundColor: form.brand_primary_color, color: contrastText(form.brand_primary_color) }}>Tombol utama</span>
+                            <span className="rounded-lg px-3 py-1.5 text-sm font-semibold text-white" style={{ backgroundColor: accessibleBackground(form.brand_primary_color) }}>Tombol utama</span>
                             <span className="rounded-full px-3 py-1 text-xs font-semibold" style={{ backgroundColor: form.brand_accent_color, color: contrastText(form.brand_accent_color) }}>Accent</span>
                         </div>
                     </div>

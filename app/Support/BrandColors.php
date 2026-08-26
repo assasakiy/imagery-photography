@@ -62,9 +62,11 @@ class BrandColors
             $rules .= '--color-accent-' . $shade . ':' . $value . ';';
         }
 
-        $rules .= '--action-bg:' . $primaryScale['600'] . ';';
-        $rules .= '--action-bg-hover:' . $primaryScale['700'] . ';';
-        $rules .= '--action-fg:' . self::foreground($primaryScale['600']) . ';';
+        $actionBg = self::accessibleBackground($primaryScale['600']);
+        $actionHover = self::darken($actionBg, 0.14);
+        $rules .= '--action-bg:' . $actionBg . ';';
+        $rules .= '--action-bg-hover:' . $actionHover . ';';
+        $rules .= '--action-fg:#ffffff;';
         $rules .= '--brand-surface:' . $secondaryScale['800'] . ';';
         $rules .= '--brand-surface-fg:' . self::foreground($secondaryScale['800']) . ';';
         $rules .= '--accent-fg:' . $accentScale['700'] . ';';
@@ -73,16 +75,46 @@ class BrandColors
         return $rules . '}';
     }
 
-    public static function foreground(string $hex): string
+    public static function accessibleBackground(string $hex): string
     {
-        $rgb = self::hexToRgb($hex) ?? [255, 255, 255];
-        $luminance = array_sum(array_map(function ($channel, $weight) {
+        $rgb = self::hexToRgb($hex) ?? [176, 141, 87];
+
+        while (self::contrastRatio(self::rgbToHex($rgb), '#ffffff') < 4.5) {
+            $rgb = array_map(fn ($channel) => max(0, (int) round($channel * 0.92)), $rgb);
+        }
+
+        return self::rgbToHex($rgb);
+    }
+
+    private static function darken(string $hex, float $ratio): string
+    {
+        $rgb = self::hexToRgb($hex) ?? [176, 141, 87];
+
+        return self::rgbToHex(array_map(fn ($channel) => (int) round($channel * (1 - $ratio)), $rgb));
+    }
+
+    private static function contrastRatio(string $first, string $second): float
+    {
+        $l1 = self::luminance(self::hexToRgb($first) ?? [0, 0, 0]);
+        $l2 = self::luminance(self::hexToRgb($second) ?? [255, 255, 255]);
+
+        return (max($l1, $l2) + 0.05) / (min($l1, $l2) + 0.05);
+    }
+
+    private static function luminance(array $rgb): float
+    {
+        return array_sum(array_map(function ($channel, $weight) {
             $value = $channel / 255;
             $linear = $value <= 0.04045 ? $value / 12.92 : (($value + 0.055) / 1.055) ** 2.4;
             return $linear * $weight;
         }, $rgb, [0.2126, 0.7152, 0.0722]));
+    }
 
-        return $luminance > 0.179 ? '#18181b' : '#ffffff';
+    public static function foreground(string $hex): string
+    {
+        $rgb = self::hexToRgb($hex) ?? [255, 255, 255];
+
+        return self::luminance($rgb) > 0.179 ? '#18181b' : '#ffffff';
     }
 
     private static function hexToRgb(string $hex): ?array

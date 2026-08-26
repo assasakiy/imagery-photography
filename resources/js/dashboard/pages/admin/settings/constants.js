@@ -162,14 +162,26 @@ function colorScale(hex) {
     return scale;
 }
 
-export function contrastText(hex) {
+function luminance(hex) {
     const rgb = [parseInt(hex.slice(1, 3), 16), parseInt(hex.slice(3, 5), 16), parseInt(hex.slice(5, 7), 16)];
-    const luminance = rgb.reduce((sum, channel, i) => {
+    return rgb.reduce((sum, channel, i) => {
         const value = channel / 255;
         const linear = value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4;
         return sum + linear * [0.2126, 0.7152, 0.0722][i];
     }, 0);
-    return luminance > 0.179 ? '#18181b' : '#ffffff';
+}
+
+export function accessibleBackground(hex) {
+    let rgb = [parseInt(hex.slice(1, 3), 16), parseInt(hex.slice(3, 5), 16), parseInt(hex.slice(5, 7), 16)];
+    const hexify = (values) => '#' + values.map((value) => value.toString(16).padStart(2, '0')).join('');
+    while (1.05 / (luminance(hexify(rgb)) + 0.05) < 4.5) {
+        rgb = rgb.map((channel) => Math.max(0, Math.round(channel * 0.92)));
+    }
+    return hexify(rgb);
+}
+
+export function contrastText(hex) {
+    return luminance(hex) > 0.179 ? '#18181b' : '#ffffff';
 }
 
 export function applyBrandPalette(primary, secondary, accent) {
@@ -179,9 +191,12 @@ export function applyBrandPalette(primary, secondary, accent) {
     for (const [name, scale] of Object.entries(palettes)) {
         for (const [shade, value] of Object.entries(scale)) root.setProperty(`--color-${name}-${shade}`, value);
     }
-    root.setProperty('--action-bg', palettes.primary[600]);
-    root.setProperty('--action-bg-hover', palettes.primary[700]);
-    root.setProperty('--action-fg', contrastText(palettes.primary[600]));
+    const actionBg = accessibleBackground(palettes.primary[600]);
+    const actionRgb = [parseInt(actionBg.slice(1, 3), 16), parseInt(actionBg.slice(3, 5), 16), parseInt(actionBg.slice(5, 7), 16)];
+    const actionHover = '#' + actionRgb.map((channel) => Math.round(channel * 0.86).toString(16).padStart(2, '0')).join('');
+    root.setProperty('--action-bg', actionBg);
+    root.setProperty('--action-bg-hover', actionHover);
+    root.setProperty('--action-fg', '#ffffff');
     root.setProperty('--brand-surface', palettes.secondary[800]);
     root.setProperty('--brand-surface-fg', contrastText(palettes.secondary[800]));
     root.setProperty('--accent-fg', palettes.accent[700]);

@@ -87,7 +87,7 @@
                 </div>
                 @endif
                 <div class="mt-8">
-                    <a href="{{ route('about') }}" class="btn-dark">Selengkapnya</a>
+                    <a href="{{ route('about') }}" class="btn-primary">Selengkapnya</a>
                 </div>
             </div>
         </div>
@@ -157,7 +157,7 @@
                 </div>
 
                 <div class="reveal mt-12 text-center">
-                    <a href="{{ route('services') }}" class="btn-dark">Lihat Semua Paket & Harga</a>
+                    <a href="{{ route('services') }}" class="btn-primary">Lihat Semua Paket & Harga</a>
                 </div>
             </div>
         </section>
