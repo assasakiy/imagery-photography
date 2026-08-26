@@ -107,14 +107,13 @@ Halaman dashboard yang punya beberapa tab **WAJIB** dipisah ke folder `pages/<na
 - **Media Library**: model butuh `$fillable=['id']`; `LandingContent::setValue` pertahankan `group`; reset landing images meninggalkan media orphan (TODO).
 - **Test**: skrip di `/home/opc` (`spa_test.py`, `final_test.py`, `access_test.py`); `/etc/hosts` berisi `127.0.0.1 imagery.my.id`; `/tmp/opencode` TIDAK writable.
 
-## 13. Sesi Terbaru — Kontras Tombol Primary
+## 13. Sesi Terbaru — Badge Paket Primary
 
-- **Masalah:** primary bronze `#b08d57` sebelumnya memilih foreground zinc gelap; rasio benar tetapi hasil visual tombol kurang seimbang.
-- **Solusi:** warna aksi sekarang diturunkan dari primary lalu otomatis digelapkan hanya bila perlu sampai teks putih memenuhi kontras minimum 4.5:1. Primary asli tetap dipakai untuk identitas dan aksen.
-- **Sinkronisasi:** algoritme sama diterapkan di PHP (`BrandColors`) dan preview/runtime settings React.
-- **Preview settings:** tombol pratinjau memakai background aksi hasil koreksi dan teks putih, sama seperti tombol `Simpan Palet` sebenarnya.
-- **Beranda:** tombol `Selengkapnya` dan `Lihat Semua Paket & Harga` tidak lagi memakai `btn-dark`; keduanya memakai `btn-primary` dan mengikuti palet.
-- **Verifikasi:** PHP syntax, self-check token (`#b08d57` menghasilkan action `#896e44` + teks putih), `git diff --check`, dan build Vite sukses.
+- Badge `Unggulan` dan `Populer` pada section layanan Beranda memakai `.action-surface`.
+- Badge sama pada card paket halaman Layanan (`partials/package-card.blade.php`) memakai primary semantic `--action-bg` + `--action-fg`.
+- Accent/secondary tidak lagi dipakai untuk badge paket publik agar penanda lebih tegas.
+- Kontras tetap otomatis mengikuti primary action yang sudah memenuhi minimum 4.5:1 dengan teks putih.
+- Build Vite dan `git diff --check` sukses.
 
 *Rincian arsitektur palet ada di `docs/architecture_and_rbac.md`. Riwayat sesi sebelumnya ada di Git history.*
 
