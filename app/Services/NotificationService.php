@@ -96,6 +96,18 @@ class NotificationService
             'redelivery.reviewed',
             'client.message.new',
         ],
+        'push' => [
+            'booking.new', 'message.new', 'review.new',
+            'project.created', 'project.updated', 'project.status_changed',
+            'payment.submitted', 'payment.confirmed',
+            'payment.rejected', 'team.invited',
+            'redelivery.requested',
+            'booking.accepted', 'project.advanced',
+            'redelivery.reviewed',
+            'client.message.new',
+            'client.message.replied',
+            'message.admin_replied',
+        ],
     ];
 
     public function __construct(
@@ -291,6 +303,69 @@ class NotificationService
     }
 
     /**
+     * Kirim Web Push notification ke semua device user.
+     */
+    public function webPush(User $user, string $title, string $message, ?string $url = null, ?string $event = null): void
+    {
+        if ($event && !$this->channelAllowed($event, 'push', $user)) {
+            return;
+        }
+
+        if (!$user->notif_inapp) {
+            return;
+        }
+
+        try {
+            $subscriptions = $user->pushSubscriptions()->active()->get();
+
+            if ($subscriptions->isEmpty()) {
+                return;
+            }
+
+            $payload = json_encode([
+                'title' => $title,
+                'body'  => $message,
+                'tag'   => $event ?? 'imagery-push',
+                'data'  => ['url' => $url ?? '/dashboard'],
+            ]);
+
+            $auth = [
+                'vapid' => [
+                    'subject'  => env('VAPID_SUBJECT', 'mailto:admin@imagery.assasakiymedia.id'),
+                    'publicKey' => env('VAPID_PUBLIC_KEY'),
+                    'privateKey' => env('VAPID_PRIVATE_KEY'),
+                ],
+            ];
+
+            $webPush = new \Minishlink\WebPush\WebPush($auth, [], 10);
+
+            foreach ($subscriptions as $sub) {
+                $subscription = \Minishlink\WebPush\Subscription::create([
+                    'endpoint' => $sub->endpoint,
+                    'publicKey' => $sub->public_key,
+                    'authToken' => $sub->auth_token,
+                    'contentEncoding' => $sub->content_encoding,
+                ]);
+
+                $report = $webPush->sendOneNotification($subscription, $payload);
+
+                if (!$report->isSuccess()) {
+                    if ($report->isSubscriptionExpired()) {
+                        $sub->update(['is_active' => false]);
+                    }
+                    Log::warning('Web push failed', [
+                        'user_id' => $user->id,
+                        'endpoint' => $sub->endpoint,
+                        'reason' => $report->getReason(),
+                    ]);
+                }
+            }
+        } catch (\Throwable $e) {
+            Log::error('Web push error', ['user_id' => $user->id, 'error' => $e->getMessage()]);
+        }
+    }
+
+    /**
      * Notifikasi pembayaran dikonfirmasi/diterima.
      */
     public function notifyPaymentSubmitted(\App\Models\Payment $payment): void
@@ -439,6 +514,9 @@ class NotificationService
             }
 
             $user->notify(new InAppNotification($title, $message, $url, $event));
+
+            // Web push ke device user
+            $this->webPush($user, $title, $message, $url, $event);
         }
     }
 
@@ -616,6 +694,9 @@ class NotificationService
         if ($waSent && $emailCopy && !empty($user->email)) {
             $this->email(new \App\Mail\AlertMail($user->name, $type->subject(), $html), $user->email, $event);
         }
+
+        // Web push
+        $this->webPush($user, $type->subject(), $message, $data['url'] ?? '/dashboard', $event);
     }
 
     private function typeEvent(NotificationType $type): string

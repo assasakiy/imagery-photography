@@ -7,6 +7,7 @@ import { PageHeader, EmptyState, formatRupiah, formatDate, dateBoxParts } from '
 import { StatCardsSkeleton, ChartSkeleton } from '../components/Skeleton';
 import { useAuth } from '../context/AuthContext';
 import { prefetchAllRoutesInBackground } from '../routes/prefetchAll';
+import PushPrompt from '../components/PushPrompt';
 
 export default function Dashboard() {
     const { user } = useAuth();
@@ -80,6 +81,8 @@ export default function Dashboard() {
                     title="Dashboard"
                     subtitle={`Selamat datang kembali, ${user?.name}`}
                 />
+
+                <PushPrompt />
 
                 <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
                     {kpis.map((c) => (
@@ -236,6 +239,7 @@ export default function Dashboard() {
                     </Link>
                 </div>
             )}
+            <PushPrompt />
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
                 {cards.map((c) => (
                     <div key={c.label} className="card p-5">

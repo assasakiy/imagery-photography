@@ -270,6 +270,11 @@ class User extends Authenticatable implements HasMedia
         return $this->hasMany(LoginHistory::class);
     }
 
+    public function pushSubscriptions(): HasMany
+    {
+        return $this->hasMany(PushSubscription::class);
+    }
+
     public function allowedLoginMethods(): array
     {
         return app(\App\Services\RuntimeSettings::class)->globalLoginMethods();

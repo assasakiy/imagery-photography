@@ -6,6 +6,20 @@ const BadgeContext = createContext(null);
 const DEBOUNCE_MS = 500;
 const FALLBACK_INTERVAL_MS = 60000;
 
+function setAppBadge(count) {
+    if ('setAppBadge' in navigator) {
+        if (count > 0) {
+            navigator.setAppBadge(count).catch(() => {});
+        } else {
+            navigator.clearAppBadge().catch(() => {});
+        }
+    }
+}
+
+function notifySW(type, data) {
+    navigator.serviceWorker?.controller?.postMessage({ type, ...data });
+}
+
 export function BadgeProvider({ children }) {
     const [unread, setUnread] = useState(0);
     const [unreadMessages, setUnreadMessages] = useState(0);
@@ -29,11 +43,15 @@ export function BadgeProvider({ children }) {
 
         api.get('/dashboard/summary')
             .then(({ data }) => {
-                setUnread(data.notifications_unread ?? 0);
+                const newUnread = data.notifications_unread ?? 0;
+                setUnread(newUnread);
                 setUnreadMessages(data.messages_unread ?? 0);
                 setUnreadBookings(data.bookings_pending ?? 0);
                 setUnpaidInvoices(data.invoices_unpaid ?? 0);
                 setPendingPayments(data.payments_pending ?? 0);
+
+                setAppBadge(newUnread);
+                notifySW('SET_BADGE', { count: newUnread });
             })
             .catch(() => {})
             .finally(() => {
@@ -57,11 +75,20 @@ export function BadgeProvider({ children }) {
         };
         document.addEventListener('visibilitychange', onVisible);
 
+        // Listen for badge refresh from service worker (push received)
+        const onSWMessage = (event) => {
+            if (event.data?.type === 'BADGE_REFRESH') {
+                refresh();
+            }
+        };
+        navigator.serviceWorker?.addEventListener('message', onSWMessage);
+
         const timer = setInterval(refresh, FALLBACK_INTERVAL_MS);
 
         return () => {
             window.removeEventListener('badges:refresh', onRefresh);
             document.removeEventListener('visibilitychange', onVisible);
+            navigator.serviceWorker?.removeEventListener('message', onSWMessage);
             clearInterval(timer);
         };
     }, [refresh]);

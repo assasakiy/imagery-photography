@@ -5,7 +5,7 @@
  *  - Aset build (/build/*): stale-while-revalidate
  *  - API & non-GET: tidak pernah di-cache
  */
-const VERSION = 'v1';
+const VERSION = 'v2';
 const CACHE = `sli-pwa-${VERSION}`;
 const OFFLINE_URL = '/offline';
 
@@ -75,3 +75,80 @@ self.addEventListener('fetch', (event) => {
         );
     }
 });
+
+// ─── Web Push ────────────────────────────────────────────────
+self.addEventListener('push', (event) => {
+    if (!event.data) return;
+
+    let payload;
+    try {
+        payload = event.data.json();
+    } catch {
+        payload = { title: 'Imagery', body: event.data.text() };
+    }
+
+    const title = payload.title || 'Imagery';
+    const options = {
+        body: payload.body || '',
+        icon: '/icons/pwa-192.png',
+        badge: '/icons/pwa-192.png',
+        tag: payload.tag || 'imagery-push',
+        data: payload.data || {},
+        vibrate: [100, 50, 100],
+    };
+
+    event.waitUntil(
+        self.registration.showNotification(title, options).then(() => {
+            return updateBadgeCount(self.clients);
+        })
+    );
+});
+
+self.addEventListener('notificationclick', (event) => {
+    event.notification.close();
+
+    const url = event.notification.data?.url || '/dashboard';
+
+    event.waitUntil(
+        self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
+            // Fokus ke tab yang sudah terbuka
+            for (const client of clients) {
+                if (client.url.includes(self.location.origin) && 'focus' in client) {
+                    client.focus();
+                    if (client.navigate) client.navigate(url);
+                    return;
+                }
+            }
+            // Buka tab baru
+            if (self.clients.openWindow) {
+                return self.clients.openWindow(url);
+            }
+        })
+    );
+});
+
+// ─── Badge API (unread count) ──────────────────────────────
+self.addEventListener('message', (event) => {
+    if (event.data?.type === 'SET_BADGE') {
+        const count = event.data.count || 0;
+        setBadge(self.registration, count);
+    }
+});
+
+function updateBadgeCount(clients) {
+    return clients.matchAll({ type: 'window' }).then((windowClients) => {
+        for (const client of windowClients) {
+            client.postMessage({ type: 'BADGE_REFRESH' });
+        }
+    });
+}
+
+function setBadge(registration, count) {
+    if ('setAppBadge' in registration) {
+        if (count > 0) {
+            registration.setAppBadge(count).catch(() => {});
+        } else {
+            registration.clearAppBadge().catch(() => {});
+        }
+    }
+}

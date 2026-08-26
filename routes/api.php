@@ -28,6 +28,7 @@ use App\Http\Controllers\Api\BookmarkController;
 use App\Http\Controllers\Api\HistoryController;
 use App\Http\Controllers\Api\EngagementController;
 use App\Http\Controllers\Api\PackageController;
+use App\Http\Controllers\Api\PushController;
 use App\Http\Controllers\Api\SubscriberController;
 use App\Http\Controllers\Api\SettingsController;
 use App\Http\Controllers\Api\TeamController;
@@ -69,6 +70,11 @@ Route::middleware(['web', 'auth:sanctum', 'maintenance'])->group(function () {
     Route::patch('/notifications/{notification}/read', [NotificationController::class, 'markAsRead']);
     Route::patch('/notifications/read-all', [NotificationController::class, 'markAllRead']);
     Route::delete('/notifications', [NotificationController::class, 'clearAll']);
+
+    // Web Push subscriptions
+    Route::get('/push/vapid-key', [PushController::class, 'vapidPublicKey']);
+    Route::post('/push/subscribe', [PushController::class, 'subscribe']);
+    Route::post('/push/unsubscribe', [PushController::class, 'unsubscribe']);
 
     Route::get('/profile', [ProfileController::class, 'show']);
     Route::put('/profile', [ProfileController::class, 'update']);
