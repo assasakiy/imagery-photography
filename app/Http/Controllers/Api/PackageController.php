@@ -14,12 +14,12 @@ class PackageController extends Controller
     {
         $query = Package::with('services')->withBookingCount()
             ->when($request->boolean('active_only'), fn ($q) => $q->where('is_active', true))
-            ->when($request->filled('q'), fn ($q, $search) => $q->where('name', 'like', "%{$search}%"))
-            ->when($request->filled('status'), function ($q, $status) {
+            ->when($request->input('q'), fn ($q, $search) => $q->where('name', 'like', "%{$search}%"))
+            ->when($request->input('status'), function ($q, $status) {
                 if ($status === 'active') return $q->where('is_active', true);
                 if ($status === 'inactive') return $q->where('is_active', false);
             })
-            ->when($request->filled('type'), fn ($q, $type) => $q->where('type', $type))
+            ->when($request->input('type'), fn ($q, $type) => $q->where('type', $type))
             ->orderBy('display_order');
 
         return response()->json($query->get()->map(fn ($p) => $this->serialize($p)));

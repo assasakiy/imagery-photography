@@ -52,7 +52,6 @@ export default function Services() {
 
     const [pkgSearch, setPkgSearch] = useState('');
     const [pkgDebounced, setPkgDebounced] = useState('');
-    const [pkgStatus, setPkgStatus] = useState('');
     const [pkgType, setPkgType] = useState('');
 
     const loadSvc = () => {
@@ -62,7 +61,7 @@ export default function Services() {
     };
 
     const loadPkg = () => {
-        api.get('/packages', { params: { q: pkgDebounced || undefined, status: pkgStatus || undefined, type: pkgType || undefined } })
+        api.get('/packages', { params: { q: pkgDebounced || undefined, type: pkgType || undefined } })
             .then(({ data }) => setPackages(data))
             .catch(() => toast.error('Gagal memuat paket.'));
     };
@@ -71,7 +70,7 @@ export default function Services() {
         setLoading(true);
         Promise.all([
             api.get('/services', { params: { q: svcDebounced || undefined, status: svcStatus || undefined } }),
-            api.get('/packages', { params: { q: pkgDebounced || undefined, status: pkgStatus || undefined, type: pkgType || undefined } }),
+            api.get('/packages', { params: { q: pkgDebounced || undefined, type: pkgType || undefined } }),
         ])
             .then(([s, p]) => {
                 setServices(s.data);
@@ -92,7 +91,7 @@ export default function Services() {
     }, [pkgSearch]);
 
     useEffect(loadSvc, [svcDebounced, svcStatus]);
-    useEffect(loadPkg, [pkgDebounced, pkgStatus, pkgType]);
+    useEffect(loadPkg, [pkgDebounced, pkgType]);
     
     // Initial load
     useEffect(() => {
@@ -297,13 +296,6 @@ export default function Services() {
                                 {key: 'populer', label: 'Populer', icon: 'trending-up'},
                                 {key: 'unggulan', label: 'Unggulan', icon: 'star'},
                             ]} 
-                        />
-                        <FilterDropdown 
-                            title="Filter Status" 
-                            icon="toggle-left" 
-                            value={pkgStatus} 
-                            onChange={setPkgStatus} 
-                            options={[{key: 'active', label: 'Aktif', icon: 'check'}, {key: 'inactive', label: 'Nonaktif', icon: 'eye-off'}]} 
                         />
                     </div>
                 </div>
