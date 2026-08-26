@@ -217,7 +217,7 @@ export default function Layout() {
             >
                 <div className="flex h-16 items-center gap-3 border-b border-line px-6">
 {siteLogo ? (
-    <img src={siteLogo} alt={siteName} className="h-10 w-10 shrink-0 object-contain" />
+    <img src={siteLogo} alt={siteName} className="h-10 w-10 shrink-0 rounded-lg object-contain" />
 ) : (
     <Icon name="camera" size={20} className="h-10 w-10 shrink-0" />
 )}
