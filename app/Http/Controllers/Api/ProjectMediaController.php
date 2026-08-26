@@ -203,6 +203,10 @@ class ProjectMediaController extends Controller
 
     public function downloadFile(Request $request, ProjectFile $file)
     {
+        if ($request->user()->isClient() && $file->project->user_id !== $request->user()->id) {
+            abort(403);
+        }
+
         if ($file->project->status === 'archived' && !$file->project->hasActiveRedelivery()) {
             abort(403, 'Akses dibekukan. Proyek berada di arsip.');
         }
@@ -221,6 +225,10 @@ class ProjectMediaController extends Controller
 
     public function downloadStatus(Request $request, Project $project)
     {
+        if ($request->user()->isClient() && $project->user_id !== $request->user()->id) {
+            abort(403);
+        }
+
         if ($project->status === 'archived' && !$project->hasActiveRedelivery()) {
             return response()->json(['status' => 'none']);
         }
@@ -239,6 +247,10 @@ class ProjectMediaController extends Controller
 
     public function downloadZip(Request $request, Project $project)
     {
+        if ($request->user()->isClient() && $project->user_id !== $request->user()->id) {
+            abort(403);
+        }
+
         if ($project->status === 'archived' && !$project->hasActiveRedelivery()) {
             abort(403, 'Akses dibekukan.');
         }
