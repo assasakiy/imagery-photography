@@ -264,7 +264,7 @@
             <div class="grid grid-cols-1 gap-8 md:grid-cols-4">
             <div class="md:col-span-2 md:pr-10 lg:pr-16">
                 <a href="{{ route('home') }}" class="mb-4 flex items-center gap-3 text-ink transition-opacity hover:opacity-80">
-                    <img src="{{ $siteLogo }}" alt="{{ $siteName }}" class="h-10 w-auto">
+                    <img src="{{ $siteLogo }}" alt="{{ $siteName }}" class="h-10 w-auto rounded-lg object-contain">
                     <div class="flex flex-col">
                         <span class="text-xl font-bold leading-none text-ink">@include('partials.site-brand')</span>
                         @if ($siteTagline)
