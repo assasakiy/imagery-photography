@@ -114,5 +114,13 @@ Halaman dashboard yang punya beberapa tab **WAJIB** dipisah ke folder `pages/<na
 - Menu navigasi dan elemen UI lainnya tetap konsisten memakai font sans utama (Instrument Sans).
 - Perubahan ini otomatis diaplikasikan di bagian navbar dan footer.
 
+## 14. Dukungan Docker (Production Ready)
+
+Aplikasi kini dapat dijalankan secara terisolasi menggunakan Docker dengan multi-stage build:
+- **Dockerfile** membundel PHP 8.3 FPM, Nginx, Node.js (untuk compile Vite), dan Supervisor.
+- **docker-compose.yml** menyertakan layanan web (`imagery_app` pada port 8081) dan database (`imagery_db` MySQL 8.0).
+- File konfigurasi server diletakkan di dalam folder `/docker`.
+- Perintah deploy: `docker compose up -d --build`.
+
 *Rincian arsitektur ada di `docs/architecture_and_rbac.md`. Riwayat sesi sebelumnya ada di Git history.*
 
