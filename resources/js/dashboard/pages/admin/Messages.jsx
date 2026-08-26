@@ -192,15 +192,15 @@ export default function Messages() {
                     className={`flex w-full items-start gap-3 p-4 text-left transition-colors hover:bg-surface-muted ${selectedConv?.id === m.id ? 'bg-surface-muted' : ''}`}
                 >
                     <Avatar src={m.user?.avatar} name={m.user?.name || m.name || 'U'} size="sm" shape="full" className="h-8 w-8 shrink-0" />
-                    <div className="min-w-0 flex-1">
-                        <div className="flex items-center justify-between gap-2">
-                            <div className="flex items-center gap-1.5">
-                                <p className="truncate text-sm font-semibold text-ink">{m.user?.name || m.name}</p>
+                    <div className="min-w-0 flex-1 overflow-hidden">
+                        <div className="flex items-baseline gap-2">
+                            <div className="flex min-w-0 flex-1 items-center gap-1.5">
+                                <p className="min-w-0 truncate text-sm font-semibold text-ink">{m.user?.name || m.name}</p>
                                 {!isUnread && (
-                                    <span className="inline-block h-1.5 w-1.5 rounded-full bg-surface-muted ring-1 ring-line" />
+                                    <span className="inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-surface-muted ring-1 ring-line" />
                                 )}
                                 {isUnread && (
-                                    <span className="inline-block h-1.5 w-1.5 rounded-full bg-brand-500" />
+                                    <span className="inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-brand-500" />
                                 )}
                             </div>
                             <span className="shrink-0 text-[10px] text-ink-muted">{formatDate(m.created_at)}</span>
