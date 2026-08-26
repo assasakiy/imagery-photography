@@ -38,4 +38,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->shouldRenderJsonWhen(
             fn (Request $request) => $request->is('api/*'),
         );
+        $exceptions->reportable(function (\Throwable $e) {
+            file_put_contents('php://stderr', "[LARAVEL ERROR] " . $e->getMessage() . "\n" . $e->getTraceAsString() . "\n");
+        });
     })->create();
