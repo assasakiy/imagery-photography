@@ -74,10 +74,10 @@
 
     <header class="sticky top-0 z-40 border-b border-line/70 bg-zinc-50/80 backdrop-blur-lg dark:bg-zinc-950/80">
         <div class="container-site flex h-16 items-center justify-between">
-            <a href="{{ route('home') }}" class="flex items-center gap-3">
-                <img src="{{ $siteLogo }}" alt="{{ $siteName }}" class="h-9 w-9 rounded-md object-cover ring-1 ring-line">
-                <span class="text-lg font-bold tracking-tight text-ink">@include('partials.site-brand')</span>
-            </a>
+<a href="{{ route('home') }}" class="flex items-center gap-3">
+    <img src="{{ $siteLogo }}" alt="{{ $siteName }}" class="h-9 w-9 object-contain">
+    <span class="text-lg font-bold tracking-tight text-ink">@include('partials.site-brand')</span>
+</a>
 
             <nav class="hidden items-center gap-1 lg:flex" aria-label="Navigasi utama">
                 @foreach ($navLinks as $link)

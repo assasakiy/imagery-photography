@@ -216,13 +216,11 @@ export default function Layout() {
                 }`}
             >
                 <div className="flex h-16 items-center gap-3 border-b border-line px-6">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-surface-muted">
-                        {siteLogo ? (
-                            <img src={siteLogo} alt={siteName} className="h-full w-full object-cover" />
-                        ) : (
-                            <Icon name="camera" size={20} />
-                        )}
-                    </div>
+{siteLogo ? (
+    <img src={siteLogo} alt={siteName} className="h-10 w-10 shrink-0 object-contain" />
+) : (
+    <Icon name="camera" size={20} className="h-10 w-10 shrink-0" />
+)}
                     <div className="min-w-0">
                         <p className="truncate text-sm font-bold text-ink">{siteName}</p>
                     </div>

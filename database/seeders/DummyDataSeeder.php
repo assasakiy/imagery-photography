@@ -36,6 +36,7 @@ class DummyDataSeeder extends Seeder
         $this->seedSampleReviews();
         $this->seedSampleStats();
         $this->seedSampleFaqs();
+        $this->seedSubscribers();
 
         $this->seedCategoriesAndPortfolios();
         $this->seedPackages();
@@ -96,22 +97,36 @@ class DummyDataSeeder extends Seeder
 
     private function seedSampleReviews(): void
     {
-        $reviews = [
-            ['name' => 'Ayu & Rian', 'service' => 'Wedding Package', 'rating' => 5, 'content' => 'Hasil foto dan video pernikahan kami luar biasa. Tim yang sabar dan profesional sepanjang acara.'],
-            ['name' => 'Sinta Maharani', 'service' => 'PreWedding', 'rating' => 5, 'content' => 'Prewedding kami jadi momen paling menyenangkan, hasilnya estetik dan sesuai ekspektasi.'],
-            ['name' => 'Budi Santoso', 'service' => 'Event', 'rating' => 4, 'content' => 'Dokumentasi acara kantor berjalan lancar, foto yang dihasilkan berkualitas.'],
-        ];
+        \App\Models\Review::query()->delete();
 
-        foreach ($reviews as $i => $review) {
-            \App\Models\Review::firstOrCreate(
-                ['name' => $review['name'], 'content' => $review['content']],
-                [
-                    'service' => $review['service'],
-                    'rating' => $review['rating'],
-                    'order' => $i + 1,
-                ]
-            );
-        }
+        $client = \App\Models\User::role('client')->first();
+        if (!$client) return;
+
+        \App\Models\Review::firstOrCreate(
+            ['client_id' => $client->id],
+            [
+                'name' => $client->name ?? 'Ayu & Rian',
+                'service' => 'Wedding Package',
+                'rating' => 5,
+                'content' => 'Hasil foto dan video pernikahan kami luar biasa. Tim yang sabar dan profesional sepanjang acara.',
+                'order' => 1,
+            ]
+        );
+    }
+
+    private function seedSubscribers(): void
+    {
+        $subscriber = \App\Models\User::firstOrCreate(
+            ['email' => 'subscriber@imagery.my.id'],
+            [
+                'username' => 'subscriber',
+                'status' => 'active',
+                'activated_at' => now(),
+                'password' => \Illuminate\Support\Facades\Hash::make('subscriber123'),
+            ]
+        );
+        $subscriber->profile()->firstOrCreate([], ['full_name' => 'Budi Subscriber']);
+        $subscriber->syncRoles('subscriber');
     }
 
     private function seedSampleStats(): void

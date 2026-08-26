@@ -23,8 +23,8 @@ class BookingAndProjectSeeder extends Seeder
         Project::where('user_id', $client?->id)->forceDelete();
         Booking::where('user_id', $client?->id)->delete();
 
-        // 1 booking milik klien (converted) yang menjadi 1 pesanan (project).
-        $booking = Booking::firstOrCreate(
+        // 1. Satu booking baru masuk
+        Booking::firstOrCreate(
             ['booking_no' => 'BK-00001'],
             [
                 'user_id' => $client?->id,
@@ -33,42 +33,95 @@ class BookingAndProjectSeeder extends Seeder
                 'phone' => '08123456789',
                 'package_id' => $package->id,
                 'package_label' => $package->name,
-                'event_date' => now()->addDays(10),
-                'event_start' => now()->addDays(10)->setTime(8, 0),
-                'event_end' => now()->addDays(10)->setTime(14, 0),
+                'event_date' => now()->addDays(20),
+                'event_start' => now()->addDays(20)->setTime(8, 0),
+                'event_end' => now()->addDays(20)->setTime(14, 0),
                 'location' => 'Masjid Raya, Lombok Tengah',
-                'notes' => 'Pemesanan via dashboard klien.',
+                'notes' => 'Tolong fotografernya yang komunikatif ya mas.',
+                'price' => $package->computedPrice(),
+                'status' => 'new'
+            ]
+        );
+
+        // 2. Satu booking disetujui (tinggal buat project)
+        Booking::firstOrCreate(
+            ['booking_no' => 'BK-00002'],
+            [
+                'user_id' => $client?->id,
+                'name' => $client?->name ?? 'Ayu Maharani',
+                'email' => $client?->email ?? 'client@imagery.my.id',
+                'phone' => '08123456789',
+                'package_id' => $package->id,
+                'package_label' => $package->name,
+                'event_date' => now()->addDays(15),
+                'event_start' => now()->addDays(15)->setTime(9, 0),
+                'event_end' => now()->addDays(15)->setTime(12, 0),
+                'location' => 'Pantai Kuta, Lombok',
+                'notes' => 'Prewedding tema kasual.',
+                'price' => $package->computedPrice(),
+                'status' => 'approved'
+            ]
+        );
+
+        // 3. Satu booking converted ke Project yang sudah selesai & lunas
+        $bookingConverted = Booking::firstOrCreate(
+            ['booking_no' => 'BK-00003'],
+            [
+                'user_id' => $client?->id,
+                'name' => $client?->name ?? 'Ayu Maharani',
+                'email' => $client?->email ?? 'client@imagery.my.id',
+                'phone' => '08123456789',
+                'package_id' => $package->id,
+                'package_label' => $package->name,
+                'event_date' => now()->subDays(10),
+                'event_start' => now()->subDays(10)->setTime(8, 0),
+                'event_end' => now()->subDays(10)->setTime(14, 0),
+                'location' => 'Hotel Lombok Raya',
+                'notes' => 'Booking lama.',
                 'price' => $package->computedPrice(),
                 'status' => 'converted'
             ]
         );
 
         $project = Project::firstOrCreate(
-            ['name' => 'Wedding Ayu & Rian'],
+            ['name' => 'Wedding Ayu & Rian (Selesai)'],
             [
-                'user_id' => $booking->user_id,
+                'user_id' => $bookingConverted->user_id,
                 'package_id' => $package->id,
-                'event_date' => $booking->event_date,
-                'event_start' => $booking->event_start,
-                'event_end' => $booking->event_end,
-                'location' => $booking->location,
-                'price' => $booking->price,
-                'status' => 'scheduled'
+                'event_date' => $bookingConverted->event_date,
+                'event_start' => $bookingConverted->event_start,
+                'event_end' => $bookingConverted->event_end,
+                'location' => $bookingConverted->location,
+                'price' => $bookingConverted->price,
+                'status' => 'completed',
+                'completed_at' => now()->subDays(5)
             ]
         );
 
-        $booking->update(['project_id' => $project->id]);
+        $bookingConverted->update(['project_id' => $project->id]);
 
-        $project->invoice()->firstOrCreate(
+        $invoice = $project->invoice()->firstOrCreate(
             ['number' => 'INV-' . str_pad((string) $project->id, 5, '0', STR_PAD_LEFT)],
             [
-                'issued_at' => now()->toDateString(),
-                'due_at' => now()->addDays(7)->toDateString(),
+                'issued_at' => now()->subDays(15)->toDateString(),
+                'due_at' => now()->subDays(8)->toDateString(),
                 'base_amount' => $project->price,
-                'status' => 'unpaid'
+                'status' => 'paid',
+                'paid_amount' => $project->price
             ]
         );
 
-        $project->addSystemUpdate('Booking ' . $booking->booking_no . ' diterima — project dibuat untuk klien ' . ($client?->name ?? '-') . '.');
+        // Lunas
+        $project->payments()->firstOrCreate(
+            ['amount' => $project->price],
+            [
+                'method' => 'manual_transfer',
+                'gateway' => 'Bank Transfer',
+                'status' => 'confirmed',
+                'paid_at' => now()->subDays(5)
+            ]
+        );
+
+        $project->addSystemUpdate('Pesanan Wedding Ayu & Rian telah selesai. Pembayaran lunas.');
     }
 }
