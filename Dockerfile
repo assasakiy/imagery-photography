@@ -8,7 +8,7 @@ RUN npm run build
 FROM composer:2.7 AS backend
 WORKDIR /app
 COPY composer.json composer.lock ./
-RUN composer install --no-scripts --no-autoloader --prefer-dist --no-dev
+RUN composer install --no-scripts --no-autoloader --prefer-dist --no-dev --ignore-platform-reqs
 COPY . .
 RUN composer dump-autoload --optimize
 
@@ -26,10 +26,11 @@ RUN apk add --no-cache \
     freetype-dev \
     icu-dev \
     oniguruma-dev \
+    gmp-dev \
     mysql-client \
     curl \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install -j$(nproc) pdo_mysql mbstring zip exif pcntl gd \
+    && docker-php-ext-install -j$(nproc) pdo_mysql mbstring zip exif pcntl gd gmp \
     && docker-php-ext-enable opcache
 
 # Copy Nginx config
