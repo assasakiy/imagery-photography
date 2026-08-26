@@ -29,16 +29,22 @@ class AppServiceProvider extends ServiceProvider
             URL::forceScheme('https');
         }
 
-        $settings = app(RuntimeSettings::class);
-
-        View::share([
-            'siteName' => $settings->siteName(),
-            'siteTagline' => $settings->siteTagline(),
-            'siteDescription' => $settings->siteDescription(),
-            'siteLogo' => $settings->siteLogo(),
-            'siteFavicon' => $settings->siteFavicon(),
-            'shellSettings' => $settings,
-        ]);
+        // Only share settings with views if we are not running console commands that might fail without DB
+        if (! $this->app->runningInConsole() || app()->runningUnitTests()) {
+            try {
+                $settings = app(RuntimeSettings::class);
+                View::share([
+                    'siteName' => $settings->siteName(),
+                    'siteTagline' => $settings->siteTagline(),
+                    'siteDescription' => $settings->siteDescription(),
+                    'siteLogo' => $settings->siteLogo(),
+                    'siteFavicon' => $settings->siteFavicon(),
+                    'shellSettings' => $settings,
+                ]);
+            } catch (\Exception $e) {
+                // Ignore DB errors during initial setup/migration
+            }
+        }
 
         RateLimiter::for('forgot', function ($job) {
             return [
