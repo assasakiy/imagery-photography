@@ -150,7 +150,7 @@ function AdminTab() {
             {loading ? (
                 <AvatarCardGridSkeleton count={6} />
             ) : items.length ? (
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
                     {items.map((item) => (
                         <div key={item.id} className="card p-5">
                             <div className="flex items-start justify-between gap-2">
