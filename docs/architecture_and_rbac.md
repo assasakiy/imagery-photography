@@ -27,4 +27,5 @@ Proyek ini merupakan Monolith Laravel 13 yang menyajikan dua sisi:
 
 ## Keamanan Data
 - **CSRF Token**: Karena sistemnya SPA, semua mutasi state state (POST/PUT/DELETE) wajib menyertakan token CSRF (di-inject manual via header HTTP `X-XSRF-TOKEN`). Cookie ini di-*refresh* otomatis via Axios Interceptor jika mendapatkan error `419`.
+- **Registrasi OTP**: `/subscribe/verify` mengembalikan `require_password` + `set_password_token` untuk akun pending. React Register wajib meneruskan user ke `/set-password?token=...`; akun aktif yang sudah login dapat langsung ke dashboard.
 - **Soft Deletes & Recycle Bin**: Menggunakan trait `SoftDeletes` dan pencatat waktu penghapusan `SoftDeletesWithWho` agar data yang terhapus dapat di-*restore* via modul "Recycle Bin".

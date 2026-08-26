@@ -62,7 +62,11 @@ export default function Register() {
         setLoading(true);
         try {
             await ensureCsrf();
-            await api.post('/subscribe/verify', { email: email.trim(), otp: code });
+            const { data } = await api.post('/subscribe/verify', { email: email.trim(), otp: code });
+            if (data?.require_password) {
+                navigate(`/set-password?token=${encodeURIComponent(data.set_password_token)}`);
+                return;
+            }
             navigate('/dashboard');
         } catch (err) {
             setError(err?.response?.data?.message || 'Verifikasi gagal.');
