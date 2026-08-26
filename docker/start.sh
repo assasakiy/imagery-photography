@@ -11,7 +11,13 @@ mkdir -p storage/framework/cache/data \
 chown -R www-data:www-data storage bootstrap/cache
 chmod -R 775 storage bootstrap/cache
 
-# Run package discovery
+# Run database migrations FIRST
+php artisan migrate --force
+
+# Link storage (needs to happen after migration but before cache)
+php artisan storage:link || true
+
+# Run package discovery (requires DB for some packages)
 php artisan package:discover --ansi
 
 # Run optimizations if in production
@@ -20,12 +26,6 @@ if [ "$APP_ENV" = "production" ]; then
     php artisan route:cache
     php artisan view:cache
 fi
-
-# Run database migrations
-php artisan migrate --force
-
-# Link storage
-php artisan storage:link || true
 
 # Start supervisord to run PHP-FPM, Nginx, and Queue Worker
 exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
