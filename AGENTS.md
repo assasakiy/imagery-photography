@@ -107,12 +107,11 @@ Halaman dashboard yang punya beberapa tab **WAJIB** dipisah ke folder `pages/<na
 - **Media Library**: model butuh `$fillable=['id']`; `LandingContent::setValue` pertahankan `group`; reset landing images meninggalkan media orphan (TODO).
 - **Test**: skrip di `/home/opc` (`spa_test.py`, `final_test.py`, `access_test.py`); `/etc/hosts` berisi `127.0.0.1 imagery.my.id`; `/tmp/opencode` TIDAK writable.
 
-## 13. Sesi Terbaru — Badge Paket Primary
+## 13. Sesi Terbaru — Badge Layanan Dashboard
 
-- Badge `Unggulan` dan `Populer` pada section layanan Beranda memakai `.action-surface`.
-- Badge sama pada card paket halaman Layanan (`partials/package-card.blade.php`) memakai primary semantic `--action-bg` + `--action-fg`.
-- Accent/secondary tidak lagi dipakai untuk badge paket publik agar penanda lebih tegas.
-- Kontras tetap otomatis mengikuti primary action yang sudah memenuhi minimum 4.5:1 dengan teks putih.
+- Badge media layanan, tipe paket, `Unggulan`, dan `Populer` pada dashboard Layanan/Paket memakai `.action-surface`.
+- Badge tersebut mengikuti primary semantic `--action-bg` + `--action-fg`, sama dengan badge paket publik.
+- Status `Aktif` tetap emerald dan `Nonaktif` tetap neutral surface karena keduanya warna status, bukan branding.
 - Build Vite dan `git diff --check` sukses.
 
 *Rincian arsitektur palet ada di `docs/architecture_and_rbac.md`. Riwayat sesi sebelumnya ada di Git history.*

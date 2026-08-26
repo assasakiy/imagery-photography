@@ -334,7 +334,7 @@ export default function Services() {
                                 {services.map((s) => (
                                     <tr key={s.id}>
                                         <td className="font-medium text-ink">{s.event || '-'}</td>
-                                        <td><span className="badge [background-color:var(--accent-soft)] [color:var(--accent-fg)]">{s.media}</span></td>
+                                        <td><span className="badge action-surface">{s.media}</span></td>
                                         <td className="text-xs text-ink-muted">{s.terms || '-'}</td>
                                         <td className="text-xs text-ink-muted">{s.duration || '-'}</td>
                                         <td className="font-semibold text-ink">{formatRupiah(s.price)}</td>
@@ -372,9 +372,9 @@ export default function Services() {
                                     <div className="min-w-0">
                                         <div className="flex flex-wrap items-center gap-2">
                                             <h3 className="font-bold text-ink">{p.name}</h3>
-                                            <span className="badge [background-color:var(--accent-soft)] [color:var(--accent-fg)]">{p.type.charAt(0).toUpperCase() + p.type.slice(1)}</span>
-                                            {p.is_featured && <span className="badge [background-color:var(--accent-soft)] [color:var(--accent-fg)]"><Icon name="star" size={12} /> Unggulan</span>}
-                                            {p.booking_count > 0 && <span className="badge [background-color:var(--accent-soft)] [color:var(--accent-fg)]">Populer</span>}
+                                            <span className="badge action-surface">{p.type.charAt(0).toUpperCase() + p.type.slice(1)}</span>
+                                            {p.is_featured && <span className="badge action-surface"><Icon name="star" size={12} /> Unggulan</span>}
+                                            {p.booking_count > 0 && <span className="badge action-surface">Populer</span>}
                                             {!p.is_active && <span className="badge bg-surface-muted text-ink-muted">Nonaktif</span>}
                                         </div>
                                         {p.description && <p className="mt-1 text-sm text-ink-muted">{p.description}</p>}
