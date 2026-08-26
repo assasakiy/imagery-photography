@@ -36,7 +36,7 @@
 
         <div class="container-site relative py-24">
             <div class="max-w-2xl">
-                <p class="mb-4 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-white backdrop-blur">
+                <p class="mb-4 inline-flex items-center gap-2 rounded-full border border-white/20 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-white/80">
                     <span class="h-2 w-2 rounded-full bg-brand-400"></span>
                     {{ $homeBadge }}
                 </p>
@@ -58,9 +58,8 @@
             </div>
         </div>
 
-        <a href="#tentang" class="absolute bottom-8 left-1/2 hidden -translate-x-1/2 flex-col items-center gap-2 text-white/60 transition-colors hover:text-white md:flex" aria-label="Scroll ke bawah">
-            <span class="text-xs uppercase tracking-widest">Scroll</span>
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
+        <a href="#tentang" class="absolute bottom-8 left-1/2 hidden -translate-x-1/2 items-center text-white/40 transition-colors hover:text-white md:flex" aria-label="Scroll ke bawah">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="animate-bounce"><path d="m6 9 6 6 6-6"/></svg>
         </a>
     </section>
 
@@ -135,7 +134,6 @@
                 <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
                     @foreach ($packages as $pkg)
                         <div class="reveal card group relative overflow-hidden p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-brand-600/10">
-                            <div class="absolute right-0 top-0 h-24 w-24 translate-x-8 -translate-y-8 rounded-full bg-brand-600/10 transition-transform duration-300 group-hover:scale-150"></div>
 <div class="mb-4 flex items-center gap-3">
                     @if ($pkg->is_featured)
                         <span class="rounded-full bg-amber-500/15 px-2 py-0.5 text-xs font-semibold text-amber-600 dark:text-amber-400">Unggulan</span>
@@ -259,7 +257,7 @@
 
                 <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
                     @foreach ($blogs as $post)
-                        <a href="{{ route('blog.show', $post->slug) }}" class="reveal card group flex flex-col overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-brand-600/10">
+                        <a href="{{ route('blog.show', $post->slug) }}" class="reveal card group flex flex-col overflow-hidden transition-[box-shadow,transform] duration-300 hover:-translate-y-1 hover:shadow-lg">
                             <div class="aspect-[16/9] overflow-hidden">
                                 <img src="{{ $post->thumbnail_url }}" alt="{{ $post->title }}" width="400" height="250" loading="lazy" decoding="async" sizes="(min-width: 768px) 33vw, 100vw" class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105">
                             </div>
