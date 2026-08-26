@@ -3,10 +3,10 @@
     @if ($pkg->booking_count > 0 || $pkg->is_featured)
         <div class="flex flex-wrap gap-1.5">
             @if ($pkg->booking_count > 0)
-                <span class="inline-flex w-fit rounded-full bg-emerald-500/15 px-2 py-0.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400">Populer</span>
+                <span class="inline-flex w-fit rounded-full [background-color:var(--accent-soft)] px-2 py-0.5 text-xs font-semibold [color:var(--accent-fg)]">Populer</span>
             @endif
             @if ($pkg->is_featured)
-                <span class="inline-flex w-fit rounded-full bg-amber-500/15 px-2 py-0.5 text-xs font-semibold text-amber-600 dark:text-amber-400">Unggulan</span>
+                <span class="inline-flex w-fit rounded-full [background-color:var(--accent-soft)] px-2 py-0.5 text-xs font-semibold [color:var(--accent-fg)]">Unggulan</span>
             @endif
         </div>
     @endif

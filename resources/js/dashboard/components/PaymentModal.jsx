@@ -244,21 +244,21 @@ export default function PaymentModal({ open, onClose, invoice, projectId, onPaid
                                     <button
                                         type="button"
                                         onClick={() => setTab('manual')}
-                                        className={`rounded-lg px-3 py-2 text-left transition-colors ${tab === 'manual' ? 'bg-brand-600 text-white shadow' : 'hover:bg-surface-muted'}`}
+                                        className={`rounded-lg px-3 py-2 text-left transition-colors ${tab === 'manual' ? 'action-surface shadow shadow-black/10' : 'hover:bg-surface-muted'}`}
                                     >
                                         <span className="block text-sm font-semibold">Transfer Manual</span>
-                                        <span className={`block text-xs ${tab === 'manual' ? 'text-white/70' : 'text-ink-muted'}`}>Verifikasi 1x24 jam</span>
+                                        <span className={`block text-xs ${tab === 'manual' ? 'text-current opacity-70' : 'text-ink-muted'}`}>Verifikasi 1x24 jam</span>
                                     </button>
                                     <button
                                         type="button"
                                         onClick={() => setTab('gateway')}
-                                        className={`rounded-lg px-3 py-2 text-left transition-colors ${tab === 'gateway' ? 'bg-brand-600 text-white shadow' : 'hover:bg-surface-muted'}`}
+                                        className={`rounded-lg px-3 py-2 text-left transition-colors ${tab === 'gateway' ? 'action-surface shadow shadow-black/10' : 'hover:bg-surface-muted'}`}
                                     >
                                         <span className="flex items-center gap-1.5 text-sm font-semibold">
                                             Payment Gateway
                                             <span className="badge bg-amber-400/20 text-amber-600 dark:text-amber-400">AUTO</span>
                                         </span>
-                                        <span className={`block text-xs ${tab === 'gateway' ? 'text-white/70' : 'text-ink-muted'}`}>Terverifikasi otomatis</span>
+                                        <span className={`block text-xs ${tab === 'gateway' ? 'text-current opacity-70' : 'text-ink-muted'}`}>Terverifikasi otomatis</span>
                                     </button>
                                 </div>
                             )}

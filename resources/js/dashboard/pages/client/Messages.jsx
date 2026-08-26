@@ -199,9 +199,9 @@ export default function ClientMessages() {
                                                         )}
                                                     </div>
                                                 )}
-                                                <div className={`relative rounded-2xl px-4 py-3 text-sm min-w-0 break-words ${isAdmin ? 'rounded-tl-sm bg-surface-muted text-ink' : 'rounded-tr-sm bg-brand-600 text-white'}`}>
+                                                <div className={`relative rounded-2xl px-4 py-3 text-sm min-w-0 break-words ${isAdmin ? 'rounded-tl-sm bg-surface-muted text-ink' : 'rounded-tr-sm action-surface'}`}>
                                                     {m.reply_to_id && m.reply_to && (
-                                                        <div className={`mb-2 rounded-lg p-2 text-xs border-l-2 ${isAdmin ? 'bg-white/50 border-ink-muted/30 text-ink-muted' : 'bg-black/10 border-white/30 text-white/80'}`}>
+                                                        <div className={`mb-2 rounded-lg p-2 text-xs border-l-2 ${isAdmin ? 'bg-white/50 border-ink-muted/30 text-ink-muted' : 'bg-black/10 border-current/30 text-current opacity-80'}`}>
                                                                      <p className="inline-flex items-center gap-1 font-semibold">
                                                                          <Avatar src={m.reply_to.user?.avatar} name={m.reply_to.user?.name || m.reply_to.name || 'U'} size="xs" shape="full" className="h-4 w-4" />
                                                                          {m.reply_to.sender_type === 'admin' ? (m.reply_to.user?.name || m.reply_to.name || 'Admin') : (m.reply_to.user?.name || m.reply_to.name)}
@@ -221,7 +221,7 @@ export default function ClientMessages() {
                                                             {m.project.thumb_url ? (
                                                                 <img src={m.project.thumb_url} alt="" className="h-8 w-8 shrink-0 rounded-md object-cover" />
                                                             ) : (
-                                                                <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-md ${isAdmin ? 'bg-white/20 text-white' : 'bg-brand-500/20 text-brand-700'}`}>
+                                                                <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-md ${isAdmin ? 'bg-black/10 text-current' : 'bg-brand-500/20 text-brand-700'}`}>
                                                                     <Icon name="image" size={14} />
                                                                 </div>
                                                             )}
@@ -231,7 +231,7 @@ export default function ClientMessages() {
                                                             </div>
                                                             <a
                                                                 href={`/dashboard/preview/${m.project.order_no || m.project.id}`}
-                                                                className={`shrink-0 rounded-md px-2 py-1 text-[10px] font-semibold transition-colors ${isAdmin ? 'bg-white text-brand-600 hover:bg-white/90' : 'bg-brand-600 text-white hover:bg-brand-700'}`}
+                                                                className={`shrink-0 rounded-md px-2 py-1 text-[10px] font-semibold transition-colors ${isAdmin ? 'bg-white text-brand-600 hover:bg-white/90' : 'bg-black/10 text-current hover:bg-black/20'}`}
                                                             >
                                                                 Detail
                                                             </a>
@@ -239,7 +239,7 @@ export default function ClientMessages() {
                                                     )}
                                                     {m.message && <p className="whitespace-pre-wrap leading-relaxed">{m.message}</p>}
                                                     {m.attachment_url && (
-                                                        <a href={m.attachment_url} target="_blank" rel="noreferrer" className={`mt-2 flex items-center gap-2 rounded-lg p-2 text-xs no-underline ${isAdmin ? 'bg-white text-ink hover:bg-white/80' : 'bg-black/20 text-white hover:bg-black/30'}`}>
+                                                        <a href={m.attachment_url} target="_blank" rel="noreferrer" className={`mt-2 flex items-center gap-2 rounded-lg p-2 text-xs no-underline ${isAdmin ? 'bg-white text-ink hover:bg-white/80' : 'bg-black/20 text-current hover:bg-black/30'}`}>
                                                             <Icon name="paperclip" size={14} /> <span>Lihat Lampiran</span>
                                                         </a>
                                                     )}
@@ -329,7 +329,7 @@ export default function ClientMessages() {
                                     placeholder="Ketik pesan..."
                                 />
                             </div>
-                            <button type="submit" className="shrink-0 flex h-10 w-10 items-center justify-center rounded-full bg-brand-600 text-white hover:bg-brand-700 transition-colors disabled:opacity-40" disabled={sending || !msg.trim()}>
+                            <button type="submit" className="shrink-0 flex h-10 w-10 items-center justify-center rounded-full action-surface transition-colors disabled:opacity-40" disabled={sending || !msg.trim()}>
                                 <Icon name="send" size={18} />
                             </button>
                         </div>

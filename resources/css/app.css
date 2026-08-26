@@ -198,8 +198,25 @@
         @apply inline-flex items-center rounded-full border border-line px-4 py-1.5 text-sm font-medium text-ink-muted transition-colors hover:bg-surface-muted hover:text-ink;
     }
 
+    .action-surface {
+        background-color: var(--action-bg);
+        color: var(--action-fg);
+    }
+
+    .action-surface:hover {
+        background-color: var(--action-bg-hover);
+    }
+
     .chip-active {
-        @apply border-brand-600 bg-brand-600 text-white hover:bg-brand-700 hover:text-white;
+        background-color: var(--action-bg);
+        border-color: var(--action-bg);
+        color: var(--action-fg);
+    }
+
+    .chip-active:hover {
+        background-color: var(--action-bg-hover);
+        border-color: var(--action-bg-hover);
+        color: var(--action-fg);
     }
 
     .icon-btn {
@@ -261,7 +278,13 @@
     }
 
     .rating-carousel-btn {
-        @apply absolute top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-line bg-surface/90 text-ink shadow-lg backdrop-blur transition-[background-color,border-color,color] duration-200 hover:border-brand-600 hover:bg-brand-600 hover:text-white disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-line disabled:hover:bg-surface/90 disabled:hover:text-ink;
+        @apply absolute top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-line bg-surface/90 text-ink shadow-lg backdrop-blur transition-[background-color,border-color,color] duration-200 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-line disabled:hover:bg-surface/90 disabled:hover:text-ink;
+    }
+
+    .rating-carousel-btn:hover:not(:disabled) {
+        background-color: var(--action-bg-hover);
+        border-color: var(--action-bg-hover);
+        color: var(--action-fg);
     }
 
     .rating-carousel-btn--prev {

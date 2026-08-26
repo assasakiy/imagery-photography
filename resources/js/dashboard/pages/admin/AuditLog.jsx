@@ -166,7 +166,7 @@ export default function AuditLog() {
                         type="button"
                         onClick={() => switchView(v.key)}
                         className={`flex flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-xl px-3 py-2.5 text-sm font-semibold transition-colors ${
-                            view === v.key ? 'bg-brand-600 text-white shadow' : 'text-ink-muted hover:bg-surface-muted hover:text-ink'
+                            view === v.key ? 'action-surface shadow shadow-black/10' : 'text-ink-muted hover:bg-surface-muted hover:text-ink'
                         }`}
                     >
                         <Icon name={v.icon} size={16} /> {v.label}

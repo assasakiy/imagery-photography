@@ -289,9 +289,9 @@ export default function ProjectDetail() {
                                         <span className="relative flex h-8 w-8 items-center justify-center sm:h-10 sm:w-10">
                                             {isSelected && <span className="absolute -inset-1 rounded-full border-2 border-white/70" />}
                                             <span className={`flex h-8 w-8 items-center justify-center rounded-full transition-colors sm:h-10 sm:w-10 ${
-                                                isSelected ? 'bg-brand-500 text-white'
+                                                isSelected ? 'action-surface'
                                                 : isDone ? 'bg-emerald-500 text-white'
-                                                : isCurrent ? 'bg-brand-600 text-white shadow-lg shadow-brand-600/40'
+                                                : isCurrent ? 'action-surface shadow-lg shadow-black/10'
                                                 : 'bg-zinc-700/80 text-zinc-400 group-hover:bg-zinc-700'
                                             }`}>
                                                 <Icon name={isDone && !isCurrent && !isSelected ? 'check' : s.icon} size={14} />

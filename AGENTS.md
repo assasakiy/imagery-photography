@@ -107,15 +107,14 @@ Halaman dashboard yang punya beberapa tab **WAJIB** dipisah ke folder `pages/<na
 - **Media Library**: model butuh `$fillable=['id']`; `LandingContent::setValue` pertahankan `group`; reset landing images meninggalkan media orphan (TODO).
 - **Test**: skrip di `/home/opc` (`spa_test.py`, `final_test.py`, `access_test.py`); `/etc/hosts` berisi `127.0.0.1 imagery.my.id`; `/tmp/opencode` TIDAK writable.
 
-## 13. Sesi Terbaru — Palet Brand Tiga Warna
+## 13. Sesi Terbaru — Adopsi Palet di Auth & Dashboard
 
-- **Pilihan settings:** Branding menyediakan tiga template siap pakai (`Editorial`, `Modern`, `Natural`) dan satu pilihan `Custom`.
-- **Peran warna:** `primary` untuk tombol/aksi utama, `secondary` untuk background CTA, `accent` untuk label dan highlight.
-- **Penyimpanan:** settings key-value `brand_primary_color`, `brand_secondary_color`, `brand_accent_color`, dan `brand_palette_template`; `brand_color` lama tetap menjadi fallback agar konfigurasi lama aman.
-- **Runtime CSS:** `BrandColors` menghasilkan scale primary/secondary/accent serta token semantik `--action-*`, `--brand-surface-*`, dan `--accent-*` untuk Blade dan React.
-- **Kontras:** foreground tombol dan CTA otomatis memilih zinc gelap atau putih berdasarkan luminance warna background.
-- **Adopsi awal:** shared `.btn-primary`, React `Button` primary, dan CTA halaman layanan sudah memakai token semantik.
-- **Verifikasi:** PHP syntax, palette self-check, `git diff --check`, dan build Vite sukses. `composer test` masih punya dua kegagalan lama: `ApiThrottleTest::test_record_manual` serta `ExampleTest` karena SQLite test tidak memiliki tabel `pages`.
+- **Auth:** fallback logo Login, Register, Lupa Password, dan Reset Password memakai `.action-surface`, sehingga background dan foreground mengikuti primary serta kontras otomatis.
+- **Dashboard:** navigasi aktif, tab/filter terpilih, badge action, tombol kirim, pilihan media/metode pembayaran, serta indikator tahapan memakai token `--action-*`; shadow brand hardcode diganti netral.
+- **Chat:** bubble pesan bermerek memakai `.action-surface`; konten bersarang memakai `currentColor` agar tetap terbaca saat foreground otomatis berubah gelap/putih.
+- **Layanan:** badge hero, media, tipe paket, Populer, dan Unggulan memakai `--accent-soft` + `--accent-fg`; Nonaktif memakai surface/ink netral. Status Aktif tetap emerald karena warna status tidak mengikuti brand.
+- **Shared CSS:** `.chip-active` dan hover tombol carousel sekarang memakai semantic action tokens.
+- **Verifikasi:** `git diff --check` dan build Vite sukses. `composer test` tetap memiliki dua kegagalan lama: `ApiThrottleTest::test_record_manual` dan `ExampleTest` karena SQLite test tidak memiliki tabel `pages`.
 
 *Rincian arsitektur palet ada di `docs/architecture_and_rbac.md`. Riwayat sesi sebelumnya ada di Git history.*
 

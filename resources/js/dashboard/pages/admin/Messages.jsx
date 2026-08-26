@@ -382,9 +382,9 @@ export default function Messages() {
                                                                     )}
                                                                 </div>
                                                              )}
-                                                            <div className={`relative rounded-2xl px-4 py-3 text-sm min-w-0 break-words ${isAdmin ? 'rounded-tr-sm bg-brand-600 text-white' : 'rounded-tl-sm bg-surface-muted text-ink'}`}>
+                                                            <div className={`relative rounded-2xl px-4 py-3 text-sm min-w-0 break-words ${isAdmin ? 'rounded-tr-sm action-surface' : 'rounded-tl-sm bg-surface-muted text-ink'}`}>
                                                                 {m.reply_to_id && m.reply_to && (
-                                                                    <div className={`mb-2 rounded-lg p-2 text-xs border-l-2 cursor-pointer transition-colors ${isAdmin ? 'bg-black/10 border-white/30 text-white/80 hover:bg-black/20' : 'bg-white/50 border-ink-muted/30 text-ink-muted hover:bg-white/70'}`}
+                                                                    <div className={`mb-2 rounded-lg p-2 text-xs border-l-2 cursor-pointer transition-colors ${isAdmin ? 'bg-black/10 border-current/30 text-current opacity-80 hover:bg-black/20' : 'bg-white/50 border-ink-muted/30 text-ink-muted hover:bg-white/70'}`}
                                                                         onClick={() => {
                                                                             const el = document.getElementById(`msg-${m.reply_to_id}`);
                                                                             if (el) {
@@ -404,11 +404,11 @@ export default function Messages() {
                                                                     </div>
                                                                 )}
                                                                 {m.project && (
-                                                                    <div className={`mb-2 flex items-center gap-2 rounded-lg p-2 text-xs ${isAdmin ? 'bg-black/10 text-white/90' : 'bg-white/50 text-brand-800'}`}>
+                                                                    <div className={`mb-2 flex items-center gap-2 rounded-lg p-2 text-xs ${isAdmin ? 'bg-black/10 text-current' : 'bg-white/50 text-brand-800'}`}>
                                                                         {m.project.thumb_url ? (
                                                                             <img src={m.project.thumb_url} alt="" className="h-8 w-8 shrink-0 rounded-md object-cover" />
                                                                         ) : (
-                                                                            <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-md ${isAdmin ? 'bg-white/20 text-white' : 'bg-brand-500/20 text-brand-700'}`}>
+                                                                            <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-md ${isAdmin ? 'bg-black/10 text-current' : 'bg-brand-500/20 text-brand-700'}`}>
                                                                                 <Icon name="image" size={14} />
                                                                             </div>
                                                                         )}
@@ -418,7 +418,7 @@ export default function Messages() {
                                                                         </div>
                                                                         <a
                                                                             href={`/dashboard/projects/${m.project.order_no || m.project.id}`}
-                                                                            className={`shrink-0 rounded-md px-2 py-1 text-[10px] font-semibold transition-colors ${isAdmin ? 'bg-white text-brand-600 hover:bg-white/90' : 'bg-brand-600 text-white hover:bg-brand-700'}`}
+                                                                            className={`shrink-0 rounded-md px-2 py-1 text-[10px] font-semibold transition-colors ${isAdmin ? 'bg-black/10 text-current hover:bg-black/20' : 'action-surface'}`}
                                                                         >
                                                                             Detail
                                                                         </a>
@@ -426,7 +426,7 @@ export default function Messages() {
                                                                 )}
                                                                 {m.message && <p className="whitespace-pre-wrap leading-relaxed">{m.message}</p>}
                                                                 {m.attachment_url && (
-                                                                    <a href={m.attachment_url} target="_blank" rel="noreferrer" className={`mt-2 flex items-center gap-2 rounded-lg p-2 text-xs no-underline ${isAdmin ? 'bg-black/20 text-white hover:bg-black/30' : 'bg-white text-ink hover:bg-white/80'}`}>
+                                                                    <a href={m.attachment_url} target="_blank" rel="noreferrer" className={`mt-2 flex items-center gap-2 rounded-lg p-2 text-xs no-underline ${isAdmin ? 'bg-black/20 text-current hover:bg-black/30' : 'bg-white text-ink hover:bg-white/80'}`}>
                                                                         <Icon name="paperclip" size={14} /> <span>Lihat Lampiran</span>
                                                                     </a>
                                                                 )}
@@ -511,7 +511,7 @@ export default function Messages() {
                                                     placeholder="Ketik balasan..."
                                                 />
                                             </div>
-                                            <button type="submit" className="shrink-0 flex h-10 w-10 items-center justify-center rounded-full bg-brand-600 text-white hover:bg-brand-700 transition-colors disabled:opacity-40" disabled={sending || (!replyMsg.trim() && !file)}>
+                                            <button type="submit" className="shrink-0 flex h-10 w-10 items-center justify-center rounded-full action-surface transition-colors disabled:opacity-40" disabled={sending || (!replyMsg.trim() && !file)}>
                                                 <Icon name="send" size={18} />
                                             </button>
                                         </div>

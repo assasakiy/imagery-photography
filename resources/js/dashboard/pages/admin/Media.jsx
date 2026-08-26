@@ -144,7 +144,7 @@ export default function Media() {
                         key={tab.key}
                         onClick={() => setTypeFilter(tab.key)}
                         className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
-                            typeFilter === tab.key ? 'bg-brand-600 text-white' : 'bg-surface-muted text-ink-muted hover:text-ink'
+                            typeFilter === tab.key ? 'action-surface' : 'bg-surface-muted text-ink-muted hover:text-ink'
                         }`}
                     >
                         <Icon name={tab.icon} size={16} /> <span className="hidden sm:inline">{tab.label}</span>
@@ -257,7 +257,7 @@ export default function Media() {
                                                     toggleSelect(item.id);
                                                 }}
                                                 className={`absolute left-2 top-2 z-10 flex h-6 w-6 items-center justify-center rounded-md border-2 shadow transition-colors ${
-                                                    isSelected ? 'border-brand-600 bg-brand-600 text-white' : 'border-white bg-white/80 text-transparent'
+                                                    isSelected ? 'action-surface border-[var(--action-bg)]' : 'border-white bg-white/80 text-transparent'
                                                 }`}
                                                 aria-label="Pilih"
                                             >

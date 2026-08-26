@@ -183,7 +183,7 @@ export default function PayInvoice() {
                     return (
                         <div key={label} className="flex flex-col items-center gap-2 bg-body px-4">
                             <div className={`flex h-8 w-8 items-center justify-center rounded-full border-2 text-xs font-bold transition-colors ${
-                                isPast ? 'bg-brand-500 border-brand-500 text-white' : 
+                                isPast ? 'action-surface border-[var(--action-bg)]' :
                                 isCurrent ? 'border-brand-500 text-brand-600 dark:text-brand-400 bg-surface' : 
                                 'border-line text-ink-muted bg-surface'
                             }`}>

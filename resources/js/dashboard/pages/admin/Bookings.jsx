@@ -195,7 +195,7 @@ export default function Bookings() {
                             key={t.key}
                             onClick={() => setStatus(t.key)}
                             className={`inline-flex flex-shrink-0 items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
-                                status === t.key ? 'bg-brand-600 text-white' : 'bg-surface-muted text-ink-muted hover:text-ink'
+                                status === t.key ? 'action-surface' : 'bg-surface-muted text-ink-muted hover:text-ink'
                             }`}
                         >
                             <Icon name={t.icon} size={16} /> <span className="hidden sm:inline">{t.label}</span>

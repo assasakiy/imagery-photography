@@ -359,7 +359,7 @@ const [form, setForm] = useState({
                                     <button
                                         type="submit"
                                         disabled={saving || !isDirty || !form.title.trim() || !form.content.trim()}
-                                        className="inline-flex flex-1 items-center justify-center gap-2 rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-50"
+                                        className="inline-flex flex-1 items-center justify-center gap-2 rounded-md action-surface px-4 py-2 text-sm font-medium shadow-sm transition-colors disabled:cursor-not-allowed disabled:opacity-50"
                                     >
                                         {saving ? <ButtonSpinner /> : <Icon name="save" size={16} />}
                                         {isEdit ? 'Perbarui' : 'Terbitkan'}

@@ -71,7 +71,7 @@ export default function ForgotPassword() {
                         {APP.logo ? (
                             <img src={APP.logo} alt={APP.siteName || 'Sopian Lalu Imagery'} className="mx-auto mb-4 h-16 w-16 rounded-2xl object-cover shadow-lg ring-1 ring-line" />
                         ) : (
-                            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-600 text-white shadow-lg shadow-brand-600/30">
+                            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl action-surface shadow-lg shadow-black/10">
                                 <Icon name="lock" size={28} />
                             </div>
                         )}

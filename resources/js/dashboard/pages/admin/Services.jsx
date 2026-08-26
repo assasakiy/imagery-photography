@@ -234,7 +234,7 @@ export default function Services() {
                         type="button"
                         onClick={() => setView(v.key)}
                         className={`flex flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-xl px-3 py-2.5 text-sm font-semibold transition-colors ${
-                            view === v.key ? 'bg-brand-600 text-white shadow' : 'text-ink-muted hover:bg-surface-muted hover:text-ink'
+                            view === v.key ? 'action-surface shadow shadow-black/10' : 'text-ink-muted hover:bg-surface-muted hover:text-ink'
                         }`}
                     >
                         <Icon name={v.icon} size={16} /> {v.label}
@@ -334,12 +334,12 @@ export default function Services() {
                                 {services.map((s) => (
                                     <tr key={s.id}>
                                         <td className="font-medium text-ink">{s.event || '-'}</td>
-                                        <td><span className="badge bg-brand-500/15 text-brand-600 dark:text-brand-400">{s.media}</span></td>
+                                        <td><span className="badge [background-color:var(--accent-soft)] [color:var(--accent-fg)]">{s.media}</span></td>
                                         <td className="text-xs text-ink-muted">{s.terms || '-'}</td>
                                         <td className="text-xs text-ink-muted">{s.duration || '-'}</td>
                                         <td className="font-semibold text-ink">{formatRupiah(s.price)}</td>
                                         <td>
-                                            <span className={`badge ${s.active ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' : 'bg-zinc-500/15 text-zinc-500'}`}>
+                                            <span className={`badge ${s.active ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' : 'bg-surface-muted text-ink-muted'}`}>
                                                 {s.active ? 'Aktif' : 'Nonaktif'}
                                             </span>
                                         </td>
@@ -372,10 +372,10 @@ export default function Services() {
                                     <div className="min-w-0">
                                         <div className="flex flex-wrap items-center gap-2">
                                             <h3 className="font-bold text-ink">{p.name}</h3>
-                                            <span className="badge bg-brand-500/15 text-brand-600 dark:text-brand-400">{p.type.charAt(0).toUpperCase() + p.type.slice(1)}</span>
-                                            {p.is_featured && <span className="badge bg-amber-500/15 text-amber-600 dark:text-amber-400"><Icon name="star" size={12} /> Unggulan</span>}
-                                            {p.booking_count > 0 && <span className="badge bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">Populer</span>}
-                                            {!p.is_active && <span className="badge bg-zinc-500/15 text-zinc-500">Nonaktif</span>}
+                                            <span className="badge [background-color:var(--accent-soft)] [color:var(--accent-fg)]">{p.type.charAt(0).toUpperCase() + p.type.slice(1)}</span>
+                                            {p.is_featured && <span className="badge [background-color:var(--accent-soft)] [color:var(--accent-fg)]"><Icon name="star" size={12} /> Unggulan</span>}
+                                            {p.booking_count > 0 && <span className="badge [background-color:var(--accent-soft)] [color:var(--accent-fg)]">Populer</span>}
+                                            {!p.is_active && <span className="badge bg-surface-muted text-ink-muted">Nonaktif</span>}
                                         </div>
                                         {p.description && <p className="mt-1 text-sm text-ink-muted">{p.description}</p>}
                                     </div>

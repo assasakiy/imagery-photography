@@ -139,7 +139,7 @@ export default function MediaPicker({ open, onClose, onSelect, title = 'Pilih Me
                                     >
                                         <img src={item.thumbnail_url || item.url} alt={item.name} loading="lazy" className="h-full w-full object-cover" />
                                         {selected?.mediaId === item.id && (
-                                            <span className="absolute right-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-brand-600 text-white">
+                                            <span className="absolute right-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-full action-surface">
                                                 <Icon name="check" size={14} />
                                             </span>
                                         )}

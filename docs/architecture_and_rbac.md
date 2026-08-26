@@ -12,6 +12,7 @@ Proyek ini merupakan Monolith Laravel 13 yang menyajikan dua sisi:
 - Setiap palet mempunyai `primary` untuk aksi utama, `secondary` untuk permukaan CTA, dan `accent` untuk highlight.
 - Nilai disimpan sebagai settings key-value: `brand_primary_color`, `brand_secondary_color`, `brand_accent_color`, dan `brand_palette_template`; `brand_color` lama tetap menjadi fallback primary.
 - `BrandColors` menghasilkan scale runtime dan token semantik `--action-*`, `--brand-surface-*`, serta `--accent-*`. Foreground terang/gelap dipilih otomatis berdasarkan luminance agar teks tidak bertabrakan dengan background.
+- Class bersama `.action-surface` dipakai oleh auth, navigasi aktif, tab/filter terpilih, tombol kirim, indikator pilihan, dan badge action di dashboard. Badge klasifikasi layanan memakai `--accent-soft` + `--accent-fg`; warna status sukses/peringatan/error tetap semantik dan tidak mengikuti brand.
 
 ## Otentikasi & RBAC
 - **Library Utama**: Menggunakan `spatie/laravel-permission`. Tidak memakai kolom hardcode `role` lama (sudah migrasi).

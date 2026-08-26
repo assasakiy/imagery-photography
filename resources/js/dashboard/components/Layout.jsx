@@ -48,7 +48,7 @@ function NavGroup({ item, setSidebarOpen, unreadMessages, unreadBookings, pendin
                                 <Icon name={subItem.icon} size={18} className="shrink-0" />
                                 <span className="ml-3">{subItem.label}</span>
                                 {subItem.to === '/dashboard/messages' && unreadMessages > 0 && (
-                                    <span className="ml-auto flex h-5 w-5 items-center justify-center rounded-full bg-brand-600 text-[10px] font-bold text-white shadow-sm">
+                                    <span className="ml-auto flex h-5 w-5 items-center justify-center rounded-full action-surface text-[10px] font-bold shadow-sm">
                                         {unreadMessages > 9 ? '9+' : unreadMessages}
                                     </span>
                                 )}
@@ -247,7 +247,7 @@ export default function Layout() {
                                         const active = item.activePaths ? item.activePaths.includes(location.pathname) : isActive;
                                         return `flex items-center rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${
                                             active
-                                                ? 'bg-brand-600 text-white shadow-lg shadow-brand-600/20'
+                                                ? 'action-surface shadow-lg shadow-black/10'
                                                 : 'text-ink-muted hover:bg-surface-muted hover:text-ink'
                                         }`;
                                     }}
@@ -255,7 +255,7 @@ export default function Layout() {
                                     <Icon name={item.icon} size={18} className="shrink-0" />
                                     <span className="ml-3">{item.label}</span>
                                     {item.to === '/dashboard/messages' && unreadMessages > 0 && (
-                                        <span className="ml-auto flex h-5 w-5 items-center justify-center rounded-full bg-brand-600 text-[10px] font-bold text-white shadow-sm">
+                                        <span className="ml-auto flex h-5 w-5 items-center justify-center rounded-full action-surface text-[10px] font-bold shadow-sm">
                                             {unreadMessages > 9 ? '9+' : unreadMessages}
                                         </span>
                                     )}

@@ -18,7 +18,7 @@ function MethodOption({ selected, onClick, icon, title, subtitle, badge }) {
         >
             <span
                 className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-colors ${
-                    selected ? 'border-brand-600 bg-brand-600 text-white' : 'border-line bg-surface'
+                    selected ? 'action-surface border-[var(--action-bg)]' : 'border-line bg-surface'
                 }`}
             >
                 {selected && <Icon name="check" size={11} />}

@@ -69,7 +69,7 @@ export default function RecycleBin() {
                         type="button"
                         onClick={() => setType(key)}
                         className={`flex flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-xl px-3 py-2.5 text-sm font-semibold transition-colors ${
-                            type === key ? 'bg-brand-600 text-white shadow' : 'text-ink-muted hover:bg-surface-muted hover:text-ink'
+                            type === key ? 'action-surface shadow shadow-black/10' : 'text-ink-muted hover:bg-surface-muted hover:text-ink'
                         }`}
                     >
                         <Icon name={key === 'client' ? 'users' : key === 'blog' ? 'file' : key === 'subscriber' ? 'mail' : 'briefcase'} size={16} /> {label}

@@ -30,7 +30,7 @@ export default function ScrollToTop() {
             type="button"
             onClick={scrollToTop}
             aria-label="Kembali ke atas"
-            className={`fixed bottom-5 right-5 z-40 flex h-11 w-11 items-center justify-center rounded-full bg-brand-600 text-white shadow-lg shadow-brand-600/30 transition-all duration-300 hover:bg-brand-700 ${
+            className={`fixed bottom-5 right-5 z-40 flex h-11 w-11 items-center justify-center rounded-full action-surface shadow-lg shadow-black/10 transition-all duration-300 ${
                 visible ? 'translate-y-0 opacity-100' : 'pointer-events-none translate-y-4 opacity-0'
             }`}
         >
