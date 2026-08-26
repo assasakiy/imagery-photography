@@ -9,6 +9,38 @@
     <link rel="icon" type="image/svg+xml" href="{{ $siteFavicon }}">
     <link rel="icon" type="image/x-icon" href="{{ $siteFavicon }}">
     <link rel="apple-touch-icon" href="{{ $siteFavicon }}">
+    <link rel="canonical" href="{{ url()->current() }}">
+    @php
+        $siteLogoSetting = app(\App\Services\RuntimeSettings::class)->get('site_logo') ?? '';
+        $siteLogoOgUrl = null;
+        if (str_starts_with($siteLogoSetting, 'media:')) {
+            $mediaId = substr($siteLogoSetting, 6);
+            $media = Spatie\MediaLibrary\MediaCollections\Models\Media::find($mediaId);
+            if ($media && $media->hasGeneratedConversion('og')) {
+                $siteLogoOgUrl = $media->getUrl('og');
+            }
+        }
+        $defaultOgImage = $siteLogoOgUrl ?: $siteLogo;
+        $ogTitle = trim($__env->yieldContent('title', $siteName));
+        $ogDescription = trim($__env->yieldContent('meta_description', $siteDescription ?: ($siteName . ' - Photography & Videography profesional di Lombok. Mengabadikan momen berharga Anda.')));
+        $ogImage = trim($__env->yieldContent('og_image', $defaultOgImage));
+        $ogType = trim($__env->yieldContent('og_type', 'website'));
+    @endphp
+    <meta property="og:title" content="{{ $ogTitle }}">
+    <meta property="og:description" content="{{ $ogDescription }}">
+    <meta property="og:image" content="{{ $ogImage }}">
+    @if ($ogImage)
+        <meta property="og:image:width" content="1200">
+        <meta property="og:image:height" content="630">
+        <meta property="og:image:type" content="image/jpeg">
+    @endif
+    <meta property="og:type" content="{{ $ogType }}">
+    <meta property="og:url" content="{{ url()->current() }}">
+    <meta property="og:site_name" content="{{ $siteName }}">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{ $ogTitle }}">
+    <meta name="twitter:description" content="{{ $ogDescription }}">
+    <meta name="twitter:image" content="{{ $ogImage }}">
     <script>
         (function () {
             var theme = localStorage.getItem('theme');

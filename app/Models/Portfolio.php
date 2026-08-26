@@ -48,6 +48,12 @@ class Portfolio extends Model implements HasMedia
             ->width(800)
             ->format('webp')
             ->nonQueued();
+
+        $this->addMediaConversion('og')
+            ->fit(\Spatie\Image\Enums\Fit::Crop, 1200, 630)
+            ->format('jpg')
+            ->nonQueued()
+            ->performOnCollections('cover');
     }
 
     public function coverMedia(): ?Media
@@ -75,6 +81,19 @@ class Portfolio extends Model implements HasMedia
         try {
             if ($cover = $this->coverMedia()) {
                 return $cover->getUrl('thumbnail');
+            }
+        } catch (\Throwable $e) {}
+
+        return $this->cover_url;
+    }
+
+    public function getOgUrlAttribute(): ?string
+    {
+        try {
+            if ($cover = $this->coverMedia()) {
+                if ($cover->hasGeneratedConversion('og')) {
+                    return $cover->getUrl('og');
+                }
             }
         } catch (\Throwable $e) {}
 

@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
+use Spatie\Image\Enums\Fit;
 
 class MediaLibrary extends Model implements HasMedia
 {
@@ -37,6 +38,11 @@ class MediaLibrary extends Model implements HasMedia
         $this->addMediaConversion('preview')
             ->width(1200)
             ->format('webp')
+            ->nonQueued();
+
+        $this->addMediaConversion('og')
+            ->fit(Fit::Contain, 1200, 630)
+            ->format('jpg')
             ->nonQueued();
     }
 

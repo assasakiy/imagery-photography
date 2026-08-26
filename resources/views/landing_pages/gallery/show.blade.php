@@ -2,6 +2,7 @@
 
 @section('title', $portfolio->title)
 @section('meta_description', Str::limit(strip_tags($portfolio->description), 160))
+@section('og_image', $portfolio->og_url ?: '')
 
 @section('content')
     @php

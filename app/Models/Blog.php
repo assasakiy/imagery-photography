@@ -66,6 +66,12 @@ class Blog extends Model implements HasMedia
             ->width(1200)
             ->format('webp')
             ->nonQueued();
+
+        $this->addMediaConversion('og')
+            ->fit(\Spatie\Image\Enums\Fit::Crop, 1200, 630)
+            ->format('jpg')
+            ->nonQueued()
+            ->performOnCollections('cover');
     }
 
     public function scopePublished($query)
@@ -117,6 +123,19 @@ class Blog extends Model implements HasMedia
         try {
             if ($media = $this->coverMedia()) {
                 return $media->getUrl('medium');
+            }
+        } catch (\Throwable $e) {}
+
+        return $this->resolveCoverUrl();
+    }
+
+    public function getOgUrlAttribute(): ?string
+    {
+        try {
+            if ($media = $this->coverMedia()) {
+                if ($media->hasGeneratedConversion('og')) {
+                    return $media->getUrl('og');
+                }
             }
         } catch (\Throwable $e) {}
 

@@ -2,6 +2,8 @@
 
 @section('title', $post->title)
 @section('meta_description', $post->excerpt ?: Str::limit(content_plain($post->content), 160))
+@section('og_image', $post->og_url ?: '')
+@section('og_type', 'article')
 
 @section('content')
     <article class="container-site max-w-4xl py-12 md:py-16">

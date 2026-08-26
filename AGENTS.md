@@ -107,13 +107,15 @@ Halaman dashboard yang punya beberapa tab **WAJIB** dipisah ke folder `pages/<na
 - **Media Library**: model butuh `$fillable=['id']`; `LandingContent::setValue` pertahankan `group`; reset landing images meninggalkan media orphan (TODO).
 - **Test**: skrip di `/home/opc` (`spa_test.py`, `final_test.py`, `access_test.py`); `/etc/hosts` berisi `127.0.0.1 imagery.my.id`; `/tmp/opencode` TIDAK writable.
 
-## 13. Sesi Terbaru — Fix Registrasi OTP
+## 13. Sesi Terbaru — OG Image & Logo Fallback
 
-- `Register.jsx::verifyOtp` sekarang membaca payload `/subscribe/verify`.
-- User baru dengan `require_password: true` diarahkan ke `/set-password?token=...`, bukan langsung ke dashboard tanpa sesi.
-- Token di-encode dengan `encodeURIComponent` sebelum dimasukkan ke query string.
-- User aktif yang sudah terautentikasi tetap diarahkan ke `/dashboard` seperti sebelumnya.
-- Build Vite dan `git diff --check` sukses.
+- MediaLibrary conversion `og`: 1200x630 JPEG, `Fit::Contain`, nonQueued.
+- Accessor `og_url` menggunakan `hasGeneratedConversion('og')`.
+- Layout `app.blade.php` sekarang menampilkan canonical, OG, Twitter Card. Fallback `og:image` = logo OG → logo asli.
+- Blog detail override `og_image` pakai cover, `og_type=article`.
+- Gallery detail override `og_image` pakai cover portfolio.
+- Regenerasi logo existing: `media-library:regenerate App\\Models\\MediaLibrary --only=og --force`.
+- Build Vite sukses.
 
-*Rincian arsitektur auth ada di `docs/architecture_and_rbac.md`. Riwayat sesi sebelumnya ada di Git history.*
+*Rincian arsitektur ada di `docs/architecture_and_rbac.md`. Riwayat sesi sebelumnya ada di Git history.*
 
