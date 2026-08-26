@@ -66,12 +66,12 @@
     @if ($history || count($timeline))
         <section class="border-t border-line bg-zinc-100/60 dark:bg-zinc-900/40">
             <div class="container-site py-16 md:py-20">
-                <div class="mx-auto max-w-3xl text-center">
+                <div class="reveal mx-auto max-w-3xl text-center">
                     <p class="mb-3 text-sm font-semibold uppercase tracking-widest text-brand-600 dark:text-brand-400">{{ $perjalananSubtitle }}</p>
                     <h2 class="section-heading text-ink">{{ $perjalananTitle }}</h2>
                 </div>
 
-                <div class="mx-auto mt-12 max-w-3xl">
+                <div class="reveal mx-auto mt-12 max-w-3xl">
                     @if ($history)
                         <div class="rich-content mb-14 text-center">
                             {!! content_html($history) !!}
@@ -87,7 +87,7 @@
                                         <span class="absolute left-0 top-4 flex h-5 w-5 -translate-x-1/2 items-center justify-center rounded-full border-2 border-brand-600 bg-zinc-50 dark:bg-zinc-950">
                                             <span class="h-2 w-2 rounded-full bg-brand-600"></span>
                                         </span>
-                                        <div class="card p-5">
+                                        <div class="reveal reveal-scale card p-5">
                                             <p class="text-sm font-bold text-brand-600 dark:text-brand-400">{{ $point['year'] }}</p>
                                             <p class="mt-2 leading-relaxed text-ink-muted">{{ $point['text'] ?? '' }}</p>
                                         </div>
@@ -111,7 +111,7 @@
             ];
         @endphp
         <section class="container-site py-16 md:py-20">
-            <div class="mb-12 text-center">
+                <div class="reveal mb-12 text-center">
                 <p class="mb-3 text-sm font-semibold uppercase tracking-widest text-brand-600 dark:text-brand-400">{{ $timSubtitle }}</p>
                 <h2 class="section-heading text-ink">{{ $timTitle }}</h2>
             </div>

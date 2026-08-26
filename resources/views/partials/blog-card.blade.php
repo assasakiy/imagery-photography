@@ -14,7 +14,7 @@
     $cover = $post->thumbnail_url;
 @endphp
 
-<article class="group flex h-full flex-col gap-3">
+<article class="reveal reveal-scale group flex h-full flex-col gap-3">
     <a href="{{ route('blog.show', $post->slug) }}" class="block aspect-[16/9] overflow-hidden rounded-lg border border-line bg-surface-muted" tabindex="-1" aria-hidden="true">
         @if ($cover)
             <img src="{{ $cover }}" alt="{{ $post->title }}" width="400" height="225" loading="lazy" decoding="async" sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw" class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]">

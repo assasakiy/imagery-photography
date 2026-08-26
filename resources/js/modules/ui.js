@@ -51,16 +51,27 @@ export function initMobileMenu() {
 export function initReveal() {
     const revealEls = document.querySelectorAll('.reveal');
     if (revealEls.length && 'IntersectionObserver' in window) {
+        let delayCounter = 0;
+        let batchTimeout = null;
+
         const observer = new IntersectionObserver(
             (entries) => {
                 entries.forEach((entry) => {
                     if (entry.isIntersecting) {
+                        entry.target.style.setProperty('--reveal-delay', `${delayCounter * 100}ms`);
                         entry.target.classList.add('is-visible');
                         observer.unobserve(entry.target);
+
+                        delayCounter++;
+
+                        if (batchTimeout) clearTimeout(batchTimeout);
+                        batchTimeout = setTimeout(() => {
+                            delayCounter = 0;
+                        }, 200);
                     }
                 });
             },
-            { threshold: 0.1 },
+            { threshold: 0.05, rootMargin: '0px 0px -50px 0px' },
         );
         revealEls.forEach((el) => observer.observe(el));
     } else {

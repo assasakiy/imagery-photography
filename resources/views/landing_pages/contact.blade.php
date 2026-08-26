@@ -14,7 +14,7 @@
     <section class="container-site py-16 md:py-20">
         <div class="grid grid-cols-1 items-stretch gap-10 lg:grid-cols-5">
             <div class="space-y-5 lg:col-span-2">
-                <div class="card flex h-full flex-col p-6 sm:p-7">
+                <div class="reveal reveal-left card flex h-full flex-col p-6 sm:p-7">
                     <h2 class="text-lg font-bold text-ink">Informasi Kontak</h2>
                     <p class="mt-1 text-sm text-ink-muted">Hubungi kami melalui saluran di bawah ini.</p>
 
@@ -79,7 +79,7 @@
             </div>
 
             <div class="lg:col-span-3">
-                <div class="card flex h-full flex-col p-6 sm:p-8">
+                <div class="reveal reveal-right card flex h-full flex-col p-6 sm:p-8">
                     <h2 class="text-xl font-bold text-ink">Kirim Pesan</h2>
                     <p class="mt-1 text-sm text-ink-muted">Kami akan membalas secepatnya.</p>
 

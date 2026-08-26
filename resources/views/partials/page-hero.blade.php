@@ -18,7 +18,7 @@
 
 <section class="relative overflow-hidden border-b border-line bg-zinc-100/60 dark:bg-zinc-900/40">
     <div class="absolute -right-32 -top-32 h-96 w-96 rounded-full bg-brand-600/10 blur-3xl"></div>
-    <div class="container-site py-16 md:py-20 {{ $align === 'center' ? 'text-center' : '' }}">
+    <div class="reveal reveal-scale container-site py-16 md:py-20 {{ $align === 'center' ? 'text-center' : '' }}">
         @if ($resolvedBadge)
             <p class="mb-3 text-sm font-semibold uppercase tracking-widest [color:var(--accent-fg)]">{{ $resolvedBadge }}</p>
         @endif

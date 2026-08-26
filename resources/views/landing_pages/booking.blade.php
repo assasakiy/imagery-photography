@@ -29,7 +29,7 @@
                     </div>
                 @endif
 
-                <form method="POST" action="{{ route('booking.store') }}" class="card space-y-6 p-6 md:p-8">
+                <form method="POST" action="{{ route('booking.store') }}" class="reveal reveal-scale card space-y-6 p-6 md:p-8">
                     @csrf
 
                     <div class="flex items-center gap-3 border-b border-line pb-5">
@@ -212,7 +212,7 @@
                             ->values()
                             ->take(3);
                     @endphp
-                    <div class="card flex-1 p-5" id="bcard">
+                    <div class="reveal reveal-right card flex-1 p-5" id="bcard">
                         <p class="mb-4 text-sm font-semibold uppercase tracking-wide text-ink-muted" id="bcard_label">{{ $populerTitle }}</p>
                         <div class="space-y-3" id="bcard_list">
                             @foreach ($popularCards as $i => $pkg)

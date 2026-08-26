@@ -35,7 +35,7 @@
         <div class="absolute inset-0 bg-zinc-950/70 dark:bg-black/70"></div>
 
         <div class="container-site relative py-24">
-            <div class="max-w-2xl">
+            <div class="reveal reveal-left max-w-2xl">
                 <p class="mb-4 inline-flex items-center gap-2 rounded-full border border-white/20 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-white/80">
                     <span class="h-2 w-2 rounded-full bg-brand-400"></span>
                     {{ $homeBadge }}
@@ -66,13 +66,13 @@
     {{-- About --}}
     <section id="tentang" class="py-24">
         <div class="container-site grid grid-cols-1 items-center gap-12 lg:grid-cols-2">
-            <div class="reveal order-2 lg:order-1">
+            <div class="reveal reveal-left order-2 lg:order-1">
                 <div class="relative overflow-hidden rounded-3xl ring-1 ring-line">
                     <img src="{{ $aboutImage }}" alt="{{ $homeAboutTitle }}" width="1200" height="1200" loading="lazy" decoding="async" class="aspect-[4/5] w-full object-cover lg:aspect-square">
                     <div class="absolute inset-0 bg-gradient-to-t from-zinc-950/30 to-transparent"></div>
                 </div>
             </div>
-            <div class="reveal order-1 lg:order-2">
+            <div class="reveal reveal-right order-1 lg:order-2">
                 <p class="mb-3 text-sm font-semibold uppercase tracking-widest text-brand-600 dark:text-brand-400">{{ $homeAboutSubtitle }}</p>
                 <h2 class="section-heading text-ink">{{ $homeAboutTitle }}</h2>
                 <p class="mt-6 leading-relaxed text-ink-muted">{{ content_first_sentences($homeAboutContent, 3) }}</p>

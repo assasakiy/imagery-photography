@@ -29,13 +29,13 @@
     @if ($satuanServices->isNotEmpty())
         <section class="border-t border-line bg-zinc-100/60 py-20 dark:bg-zinc-900/40">
             <div class="container-site">
-                <div class="mb-12 text-center">
+                <div class="reveal mb-12 text-center">
                     <p class="mb-3 text-sm font-semibold uppercase tracking-widest text-brand-600 dark:text-brand-400">{{ $satuanSubtitle }}</p>
                     <h2 class="section-heading text-ink">{{ $satuanTitle }}</h2>
                 </div>
                 <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                     @foreach ($satuanServices->groupBy('event') as $event => $rows)
-                        <div class="card p-5">
+                            <div class="reveal reveal-scale card p-5">
                             <span class="font-semibold text-ink">{{ $event }}</span>
                             <ul class="mt-3 space-y-2">
                                 @foreach ($rows as $svc)
@@ -90,7 +90,7 @@
     @if ($ultimatePackages->isNotEmpty())
         <section class="border-t border-line bg-zinc-100/60 py-20 dark:bg-zinc-900/40">
             <div class="container-site">
-                <div class="mb-12 text-center">
+                <div class="reveal mb-12 text-center">
                     <p class="mb-3 text-sm font-semibold uppercase tracking-widest text-brand-600 dark:text-brand-400">{{ $ultimateSubtitle }}</p>
                     <h2 class="section-heading text-ink">{{ $ultimateTitle }}</h2>
                 </div>
@@ -132,7 +132,7 @@
     @if ($faqs->isNotEmpty())
         <section class="border-t border-line bg-zinc-100/60 py-20 dark:bg-zinc-900/40">
             <div class="container-site">
-                <div class="mb-12 text-center">
+                <div class="reveal mb-12 text-center">
                     <p class="mb-3 text-sm font-semibold uppercase tracking-widest text-brand-600 dark:text-brand-400">{{ $faqSubtitle }}</p>
                     <h2 class="section-heading text-ink">{{ $faqTitle }}</h2>
                 </div>
