@@ -24,12 +24,13 @@ RUN apk add --no-cache \
     libpng-dev \
     libjpeg-turbo-dev \
     freetype-dev \
+    libwebp-dev \
     icu-dev \
     oniguruma-dev \
     gmp-dev \
     mysql-client \
     curl \
-    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
     && docker-php-ext-install -j$(nproc) pdo_mysql mbstring zip exif pcntl gd gmp \
     && docker-php-ext-enable opcache
 
