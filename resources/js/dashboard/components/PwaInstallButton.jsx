@@ -1,10 +1,16 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Icon from './Icon';
 import { usePwaInstall } from '../hooks/usePwaInstall';
 
 export default function PwaInstallButton({ compact = false }) {
     const { canInstall, installed, ios, install } = usePwaInstall();
     const [open, setOpen] = useState(false);
+    const [showLabel, setShowLabel] = useState(true);
+
+    useEffect(() => {
+        const timer = setTimeout(() => setShowLabel(false), 3500);
+        return () => clearTimeout(timer);
+    }, []);
 
     if (installed || !canInstall) return null;
 
@@ -18,9 +24,9 @@ export default function PwaInstallButton({ compact = false }) {
 
     return (
         <>
-            <button type="button" onClick={handleClick} className={compact ? 'flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-ink-muted hover:bg-surface-muted hover:text-ink' : 'btn-primary'}>
+            <button type="button" onClick={handleClick} title="Pasang Aplikasi" aria-label="Pasang Aplikasi" className={compact ? 'flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-ink-muted hover:bg-surface-muted hover:text-ink' : 'btn-primary'}>
                 <Icon name="download" size={16} />
-                <span>{compact ? 'Pasang Aplikasi' : 'Pasang Aplikasi'}</span>
+                {showLabel && <span className="whitespace-nowrap">Pasang Aplikasi</span>}
             </button>
             {open && ios && (
                 <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-4 sm:items-center" onClick={() => setOpen(false)}>
