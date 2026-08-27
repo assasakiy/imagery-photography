@@ -128,10 +128,14 @@ export default function Register() {
     return (
         <div className="flex min-h-screen items-center justify-center bg-zinc-100 p-4 dark:bg-zinc-950">
             <div className="w-full max-w-md">
-                <div className="absolute right-4 top-4 flex items-center gap-1 rounded-xl border border-line bg-surface/90 p-1 shadow-sm backdrop-blur">
+                <div className="fixed right-4 top-4 z-20 flex items-center gap-1 rounded-xl border border-line bg-surface/90 p-1 shadow-sm backdrop-blur">
                     <PwaInstallButton compact />
-                    <button onClick={toggle} className="rounded-lg p-2 text-ink-muted hover:bg-surface-muted hover:text-ink" aria-label="Ganti tema">
-                        <Icon name={theme === 'dark' ? 'sun' : 'moon'} size={20} />
+                    <button onClick={toggle} className="group flex items-center gap-2 rounded-lg px-1.5 py-1 text-ink-muted hover:bg-surface-muted hover:text-ink" aria-label="Ganti tema">
+                        <span className="relative flex h-7 w-12 shrink-0 items-center rounded-full bg-zinc-200 px-1 transition-colors duration-300 dark:bg-zinc-700">
+                            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-white shadow-sm transition-transform duration-300 dark:translate-x-5 dark:shadow-md">
+                                <Icon name={theme === 'dark' ? 'moon' : 'sun'} size={12} className={theme === 'dark' ? 'text-brand-400' : 'text-amber-500'} />
+                            </span>
+                        </span>
                     </button>
                 </div>
                 <div className="card p-8">
