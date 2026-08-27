@@ -6,6 +6,7 @@ import Icon from '../../components/Icon';
 import Button from '../../components/Button';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
+import PwaInstallButton from '../../components/PwaInstallButton';
 
 import { PasswordInput } from '../../components/ui';
 
@@ -118,10 +119,13 @@ export default function Login() {
                     </button>
                 </div>
 
+                <div className="mb-4 flex justify-center">
+                    <PwaInstallButton />
+                </div>
                 <div className="card p-8">
                     <div className="mb-8 text-center">
                         {APP.logo ? (
-                            <img src={APP.logo} alt={APP.siteName || 'Sopian Lalu Imagery'} className="mx-auto mb-4 h-16 w-16 rounded-2xl object-cover shadow-lg ring-1 ring-line" />
+                            <img src={APP.logo} alt={APP.siteName || 'Sopian Lalu Imagery'} className="mx-auto mb-4 h-16 w-16 rounded-lg object-contain" />
                         ) : (
                             <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl action-surface shadow-lg shadow-black/10">
                                 <Icon name="camera" size={28} />
