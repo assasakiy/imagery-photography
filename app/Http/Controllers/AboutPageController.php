@@ -15,7 +15,7 @@ class AboutPageController extends Controller
         $page = Page::where('slug', 'tentang')->first();
 
         $aboutImage = $page
-            ? AssetResolver::pageImage($page, 'about_image', AssetResolver::DEFAULT_ABOUT_IMAGE, 'preview')
+            ? AssetResolver::pageImage($page, 'about_image', AssetResolver::DEFAULT_ABOUT_IMAGE)
             : AssetResolver::DEFAULT_ABOUT_IMAGE;
 
         $sections = is_array($page?->sections) ? $page->sections : [];
