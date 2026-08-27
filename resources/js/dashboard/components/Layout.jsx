@@ -4,6 +4,7 @@ import Icon from './Icon';
 import Avatar from './Avatar';
 import Toggle from './Toggle';
 import ScrollToTop from './ScrollToTop';
+import PwaInstallButton from './PwaInstallButton';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { useBadges } from '../context/BadgeContext';
@@ -303,6 +304,7 @@ export default function Layout() {
                     </div>
 
                     <div className="flex items-center gap-1 sm:gap-2">
+                        <PwaInstallButton compact />
                         <Link
                             to="/dashboard/notifications"
                             className="relative rounded-lg p-2 text-ink-muted hover:bg-surface-muted hover:text-ink"

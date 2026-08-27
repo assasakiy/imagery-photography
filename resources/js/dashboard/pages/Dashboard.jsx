@@ -8,7 +8,6 @@ import { StatCardsSkeleton, ChartSkeleton } from '../components/Skeleton';
 import { useAuth } from '../context/AuthContext';
 import { prefetchAllRoutesInBackground } from '../routes/prefetchAll';
 import PushPrompt from '../components/PushPrompt';
-import PwaInstallButton from '../components/PwaInstallButton';
 
 export default function Dashboard() {
     const { user } = useAuth();
@@ -81,7 +80,6 @@ export default function Dashboard() {
                 <PageHeader
                     title="Dashboard"
                     subtitle={`Selamat datang kembali, ${user?.name}`}
-                    action={<PwaInstallButton compact />}
                 />
 
                 <PushPrompt />
@@ -228,7 +226,7 @@ export default function Dashboard() {
 
     return (
         <>
-            <PageHeader title="Portal Klien" subtitle={`Halo, ${user?.name}`} action={<PwaInstallButton compact />} />
+            <PageHeader title="Portal Klien" subtitle={`Halo, ${user?.name}`} />
             {user?.has_password === false && (
                 <div className="mb-4 flex items-start gap-3 rounded-2xl border border-amber-400/40 bg-amber-50/80 px-5 py-4 dark:bg-amber-500/10">
                     <Icon name="shield" size={20} className="mt-0.5 shrink-0 text-amber-500" />

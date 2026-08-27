@@ -128,14 +128,11 @@ export default function Register() {
     return (
         <div className="flex min-h-screen items-center justify-center bg-zinc-100 p-4 dark:bg-zinc-950">
             <div className="w-full max-w-md">
-                <div className="absolute right-4 top-4">
+                <div className="absolute right-4 top-4 flex items-center gap-2">
+                    <PwaInstallButton compact />
                     <button onClick={toggle} className="rounded-xl bg-surface p-2 text-ink-muted shadow-sm hover:text-ink" aria-label="Ganti tema">
                         <Icon name={theme === 'dark' ? 'sun' : 'moon'} size={20} />
                     </button>
-                </div>
-
-                <div className="mb-4 flex justify-center">
-                    <PwaInstallButton />
                 </div>
                 <div className="card p-8">
                     <div className="mb-8 text-center">
