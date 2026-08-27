@@ -47,7 +47,7 @@
             <div class="reveal relative mx-auto w-full max-w-md lg:order-1 lg:col-span-2 lg:mx-0 lg:max-w-none">
                 <div class="absolute -inset-4 -z-10 rounded-3xl bg-brand-600/10 blur-2xl"></div>
                 <div class="relative overflow-hidden rounded-2xl border border-line shadow-lg shadow-black/5">
-                    <img src="{{ $page ? \App\Services\AssetResolver::pageImage($page, 'about_image', \App\Services\AssetResolver::DEFAULT_ABOUT_IMAGE, 'preview') : \App\Services\AssetResolver::DEFAULT_ABOUT_IMAGE }}" alt="{{ $page?->hero_title ?: 'Cerita Kami' }}" class="aspect-square w-full object-cover">
+                    <img src="{{ $aboutImage }}" alt="{{ $page?->hero_title ?: 'Cerita Kami' }}" class="aspect-square w-full object-cover">
                     <div class="absolute inset-0 bg-gradient-to-t from-zinc-950/25 to-transparent"></div>
                 </div>
             </div>
