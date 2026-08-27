@@ -109,11 +109,11 @@ export default function Login() {
     return (
         <div className="flex min-h-screen items-center justify-center bg-zinc-100 p-4 dark:bg-zinc-950">
             <div className="w-full max-w-md">
-                <div className="absolute right-4 top-4 flex items-center gap-2">
+                <div className="absolute right-4 top-4 flex items-center gap-1 rounded-xl border border-line bg-surface/90 p-1 shadow-sm backdrop-blur">
                     <PwaInstallButton compact />
                     <button
                         onClick={toggle}
-                        className="rounded-xl bg-surface p-2 text-ink-muted shadow-sm hover:text-ink"
+                        className="rounded-lg p-2 text-ink-muted hover:bg-surface-muted hover:text-ink"
                         aria-label="Ganti tema"
                     >
                         <Icon name={theme === 'dark' ? 'sun' : 'moon'} size={20} />
