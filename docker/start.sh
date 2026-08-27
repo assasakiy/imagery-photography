@@ -14,6 +14,15 @@ touch storage/logs/laravel.log
 chown -R www-data:www-data storage bootstrap/cache
 chmod -R 775 storage bootstrap/cache
 
+# Auto-detect APP_URL if not set or still localhost
+if [ -z "$APP_URL" ] || echo "$APP_URL" | grep -q "localhost"; then
+    if [ -n "$COOLIFY_FQDN" ]; then
+        export APP_URL="$COOLIFY_FQDN"
+    elif [ -n "$VIRTUAL_HOST" ]; then
+        export APP_URL="https://$VIRTUAL_HOST"
+    fi
+fi
+
 # Generate APP_KEY if missing
 if [ -z "$APP_KEY" ]; then
     echo "APP_KEY is missing. Generating one..."

@@ -26,7 +26,7 @@ export default function BrandingTab({ form, meta, errors, saving, set, save, dir
                         <Field label="Logo" hint="gambar persegi/transparan">
                             <div className="flex items-center gap-3">
                                 {form.site_logo ? (
-                                    <img src={previewUrls.site_logo || meta.site_logo_url} alt="Logo" className="h-16 w-16 rounded-xl border border-line bg-surface-muted object-cover" />
+                                    <img src={previewUrls.site_logo || meta.site_logo_url} alt="Logo" className="h-16 w-16 rounded-lg object-contain" />
                                 ) : (
                                     <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl border border-dashed border-line bg-surface-muted text-ink-muted">
                                         <Icon name="image" size={24} />
@@ -43,7 +43,7 @@ export default function BrandingTab({ form, meta, errors, saving, set, save, dir
                         <Field label="Favicon" hint="ikon kecil di tab browser">
                             <div className="flex items-center gap-3">
                                 {form.site_favicon ? (
-                                    <img src={previewUrls.site_favicon || meta.site_favicon_url} alt="Favicon" className="h-16 w-16 rounded-xl border border-line bg-surface-muted object-cover" />
+                                    <img src={previewUrls.site_favicon || meta.site_favicon_url} alt="Favicon" className="h-16 w-16 rounded-lg object-contain" />
                                 ) : (
                                     <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl border border-dashed border-line bg-surface-muted text-ink-muted">
                                         <Icon name="image" size={24} />

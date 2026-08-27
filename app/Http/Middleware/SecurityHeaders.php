@@ -32,7 +32,7 @@ class SecurityHeaders
             
             // Content Security Policy dasar: mencegah XSS (mengizinkan script & gaya lokal, analitik standar, dll.)
             // Konfigurasi longgar yang aman untuk mencegah XSS inline namun tetap mendukung aset eksternal dan Laravel Vite
-            $csp = "default-src 'self' data: https: wss:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https:; style-src 'self' 'unsafe-inline' https:; img-src 'self' data: blob: https:; font-src 'self' data: https:;";
+            $csp = "default-src 'self' data: http: https: wss:; script-src 'self' 'unsafe-inline' 'unsafe-eval' http: https:; style-src 'self' 'unsafe-inline' http: https:; img-src 'self' data: blob: http: https:; font-src 'self' data: http: https:;";
             $response->header('Content-Security-Policy', $csp);
             
             // Hapus versi PHP jika ditambahkan di runtime (opsional sebagai proteksi lapis dua jika expose_php tidak mati di php.ini)
